@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["builder",""]],"struct":[["CompiledFunction","Compiled function: machine code body, jump table offsets, and unwind information."]]};

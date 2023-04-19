@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["generate_protocol_config","Generates a [`ProtocolConfig`] for the light client request protocol, refusing incoming requests."]],"mod":[["handler","For incoming light client requests. Helper for incoming light client requests."]]};

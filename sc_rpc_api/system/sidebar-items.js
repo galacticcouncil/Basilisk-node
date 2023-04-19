@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["error","System RPC module errors."],["helpers","Substrate system API helpers."]],"trait":[["SystemApiClient","Client implementation for the `SystemApi` RPC API."],["SystemApiServer","Server trait implementation for the `SystemApi` RPC API."]]};

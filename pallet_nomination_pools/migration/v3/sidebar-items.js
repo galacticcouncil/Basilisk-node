@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["MigrateToV3","This migration removes stale bonded-pool metadata, if any."]]};

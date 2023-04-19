@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["entropy","Obtain a series of random bytes."]]};

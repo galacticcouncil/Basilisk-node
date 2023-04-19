@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["old","Old governance configurations for the Kusama runtime."]]};

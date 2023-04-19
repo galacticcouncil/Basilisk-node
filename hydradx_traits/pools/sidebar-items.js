@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["DustRemovalAccountWhitelist","Manage list of non-dustable accounts"],["SpotPriceProvider",""]]};

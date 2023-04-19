@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"type":[["AuthorityId","An Aura authority identifier using S/R 25519 as its crypto."],["AuthorityPair","An Aura authority keypair using S/R 25519 as its crypto."],["AuthoritySignature","An Aura authority signature using S/R 25519 as its crypto."]]};

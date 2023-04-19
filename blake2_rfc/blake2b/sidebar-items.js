@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["blake2b","Convenience function for all-in-one computation."],["selftest","Runs the self-test for this hash function."]],"struct":[["Blake2b","State context."],["Blake2bResult","Container for a hash result."]]};

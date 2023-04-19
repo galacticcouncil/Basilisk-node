@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"attr":[["fatality",""]],"trait":[["Fatality","Determine the fatality of an error."],["Nested","Converts a flat, yet `splitable` error into a nested `Result<Result<_,Jfyi>, Fatal>` error type."],["Split","Allows to split an error into two types - a fatal and a informational enum error type, that can be further consumed."]]};

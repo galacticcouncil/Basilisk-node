@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["prompt_password","Prompts on the TTY and then reads a password from TTY"],["prompt_password_from_bufread","Prompts on the TTY and then reads a password from anything that implements BufRead"],["read_password","Reads a password from the TTY"],["read_password_from_bufread","Reads a password from anything that implements BufRead"]]};

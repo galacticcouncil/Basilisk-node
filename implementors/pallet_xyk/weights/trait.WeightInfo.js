@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"common_runtime":[["impl&lt;T:&nbsp;<a class=\"trait\" href=\"frame_system/pallet/trait.Config.html\" title=\"trait frame_system::pallet::Config\">Config</a>&gt; <a class=\"trait\" href=\"pallet_xyk/weights/trait.WeightInfo.html\" title=\"trait pallet_xyk::weights::WeightInfo\">WeightInfo</a> for <a class=\"struct\" href=\"common_runtime/weights/xyk/struct.BasiliskWeight.html\" title=\"struct common_runtime::weights::xyk::BasiliskWeight\">BasiliskWeight</a>&lt;T&gt;"]],
+"pallet_xyk":[]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["decode","Decode an upper Base16 (hex) string into the provided destination buffer."],["encode","Encode the input byte slice as upper Base16."],["encode_str","Encode input byte slice into a [`&str`] containing upper Base16 (hex)."]]};

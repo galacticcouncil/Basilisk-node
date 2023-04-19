@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"attr":[["impl_for_tuples","See crate documentation."]]};

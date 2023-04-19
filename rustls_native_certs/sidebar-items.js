@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["load_native_certs","Load root certificates found in the platform’s native certificate store."]],"struct":[["Certificate","A newtype representing a single DER-encoded X.509 certificate encoded as a `Vec<u8>`."]]};

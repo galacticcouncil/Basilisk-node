@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["MigrateUniquesPallet","Migrate the Uniques pallet storage to v1"],["OnRuntimeUpgradeMigration",""]]};

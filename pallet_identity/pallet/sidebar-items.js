@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Call","Identity pallet declaration."],["Error","Custom dispatch errors of this pallet."],["Event","The event emitted by this pallet."]],"struct":[["Pallet","The pallet implementing the on-chain logic."]],"trait":[["Config","Configuration trait of this pallet."]],"type":[["Module","Type alias to `Pallet`, to be used by `construct_runtime`."]]};

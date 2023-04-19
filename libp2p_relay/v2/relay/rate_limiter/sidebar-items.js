@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["new_per_ip",""],["new_per_peer",""]],"struct":[["GenericRateLimiter","Rate limiter using the Token Bucket algorithm."],["GenericRateLimiterConfig","Configuration for a [`RateLimiter`]."]],"trait":[["RateLimiter","Allows rate limiting access to some resource based on the [`PeerId`] and [`Multiaddr`] of a remote peer."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["new_async_externalities","New Async externalities."],["spawn","Spawn new runtime task (native)."]],"struct":[["AsyncExternalities","Simple state-less externalities for use in async context."],["DataJoinHandle","Task handle (wasm)."]]};

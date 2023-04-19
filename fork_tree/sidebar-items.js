@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error","Error occurred when iterating with the tree."],["FilterAction","Filtering action."],["FinalizationResult","Result of finalizing a node (that could be a part of the tree or not)."]],"struct":[["ForkTree","A tree data structure that stores several nodes across multiple branches."]]};

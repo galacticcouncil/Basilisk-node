@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["GossipSupport","The Gossip Support subsystem."]]};

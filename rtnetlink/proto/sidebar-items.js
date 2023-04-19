@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error",""],["NetlinkPayload",""]],"struct":[["Connection","Connection to a Netlink socket, running in the background."],["ConnectionHandle","A handle to pass requests to a `Connection`."],["NetlinkMessage","Represent a netlink message."]]};

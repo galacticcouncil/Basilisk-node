@@ -1,0 +1,5 @@
+(function() {var implementors = {
+"libp2p":[],
+"libp2p_kad":[["impl&lt;TUserData&gt; <a class=\"trait\" href=\"libp2p_swarm/handler/trait.ConnectionHandler.html\" title=\"trait libp2p_swarm::handler::ConnectionHandler\">ConnectionHandler</a> for <a class=\"struct\" href=\"libp2p_kad/handler/struct.KademliaHandler.html\" title=\"struct libp2p_kad::handler::KademliaHandler\">KademliaHandler</a>&lt;TUserData&gt;<span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;TUserData: <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html\" title=\"trait core::clone::Clone\">Clone</a> + <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html\" title=\"trait core::fmt::Debug\">Debug</a> + <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/marker/trait.Send.html\" title=\"trait core::marker::Send\">Send</a> + 'static,</span>"]],
+"libp2p_swarm":[]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

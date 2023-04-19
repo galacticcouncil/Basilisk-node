@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["BlockCheckStatus",""]],"fn":[["build_inprocess_relay_chain","Builds a relay chain interface by constructing a full relay chain node"],["check_block_in_chain",""]],"struct":[["RelayChainInProcessInterface","Provides an implementation of the [`RelayChainInterface`] using a local in-process relay chain node."]]};

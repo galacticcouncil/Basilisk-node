@@ -1,0 +1,219 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`netlink-packet-core` provides a generic netlink message `NetlinkMessage&lt;T&gt;` that is independant of the sub-protocol. Such messages are not very useful by themselves, since they are just used to carry protocol-dependant messages. That is what the `T` represent: `T` is the `NetlinkMessage`’s protocol-dependant message. This can be any type that implements `NetlinkSerializable` and `NetlinkDeserializable`."><meta name="keywords" content="rust, rustlang, rust-lang, netlink_packet_core"><title>netlink_packet_core - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../netlink_packet_core/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../netlink_packet_core/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate netlink_packet_core</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 0.4.2</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li><li><a href="#traits">Traits</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Crate <a class="mod" href="#">netlink_packet_core</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/netlink_packet_core/lib.rs.html#3-269">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>netlink-packet-core</code> provides a generic netlink message
+<code>NetlinkMessage&lt;T&gt;</code> that is independant of the sub-protocol. Such
+messages are not very useful by themselves, since they are just
+used to carry protocol-dependant messages. That is what the <code>T</code>
+represent: <code>T</code> is the <code>NetlinkMessage</code>’s protocol-dependant
+message. This can be any type that implements
+<code>NetlinkSerializable</code> and <code>NetlinkDeserializable</code>.</p>
+<p>For instance, the <code>netlink-packet-route</code> crate provides rtnetlink
+messages via <code>netlink_packet_route::RtnlMessage</code>, and
+<code>netlink-packet-audit</code> provides audit messages via
+<code>netlink_packet_audit::AuditMessage</code>.</p>
+<p>By itself, the <code>netlink-packet-core</code> crate is not very
+useful. However, it is used in <code>netlink-proto</code> to provide an
+asynchronous implementation of the netlink protocol for any
+sub-protocol. Thus, a crate that defines messages for a given
+netlink sub-protocol could integrate with <code>netlink-packet-core</code>
+and would get an asynchronous implementation for free. See the
+second example below for such an integration, via the
+<code>NetlinkSerializable</code> and <code>NetlinkDeserializable</code> traits.</p>
+<h2 id="example-usage-with-netlink-packet-route"><a href="#example-usage-with-netlink-packet-route">Example: usage with <code>netlink-packet-route</code></a></h2>
+<p>This example shows how to serialize and deserialize netlink packet
+for the rtnetlink sub-protocol. It requires
+<code>netlink-packet-route</code>.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>netlink_packet_core::{NetlinkHeader, NetlinkMessage, NLM_F_DUMP, NLM_F_REQUEST};
+<span class="kw">use </span>netlink_packet_route::{LinkMessage, RtnlMessage};
+
+<span class="comment">// Create the netlink message, that contains the rtnetlink
+// message
+</span><span class="kw">let </span><span class="kw-2">mut </span>packet = NetlinkMessage {
+    header: NetlinkHeader {
+        sequence_number: <span class="number">1</span>,
+        flags: NLM_F_DUMP | NLM_F_REQUEST,
+        ..Default::default()
+    },
+    payload: RtnlMessage::GetLink(LinkMessage::default()).into(),
+};
+
+<span class="comment">// Before serializing the packet, it is important to call
+// finalize() to ensure the header of the message is consistent
+// with its payload. Otherwise, a panic may occur when calling
+// serialize()
+</span>packet.finalize();
+
+<span class="comment">// Prepare a buffer to serialize the packet. Note that we never
+// set explicitely `packet.header.length` above. This was done
+// automatically when we called `finalize()`
+</span><span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[<span class="number">0</span>; packet.header.length <span class="kw">as </span>usize];
+<span class="comment">// Serialize the packet
+</span>packet.serialize(<span class="kw-2">&amp;mut </span>buf[..]);
+
+<span class="comment">// Deserialize the packet
+</span><span class="kw">let </span>deserialized_packet =
+    NetlinkMessage::&lt;RtnlMessage&gt;::deserialize(<span class="kw-2">&amp;</span>buf).expect(<span class="string">&quot;Failed to deserialize message&quot;</span>);
+
+<span class="comment">// Normally, the deserialized packet should be exactly the same
+// than the serialized one.
+</span><span class="macro">assert_eq!</span>(deserialized_packet, packet);
+
+<span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, packet);</code></pre></div>
+<h2 id="example-adding-messages-for-new-netlink-sub-protocol"><a href="#example-adding-messages-for-new-netlink-sub-protocol">Example: adding messages for new netlink sub-protocol</a></h2>
+<p>Let’s assume we have a netlink protocol called “ping pong” that
+defines two types of messages: “ping” messages, which payload can
+be any sequence of bytes, and “pong” message, which payload is
+also a sequence of bytes.  The protocol works as follow: when an
+enpoint receives a “ping” message, it answers with a “pong”, with
+the payload of the “ping” it’s answering to.</p>
+<p>“ping” messages have type 18 and “pong” have type “20”. Here is
+what a “ping” message that would look like if its payload is <code>[0, 1, 2, 3]</code>:</p>
+<div class="example-wrap"><pre class="language-no_rust"><code>0                8                16              24               32
++----------------+----------------+----------------+----------------+
+|                 packet length (including header) = 16 + 4 = 20    |
++----------------+----------------+----------------+----------------+
+|     message type = 18 (ping)    |              flags              |
++----------------+----------------+----------------+----------------+
+|                           sequence number                         |
++----------------+----------------+----------------+----------------+
+|                            port number                            |
++----------------+----------------+----------------+----------------+
+|       0        |         1      |         2      |        3       |
++----------------+----------------+----------------+----------------+</code></pre></div>
+<p>And the “pong” response would be:</p>
+<div class="example-wrap"><pre class="language-no_rust"><code>0                8                16              24               32
++----------------+----------------+----------------+----------------+
+|                 packet length (including header) = 16 + 4 = 20    |
++----------------+----------------+----------------+----------------+
+|     message type = 20 (pong)    |              flags              |
++----------------+----------------+----------------+----------------+
+|                           sequence number                         |
++----------------+----------------+----------------+----------------+
+|                            port number                            |
++----------------+----------------+----------------+----------------+
+|       0        |         1      |         2      |        3       |
++----------------+----------------+----------------+----------------+</code></pre></div>
+<p>Here is how we could implement the messages for such a protocol
+and integrate this implementation with <code>netlink-packet-core</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>netlink_packet_core::{
+    NetlinkDeserializable, NetlinkHeader, NetlinkMessage, NetlinkPayload, NetlinkSerializable,
+};
+<span class="kw">use </span>std::error::Error;
+<span class="kw">use </span>std::fmt;
+
+<span class="comment">// PingPongMessage represent the messages for the &quot;ping-pong&quot; netlink
+// protocol. There are only two types of messages.
+</span><span class="attr">#[derive(Debug, Clone, Eq, PartialEq)]
+</span><span class="kw">pub enum </span>PingPongMessage {
+    Ping(Vec&lt;u8&gt;),
+    Pong(Vec&lt;u8&gt;),
+}
+
+<span class="comment">// The netlink header contains a &quot;message type&quot; field that identifies
+// the message it carries. Some values are reserved, and we
+// arbitrarily decided that &quot;ping&quot; type is 18 and &quot;pong&quot; type is 20.
+</span><span class="kw">pub const </span>PING_MESSAGE: u16 = <span class="number">18</span>;
+<span class="kw">pub const </span>PONG_MESSAGE: u16 = <span class="number">20</span>;
+
+<span class="comment">// A custom error type for when deserialization fails. This is
+// required because `NetlinkDeserializable::Error` must implement
+// `std::error::Error`, so a simple `String` won&#39;t cut it.
+</span><span class="attr">#[derive(Debug, Clone, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>DeserializeError(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str);
+
+<span class="kw">impl </span>Error <span class="kw">for </span>DeserializeError {
+    <span class="kw">fn </span>description(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+        <span class="self">self</span>.<span class="number">0
+    </span>}
+    <span class="kw">fn </span>source(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>(<span class="kw">dyn </span>Error + <span class="lifetime">&#39;static</span>)&gt; {
+        <span class="prelude-val">None
+    </span>}
+}
+
+<span class="kw">impl </span>fmt::Display <span class="kw">for </span>DeserializeError {
+    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; fmt::Result {
+        <span class="macro">write!</span>(f, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="number">0</span>)
+    }
+}
+
+<span class="comment">// NetlinkDeserializable implementation
+</span><span class="kw">impl </span>NetlinkDeserializable <span class="kw">for </span>PingPongMessage {
+    <span class="kw">type </span>Error = DeserializeError;
+
+    <span class="kw">fn </span>deserialize(header: <span class="kw-2">&amp;</span>NetlinkHeader, payload: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+        <span class="kw">match </span>header.message_type {
+            PING_MESSAGE =&gt; <span class="prelude-val">Ok</span>(PingPongMessage::Ping(payload.to_vec())),
+            PONG_MESSAGE =&gt; <span class="prelude-val">Ok</span>(PingPongMessage::Pong(payload.to_vec())),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(DeserializeError(
+                <span class="string">&quot;invalid ping-pong message: invalid message type&quot;</span>,
+            )),
+        }
+    }
+}
+
+<span class="comment">// NetlinkSerializable implementation
+</span><span class="kw">impl </span>NetlinkSerializable <span class="kw">for </span>PingPongMessage {
+    <span class="kw">fn </span>message_type(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u16 {
+        <span class="kw">match </span><span class="self">self </span>{
+            PingPongMessage::Ping(<span class="kw">_</span>) =&gt; PING_MESSAGE,
+            PingPongMessage::Pong(<span class="kw">_</span>) =&gt; PONG_MESSAGE,
+        }
+    }
+
+    <span class="kw">fn </span>buffer_len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="kw">match </span><span class="self">self </span>{
+            PingPongMessage::Ping(vec) | PingPongMessage::Pong(vec) =&gt; vec.len(),
+        }
+    }
+
+    <span class="kw">fn </span>serialize(<span class="kw-2">&amp;</span><span class="self">self</span>, buffer: <span class="kw-2">&amp;mut </span>[u8]) {
+        <span class="kw">match </span><span class="self">self </span>{
+            PingPongMessage::Ping(vec) | PingPongMessage::Pong(vec) =&gt; {
+                buffer.copy_from_slice(<span class="kw-2">&amp;</span>vec[..])
+            }
+        }
+    }
+}
+
+<span class="comment">// It can be convenient to be able to create a NetlinkMessage directly
+// from a PingPongMessage. Since NetlinkMessage&lt;T&gt; already implements
+// From&lt;NetlinkPayload&lt;T&gt;&gt;, we just need to implement
+// From&lt;NetlinkPayload&lt;PingPongMessage&gt;&gt; for this to work.
+</span><span class="kw">impl </span>From&lt;PingPongMessage&gt; <span class="kw">for </span>NetlinkPayload&lt;PingPongMessage&gt; {
+    <span class="kw">fn </span>from(message: PingPongMessage) -&gt; <span class="self">Self </span>{
+        NetlinkPayload::InnerMessage(message)
+    }
+}
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>ping_pong_message = PingPongMessage::Ping(<span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]);
+    <span class="kw">let </span><span class="kw-2">mut </span>packet = NetlinkMessage::from(ping_pong_message);
+
+    <span class="comment">// Before serializing the packet, it is very important to call
+    // finalize() to ensure the header of the message is consistent
+    // with its payload. Otherwise, a panic may occur when calling
+    // `serialize()`
+    </span>packet.finalize();
+
+    <span class="comment">// Prepare a buffer to serialize the packet. Note that we never
+    // set explicitely `packet.header.length` above. This was done
+    // automatically when we called `finalize()`
+    </span><span class="kw">let </span><span class="kw-2">mut </span>buf = <span class="macro">vec!</span>[<span class="number">0</span>; packet.header.length <span class="kw">as </span>usize];
+    <span class="comment">// Serialize the packet
+    </span>packet.serialize(<span class="kw-2">&amp;mut </span>buf[..]);
+
+    <span class="comment">// Deserialize the packet
+    </span><span class="kw">let </span>deserialized_packet = NetlinkMessage::&lt;PingPongMessage&gt;::deserialize(<span class="kw-2">&amp;</span>buf)
+        .expect(<span class="string">&quot;Failed to deserialize message&quot;</span>);
+
+    <span class="comment">// Normally, the deserialized packet should be exactly the same
+    // than the serialized one.
+    </span><span class="macro">assert_eq!</span>(deserialized_packet, packet);
+
+    <span class="comment">// This should print:
+    // NetlinkMessage { header: NetlinkHeader { length: 20, message_type: 18, flags: 0, sequence_number: 0, port_number: 0 }, payload: InnerMessage(Ping([0, 1, 2, 3])) }
+    </span><span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, packet);
+}</code></pre></div>
+</div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2><div class="item-table"><div class="item-row"><div class="item-left import-item"><code>pub use self::<a class="mod" href="error/index.html" title="mod netlink_packet_core::error">error</a>::*;</code></div></div><div class="item-row"><div class="item-left import-item"><code>pub use self::<a class="mod" href="buffer/index.html" title="mod netlink_packet_core::buffer">buffer</a>::*;</code></div></div><div class="item-row"><div class="item-left import-item"><code>pub use self::<a class="mod" href="header/index.html" title="mod netlink_packet_core::header">header</a>::*;</code></div></div><div class="item-row"><div class="item-left import-item"><code>pub use self::<a class="mod" href="constants/index.html" title="mod netlink_packet_core::constants">constants</a>::*;</code></div></div></div><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="buffer/index.html" title="netlink_packet_core::buffer mod">buffer</a></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="constants/index.html" title="netlink_packet_core::constants mod">constants</a></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="error/index.html" title="netlink_packet_core::error mod">error</a></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="header/index.html" title="netlink_packet_core::header mod">header</a></div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.DecodeError.html" title="netlink_packet_core::DecodeError struct">DecodeError</a></div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.EncodeError.html" title="netlink_packet_core::EncodeError struct">EncodeError</a></div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.NetlinkMessage.html" title="netlink_packet_core::NetlinkMessage struct">NetlinkMessage</a></div><div class="item-right docblock-short">Represent a netlink message.</div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.NetlinkPayload.html" title="netlink_packet_core::NetlinkPayload enum">NetlinkPayload</a></div></div></div><h2 id="constants" class="small-section-header"><a href="#constants">Constants</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.NLMSG_ALIGNTO.html" title="netlink_packet_core::NLMSG_ALIGNTO constant">NLMSG_ALIGNTO</a></div></div><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.NLMSG_DONE.html" title="netlink_packet_core::NLMSG_DONE constant">NLMSG_DONE</a></div><div class="item-right docblock-short">The message terminates a multipart message.
+Data lost</div></div><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.NLMSG_ERROR.html" title="netlink_packet_core::NLMSG_ERROR constant">NLMSG_ERROR</a></div><div class="item-right docblock-short">The message signals an error and the payload contains a nlmsgerr structure. This can be looked
+at as a NACK and typically it is from FEC to CPC.</div></div><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.NLMSG_NOOP.html" title="netlink_packet_core::NLMSG_NOOP constant">NLMSG_NOOP</a></div><div class="item-right docblock-short">The message is ignored.</div></div><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.NLMSG_OVERRUN.html" title="netlink_packet_core::NLMSG_OVERRUN constant">NLMSG_OVERRUN</a></div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.NetlinkDeserializable.html" title="netlink_packet_core::NetlinkDeserializable trait">NetlinkDeserializable</a></div><div class="item-right docblock-short">A <code>NetlinkDeserializable</code> type can be deserialized from a buffer</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.NetlinkSerializable.html" title="netlink_packet_core::NetlinkSerializable trait">NetlinkSerializable</a></div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="netlink_packet_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

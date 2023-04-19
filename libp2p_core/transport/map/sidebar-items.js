@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Map","See `Transport::map`."],["MapFuture","Custom `Future` to avoid boxing."]]};

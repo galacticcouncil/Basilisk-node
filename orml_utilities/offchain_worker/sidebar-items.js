@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["OffchainErr","Error which may occur while executing the off-chain code."]]};

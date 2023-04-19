@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"beefy_primitives":[],
+"rococo_runtime":[["impl <a class=\"trait\" href=\"beefy_primitives/mmr/trait.BeefyDataProvider.html\" title=\"trait beefy_primitives::mmr::BeefyDataProvider\">BeefyDataProvider</a>&lt;<a class=\"struct\" href=\"primitive_types/struct.H256.html\" title=\"struct primitive_types::H256\">H256</a>&gt; for <a class=\"struct\" href=\"rococo_runtime/struct.ParasProvider.html\" title=\"struct rococo_runtime::ParasProvider\">ParasProvider</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

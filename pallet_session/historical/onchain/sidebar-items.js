@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["store_current_session_validator_set_to_offchain","Store the validator set associated to the current session index to the off-chain database."],["store_session_validator_set_to_offchain","Store the validator-set associated to the `session_index` to the off-chain database."]]};

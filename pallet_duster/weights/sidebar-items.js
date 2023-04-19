@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["HydraWeight","Weights for claims using the hydraDX node and recommended hardware."]],"trait":[["WeightInfo","Weight functions needed for duster."]]};

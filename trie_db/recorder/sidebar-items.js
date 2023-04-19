@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Record","The record of a visited node."],["Recorder","Records trie nodes as they pass it."]]};

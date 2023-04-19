@@ -1,0 +1,10 @@
+(function() {var implementors = {
+"basilisk_runtime":[["impl <a class=\"trait\" href=\"sp_runtime/traits/trait.OpaqueKeys.html\" title=\"trait sp_runtime::traits::OpaqueKeys\">OpaqueKeys</a> for <a class=\"struct\" href=\"basilisk_runtime/opaque/struct.SessionKeys.html\" title=\"struct basilisk_runtime::opaque::SessionKeys\">SessionKeys</a>"]],
+"kusama_runtime":[["impl <a class=\"trait\" href=\"sp_runtime/traits/trait.OpaqueKeys.html\" title=\"trait sp_runtime::traits::OpaqueKeys\">OpaqueKeys</a> for <a class=\"struct\" href=\"kusama_runtime/struct.SessionKeys.html\" title=\"struct kusama_runtime::SessionKeys\">SessionKeys</a>"]],
+"polkadot_runtime":[["impl <a class=\"trait\" href=\"sp_runtime/traits/trait.OpaqueKeys.html\" title=\"trait sp_runtime::traits::OpaqueKeys\">OpaqueKeys</a> for <a class=\"struct\" href=\"polkadot_runtime/struct.SessionKeys.html\" title=\"struct polkadot_runtime::SessionKeys\">SessionKeys</a>"]],
+"polkadot_service":[],
+"rococo_runtime":[["impl <a class=\"trait\" href=\"sp_runtime/traits/trait.OpaqueKeys.html\" title=\"trait sp_runtime::traits::OpaqueKeys\">OpaqueKeys</a> for <a class=\"struct\" href=\"rococo_runtime/struct.SessionKeys.html\" title=\"struct rococo_runtime::SessionKeys\">SessionKeys</a>"]],
+"sp_runtime":[],
+"testing_basilisk_runtime":[["impl <a class=\"trait\" href=\"sp_runtime/traits/trait.OpaqueKeys.html\" title=\"trait sp_runtime::traits::OpaqueKeys\">OpaqueKeys</a> for <a class=\"struct\" href=\"testing_basilisk_runtime/opaque/struct.SessionKeys.html\" title=\"struct testing_basilisk_runtime::opaque::SessionKeys\">SessionKeys</a>"]],
+"westend_runtime":[["impl <a class=\"trait\" href=\"sp_runtime/traits/trait.OpaqueKeys.html\" title=\"trait sp_runtime::traits::OpaqueKeys\">OpaqueKeys</a> for <a class=\"struct\" href=\"westend_runtime/struct.SessionKeys.html\" title=\"struct westend_runtime::SessionKeys\">SessionKeys</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

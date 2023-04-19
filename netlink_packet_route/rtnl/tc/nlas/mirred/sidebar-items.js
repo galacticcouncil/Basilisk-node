@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["KIND",""],["TC_MIRRED_BUF_LEN",""]],"enum":[["Nla",""]],"struct":[["TcMirred",""],["TcMirredBuffer",""]]};

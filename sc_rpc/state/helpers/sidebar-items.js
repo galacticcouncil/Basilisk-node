@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ReadProof","ReadProof struct returned by the RPC"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["OrTransport","Struct returned by `or_transport()`."]]};

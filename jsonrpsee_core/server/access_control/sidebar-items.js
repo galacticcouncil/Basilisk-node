@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["cors","CORS handling utility functions"],["host","Host header validation."]],"struct":[["AccessControl","Define access on control on HTTP layer."],["AccessControlBuilder","Convenience builder pattern"]]};

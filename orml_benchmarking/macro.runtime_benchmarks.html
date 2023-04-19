@@ -1,0 +1,127 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Construct pallet benchmarks for weighing dispatchables."><meta name="keywords" content="rust, rustlang, rust-lang, runtime_benchmarks"><title>runtime_benchmarks in orml_benchmarking - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../orml_benchmarking/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../orml_benchmarking/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><div class="sidebar-elems"><h2><a href="index.html">In orml_benchmarking</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Macro <a href="index.html">orml_benchmarking</a>::<wbr><a class="macro" href="#">runtime_benchmarks</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/orml_benchmarking/lib.rs.html#179-194">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><div class="item-decl"><div class="example-wrap"><pre class="rust macro"><code><span class="macro">macro_rules! </span>runtime_benchmarks {
+    (
+		{ <span class="macro-nonterminal">$runtime</span>:ident, <span class="macro-nonterminal">$pallet</span>:ident }
+		$( <span class="macro-nonterminal">$rest</span>:tt )*
+	) =&gt; { ... };
+}</code></pre></div>
+</div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Construct pallet benchmarks for weighing dispatchables.</p>
+<p>Works around the idea of complexity parameters, named by a single letter
+(which is usually upper cased in complexity notation but is lower-cased for
+use in this macro).</p>
+<p>Complexity parameters (“parameters”) have a range which is a <code>u32</code> pair.
+Every time a benchmark is prepared and run, this parameter takes a concrete
+value within the range. There is an associated instancing block, which is a
+single expression that is evaluated during preparation. It may use <code>?</code>
+(<code>i.e. </code>return Err(…)`) to bail with a string error. Here’s a
+few examples:</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="comment">// These two are equivalent:
+</span><span class="kw">let </span>x <span class="kw">in </span><span class="number">0 </span>.. <span class="number">10</span>;
+<span class="kw">let </span>x <span class="kw">in </span><span class="number">0 </span>.. <span class="number">10 </span>=&gt; ();
+<span class="comment">// This one calls a setup function and might return an error (which would be terminal).
+</span><span class="kw">let </span>y <span class="kw">in </span><span class="number">0 </span>.. <span class="number">10 </span>=&gt; setup(y)<span class="question-mark">?</span>;
+<span class="comment">// This one uses a code block to do lots of stuff:
+</span><span class="kw">let </span>z <span class="kw">in </span><span class="number">0 </span>.. <span class="number">10 </span>=&gt; {
+  <span class="kw">let </span>a = z * z / <span class="number">5</span>;
+  <span class="kw">let </span>b = do_something(a)<span class="question-mark">?</span>;
+  combine_into(z, b);
+}</code></pre></div>
+<p>Note that due to parsing restrictions, if the <code>from</code> expression is not a
+single token (i.e. a literal or constant), then it must be parenthesised.</p>
+<p>The macro allows for a number of “arms”, each representing an individual
+benchmark. Using the simple syntax, the associated dispatchable function
+maps 1:1 with the benchmark and the name of the benchmark is the same as
+that of the associated function. However, extended syntax allows
+for arbitrary expresions to be evaluated in a benchmark (including for
+example, <code>on_initialize</code>).</p>
+<p>Note that the ranges are <em>inclusive</em> on both sides. This is in contrast to
+ranges in Rust which are left-inclusive right-exclusive.</p>
+<p>Each arm may also have a block of code which is run prior to any instancing
+and a block of code which is run afterwards. All code blocks may draw upon
+the specific value of each parameter at any time. Local variables are shared
+between the two pre- and post- code blocks, but do not leak from the
+interior of any instancing expressions.</p>
+<p>Example:</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">use </span>path_to_node_runtime::MyRuntime;
+<span class="kw">use </span>path_to_account_id::AccountId;
+<span class="kw">use </span>frame_benchmarking::account;
+<span class="kw">use </span>orml_benchmarking::runtime_benchmarks;
+
+<span class="macro">runtime_benchmarks! </span>{
+  <span class="comment">// The constructed runtime struct, and the pallet to benchmark.
+  </span>{ MyRuntime, my_pallet }
+
+
+  <span class="comment">// first dispatchable: foo; this is a user dispatchable and operates on a `u8` vector of
+  // size `l`, which we allow to be initialized as usual.
+  </span>foo {
+    <span class="kw">let </span>caller = account::&lt;AccountId&gt;(<span class="string">b&quot;caller&quot;</span>, <span class="number">0</span>, benchmarks_seed);
+    <span class="kw">let </span>l <span class="kw">in </span><span class="number">1 </span>.. MAX_LENGTH =&gt; initialize_l(l);
+  }: <span class="kw">_</span>(Origin::Signed(caller), <span class="macro">vec!</span>[<span class="number">0u8</span>; l])
+
+  <span class="comment">// second dispatchable: bar; this is a root dispatchable and accepts a `u8` vector of size
+  // `l`.
+  // In this case, we explicitly name the call using `bar` instead of `_`.
+  </span>bar {
+    <span class="kw">let </span>l <span class="kw">in </span><span class="number">1 </span>.. MAX_LENGTH =&gt; initialize_l(l);
+  }: bar(Origin::Root, <span class="macro">vec!</span>[<span class="number">0u8</span>; l])
+
+  <span class="comment">// third dispatchable: baz; this is a user dispatchable. It isn&#39;t dependent on length like the
+  // other two but has its own complexity `c` that needs setting up. It uses `caller` (in the
+  // pre-instancing block) within the code block. This is only allowed in the param instancers
+  // of arms.
+  </span>baz1 {
+    <span class="kw">let </span>caller = account::&lt;AccountId&gt;(<span class="string">b&quot;caller&quot;</span>, <span class="number">0</span>, benchmarks_seed);
+    <span class="kw">let </span>c = <span class="number">0 </span>.. <span class="number">10 </span>=&gt; setup_c(<span class="kw-2">&amp;</span>caller, c);
+  }: baz(Origin::Signed(caller))
+
+  <span class="comment">// this is a second benchmark of the baz dispatchable with a different setup.
+  </span>baz2 {
+    <span class="kw">let </span>caller = account::&lt;AccountId&gt;(<span class="string">b&quot;caller&quot;</span>, <span class="number">0</span>, benchmarks_seed);
+    <span class="kw">let </span>c = <span class="number">0 </span>.. <span class="number">10 </span>=&gt; setup_c_in_some_other_way(<span class="kw-2">&amp;</span>caller, c);
+  }: baz(Origin::Signed(caller))
+
+  <span class="comment">// this is benchmarking some code that is not a dispatchable.
+  </span>populate_a_set {
+    <span class="kw">let </span>x <span class="kw">in </span><span class="number">0 </span>.. <span class="number">10_000</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>m = Vec::&lt;u32&gt;::new();
+    <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..x {
+      m.insert(i);
+    }
+  }: { m.into_iter().collect::&lt;BTreeSet&gt;() }
+}</code></pre></div>
+<p>Test functions are automatically generated for each benchmark and are
+accessible to you when you run <code>cargo test</code>. All tests are named
+<code>test_benchmark_&lt;benchmark_name&gt;</code>, expect you to pass them the Runtime
+Config, and run them in a test externalities environment. The test function
+runs your benchmark just like a regular benchmark, but only testing at the
+lowest and highest values for each component. The function will return
+<code>Ok(())</code> if the benchmarks return no errors.</p>
+<p>You can optionally add a <code>verify</code> code block at the end of a benchmark to
+test any final state of your benchmark in a unit test. For example:</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code>sort_vector {
+    <span class="kw">let </span>x <span class="kw">in </span><span class="number">1 </span>.. <span class="number">10000</span>;
+    <span class="kw">let </span><span class="kw-2">mut </span>m = Vec::&lt;u32&gt;::new();
+    <span class="kw">for </span>i <span class="kw">in </span>(<span class="number">0</span>..x).rev() {
+        m.push(i);
+    }
+}: {
+    m.sort();
+} verify {
+    <span class="macro">ensure!</span>(m[<span class="number">0</span>] == <span class="number">0</span>, <span class="string">&quot;You forgot to sort!&quot;</span>)
+}</code></pre></div>
+<p>These <code>verify</code> blocks will not affect your benchmark results!</p>
+<p>You can construct benchmark tests like so:</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="attr">#[test]
+</span><span class="kw">fn </span>test_benchmarks() {
+  new_test_ext().execute_with(|| {
+    <span class="macro">assert_ok!</span>(test_benchmark_dummy());
+    <span class="macro">assert_err!</span>(test_benchmark_other_name(), <span class="string">&quot;Bad origin&quot;</span>);
+    <span class="macro">assert_ok!</span>(test_benchmark_sort_vector());
+    <span class="macro">assert_err!</span>(test_benchmark_broken_benchmark(), <span class="string">&quot;You forgot to sort!&quot;</span>);
+  });
+}</code></pre></div>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="orml_benchmarking" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

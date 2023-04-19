@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["VoterInfo","Information about a voter in a `VoterSet`."],["VoterSet","A (non-empty) set of voters and associated weights."]]};

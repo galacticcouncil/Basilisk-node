@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":[["impl_fixed_hash_serde","Add Serde serialization support to a fixed-sized hash type created by `construct_fixed_hash!`."],["impl_uint_serde","Add Serde serialization support to an integer created by `construct_uint!`."]]};

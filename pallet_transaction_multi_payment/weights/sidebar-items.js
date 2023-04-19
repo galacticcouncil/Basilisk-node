@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["BasiliskWeight",""]],"trait":[["WeightInfo","Weight functions needed for pallet_transaction_multi_payment."]]};

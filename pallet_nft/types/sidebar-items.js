@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["CollectionType",""]],"struct":[["CollectionInfo",""],["ItemInfo",""],["NftPermissions",""]],"trait":[["NftPermission",""]],"type":[["CollectionId","NFT Collection ID"],["ItemId","NFT Item ID"]]};

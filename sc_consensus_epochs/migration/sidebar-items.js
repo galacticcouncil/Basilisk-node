@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["EpochChangesV0","Legacy definition of epoch changes."],["EpochChangesV1","Legacy definition of epoch changes."]],"type":[["EpochChangesV0For","Type alias for v0 definition of epoch changes."],["EpochChangesV1For","Type alias for v1 and v2 definition of epoch changes."]]};

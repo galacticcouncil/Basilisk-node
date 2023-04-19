@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["error","Offchain RPC errors."]],"struct":[["Offchain","Offchain API"]],"trait":[["OffchainApiClient","Client implementation for the `OffchainApi` RPC API."],["OffchainApiServer","Server trait implementation for the `OffchainApi` RPC API."]]};

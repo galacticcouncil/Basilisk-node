@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["StackValueType","Value type on the stack."],["StartedWith","An opcode that opened the particular frame."]],"fn":[["drive",""],["require_label",""],["top_label","Returns the top most frame from the frame stack."]],"struct":[["BlockFrame","Control stack frame."],["FunctionValidationContext","Function validation context."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Hmac","The `Hmac` struct represents an HMAC using a given hash function `D`."]],"trait":[["Mac","The [`Mac`] trait defines methods for a Message Authentication algorithm."],["NewMac","Instantiate a [`Mac`] algorithm."]]};

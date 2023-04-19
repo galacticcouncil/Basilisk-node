@@ -1,0 +1,217 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Staking Pallet"><meta name="keywords" content="rust, rustlang, rust-lang, pallet_staking"><title>pallet_staking - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../pallet_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../pallet_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate pallet_staking</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 4.0.0-dev</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#types">Type Definitions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Crate <a class="mod" href="#">pallet_staking</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/pallet_staking/lib.rs.html#18-971">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="staking-pallet"><a href="#staking-pallet">Staking Pallet</a></h2>
+<p>The Staking pallet is used to manage funds at stake by network maintainers.</p>
+<ul>
+<li><a href="trait.Config.html" title="Config"><code>Config</code></a></li>
+<li><a href="enum.Call.html" title="Call"><code>Call</code></a></li>
+<li><a href="struct.Pallet.html" title="Pallet"><code>Pallet</code></a></li>
+</ul>
+<h3 id="overview"><a href="#overview">Overview</a></h3>
+<p>The Staking pallet is the means by which a set of network maintainers (known as <em>authorities</em> in
+some contexts and <em>validators</em> in others) are chosen based upon those who voluntarily place
+funds under deposit. Under deposit, those funds are rewarded under normal operation but are held
+at pain of <em>slash</em> (expropriation) should the staked maintainer be found not to be discharging
+its duties properly.</p>
+<h4 id="terminology"><a href="#terminology">Terminology</a></h4><!-- Original author of paragraph: @gavofyork -->
+<ul>
+<li>Staking: The process of locking up funds for some time, placing them at risk of slashing
+(loss) in order to become a rewarded maintainer of the network.</li>
+<li>Validating: The process of running a node to actively maintain the network, either by
+producing blocks or guaranteeing finality of the chain.</li>
+<li>Nominating: The process of placing staked funds behind one or more validators in order to
+share in any reward, and punishment, they take.</li>
+<li>Stash account: The account holding an owner’s funds used for staking.</li>
+<li>Controller account: The account that controls an owner’s funds for staking.</li>
+<li>Era: A (whole) number of sessions, which is the period that the validator set (and each
+validator’s active nominator set) is recalculated and where rewards are paid out.</li>
+<li>Slash: The punishment of a staker by reducing its funds.</li>
+</ul>
+<h4 id="goals"><a href="#goals">Goals</a></h4><!-- Original author of paragraph: @gavofyork -->
+<p>The staking system in Substrate NPoS is designed to make the following possible:</p>
+<ul>
+<li>Stake funds that are controlled by a cold wallet.</li>
+<li>Withdraw some, or deposit more, funds without interrupting the role of an entity.</li>
+<li>Switch between roles (nominator, validator, idle) with minimal overhead.</li>
+</ul>
+<h4 id="scenarios"><a href="#scenarios">Scenarios</a></h4><h5 id="staking"><a href="#staking">Staking</a></h5>
+<p>Almost any interaction with the Staking pallet requires a process of <em><strong>bonding</strong></em> (also known
+as being a <em>staker</em>). To become <em>bonded</em>, a fund-holding register known as the <em>stash account</em>,
+which holds some or all of the funds that become frozen in place as part of the staking process,
+is paired with an active <strong>controller</strong> account, which issues instructions on how they shall be
+used.</p>
+<p>An account pair can become bonded using the <a href="enum.Call.html#variant.bond"><code>bond</code></a> call.</p>
+<p>Stash accounts can change their associated controller using the
+<a href="enum.Call.html#variant.set_controller"><code>set_controller</code></a> call.</p>
+<p>There are three possible roles that any staked account pair can be in: <code>Validator</code>, <code>Nominator</code>
+and <code>Idle</code> (defined in <a href="enum.StakerStatus.html" title="StakerStatus"><code>StakerStatus</code></a>). There are three
+corresponding instructions to change between roles, namely:
+<a href="enum.Call.html#variant.validate"><code>validate</code></a>,
+<a href="enum.Call.html#variant.nominate"><code>nominate</code></a>, and <a href="enum.Call.html#variant.chill"><code>chill</code></a>.</p>
+<h5 id="validating"><a href="#validating">Validating</a></h5>
+<p>A <strong>validator</strong> takes the role of either validating blocks or ensuring their finality,
+maintaining the veracity of the network. A validator should avoid both any sort of malicious
+misbehavior and going offline. Bonded accounts that state interest in being a validator do NOT
+get immediately chosen as a validator. Instead, they are declared as a <em>candidate</em> and they
+<em>might</em> get elected at the <em>next era</em> as a validator. The result of the election is determined
+by nominators and their votes.</p>
+<p>An account can become a validator candidate via the
+<a href="enum.Call.html#variant.validate"><code>validate</code></a> call.</p>
+<h5 id="nomination"><a href="#nomination">Nomination</a></h5>
+<p>A <strong>nominator</strong> does not take any <em>direct</em> role in maintaining the network, instead, it votes on
+a set of validators  to be elected. Once interest in nomination is stated by an account, it
+takes effect at the next election round. The funds in the nominator’s stash account indicate the
+<em>weight</em> of its vote. Both the rewards and any punishment that a validator earns are shared
+between the validator and its nominators. This rule incentivizes the nominators to NOT vote for
+the misbehaving/offline validators as much as possible, simply because the nominators will also
+lose funds if they vote poorly.</p>
+<p>An account can become a nominator via the <a href="enum.Call.html#variant.nominate"><code>nominate</code></a> call.</p>
+<h5 id="voting"><a href="#voting">Voting</a></h5>
+<p>Staking is closely related to elections; actual validators are chosen from among all potential
+validators via election by the potential validators and nominators. To reduce use of the phrase
+“potential validators and nominators”, we often use the term <strong>voters</strong>, who are simply
+the union of potential validators and nominators.</p>
+<h5 id="rewards-and-slash"><a href="#rewards-and-slash">Rewards and Slash</a></h5>
+<p>The <strong>reward and slashing</strong> procedure is the core of the Staking pallet, attempting to <em>embrace
+valid behavior</em> while <em>punishing any misbehavior or lack of availability</em>.</p>
+<p>Rewards must be claimed for each era before it gets too old by <code>$HISTORY_DEPTH</code> using the
+<code>payout_stakers</code> call. Any account can call <code>payout_stakers</code>, which pays the reward to the
+validator as well as its nominators. Only the <a href="trait.Config.html#associatedtype.MaxNominatorRewardedPerValidator" title="Config::MaxNominatorRewardedPerValidator"><code>Config::MaxNominatorRewardedPerValidator</code></a>
+biggest stakers can claim their reward. This is to limit the i/o cost to mutate storage for each
+nominator’s account.</p>
+<p>Slashing can occur at any point in time, once misbehavior is reported. Once slashing is
+determined, a value is deducted from the balance of the validator and all the nominators who
+voted for this validator (values are deducted from the <em>stash</em> account of the slashed entity).</p>
+<p>Slashing logic is further described in the documentation of the <code>slashing</code> pallet.</p>
+<p>Similar to slashing, rewards are also shared among a validator and its associated nominators.
+Yet, the reward funds are not always transferred to the stash account and can be configured. See
+<a href="#reward-calculation">Reward Calculation</a> for more details.</p>
+<h5 id="chilling"><a href="#chilling">Chilling</a></h5>
+<p>Finally, any of the roles above can choose to step back temporarily and just chill for a while.
+This means that if they are a nominator, they will not be considered as voters anymore and if
+they are validators, they will no longer be a candidate for the next election.</p>
+<p>An account can step back via the <a href="enum.Call.html#variant.chill"><code>chill</code></a> call.</p>
+<h4 id="session-managing"><a href="#session-managing">Session managing</a></h4>
+<p>The pallet implement the trait <code>SessionManager</code>. Which is the only API to query new validator
+set and allowing these validator set to be rewarded once their era is ended.</p>
+<h3 id="interface"><a href="#interface">Interface</a></h3><h4 id="dispatchable-functions"><a href="#dispatchable-functions">Dispatchable Functions</a></h4>
+<p>The dispatchable functions of the Staking pallet enable the steps needed for entities to accept
+and change their role, alongside some helper functions to get/set the metadata of the pallet.</p>
+<h4 id="public-functions"><a href="#public-functions">Public Functions</a></h4>
+<p>The Staking pallet contains many public storage items and (im)mutable functions.</p>
+<h3 id="usage"><a href="#usage">Usage</a></h3><h4 id="example-rewarding-a-validator-by-id"><a href="#example-rewarding-a-validator-by-id">Example: Rewarding a validator by id.</a></h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>pallet_staking::{<span class="self">self </span><span class="kw">as </span>staking};
+
+<span class="attr">#[frame_support::pallet]
+</span><span class="kw">pub mod </span>pallet {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
+	<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
+
+	<span class="attr">#[pallet::pallet]
+	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(<span class="kw">_</span>);
+
+	<span class="attr">#[pallet::config]
+	</span><span class="kw">pub trait </span>Config: frame_system::Config + staking::Config {}
+
+	<span class="attr">#[pallet::call]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+        <span class="doccomment">/// Reward a validator.
+        </span><span class="attr">#[pallet::weight(<span class="number">0</span>)]
+        </span><span class="kw">pub fn </span>reward_myself(origin: OriginFor&lt;T&gt;) -&gt; DispatchResult {
+            <span class="kw">let </span>reported = ensure_signed(origin)<span class="question-mark">?</span>;
+            &lt;staking::Pallet&lt;T&gt;&gt;::reward_by_ids(<span class="macro">vec!</span>[(reported, <span class="number">10</span>)]);
+            <span class="prelude-val">Ok</span>(())
+        }
+    }
+}</code></pre></div>
+<h3 id="implementation-details"><a href="#implementation-details">Implementation Details</a></h3><h4 id="era-payout"><a href="#era-payout">Era payout</a></h4>
+<p>The era payout is computed using yearly inflation curve defined at
+<a href="trait.Config.html#associatedtype.EraPayout" title="Config::EraPayout"><code>Config::EraPayout</code></a> as such:</p>
+<div class="example-wrap"><pre class="language-nocompile"><code>staker_payout = yearly_inflation(npos_token_staked / total_tokens) * total_tokens / era_per_year</code></pre></div>
+<p>This payout is used to reward stakers as defined in next section</p>
+<div class="example-wrap"><pre class="language-nocompile"><code>remaining_payout = max_yearly_inflation * total_tokens / era_per_year - staker_payout</code></pre></div>
+<p>The remaining reward is send to the configurable end-point
+<a href="trait.Config.html#associatedtype.RewardRemainder" title="Config::RewardRemainder"><code>Config::RewardRemainder</code></a>.</p>
+<h4 id="reward-calculation"><a href="#reward-calculation">Reward Calculation</a></h4>
+<p>Validators and nominators are rewarded at the end of each era. The total reward of an era is
+calculated using the era duration and the staking rate (the total amount of tokens staked by
+nominators and validators, divided by the total token supply). It aims to incentivize toward a
+defined staking rate. The full specification can be found
+<a href="https://research.web3.foundation/en/latest/polkadot/Token%20Economics.html#inflation-model">here</a>.</p>
+<p>Total reward is split among validators and their nominators depending on the number of points
+they received during the era. Points are added to a validator using
+<a href="struct.Pallet.html#method.reward_by_ids"><code>reward_by_ids</code></a>.</p>
+<p><a href="struct.Pallet.html" title="Pallet"><code>Pallet</code></a> implements
+<a href="../pallet_authorship/trait.EventHandler.html" title="pallet_authorship::EventHandler"><code>pallet_authorship::EventHandler</code></a> to add reward
+points to block producer and block producer of referenced uncles.</p>
+<p>The validator and its nominator split their reward as following:</p>
+<p>The validator can declare an amount, named <a href="struct.ValidatorPrefs.html#structfield.commission"><code>commission</code></a>, that does
+not get shared with the nominators at each reward payout through its <a href="struct.ValidatorPrefs.html" title="ValidatorPrefs"><code>ValidatorPrefs</code></a>. This
+value gets deducted from the total reward that is paid to the validator and its nominators. The
+remaining portion is split pro rata among the validator and the top
+<a href="trait.Config.html#associatedtype.MaxNominatorRewardedPerValidator" title="Config::MaxNominatorRewardedPerValidator"><code>Config::MaxNominatorRewardedPerValidator</code></a> nominators that nominated the validator,
+proportional to the value staked behind the validator (<em>i.e.</em> dividing the
+<a href="struct.Exposure.html#structfield.own"><code>own</code></a> or <a href="struct.Exposure.html#structfield.others"><code>others</code></a> by <a href="struct.Exposure.html#structfield.total"><code>total</code></a> in
+<a href="struct.Exposure.html" title="Exposure"><code>Exposure</code></a>). Note that the pro rata division of rewards uses the total exposure behind the
+validator, <em>not</em> just the exposure of the validator and the top
+<a href="trait.Config.html#associatedtype.MaxNominatorRewardedPerValidator" title="Config::MaxNominatorRewardedPerValidator"><code>Config::MaxNominatorRewardedPerValidator</code></a> nominators.</p>
+<p>All entities who receive a reward have the option to choose their reward destination through the
+<a href="type.Payee.html" title="Payee"><code>Payee</code></a> storage item (see
+<a href="enum.Call.html#variant.set_payee"><code>set_payee</code></a>), to be one of the following:</p>
+<ul>
+<li>Controller account, (obviously) not increasing the staked value.</li>
+<li>Stash account, not increasing the staked value.</li>
+<li>Stash account, also increasing the staked value.</li>
+</ul>
+<h4 id="additional-fund-management-operations"><a href="#additional-fund-management-operations">Additional Fund Management Operations</a></h4>
+<p>Any funds already placed into stash can be the target of the following operations:</p>
+<p>The controller account can free a portion (or all) of the funds using the
+<a href="enum.Call.html#variant.unbond"><code>unbond</code></a> call. Note that the funds are not immediately
+accessible. Instead, a duration denoted by
+<a href="trait.Config.html#associatedtype.BondingDuration" title="Config::BondingDuration"><code>Config::BondingDuration</code></a> (in number of eras) must
+pass until the funds can actually be removed. Once the <code>BondingDuration</code> is over, the
+<a href="enum.Call.html#variant.withdraw_unbonded"><code>withdraw_unbonded</code></a> call can be used to actually
+withdraw the funds.</p>
+<p>Note that there is a limitation to the number of fund-chunks that can be scheduled to be
+unlocked in the future via <a href="enum.Call.html#variant.unbond"><code>unbond</code></a>. In case this maximum
+(<code>MAX_UNLOCKING_CHUNKS</code>) is reached, the bonded account <em>must</em> first wait until a successful
+call to <code>withdraw_unbonded</code> to remove some of the chunks.</p>
+<h4 id="election-algorithm"><a href="#election-algorithm">Election Algorithm</a></h4>
+<p>The current election algorithm is implemented based on Phragmén. The reference implementation
+can be found <a href="https://github.com/w3f/consensus/tree/master/NPoS">here</a>.</p>
+<p>The election algorithm, aside from electing the validators with the most stake value and votes,
+tries to divide the nominator votes among candidates in an equal manner. To further assure this,
+an optional post-processing can be applied that iteratively normalizes the nominator staked
+values until the total difference among votes of a particular nominator are less than a
+threshold.</p>
+<h3 id="genesisconfig"><a href="#genesisconfig">GenesisConfig</a></h3>
+<p>The Staking pallet depends on the <a href="struct.GenesisConfig.html" title="GenesisConfig"><code>GenesisConfig</code></a>. The
+<code>GenesisConfig</code> is optional and allow to set some initial stakers.</p>
+<h3 id="related-modules"><a href="#related-modules">Related Modules</a></h3>
+<ul>
+<li><a href="../pallet_balances/index.html">Balances</a>: Used to manage values at stake.</li>
+<li><a href="../pallet_session/index.html">Session</a>: Used to manage sessions. Also, a list of new
+validators is stored in the Session pallet’s <code>Validators</code> at the end of each era.</li>
+</ul>
+</div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2><div class="item-table"><div class="item-row"><div class="item-left import-item" id="reexport.WeightInfo"><code>pub use weights::<a class="trait" href="weights/trait.WeightInfo.html" title="trait pallet_staking::weights::WeightInfo">WeightInfo</a>;</code></div></div></div><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="benchmarking/index.html" title="pallet_staking::benchmarking mod">benchmarking</a></div><div class="item-right docblock-short">Staking pallet benchmarking.</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="inflation/index.html" title="pallet_staking::inflation mod">inflation</a></div><div class="item-right docblock-short">This module expose one function <code>P_NPoS</code> (Payout NPoS) or <code>compute_total_payout</code> which returns
+the total payout for the era given the era duration and the staking rate in NPoS.
+The staking rate in NPoS is the total amount of tokens staked by nominators and validators,
+divided by the total token supply.</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="migrations/index.html" title="pallet_staking::migrations mod">migrations</a></div><div class="item-right docblock-short">Storage migrations for the Staking pallet.</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="slashing/index.html" title="pallet_staking::slashing mod">slashing</a></div><div class="item-right docblock-short">A slashing implementation for NPoS systems.</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="testing_utils/index.html" title="pallet_staking::testing_utils mod">testing_utils</a></div><div class="item-right docblock-short">Testing utils for staking. Provides some common functions to setup staking state, such as
+bonding validators, nominators, and generating different types of solutions.</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="weights/index.html" title="pallet_staking::weights mod">weights</a></div><div class="item-right docblock-short">Autogenerated weights for pallet_staking</div></div></div><h2 id="macros" class="small-section-header"><a href="#macros">Macros</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.log.html" title="pallet_staking::log macro">log</a></div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ActiveEraInfo.html" title="pallet_staking::ActiveEraInfo struct">ActiveEraInfo</a></div><div class="item-right docblock-short">Information regarding the active era (era in used in session).</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ConvertCurve.html" title="pallet_staking::ConvertCurve struct">ConvertCurve</a></div><div class="item-right docblock-short">Adaptor to turn a <code>PiecewiseLinear</code> curve definition into an <code>EraPayout</code> impl, used for
+backwards compatibility.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.EraRewardPoints.html" title="pallet_staking::EraRewardPoints struct">EraRewardPoints</a></div><div class="item-right docblock-short">Reward points of an era. Used to split era total payout between validators.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Exposure.html" title="pallet_staking::Exposure struct">Exposure</a></div><div class="item-right docblock-short">A snapshot of the stake backing a single validator in the system.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ExposureOf.html" title="pallet_staking::ExposureOf struct">ExposureOf</a></div><div class="item-right docblock-short">A typed conversion from stash account ID to the active exposure of nominators
+on that account.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.FilterHistoricalOffences.html" title="pallet_staking::FilterHistoricalOffences struct">FilterHistoricalOffences</a></div><div class="item-right docblock-short">Filter historical offences out and only allow those from the bonding period.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.GenesisConfig.html" title="pallet_staking::GenesisConfig struct">GenesisConfig</a></div><div class="item-right docblock-short">Can be used to configure the
+<a href="https://docs.substrate.io/v3/runtime/chain-specs#the-genesis-state">genesis state</a>
+of this pallet.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.IndividualExposure.html" title="pallet_staking::IndividualExposure struct">IndividualExposure</a></div><div class="item-right docblock-short">The amount of exposure (to slashing) than an individual nominator has.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.MaxUnlockingChunks.html" title="pallet_staking::MaxUnlockingChunks struct">MaxUnlockingChunks</a></div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Nominations.html" title="pallet_staking::Nominations struct">Nominations</a></div><div class="item-right docblock-short">A record of the nominations made by a specific account.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Pallet.html" title="pallet_staking::Pallet struct">Pallet</a></div><div class="item-right docblock-short">The <a href="https://docs.substrate.io/reference/frame-pallets/#pallets">pallet</a> implementing
+the on-chain logic.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.StakingLedger.html" title="pallet_staking::StakingLedger struct">StakingLedger</a></div><div class="item-right docblock-short">The ledger of a (bonded) stash.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.StashOf.html" title="pallet_staking::StashOf struct">StashOf</a></div><div class="item-right docblock-short">A <code>Convert</code> implementation that finds the stash of the given controller account,
+if any.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.TestBenchmarkingConfig.html" title="pallet_staking::TestBenchmarkingConfig struct">TestBenchmarkingConfig</a></div><div class="item-right docblock-short">A mock benchmarking config for pallet-staking.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.UnappliedSlash.html" title="pallet_staking::UnappliedSlash struct">UnappliedSlash</a></div><div class="item-right docblock-short">A pending slash record. The value of the slash has been computed but not applied yet,
+rather deferred for several eras.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.UnlockChunk.html" title="pallet_staking::UnlockChunk struct">UnlockChunk</a></div><div class="item-right docblock-short">Just a Balance/BlockNumber tuple to encode when a chunk of funds will be unlocked.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.UseNominatorsAndValidatorsMap.html" title="pallet_staking::UseNominatorsAndValidatorsMap struct">UseNominatorsAndValidatorsMap</a></div><div class="item-right docblock-short">A simple voter list implementation that does not require any additional pallets. Note, this
+does not provided nominators in sorted ordered. If you desire nominators in a sorted order take
+a look at [`pallet-bags-list].</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ValidatorPrefs.html" title="pallet_staking::ValidatorPrefs struct">ValidatorPrefs</a></div><div class="item-right docblock-short">Preference of what happens regarding validation.</div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Call.html" title="pallet_staking::Call enum">Call</a></div><div class="item-right docblock-short">Contains one variant per dispatchable that can be called by an extrinsic.</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.ConfigOp.html" title="pallet_staking::ConfigOp enum">ConfigOp</a></div><div class="item-right docblock-short">Possible operations on the configuration values of this pallet.</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Error.html" title="pallet_staking::Error enum">Error</a></div><div class="item-right docblock-short">Custom <a href="https://docs.substrate.io/main-docs/build/events-errors/">dispatch errors</a>
+of this pallet.</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Event.html" title="pallet_staking::Event enum">Event</a></div><div class="item-right docblock-short">The <a href="https://docs.substrate.io/main-docs/build/events-errors/">event</a> emitted
+by this pallet.</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Forcing.html" title="pallet_staking::Forcing enum">Forcing</a></div><div class="item-right docblock-short">Mode of era-forcing.</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.RewardDestination.html" title="pallet_staking::RewardDestination enum">RewardDestination</a></div><div class="item-right docblock-short">A destination account for payment.</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.StakerStatus.html" title="pallet_staking::StakerStatus enum">StakerStatus</a></div><div class="item-right docblock-short">Indicates the initial status of the staker.</div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.BenchmarkingConfig.html" title="pallet_staking::BenchmarkingConfig trait">BenchmarkingConfig</a></div><div class="item-right docblock-short">Configurations of the benchmarking of the pallet.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Config.html" title="pallet_staking::Config trait">Config</a></div><div class="item-right docblock-short">Configuration trait of this pallet.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.EraPayout.html" title="pallet_staking::EraPayout trait">EraPayout</a></div><div class="item-right docblock-short">Handler for determining how much of a balance should be paid out on the current era.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.SessionInterface.html" title="pallet_staking::SessionInterface trait">SessionInterface</a></div><div class="item-right docblock-short">Means for interacting with a specialized version of the <code>session</code> trait.</div></div></div><h2 id="types" class="small-section-header"><a href="#types">Type Definitions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ActiveEra.html" title="pallet_staking::ActiveEra type">ActiveEra</a></div><div class="item-right docblock-short">The active era information, it holds index and start.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.BalanceOf.html" title="pallet_staking::BalanceOf type">BalanceOf</a></div><div class="item-right docblock-short">The balance type of this pallet.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Bonded.html" title="pallet_staking::Bonded type">Bonded</a></div><div class="item-right docblock-short">Map from all locked “stash” accounts to the controller account.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.CanceledSlashPayout.html" title="pallet_staking::CanceledSlashPayout type">CanceledSlashPayout</a></div><div class="item-right docblock-short">The amount of currency given to reporters of a slash event which was
+canceled by extraordinary circumstances (e.g. governance).</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.CurrentEra.html" title="pallet_staking::CurrentEra type">CurrentEra</a></div><div class="item-right docblock-short">The current era index.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.CurrentPlannedSession.html" title="pallet_staking::CurrentPlannedSession type">CurrentPlannedSession</a></div><div class="item-right docblock-short">The last planned session scheduled by the session pallet.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ErasRewardPoints.html" title="pallet_staking::ErasRewardPoints type">ErasRewardPoints</a></div><div class="item-right docblock-short">Rewards for the last <code>HISTORY_DEPTH</code> eras.
+If reward hasn’t been set or has been removed then 0 reward is returned.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ErasStakers.html" title="pallet_staking::ErasStakers type">ErasStakers</a></div><div class="item-right docblock-short">Exposure of validator at era.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ErasStakersClipped.html" title="pallet_staking::ErasStakersClipped type">ErasStakersClipped</a></div><div class="item-right docblock-short">Clipped Exposure of validator at era.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ErasStartSessionIndex.html" title="pallet_staking::ErasStartSessionIndex type">ErasStartSessionIndex</a></div><div class="item-right docblock-short">The session index at which the era start for the last <code>HISTORY_DEPTH</code> eras.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ErasTotalStake.html" title="pallet_staking::ErasTotalStake type">ErasTotalStake</a></div><div class="item-right docblock-short">The total amount staked for the last <code>HISTORY_DEPTH</code> eras.
+If total hasn’t been set or has been removed then 0 stake is returned.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ErasValidatorPrefs.html" title="pallet_staking::ErasValidatorPrefs type">ErasValidatorPrefs</a></div><div class="item-right docblock-short">Similar to <code>ErasStakers</code>, this holds the preferences of validators.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ErasValidatorReward.html" title="pallet_staking::ErasValidatorReward type">ErasValidatorReward</a></div><div class="item-right docblock-short">The total validator era payout for the last <code>HISTORY_DEPTH</code> eras.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ForceEra.html" title="pallet_staking::ForceEra type">ForceEra</a></div><div class="item-right docblock-short">Mode of era forcing.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Invulnerables.html" title="pallet_staking::Invulnerables type">Invulnerables</a></div><div class="item-right docblock-short">Any validators that may never be slashed or forcibly kicked. It’s a Vec since they’re
+easy to initialize and the performance hit is minimal (we expect no more than four
+invulnerables) and restricted to testnets.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Ledger.html" title="pallet_staking::Ledger type">Ledger</a></div><div class="item-right docblock-short">Map from all (unlocked) “controller” accounts to the info regarding the staking.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.MaxNominatorsCount.html" title="pallet_staking::MaxNominatorsCount type">MaxNominatorsCount</a></div><div class="item-right docblock-short">The maximum nominator count before we stop allowing new validators to join.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.MaxValidatorsCount.html" title="pallet_staking::MaxValidatorsCount type">MaxValidatorsCount</a></div><div class="item-right docblock-short">The maximum validator count before we stop allowing new validators to join.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.MinCommission.html" title="pallet_staking::MinCommission type">MinCommission</a></div><div class="item-right docblock-short">The minimum amount of commission that validators can set.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.MinNominatorBond.html" title="pallet_staking::MinNominatorBond type">MinNominatorBond</a></div><div class="item-right docblock-short">The minimum active bond to become and maintain the role of a nominator.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.MinValidatorBond.html" title="pallet_staking::MinValidatorBond type">MinValidatorBond</a></div><div class="item-right docblock-short">The minimum active bond to become and maintain the role of a validator.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.MinimumValidatorCount.html" title="pallet_staking::MinimumValidatorCount type">MinimumValidatorCount</a></div><div class="item-right docblock-short">Minimum number of staking participants before emergency conditions are imposed.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Module.html" title="pallet_staking::Module type">Module</a><span class="stab deprecated" title="">Deprecated</span></div><div class="item-right docblock-short">Type alias to <code>Pallet</code>, to be used by <code>construct_runtime</code>.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Nominators.html" title="pallet_staking::Nominators type">Nominators</a></div><div class="item-right docblock-short">The map from nominator stash key to their nomination preferences, namely the validators that
+they wish to support.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.OffendingValidators.html" title="pallet_staking::OffendingValidators type">OffendingValidators</a></div><div class="item-right docblock-short">Indices of validators that have offended in the active era and whether they are currently
+disabled.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Payee.html" title="pallet_staking::Payee type">Payee</a></div><div class="item-right docblock-short">Where the reward payment should be made. Keyed by stash.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.RewardPoint.html" title="pallet_staking::RewardPoint type">RewardPoint</a></div><div class="item-right docblock-short">Counter for the number of “reward” points earned by a given validator.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.SlashRewardFraction.html" title="pallet_staking::SlashRewardFraction type">SlashRewardFraction</a></div><div class="item-right docblock-short">The percentage of the slash that is distributed to reporters.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.UnappliedSlashes.html" title="pallet_staking::UnappliedSlashes type">UnappliedSlashes</a></div><div class="item-right docblock-short">All unapplied slashes that are queued for later.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ValidatorCount.html" title="pallet_staking::ValidatorCount type">ValidatorCount</a></div><div class="item-right docblock-short">The ideal number of staking participants.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Validators.html" title="pallet_staking::Validators type">Validators</a></div><div class="item-right docblock-short">The map from (wannabe) validator stash key to the preferences of that validator.</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="pallet_staking" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

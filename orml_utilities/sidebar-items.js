@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["with_transaction_result","Execute the supplied function in a new storage transaction."]],"mod":[["iterator",""],["offchain_worker",""],["ordered_set",""]]};

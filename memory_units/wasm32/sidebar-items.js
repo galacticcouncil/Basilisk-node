@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Pages","Memory size specified in WebAssembly memory pages."],["Words","Memory size specified in `wasm32` words."]]};

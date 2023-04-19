@@ -1,0 +1,43 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Defines constant fixed-point numbers from integer expressions."><meta name="keywords" content="rust, rustlang, rust-lang, const_fixed_from_int"><title>const_fixed_from_int in fixed - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../fixed/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../fixed/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><div class="sidebar-elems"><h2><a href="index.html">In fixed</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Macro <a href="index.html">fixed</a>::<wbr><a class="macro" href="#">const_fixed_from_int</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/fixed/lib.rs.html#773-785">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><div class="item-decl"><div class="example-wrap"><pre class="rust macro"><code><span class="macro">macro_rules! </span>const_fixed_from_int {
+    ($(<span class="macro-nonterminal">$vis</span>:vis <span class="kw">const </span><span class="macro-nonterminal">$NAME</span>:ident: <span class="macro-nonterminal">$Fixed</span>:ty = <span class="macro-nonterminal">$int</span>:expr;)<span class="kw-2">*</span>) =&gt; { ... };
+}</code></pre></div>
+</div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Defines constant fixed-point numbers from integer expressions.</p>
+<p>This macro is useful because <a href="struct.FixedI32.html#method.from_num"><code>from_num</code></a> cannot be used in constant
+expressions.</p>
+<h2 id="alternative"><a href="#alternative">Alternative</a></h2>
+<p>The <a href="https://crates.io/crates/fixed-macro"><em>fixed-macro</em> crate</a> provides a convenient macro to write down
+fixed-point constants literally in code which has two advantages over this
+macro:</p>
+<ol>
+<li>It can handle fixed-point numbers with fractions, not just integers.</li>
+<li>It can be used anywhere an expression or constant expression can be
+used, not just to define a constant.</li>
+</ol>
+<h2 id="examples"><a href="#examples">Examples</a></h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>fixed::{const_fixed_from_int, types::I16F16};
+<span class="macro">const_fixed_from_int! </span>{
+    <span class="comment">// define a constant using an integer
+    </span><span class="kw">const </span>FIVE: I16F16 = <span class="number">5</span>;
+    <span class="comment">// define a constant using an integer expression
+    </span><span class="kw">const </span>SUM: I16F16 = <span class="number">3 </span>+ <span class="number">2</span>;
+}
+<span class="macro">assert_eq!</span>(FIVE, <span class="number">5</span>);
+<span class="macro">assert_eq!</span>(SUM, <span class="number">5</span>);</code></pre></div>
+<p>The following would fail to compile because
+<code><a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html" title="i32">i32</a>::<a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html#associatedconstant.MAX" title="i32::MAX">MAX</a></code> is not representable by <a href="types/type.I16F16.html"><code>I16F16</code></a>.</p>
+
+<div class="example-wrap compile_fail"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">use </span>fixed::{const_fixed_from_int, types::I16F16};
+<span class="macro">const_fixed_from_int! </span>{
+    <span class="comment">// fails because i32::MAX &gt; I16F16::MAX
+    </span><span class="kw">const </span>_OVERFLOW: I16F16 = i32::MAX;
+}</code></pre></div>
+<p>The following would fail to compile because <a href="types/type.I16F16.html"><code>I16F16</code></a> is an alias for
+<code><a href="struct.FixedI32.html" title="FixedI32">FixedI32</a>&lt;<a href="types/extra/type.U32.html" title="U32">U32</a>&gt;</code>, and this macro can define <a href="struct.FixedI32.html" title="FixedI32"><code>FixedI32</code></a>
+constants using <a href="https://doc.rust-lang.org/nightly/std/primitive.i32.html" title="i32"><code>i32</code></a> expressions, not <a href="https://doc.rust-lang.org/nightly/std/primitive.i16.html" title="i16"><code>i16</code></a> expressions.</p>
+
+<div class="example-wrap compile_fail"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">use </span>fixed::{const_fixed_from_int, types::I16F16};
+<span class="macro">const_fixed_from_int! </span>{
+    <span class="comment">// fails because 0i16 is not of type i32
+    </span><span class="kw">const </span>_MISMATCH: I16F16 = <span class="number">0i16</span>;
+}</code></pre></div>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="fixed" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

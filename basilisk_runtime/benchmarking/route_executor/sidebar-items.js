@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["MAX_NUMBER_OF_TRADES",""],["SEED",""],["UNITS",""]],"enum":[["SelectedBenchmark",""]],"fn":[["create_account",""],["generate_trades",""],["register_asset_with_name",""]],"struct":[["Benchmark",""],["buy",""],["sell",""]],"type":[["RouteExecutor",""]]};

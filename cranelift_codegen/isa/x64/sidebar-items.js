@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["encoding","Contains the encoding machinery for the various x64 instruction formats."]]};

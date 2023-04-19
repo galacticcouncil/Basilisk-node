@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Item","A batch verification item."],["Verifier","A batch verification context."]]};

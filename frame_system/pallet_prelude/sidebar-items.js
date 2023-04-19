@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"type":[["BlockNumberFor","Type alias for the `BlockNumber` associated type of system config."],["OriginFor","Type alias for the `Origin` associated type of system config."]]};

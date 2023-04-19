@@ -1,0 +1,5 @@
+(function() {var implementors = {
+"frame_support":[],
+"kusama_runtime":[["impl <a class=\"trait\" href=\"frame_support/traits/misc/trait.PrivilegeCmp.html\" title=\"trait frame_support::traits::misc::PrivilegeCmp\">PrivilegeCmp</a>&lt;<a class=\"enum\" href=\"kusama_runtime/enum.OriginCaller.html\" title=\"enum kusama_runtime::OriginCaller\">OriginCaller</a>&gt; for <a class=\"struct\" href=\"kusama_runtime/struct.OriginPrivilegeCmp.html\" title=\"struct kusama_runtime::OriginPrivilegeCmp\">OriginPrivilegeCmp</a>"]],
+"polkadot_runtime":[["impl <a class=\"trait\" href=\"frame_support/traits/misc/trait.PrivilegeCmp.html\" title=\"trait frame_support::traits::misc::PrivilegeCmp\">PrivilegeCmp</a>&lt;<a class=\"enum\" href=\"polkadot_runtime/enum.OriginCaller.html\" title=\"enum polkadot_runtime::OriginCaller\">OriginCaller</a>&gt; for <a class=\"struct\" href=\"polkadot_runtime/struct.OriginPrivilegeCmp.html\" title=\"struct polkadot_runtime::OriginPrivilegeCmp\">OriginPrivilegeCmp</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

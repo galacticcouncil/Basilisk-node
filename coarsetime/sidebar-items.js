@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Clock","System time"],["Duration","A duration type to represent an approximate span of time"],["Instant","A measurement of a monotonically increasing clock. Opaque and useful only with `Duration`."],["Updater","A service to periodically call `Instant::update()`"]],"type":[["UnixTimeStamp","Alias for `Duration`."]]};

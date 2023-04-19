@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ProtocolSide","What side of the collator protocol is being engaged"]],"struct":[["CollatorEvictionPolicy","A collator eviction policy - how fast to evict collators which are inactive."],["CollatorProtocolSubsystem","The collator protocol subsystem."]]};

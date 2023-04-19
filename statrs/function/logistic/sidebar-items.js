@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["checked_logit","Computes the logit function"],["logistic","Computes the logistic function"],["logit","Computes the logit function"]]};

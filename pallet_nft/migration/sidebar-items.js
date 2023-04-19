@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["v1","Storage names are changed from Classes to Collections and from Instances to Items."]]};

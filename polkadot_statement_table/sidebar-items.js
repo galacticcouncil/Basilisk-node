@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["generic","The statement table: generic implementation."],["v2","Concrete instantiations suitable for v2 primitives."]]};

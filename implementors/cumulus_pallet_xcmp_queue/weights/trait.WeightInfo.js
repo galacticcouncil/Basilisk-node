@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"common_runtime":[["impl&lt;T:&nbsp;<a class=\"trait\" href=\"frame_system/pallet/trait.Config.html\" title=\"trait frame_system::pallet::Config\">Config</a>&gt; <a class=\"trait\" href=\"cumulus_pallet_xcmp_queue/weights/trait.WeightInfo.html\" title=\"trait cumulus_pallet_xcmp_queue::weights::WeightInfo\">WeightInfo</a> for <a class=\"struct\" href=\"common_runtime/weights/xcmp_queue/struct.BasiliskWeight.html\" title=\"struct common_runtime::weights::xcmp_queue::BasiliskWeight\">BasiliskWeight</a>&lt;T&gt;"]],
+"cumulus_pallet_xcmp_queue":[]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

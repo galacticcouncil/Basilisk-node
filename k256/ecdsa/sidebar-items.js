@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["recoverable","Ethereum-style “recoverable signatures”."]],"struct":[["Error","Signature errors."],["SigningKey","ECDSA/secp256k1 signing key"],["VerifyingKey","ECDSA/secp256k1 verification key (i.e. public key)"]],"type":[["DerSignature","ECDSA/secp256k1 signature (ASN.1 DER encoded)"],["Signature","ECDSA/secp256k1 signature (fixed-size)"]]};

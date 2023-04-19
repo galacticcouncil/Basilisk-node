@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Event","The events produced by the [`Client`] behaviour."],["RelayedConnection","A [`NegotiatedSubstream`] acting as a [`RelayedConnection`]."]],"mod":[["transport",""]],"struct":[["Client",""]]};

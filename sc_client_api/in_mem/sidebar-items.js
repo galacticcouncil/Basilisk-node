@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["check_genesis_storage","Check that genesis storage is valid."]],"struct":[["Backend","In-memory backend. Keeps all states and blocks in memory."],["BlockImportOperation","In-memory operation."],["Blockchain","In-memory blockchain. Supports concurrent reads."]]};

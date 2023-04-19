@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Family","Representation of the OpenMetrics MetricFamily data type."]],"trait":[["MetricConstructor","A constructor for creating new metrics in a [`Family`] when calling [`Family::get_or_create`]. Such constructor is provided via [`Family::new_with_constructor`]."]]};

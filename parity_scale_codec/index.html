@@ -1,0 +1,192 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Parity SCALE Codec"><meta name="keywords" content="rust, rustlang, rust-lang, parity_scale_codec"><title>parity_scale_codec - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../parity_scale_codec/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../parity_scale_codec/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate parity_scale_codec</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 3.2.1</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li><li><a href="#derives">Derive Macros</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Crate <a class="mod" href="#">parity_scale_codec</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/parity_scale_codec/lib.rs.html#15-350">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="parity-scale-codec"><a href="#parity-scale-codec">Parity SCALE Codec</a></h2>
+<p>Rust implementation of the SCALE (Simple Concatenated Aggregate Little-Endian) data format
+for types used in the Parity Substrate framework.</p>
+<p>SCALE is a light-weight format which allows encoding (and decoding) which makes it highly
+suitable for resource-constrained execution environments like blockchain runtimes and low-power,
+low-memory devices.</p>
+<p>It is important to note that the encoding context (knowledge of how the types and data
+structures look) needs to be known separately at both encoding and decoding ends.
+The encoded data does not include this contextual information.</p>
+<p>To get a better understanding of how the encoding is done for different types,
+take a look at the
+<a href="https://docs.substrate.io/v3/advanced/scale-codec/">SCALE Code page at the Substrate Knowledge Base</a>.</p>
+<h3 id="implementation"><a href="#implementation">Implementation</a></h3>
+<p>The codec is implemented using the following traits:</p>
+<h4 id="encode"><a href="#encode">Encode</a></h4>
+<p>The <code>Encode</code> trait is used for encoding of data into the SCALE format. The <code>Encode</code> trait
+contains the following functions:</p>
+<ul>
+<li><code>size_hint(&amp;self) -&gt; usize</code>: Gets the capacity (in bytes) required for the encoded data.
+This is to avoid double-allocation of memory needed for the encoding.
+It can be an estimate and does not need to be an exact number.
+If the size is not known, even no good maximum, then we can skip this function from the trait
+implementation. This is required to be a cheap operation, so should not involve iterations etc.</li>
+<li><code>encode_to&lt;T: Output&gt;(&amp;self, dest: &amp;mut T)</code>: Encodes the value and appends it to a destination
+buffer.</li>
+<li><code>encode(&amp;self) -&gt; Vec&lt;u8&gt;</code>: Encodes the type data and returns a slice.</li>
+<li><code>using_encoded&lt;R, F: FnOnce(&amp;[u8]) -&gt; R&gt;(&amp;self, f: F) -&gt; R</code>: Encodes the type data and
+executes a closure on the encoded value.
+Returns the result from the executed closure.</li>
+</ul>
+<p><strong>Note:</strong> Implementations should override <code>using_encoded</code> for value types and <code>encode_to</code> for
+allocating types. <code>size_hint</code> should be implemented for all types, wherever possible. Wrapper
+types should override all methods.</p>
+<h4 id="decode"><a href="#decode">Decode</a></h4>
+<p>The <code>Decode</code> trait is used for deserialization/decoding of encoded data into the respective
+types.</p>
+<ul>
+<li><code>fn decode&lt;I: Input&gt;(value: &amp;mut I) -&gt; Result&lt;Self, Error&gt;</code>: Tries to decode the value from
+SCALE format to the type it is called on.
+Returns an <code>Err</code> if the decoding fails.</li>
+</ul>
+<h4 id="compactas"><a href="#compactas">CompactAs</a></h4>
+<p>The <code>CompactAs</code> trait is used for wrapping custom types/structs as compact types, which makes
+them even more space/memory efficient. The compact encoding is described <a href="https://docs.substrate.io/v3/advanced/scale-codec/#compactgeneral-integers">here</a>.</p>
+<ul>
+<li><code>encode_as(&amp;self) -&gt; &amp;Self::As</code>: Encodes the type (self) as a compact type.
+The type <code>As</code> is defined in the same trait and its implementation should be compact encode-able.</li>
+<li><code>decode_from(_: Self::As) -&gt; Result&lt;Self, Error&gt;</code>: Decodes the type (self) from a compact
+encode-able type.</li>
+</ul>
+<h4 id="hascompact"><a href="#hascompact">HasCompact</a></h4>
+<p>The <code>HasCompact</code> trait, if implemented, tells that the corresponding type is a compact
+encode-able type.</p>
+<h4 id="encodelike"><a href="#encodelike">EncodeLike</a></h4>
+<p>The <code>EncodeLike</code> trait needs to be implemented for each type manually. When using derive, it is
+done automatically for you. Basically the trait gives you the opportunity to accept multiple
+types to a function that all encode to the same representation.</p>
+<h3 id="usage-examples"><a href="#usage-examples">Usage Examples</a></h3>
+<p>Following are some examples to demonstrate usage of the codec.</p>
+<h4 id="simple-types"><a href="#simple-types">Simple types</a></h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>parity_scale_codec::{Encode, Decode};
+
+<span class="attr">#[derive(Debug, PartialEq, Encode, Decode)]
+</span><span class="kw">enum </span>EnumType {
+	<span class="attr">#[codec(index = <span class="number">15</span>)]
+	</span>A,
+	B(u32, u64),
+	C {
+		a: u32,
+		b: u64,
+	},
+}
+
+<span class="kw">let </span>a = EnumType::A;
+<span class="kw">let </span>b = EnumType::B(<span class="number">1</span>, <span class="number">2</span>);
+<span class="kw">let </span>c = EnumType::C { a: <span class="number">1</span>, b: <span class="number">2 </span>};
+
+a.using_encoded(|<span class="kw-2">ref </span>slice| {
+    <span class="macro">assert_eq!</span>(slice, <span class="kw-2">&amp;</span><span class="string">b&quot;\x0f&quot;</span>);
+});
+
+b.using_encoded(|<span class="kw-2">ref </span>slice| {
+    <span class="macro">assert_eq!</span>(slice, <span class="kw-2">&amp;</span><span class="string">b&quot;\x01\x01\0\0\0\x02\0\0\0\0\0\0\0&quot;</span>);
+});
+
+c.using_encoded(|<span class="kw-2">ref </span>slice| {
+    <span class="macro">assert_eq!</span>(slice, <span class="kw-2">&amp;</span><span class="string">b&quot;\x02\x01\0\0\0\x02\0\0\0\0\0\0\0&quot;</span>);
+});
+
+<span class="kw">let </span><span class="kw-2">mut </span>da: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;\x0f&quot;</span>;
+<span class="macro">assert_eq!</span>(EnumType::decode(<span class="kw-2">&amp;mut </span>da).ok(), <span class="prelude-val">Some</span>(a));
+
+<span class="kw">let </span><span class="kw-2">mut </span>db: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;\x01\x01\0\0\0\x02\0\0\0\0\0\0\0&quot;</span>;
+<span class="macro">assert_eq!</span>(EnumType::decode(<span class="kw-2">&amp;mut </span>db).ok(), <span class="prelude-val">Some</span>(b));
+
+<span class="kw">let </span><span class="kw-2">mut </span>dc: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;\x02\x01\0\0\0\x02\0\0\0\0\0\0\0&quot;</span>;
+<span class="macro">assert_eq!</span>(EnumType::decode(<span class="kw-2">&amp;mut </span>dc).ok(), <span class="prelude-val">Some</span>(c));
+
+<span class="kw">let </span><span class="kw-2">mut </span>dz: <span class="kw-2">&amp;</span>[u8] = <span class="kw-2">&amp;</span>[<span class="number">0</span>];
+<span class="macro">assert_eq!</span>(EnumType::decode(<span class="kw-2">&amp;mut </span>dz).ok(), <span class="prelude-val">None</span>);
+</code></pre></div>
+<h4 id="compact-type-with-hascompact"><a href="#compact-type-with-hascompact">Compact type with HasCompact</a></h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>parity_scale_codec::{Encode, Decode, Compact, HasCompact};
+
+<span class="attr">#[derive(Debug, PartialEq, Encode, Decode)]
+</span><span class="kw">struct </span>Test1CompactHasCompact&lt;T: HasCompact&gt; {
+    <span class="attr">#[codec(compact)]
+    </span>bar: T,
+}
+
+<span class="attr">#[derive(Debug, PartialEq, Encode, Decode)]
+</span><span class="kw">struct </span>Test1HasCompact&lt;T: HasCompact&gt; {
+    <span class="attr">#[codec(encoded_as = <span class="string">&quot;&lt;T as HasCompact&gt;::Type&quot;</span>)]
+    </span>bar: T,
+}
+
+<span class="kw">let </span>test_val: (u64, usize) = (<span class="number">0u64</span>, <span class="number">1usize</span>);
+
+<span class="kw">let </span>encoded = Test1HasCompact { bar: test_val.<span class="number">0 </span>}.encode();
+<span class="macro">assert_eq!</span>(encoded.len(), test_val.<span class="number">1</span>);
+<span class="macro">assert_eq!</span>(&lt;Test1CompactHasCompact&lt;u64&gt;&gt;::decode(<span class="kw-2">&amp;mut &amp;</span>encoded[..]).unwrap().bar, test_val.<span class="number">0</span>);
+</code></pre></div>
+<h4 id="type-with-compactas"><a href="#type-with-compactas">Type with CompactAs</a></h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code>
+<span class="kw">use </span>serde_derive::{Serialize, Deserialize};
+<span class="kw">use </span>parity_scale_codec::{Encode, Decode, Compact, HasCompact, CompactAs, Error};
+
+<span class="attr">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize, Debug))]
+#[derive(PartialEq, Eq, Clone)]
+</span><span class="kw">struct </span>StructHasCompact(u32);
+
+<span class="kw">impl </span>CompactAs <span class="kw">for </span>StructHasCompact {
+    <span class="kw">type </span>As = u32;
+
+    <span class="kw">fn </span>encode_as(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::As {
+        <span class="kw-2">&amp;</span><span class="number">12
+    </span>}
+
+    <span class="kw">fn </span>decode_from(<span class="kw">_</span>: <span class="self">Self</span>::As) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, Error&gt; {
+        <span class="prelude-val">Ok</span>(StructHasCompact(<span class="number">12</span>))
+    }
+}
+
+<span class="kw">impl </span>From&lt;Compact&lt;StructHasCompact&gt;&gt; <span class="kw">for </span>StructHasCompact {
+    <span class="kw">fn </span>from(<span class="kw">_</span>: Compact&lt;StructHasCompact&gt;) -&gt; <span class="self">Self </span>{
+        StructHasCompact(<span class="number">12</span>)
+    }
+}
+
+<span class="attr">#[derive(Debug, PartialEq, Encode, Decode)]
+</span><span class="kw">enum </span>TestGenericHasCompact&lt;T&gt; {
+    A {
+        <span class="attr">#[codec(compact)] </span>a: T
+    },
+}
+
+<span class="kw">let </span>a = TestGenericHasCompact::A::&lt;StructHasCompact&gt; {
+    a: StructHasCompact(<span class="number">12325678</span>),
+};
+
+<span class="kw">let </span>encoded = a.encode();
+<span class="macro">assert_eq!</span>(encoded.len(), <span class="number">2</span>);
+</code></pre></div>
+<h3 id="derive-attributes"><a href="#derive-attributes">Derive attributes</a></h3>
+<p>The derive implementation supports the following attributes:</p>
+<ul>
+<li><code>codec(dumb_trait_bound)</code>: This attribute needs to be placed above the type that one of the
+trait should be implemented for. It will make the algorithm that determines the to-add trait
+bounds fall back to just use the type parameters of the type. This can be useful for situation
+where the algorithm includes private types in the public interface. By using this attribute,
+you should not get this error/warning again.</li>
+<li><code>codec(skip)</code>: Needs to be placed above a field  or variant and makes it to be skipped while
+encoding/decoding.</li>
+<li><code>codec(compact)</code>: Needs to be placed above a field and makes the field use compact encoding.
+(The type needs to support compact encoding.)</li>
+<li><code>codec(encoded_as = &quot;OtherType&quot;)</code>: Needs to be placed above a field and makes the field being
+encoded by using <code>OtherType</code>.</li>
+<li><code>codec(index = 0)</code>: Needs to be placed above an enum variant to make the variant use the given
+index when encoded. By default the index is determined by counting from <code>0</code> beginning wth the
+first variant.</li>
+</ul>
+</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Compact.html" title="parity_scale_codec::Compact struct">Compact</a></div><div class="item-right docblock-short">Compact-encoded variant of T. This is more space-efficient but less compute-efficient.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.CompactRef.html" title="parity_scale_codec::CompactRef struct">CompactRef</a></div><div class="item-right docblock-short">Compact-encoded variant of &amp;’a T. This is more space-efficient but less compute-efficient.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Error.html" title="parity_scale_codec::Error struct">Error</a></div><div class="item-right docblock-short">Error type.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.IoReader.html" title="parity_scale_codec::IoReader struct">IoReader</a></div><div class="item-right docblock-short">Wrapper that implements Input for any <code>Read</code> type.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.OptionBool.html" title="parity_scale_codec::OptionBool struct">OptionBool</a></div><div class="item-right docblock-short">Shim type because we can’t do a specialised implementation for <code>Option&lt;bool&gt;</code> directly.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Ref.html" title="parity_scale_codec::Ref struct">Ref</a></div><div class="item-right docblock-short">Reference wrapper that implement encode like any type that is encoded like its inner type.</div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Codec.html" title="parity_scale_codec::Codec trait">Codec</a></div><div class="item-right docblock-short">Trait that allows zero-copy read/write of value-references to/from slices in LE format.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.CompactAs.html" title="parity_scale_codec::CompactAs trait">CompactAs</a></div><div class="item-right docblock-short">Allow foreign structs to be wrap in Compact</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.CompactLen.html" title="parity_scale_codec::CompactLen trait">CompactLen</a></div><div class="item-right docblock-short">Something that can return the compact encoded length for a given value.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Decode.html" title="parity_scale_codec::Decode trait">Decode</a></div><div class="item-right docblock-short">Trait that allows zero-copy read of value-references from slices in LE format.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.DecodeAll.html" title="parity_scale_codec::DecodeAll trait">DecodeAll</a></div><div class="item-right docblock-short">Extension trait to <a href="trait.Decode.html" title="Decode"><code>Decode</code></a> that ensures that the given input data is consumed completly while
+decoding.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.DecodeLength.html" title="parity_scale_codec::DecodeLength trait">DecodeLength</a></div><div class="item-right docblock-short">Trait that allows the length of a collection to be read, without having
+to read and decode the entire elements.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.DecodeLimit.html" title="parity_scale_codec::DecodeLimit trait">DecodeLimit</a></div><div class="item-right docblock-short">Extension trait to <a href="trait.Decode.html" title="Decode"><code>Decode</code></a> for decoding with a maximum recursion depth.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Encode.html" title="parity_scale_codec::Encode trait">Encode</a></div><div class="item-right docblock-short">Trait that allows zero-copy write of value-references to slices in LE format.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.EncodeAppend.html" title="parity_scale_codec::EncodeAppend trait">EncodeAppend</a></div><div class="item-right docblock-short">Trait that allows to append items to an encoded representation without
+decoding all previous added items.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.EncodeAsRef.html" title="parity_scale_codec::EncodeAsRef trait">EncodeAsRef</a></div><div class="item-right docblock-short">Something that can be encoded as a reference.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.EncodeLike.html" title="parity_scale_codec::EncodeLike trait">EncodeLike</a></div><div class="item-right docblock-short">A marker trait that tells the compiler that a type encode to the same representation as another
+type.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.FullCodec.html" title="parity_scale_codec::FullCodec trait">FullCodec</a></div><div class="item-right docblock-short">Trait that bound <code>EncodeLike</code> along with <code>Codec</code>. Usefull for generic being used in function
+with <code>EncodeLike</code> parameters.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.FullEncode.html" title="parity_scale_codec::FullEncode trait">FullEncode</a></div><div class="item-right docblock-short">Trait that bound <code>EncodeLike</code> along with <code>Encode</code>. Usefull for generic being used in function
+with <code>EncodeLike</code> parameters.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.HasCompact.html" title="parity_scale_codec::HasCompact trait">HasCompact</a></div><div class="item-right docblock-short">Trait that tells you if a given type can be encoded/decoded in a compact way.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Input.html" title="parity_scale_codec::Input trait">Input</a></div><div class="item-right docblock-short">Trait that allows reading of data into a slice.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Joiner.html" title="parity_scale_codec::Joiner trait">Joiner</a></div><div class="item-right docblock-short">Trait to allow itself to be serialised into a value which can be extended
+by bytes.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.KeyedVec.html" title="parity_scale_codec::KeyedVec trait">KeyedVec</a></div><div class="item-right docblock-short">Trait to allow itself to be serialised and prepended by a given slice.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.MaxEncodedLen.html" title="parity_scale_codec::MaxEncodedLen trait">MaxEncodedLen</a></div><div class="item-right docblock-short">Items implementing <code>MaxEncodedLen</code> have a statically known maximum encoded size.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Output.html" title="parity_scale_codec::Output trait">Output</a></div><div class="item-right docblock-short">Trait that allows writing of data.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.WrapperTypeDecode.html" title="parity_scale_codec::WrapperTypeDecode trait">WrapperTypeDecode</a></div><div class="item-right docblock-short">A marker trait for types that can be created solely from other decodable types.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.WrapperTypeEncode.html" title="parity_scale_codec::WrapperTypeEncode trait">WrapperTypeEncode</a></div><div class="item-right docblock-short">A marker trait for types that wrap other encodable type.</div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.decode_from_bytes.html" title="parity_scale_codec::decode_from_bytes fn">decode_from_bytes</a></div><div class="item-right docblock-short">Decodes a given <code>T</code> from <code>Bytes</code>.</div></div></div><h2 id="derives" class="small-section-header"><a href="#derives">Derive Macros</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="derive" href="derive.CompactAs.html" title="parity_scale_codec::CompactAs derive">CompactAs</a></div><div class="item-right docblock-short">Derive <code>parity_scale_codec::Compact</code> and <code>parity_scale_codec::CompactAs</code> for struct with single
+field.</div></div><div class="item-row"><div class="item-left module-item"><a class="derive" href="derive.Decode.html" title="parity_scale_codec::Decode derive">Decode</a></div><div class="item-right docblock-short">Derive <code>parity_scale_codec::Decode</code> and for struct and enum.</div></div><div class="item-row"><div class="item-left module-item"><a class="derive" href="derive.Encode.html" title="parity_scale_codec::Encode derive">Encode</a></div><div class="item-right docblock-short">Derive <code>parity_scale_codec::Encode</code> and <code>parity_scale_codec::EncodeLike</code> for struct and enum.</div></div><div class="item-row"><div class="item-left module-item"><a class="derive" href="derive.MaxEncodedLen.html" title="parity_scale_codec::MaxEncodedLen derive">MaxEncodedLen</a></div><div class="item-right docblock-short">Derive macro for <a href="trait.MaxEncodedLen.html" title="max_encoded_len::MaxEncodedLen"><code>MaxEncodedLen</code></a>.</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="parity_scale_codec" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

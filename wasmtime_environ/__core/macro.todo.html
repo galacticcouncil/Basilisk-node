@@ -1,0 +1,44 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Indicates unfinished code."><meta name="keywords" content="rust, rustlang, rust-lang, todo"><title>todo in wasmtime_environ::__core - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../wasmtime_environ/index.html"><div class="logo-container"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../wasmtime_environ/index.html"><div class="logo-container"><img class="rust-logo" src="../../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><div class="sidebar-elems"><h2><a href="index.html">In wasmtime_environ::__core</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Macro <a href="../index.html">wasmtime_environ</a>::<wbr><a href="index.html">__core</a>::<wbr><a class="macro" href="#">todo</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><span class="since" title="Stable since Rust version 1.40.0">1.40.0</span> · <a class="srclink" href="https://doc.rust-lang.org/nightly/src/core/macros/mod.rs.html#771">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><div class="item-decl"><div class="example-wrap"><pre class="rust macro"><code><span class="macro">macro_rules! </span>todo {
+    () =&gt; { ... };
+    ($(<span class="macro-nonterminal">$arg</span>:tt)+) =&gt; { ... };
+}</code></pre></div>
+</div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Indicates unfinished code.</p>
+<p>This can be useful if you are prototyping and are just looking to have your
+code typecheck.</p>
+<p>The difference between <a href="macro.unimplemented.html" title="unimplemented!"><code>unimplemented!</code></a> and <code>todo!</code> is that while <code>todo!</code> conveys
+an intent of implementing the functionality later and the message is “not yet
+implemented”, <code>unimplemented!</code> makes no such claims. Its message is “not implemented”.
+Also some IDEs will mark <code>todo!</code>s.</p>
+<h2 id="panics"><a href="#panics">Panics</a></h2>
+<p>This will always <a href="https://doc.rust-lang.org/nightly/std/macro.panic.html" title="panic!"><code>panic!</code></a>.</p>
+<h2 id="examples"><a href="#examples">Examples</a></h2>
+<p>Here’s an example of some in-progress code. We have a trait <code>Foo</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">trait </span>Foo {
+    <span class="kw">fn </span>bar(<span class="kw-2">&amp;</span><span class="self">self</span>);
+    <span class="kw">fn </span>baz(<span class="kw-2">&amp;</span><span class="self">self</span>);
+}</code></pre></div>
+<p>We want to implement <code>Foo</code> on one of our types, but we also want to work on
+just <code>bar()</code> first. In order for our code to compile, we need to implement
+<code>baz()</code>, so we can use <code>todo!</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">struct </span>MyStruct;
+
+<span class="kw">impl </span>Foo <span class="kw">for </span>MyStruct {
+    <span class="kw">fn </span>bar(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// implementation goes here
+    </span>}
+
+    <span class="kw">fn </span>baz(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+        <span class="comment">// let&#39;s not worry about implementing baz() for now
+        </span><span class="macro">todo!</span>();
+    }
+}
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>s = MyStruct;
+    s.bar();
+
+    <span class="comment">// we aren&#39;t even using baz(), so this is fine.
+</span>}</code></pre></div>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="wasmtime_environ" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

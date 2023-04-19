@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["wyrand","Implementation of the wyrand PRNG algorithm. More details can be seen at https://github.com/wangyi-fudan/wyhash"]],"trait":[["Rng","A trait that represents a random number generator."],["SeedableRng","A trait that represents an RNG that can be reseeded from arbitrary bytes."]]};

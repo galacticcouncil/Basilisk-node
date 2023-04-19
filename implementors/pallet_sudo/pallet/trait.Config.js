@@ -1,0 +1,5 @@
+(function() {var implementors = {
+"rococo_runtime":[["impl <a class=\"trait\" href=\"pallet_sudo/pallet/trait.Config.html\" title=\"trait pallet_sudo::pallet::Config\">Config</a> for <a class=\"struct\" href=\"rococo_runtime/struct.Runtime.html\" title=\"struct rococo_runtime::Runtime\">Runtime</a>"]],
+"testing_basilisk_runtime":[["impl <a class=\"trait\" href=\"pallet_sudo/pallet/trait.Config.html\" title=\"trait pallet_sudo::pallet::Config\">Config</a> for <a class=\"struct\" href=\"testing_basilisk_runtime/struct.Runtime.html\" title=\"struct testing_basilisk_runtime::Runtime\">Runtime</a>"]],
+"westend_runtime":[["impl <a class=\"trait\" href=\"pallet_sudo/pallet/trait.Config.html\" title=\"trait pallet_sudo::pallet::Config\">Config</a> for <a class=\"struct\" href=\"westend_runtime/struct.Runtime.html\" title=\"struct westend_runtime::Runtime\">Runtime</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"common_runtime":[["impl&lt;T:&nbsp;<a class=\"trait\" href=\"frame_system/pallet/trait.Config.html\" title=\"trait frame_system::pallet::Config\">Config</a>&gt; <a class=\"trait\" href=\"orml_tokens/weights/trait.WeightInfo.html\" title=\"trait orml_tokens::weights::WeightInfo\">WeightInfo</a> for <a class=\"struct\" href=\"common_runtime/weights/tokens/struct.BasiliskWeight.html\" title=\"struct common_runtime::weights::tokens::BasiliskWeight\">BasiliskWeight</a>&lt;T&gt;"]],
+"orml_tokens":[]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

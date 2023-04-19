@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["backup_entropy","This just panics."],["rdseed","A wrapper function for non-x86(64) platforms that do not have rdseed."]],"mod":[["linux","An entropy generator for Linux, using libc’s `getrandom` function."]]};

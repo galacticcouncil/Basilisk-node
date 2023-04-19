@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Pages","Memory size specified in memory pages."],["Words","Memory size specified in words."]]};

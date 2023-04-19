@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["SignedCommitmentWitness","A light form of [SignedCommitment]."]]};

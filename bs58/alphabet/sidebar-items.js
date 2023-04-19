@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error","Errors that could occur when preparing a Base58 alphabet."]],"struct":[["Alphabet","Prepared Alphabet for `EncodeBuilder::with_alphabet` and `DecodeBuilder::with_alphabet`."]]};

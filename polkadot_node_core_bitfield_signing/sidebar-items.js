@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error","Errors we may encounter in the course of executing the `BitfieldSigningSubsystem`."]],"struct":[["BitfieldSigningSubsystem","The bitfield signing subsystem."]]};

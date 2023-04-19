@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["error","Error helpers for Dev RPC module."]],"struct":[["BlockStats","Statistics of a block returned by the `dev_getBlockStats` RPC."]],"trait":[["DevApiClient","Client implementation for the `DevApi` RPC API."],["DevApiServer","Server trait implementation for the `DevApi` RPC API."]]};

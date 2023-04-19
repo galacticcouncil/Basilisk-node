@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Jaeger client."><meta name="keywords" content="rust, rustlang, rust-lang, mick_jaeger"><title>mick_jaeger - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../mick_jaeger/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../mick_jaeger/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate mick_jaeger</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 0.1.8</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Crate <a class="mod" href="#">mick_jaeger</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/mick_jaeger/lib.rs.html#16-570">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Jaeger client.</p>
+<h2 id="overview"><a href="#overview">Overview</a></h2>
+<p>In order to use this crate, you must be familiar with the concept of a <em>span</em>.</p>
+<p>A <em>span</em> covers a certain period of time, typically from the start of an operation to the end.
+In other words, you generally start a span at the beginning of a function or block, and end
+it at the end of the function/block.</p>
+<p>The purpose of this crate is to let you easily record spans and send them to a Jaeger server,
+which will aggerate them and let you visualize them.</p>
+<p>Each span belongs to a <em>trace</em>. A trace is identified by a 128 bits identifier. Jaeger lets
+you easily visualize all the spans belonging to the same trace, even if they come from
+different clients.</p>
+<p>As an example, imagine an HTTP frontend server receiving an HTTP request. It can generate a
+new trace id for this request, then pass this identifier around to other external processes
+that process parts of this request. These external processes, being all connected to the same
+Jaeger server, can report spans corresponding to this request.</p>
+<p>The easiest way to start a Jaeger server for quick experimentation is through Docker:</p>
+<div class="example-wrap"><pre class="language-notrust"><code>docker run -d --name jaeger \
+  -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 \
+  -p 5775:5775/udp \
+  -p 6831:6831/udp \
+  -p 6832:6832/udp \
+  -p 5778:5778 \
+  -p 16686:16686 \
+  -p 14268:14268 \
+  -p 14250:14250 \
+  -p 9411:9411 \
+  jaegertracing/all-in-one:1.20</code></pre></div>
+<p>See also <a href="https://www.jaegertracing.io/docs/1.20/getting-started/">the official documentation</a>.</p>
+<h2 id="usage-initialization"><a href="#usage-initialization">Usage: initialization</a></h2>
+<p>First and foremost, call <a href="fn.init.html" title="init"><code>init</code></a> in order to allocate all the necessary objects.</p>
+<p>This returns a combination of a <a href="struct.TracesIn.html" title="TracesIn"><code>TracesIn</code></a> and <a href="struct.TracesOut.html" title="TracesOut"><code>TracesOut</code></a>. Think of them as a sender and
+receiver. The <a href="struct.TracesIn.html" title="TracesIn"><code>TracesIn</code></a> is used in order to send completed spans to the <a href="struct.TracesOut.html" title="TracesOut"><code>TracesOut</code></a>.</p>
+<p>Sending the traces to the server isn’t covered by this library. The <a href="struct.TracesOut.html" title="TracesOut"><code>TracesOut</code></a> must be
+polled using <a href="struct.TracesOut.html#method.next" title="TracesOut::next"><code>TracesOut::next</code></a>, and the data sent through UDP to the Jaeger server.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>(traces_in, <span class="kw-2">mut </span>traces_out) = mick_jaeger::init(mick_jaeger::Config {
+    service_name: <span class="string">&quot;demo&quot;</span>.to_string(),
+});
+
+<span class="kw">let </span>udp_socket = async_std::net::UdpSocket::bind(<span class="string">&quot;0.0.0.0:0&quot;</span>).<span class="kw">await</span>.unwrap();
+udp_socket.connect(<span class="string">&quot;127.0.0.1:6831&quot;</span>).<span class="kw">await</span>.unwrap();
+
+async_std::task::spawn(<span class="kw">async move </span>{
+    <span class="kw">loop </span>{
+        <span class="kw">let </span>buf = traces_out.next().<span class="kw">await</span>;
+        udp_socket.send(<span class="kw-2">&amp;</span>buf).<span class="kw">await</span>.unwrap();
+    }
+});</code></pre></div>
+<p>If <a href="struct.TracesOut.html#method.next" title="TracesOut::next"><code>TracesOut::next</code></a> isn’t called often enough, in other words if the background task is too
+slow, the spans sent on the <a href="struct.TracesIn.html" title="TracesIn"><code>TracesIn</code></a> will be automatically and silently discarded. This
+isn’t expected to happen under normal circumstances.</p>
+<h2 id="usage-spans"><a href="#usage-spans">Usage: spans</a></h2>
+<p>Use the <a href="struct.TracesIn.html#method.span" title="TracesIn::span"><code>TracesIn::span</code></a> method to create spans.</p>
+<p>The basic way to use this library is to use <a href="struct.TracesIn.html#method.span" title="TracesIn::span"><code>TracesIn::span</code></a>. This creates a <a href="struct.Span.html" title="Span"><code>Span</code></a> object
+that, when destroyed, will send a report destined to the <a href="struct.TracesOut.html" title="TracesOut"><code>TracesOut</code></a>.</p>
+<blockquote>
+<p><strong>Note</strong>: As long as a <a href="struct.Span.html" title="Span"><code>Span</code></a> is alive, it will not be visible on the Jaeger server. You
+are encouraged to create short-lived spans and long-lived trace IDs.</p>
+</blockquote>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span>_span = traces_in.span(NonZeroU128::new(<span class="number">43</span>).unwrap(), <span class="string">&quot;something&quot;</span>);
+
+<span class="comment">// do something
+
+// The span is reported when it is destroyed at the end of the scope.</span></code></pre></div>
+<blockquote>
+<p><strong>Note</strong>: Do not name your spans <code>_</code>, otherwise they will be destroyed immediately!</p>
+</blockquote>
+<p>It is possible, and encouraged, to add tags to spans.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span><span class="kw-2">mut </span>_span = traces_in.span(NonZeroU128::new(<span class="number">43</span>).unwrap(), <span class="string">&quot;something&quot;</span>);
+_span.add_string_tag(<span class="string">&quot;key&quot;</span>, <span class="string">&quot;value&quot;</span>);</code></pre></div>
+<p>Spans can have children:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>my_function(traces_in: <span class="kw-2">&amp;</span>std::sync::Arc&lt;mick_jaeger::TracesIn&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>_span = traces_in.span(NonZeroU128::new(<span class="number">43</span>).unwrap(), <span class="string">&quot;foo&quot;</span>);
+
+    <span class="comment">// do something
+
+    </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>_span = _span.child(<span class="string">&quot;bar&quot;</span>);
+        <span class="comment">// something expensive
+    </span>}
+}</code></pre></div>
+<p>If an event happens at a precise point in time rather than over time, logs can also be added.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let </span><span class="kw-2">mut </span>_span = traces_in.span(NonZeroU128::new(<span class="number">43</span>).unwrap(), <span class="string">&quot;something&quot;</span>);
+_span.log().with_string(<span class="string">&quot;key&quot;</span>, <span class="string">&quot;value&quot;</span>);</code></pre></div>
+<h2 id="differences-with-other-crates"><a href="#differences-with-other-crates">Differences with other crates</a></h2>
+<p>While there exists other crates that let you interface with <em>Jaeger</em>, they are all
+overcomplicated according to the author of <code>mick_jaeger</code>. Some are lossy abstractions: by
+trying to be easy to use, they hide important details (such as the trace ID), which causes
+more confusion than it helps.</p>
+<p><code>mick_jaeger</code> tries to be simple. The fact that it doesn’t handle sending to the server
+removes a lot of opinionated decisions concerning networking libraries and threading.</p>
+<p><code>mick_jaeger</code> could theoretically be <code>no_std</code>-compatible (after a few tweaks), but can’t
+because at the time of writing there is no no-std-compatible library for the <em>thrift</em>
+protocol.</p>
+</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Config.html" title="mick_jaeger::Config struct">Config</a></div><div class="item-right docblock-short">Configuration to pass to <a href="fn.init.html" title="init"><code>init</code></a>.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Log.html" title="mick_jaeger::Log struct">Log</a></div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Span.html" title="mick_jaeger::Span struct">Span</a></div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.StartTime.html" title="mick_jaeger::StartTime struct">StartTime</a></div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.TracesIn.html" title="mick_jaeger::TracesIn struct">TracesIn</a></div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.TracesOut.html" title="mick_jaeger::TracesOut struct">TracesOut</a></div><div class="item-right docblock-short">Receiving side for spans.</div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.init.html" title="mick_jaeger::init fn">init</a></div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="mick_jaeger" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

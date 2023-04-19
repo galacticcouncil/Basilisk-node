@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["new_full","Create new state API that works on full node."]],"mod":[["error","Error helpers for Chain RPC module."]],"struct":[["Chain","Chain API with subscriptions support."]],"trait":[["ChainApiClient","Client implementation for the `ChainApi` RPC API."],["ChainApiServer","Server trait implementation for the `ChainApi` RPC API."]]};

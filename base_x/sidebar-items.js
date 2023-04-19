@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["decode","Decode an input vector using the given alphabet."],["encode","Encode an input vector using the given alphabet."]],"mod":[["alphabet",""],["decoder",""],["encoder",""]],"struct":[["DecodeError",""]]};

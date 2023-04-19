@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["deconstantize","Provides deconstantizea string."],["demodulize","Provides demodulize a string."],["pluralize","Provides conversion to plural strings."],["singularize","Provides conversion to singular strings."]]};

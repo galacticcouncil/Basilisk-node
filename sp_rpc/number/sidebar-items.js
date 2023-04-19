@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["NumberOrHex","A number type that can be serialized both as a number or a string that encodes a number in a string."]],"struct":[["TryFromIntError","An error type that signals an out-of-range conversion attempt."]]};

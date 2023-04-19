@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["CursorPosition","The possible positions of a cursor."]],"struct":[["FuncCursor","Function cursor."]],"trait":[["Cursor","All cursor types implement the `Cursor` which provides common navigation operations."]]};

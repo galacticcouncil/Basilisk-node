@@ -1,0 +1,281 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Main RPC macro."><meta name="keywords" content="rust, rustlang, rust-lang, rpc"><title>rpc in jsonrpsee_proc_macros - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc attr"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../jsonrpsee_proc_macros/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../jsonrpsee_proc_macros/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><div class="sidebar-elems"><h2><a href="index.html">In jsonrpsee_proc_macros</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Attribute Macro <a href="index.html">jsonrpsee_proc_macros</a>::<wbr><a class="attr" href="#">rpc</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/jsonrpsee_proc_macros/lib.rs.html#350-366">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><div class="item-decl"><pre class="rust attr"><code>#[rpc]</code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Main RPC macro.</p>
+<h3 id="description"><a href="#description">Description</a></h3>
+<p>This macro is capable of generating both server and client implementations on demand.
+Based on the attributes provided to the <code>rpc</code> macro, either one or both of implementations
+will be generated.</p>
+<p>For clients, it will be an extension trait that adds all the required methods to a
+type that implements <code>Client</code> or <code>SubscriptionClient</code> (depending on whether trait has
+subscriptions methods or not), namely <code>HttpClient</code> and <code>WsClient</code>.</p>
+<p>For servers, it will generate a trait mostly equivalent to the input, with the following differences:</p>
+<ul>
+<li>The trait will have one additional (already implemented) method, <code>into_rpc</code>, which turns any object that
+implements the server trait into an <code>RpcModule</code>.</li>
+<li>For subscription methods:
+<ul>
+<li>There will be one additional argument inserted right after <code>&amp;self</code>: <code>subscription_sink: SubscriptionSink</code>.
+It should be used to accept or reject a subscription and send data back to subscribers.</li>
+<li>The return type of the subscription method is <code>SubscriptionResult</code> for improved ergonomics.</li>
+</ul>
+</li>
+</ul>
+<p>Since this macro can generate up to two traits, both server and client traits will have
+a new name. For the <code>Foo</code> trait, server trait will be named <code>FooServer</code>, and client,
+correspondingly, <code>FooClient</code>.</p>
+<p>To use the <code>FooClient</code>, just import it in the context. To use the server, the <code>FooServer</code> trait must be implemented
+on your type first.</p>
+<p>Note: you need to import the <code>jsonrpsee</code> façade crate in your code for the macro to work properly.</p>
+<h3 id="prerequisites"><a href="#prerequisites">Prerequisites</a></h3>
+<ul>
+<li>Implementors of the server trait must be <code>Sync</code>, <code>Send</code>, <code>Sized</code> and <code>'static</code>. If you want to implement this
+trait on some type that is not thread-safe, consider using <code>Arc&lt;RwLock&lt;..&gt;&gt;</code>.</li>
+</ul>
+<h3 id="examples"><a href="#examples">Examples</a></h3>
+<p>Below you can find examples of the macro usage along with the code
+that generated for it by the macro.</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="attr">#[rpc(client, server, namespace = <span class="string">&quot;foo&quot;</span>)]
+</span><span class="kw">pub trait </span>Rpc {
+    <span class="attr">#[method(name = <span class="string">&quot;foo&quot;</span>)]
+    </span><span class="kw">async fn </span>async_method(<span class="kw-2">&amp;</span><span class="self">self</span>, param_a: u8, param_b: String) -&gt; u16;
+    <span class="attr">#[method(name = <span class="string">&quot;bar&quot;</span>)]
+    </span><span class="kw">fn </span>sync_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String;
+
+    <span class="attr">#[subscription(name = <span class="string">&quot;subscribe&quot;</span>, item = <span class="string">&quot;String&quot;</span>)]
+    </span><span class="kw">fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>);
+}</code></pre></div>
+<p>Server code that will be generated:</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="attr">#[async_trait]
+</span><span class="kw">pub trait </span>RpcServer {
+    <span class="comment">// RPC methods are normal methods and can be either sync or async.
+    </span><span class="kw">async fn </span>async_method(<span class="kw-2">&amp;</span><span class="self">self</span>, param_a: u8, param_b: String) -&gt; u16;
+    <span class="kw">fn </span>sync_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String;
+
+    <span class="comment">// Note that `subscription_sink` and `SubscriptionResult` were added automatically.
+    </span><span class="kw">fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>, subscription_sink: SubscriptionResult) -&gt; SubscriptionResult;
+
+    <span class="kw">fn </span>into_rpc(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, jsonrpsee::core::Error&gt; {
+        <span class="comment">// Actual implementation stripped, but inside we will create
+        // a module with one method and one subscription
+    </span>}
+}</code></pre></div>
+<p>Client code that will be generated:</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="attr">#[async_trait]
+</span><span class="kw">pub trait </span>RpcClient: SubscriptionClient {
+    <span class="comment">// In client implementation all the methods are (obviously) async.
+    </span><span class="kw">async fn </span>async_method(<span class="kw-2">&amp;</span><span class="self">self</span>, param_a: u8, param_b: String) -&gt; <span class="prelude-ty">Result</span>&lt;u16, Error&gt; {
+        <span class="comment">// Actual implementations are stripped, but inside a corresponding `Client` or
+        // `SubscriptionClient` method is called.
+    </span>}
+    <span class="kw">async fn </span>sync_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;String, Error&gt; {
+        <span class="comment">// ...
+    </span>}
+
+    <span class="comment">// Subscription method returns `Subscription` object in case of success.
+    </span><span class="kw">async fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Subscription&lt;String&gt;, Error&gt; {
+        <span class="comment">// ...
+    </span>}
+}
+
+<span class="kw">impl</span>&lt;T&gt; RpcClient <span class="kw">for </span>T <span class="kw">where </span>T: SubscriptionClient {}</code></pre></div>
+<h3 id="attributes"><a href="#attributes">Attributes</a></h3><h4 id="rpc-attribute"><a href="#rpc-attribute"><code>rpc</code> attribute</a></h4>
+<p><code>rpc</code> attribute is applied to a trait in order to turn it into an RPC implementation.</p>
+<p><strong>Arguments:</strong></p>
+<ul>
+<li><code>server</code>: generate <code>&lt;Trait&gt;Server</code> trait for the server implementation.</li>
+<li><code>client</code>: generate <code>&lt;Trait&gt;Client</code> extension trait that builds RPC clients to invoke a concrete RPC
+implementation’s methods conveniently.</li>
+<li><code>namespace</code>: add a prefix to all the methods and subscriptions in this RPC. For example, with namespace <code>foo</code> and
+method <code>spam</code>, the resulting method name will be <code>foo_spam</code>.</li>
+<li><code>server_bounds</code>: replace <em>all</em> auto-generated trait bounds with the user-defined ones for the server
+implementation.</li>
+<li><code>client_bounds</code>: replace <em>all</em> auto-generated trait bounds with the user-defined ones for the client
+implementation.</li>
+</ul>
+<p><strong>Trait requirements:</strong></p>
+<p>A trait wrapped with the <code>rpc</code> attribute <strong>must not</strong>:</p>
+<ul>
+<li>have associated types or constants;</li>
+<li>have Rust methods not marked with either the <code>method</code> or <code>subscription</code> attribute;</li>
+<li>be empty.</li>
+</ul>
+<p>At least one of the <code>server</code> or <code>client</code> flags must be provided, otherwise the compilation will err.</p>
+<h4 id="method-attribute"><a href="#method-attribute"><code>method</code> attribute</a></h4>
+<p><code>method</code> attribute is used to define an RPC method.</p>
+<p><strong>Arguments:</strong></p>
+<ul>
+<li><code>name</code> (mandatory): name of the RPC method. Does not have to be the same as the Rust method name.</li>
+<li><code>aliases</code>: list of name aliases for the RPC method as a comma separated string.
+Aliases are processed ignoring the namespace, so add the complete name, including the
+namespace.</li>
+<li><code>blocking</code>: when set method execution will always spawn on a dedicated thread. Only usable with non-<code>async</code> methods.</li>
+<li><code>param_kind</code>: kind of structure to use for parameter passing. Can be “array” or “map”, defaults to “array”.</li>
+</ul>
+<p><strong>Method requirements:</strong></p>
+<p>A Rust method marked with the <code>method</code> attribute, <strong>may</strong>:</p>
+<ul>
+<li>be either <code>async</code> or not;</li>
+<li>have input parameters or not;</li>
+<li>have a return value or not (in the latter case, it will be considered a notification method).</li>
+</ul>
+<h4 id="subscription-attribute"><a href="#subscription-attribute"><code>subscription</code> attribute</a></h4>
+<p><code>subscription</code> attribute is used to define a publish/subscribe interface according to the <a href="https://geth.ethereum.org/docs/rpc/pubsub">ethereum pubsub specification</a></p>
+<p><strong>Arguments:</strong></p>
+<ul>
+<li><code>name</code> (mandatory): name of the RPC method. Does not have to be the same as the Rust method name.</li>
+<li><code>unsubscribe</code> (optional): name of the RPC method to unsubscribe from the subscription. Must not be the same as <code>name</code>.
+This is generated for you if the subscription name starts with <code>subscribe</code>.</li>
+<li><code>aliases</code> (optional): aliases for <code>name</code>. Aliases are processed ignoring the namespace,
+so add the complete name, including the namespace.</li>
+<li><code>unsubscribe_aliases</code> (optional): Similar to <code>aliases</code> but for <code>unsubscribe</code>.</li>
+<li><code>item</code> (mandatory): type of items yielded by the subscription. Note that it must be the type, not string.</li>
+<li><code>param_kind</code>: kind of structure to use for parameter passing. Can be “array” or “map”, defaults to “array”.</li>
+</ul>
+<p><strong>Method requirements:</strong></p>
+<p>Rust method marked with the <code>subscription</code> attribute <strong>must</strong>:</p>
+<ul>
+<li>be synchronous;</li>
+<li>return <code>RpcResult&lt;()&gt;</code></li>
+</ul>
+<p>Rust method marked with <code>subscription</code> attribute <strong>may</strong>:</p>
+<ul>
+<li>have input parameters or not.</li>
+</ul>
+<h3 id="full-workflow-example"><a href="#full-workflow-example">Full workflow example</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="doccomment">//! Example of using proc macro to generate working client and server.
+
+</span><span class="kw">use </span>std::net::SocketAddr;
+
+<span class="kw">use </span>futures_channel::oneshot;
+<span class="kw">use </span>jsonrpsee::{ws_client::<span class="kw-2">*</span>, ws_server::WsServerBuilder};
+
+<span class="comment">// RPC is put into a separate module to clearly show names of generated entities.
+</span><span class="kw">mod </span>rpc_impl {
+    <span class="kw">use </span>jsonrpsee::{proc_macros::rpc, core::async_trait, core::RpcResult, ws_server::SubscriptionSink};
+    <span class="kw">use </span>jsonrpsee::types::SubscriptionResult;
+
+    <span class="comment">// Generate both server and client implementations, prepend all the methods with `foo_` prefix.
+    </span><span class="attr">#[rpc(client, server, namespace = <span class="string">&quot;foo&quot;</span>)]
+    </span><span class="kw">pub trait </span>MyRpc {
+        <span class="attr">#[method(name = <span class="string">&quot;foo&quot;</span>)]
+        </span><span class="kw">async fn </span>async_method(<span class="kw-2">&amp;</span><span class="self">self</span>, param_a: u8, param_b: String) -&gt; RpcResult&lt;u16&gt;;
+
+        <span class="attr">#[method(name = <span class="string">&quot;bar&quot;</span>)]
+        </span><span class="kw">fn </span>sync_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RpcResult&lt;u16&gt;;
+
+        <span class="attr">#[method(name = <span class="string">&quot;baz&quot;</span>, blocking)]
+        </span><span class="kw">fn </span>blocking_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RpcResult&lt;u16&gt;;
+
+        <span class="doccomment">/// Override the `foo_sub` and use `foo_subNotif` for the notifications.
+        ///
+        /// The item field indicates which type goes into result field below.
+        ///
+        /// The notification format:
+        ///
+        /// ```
+        /// {
+        ///     &quot;jsonrpc&quot;:&quot;2.0&quot;,
+        ///     &quot;method&quot;:&quot;foo_subNotif&quot;,
+        ///     &quot;params&quot;:[&quot;subscription&quot;:&quot;someID&quot;, &quot;result&quot;:&quot;some string&quot;]
+        /// }
+        /// ```
+        </span><span class="attr">#[subscription(name = <span class="string">&quot;sub&quot; </span>=&gt; <span class="string">&quot;subNotif&quot;</span>, unsubscribe = <span class="string">&quot;unsub&quot;</span>, item = String)]
+        </span><span class="kw">fn </span>sub_override_notif_method(<span class="kw-2">&amp;</span><span class="self">self</span>);
+
+        <span class="doccomment">/// Use the same method name for both the `subscribe call` and `notifications`
+        ///
+        /// The unsubscribe method name is generated here `foo_unsubscribe`
+        /// Thus the `unsubscribe attribute` is not needed unless a custom unsubscribe method name is wanted.
+        ///
+        /// The notification format:
+        ///
+        /// ```
+        /// {
+        ///     &quot;jsonrpc&quot;:&quot;2.0&quot;,
+        ///     &quot;method&quot;:&quot;foo_subscribe&quot;,
+        ///     &quot;params&quot;:[&quot;subscription&quot;:&quot;someID&quot;, &quot;result&quot;:&quot;some string&quot;]
+        /// }
+        /// ```
+        </span><span class="attr">#[subscription(name = <span class="string">&quot;subscribe&quot;</span>, item = String)]
+        </span><span class="kw">fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>);
+    }
+
+    <span class="comment">// Structure that will implement the `MyRpcServer` trait.
+    // It can have fields, if required, as long as it&#39;s still `Send + Sync + &#39;static`.
+    </span><span class="kw">pub struct </span>RpcServerImpl;
+
+    <span class="comment">// Note that the trait name we use is `MyRpcServer`, not `MyRpc`!
+    </span><span class="attr">#[async_trait]
+    </span><span class="kw">impl </span>MyRpcServer <span class="kw">for </span>RpcServerImpl {
+        <span class="kw">async fn </span>async_method(<span class="kw-2">&amp;</span><span class="self">self</span>, _param_a: u8, _param_b: String) -&gt; RpcResult&lt;u16&gt; {
+            <span class="prelude-val">Ok</span>(<span class="number">42</span>)
+        }
+
+        <span class="kw">fn </span>sync_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RpcResult&lt;u16&gt; {
+            <span class="prelude-val">Ok</span>(<span class="number">10</span>)
+        }
+
+        <span class="kw">fn </span>blocking_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RpcResult&lt;u16&gt; {
+            <span class="comment">// This will block current thread for 1 second, which is fine since we marked
+            // this method as `blocking` above.
+            </span>std::thread::sleep(std::time::Duration::from_millis(<span class="number">1000</span>));
+            <span class="prelude-val">Ok</span>(<span class="number">11</span>)
+        }
+
+        <span class="comment">// The stream API can be used to pipe items from the underlying stream
+        // as subscription responses.
+        </span><span class="kw">fn </span>sub_override_notif_method(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>sink: SubscriptionSink) -&gt; SubscriptionResult {
+            tokio::spawn(<span class="kw">async move </span>{
+                <span class="kw">let </span>stream = futures_util::stream::iter([<span class="string">&quot;one&quot;</span>, <span class="string">&quot;two&quot;</span>, <span class="string">&quot;three&quot;</span>]);
+                sink.pipe_from_stream(stream).<span class="kw">await</span>;
+            });
+            <span class="prelude-val">Ok</span>(())
+        }
+
+        <span class="comment">// We could&#39;ve spawned a `tokio` future that yields values while our program works,
+        // but for simplicity of the example we will only send two values and then close
+        // the subscription.
+        </span><span class="kw">fn </span>sub(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>sink: SubscriptionSink) -&gt; SubscriptionResult {
+            <span class="kw">let _ </span>= sink.send(<span class="kw-2">&amp;</span><span class="string">&quot;Response_A&quot;</span>);
+            <span class="kw">let _ </span>= sink.send(<span class="kw-2">&amp;</span><span class="string">&quot;Response_B&quot;</span>);
+            <span class="prelude-val">Ok</span>(())
+        }
+    }
+}
+
+<span class="comment">// Use the generated implementations of server and client.
+</span><span class="kw">use </span>rpc_impl::{MyRpcClient, MyRpcServer, RpcServerImpl};
+
+<span class="kw">pub async fn </span>websocket_server() -&gt; SocketAddr {
+    <span class="kw">let </span>server = WsServerBuilder::default().build(<span class="string">&quot;127.0.0.1:0&quot;</span>).<span class="kw">await</span>.unwrap();
+    <span class="kw">let </span>addr = server.local_addr().unwrap();
+
+    <span class="comment">// `into_rpc()` method was generated inside of the `RpcServer` trait under the hood.
+    </span>server.start(RpcServerImpl.into_rpc()).unwrap();
+
+    addr
+}
+
+<span class="comment">// In the main function, we start the server, create a client connected to this server,
+// and call the available methods.
+</span><span class="attr">#[tokio::main]
+</span><span class="kw">async fn </span>main() {
+    <span class="kw">let </span>server_addr = websocket_server().<span class="kw">await</span>;
+    <span class="kw">let </span>server_url = <span class="macro">format!</span>(<span class="string">&quot;ws://{}&quot;</span>, server_addr);
+    <span class="comment">// Note that we create the client as usual, but thanks to the `use rpc_impl::MyRpcClient`,
+    // the client object will have all the methods to interact with the server.
+    </span><span class="kw">let </span>client = WsClientBuilder::default().build(<span class="kw-2">&amp;</span>server_url).<span class="kw">await</span>.unwrap();
+
+    <span class="comment">// Invoke RPC methods.
+    </span><span class="macro">assert_eq!</span>(client.async_method(<span class="number">10</span>, <span class="string">&quot;a&quot;</span>.into()).<span class="kw">await</span>.unwrap(), <span class="number">42</span>);
+    <span class="macro">assert_eq!</span>(client.sync_method().<span class="kw">await</span>.unwrap(), <span class="number">10</span>);
+
+    <span class="comment">// Subscribe and receive messages from the subscription.
+    </span><span class="kw">let </span><span class="kw-2">mut </span>sub = client.sub().<span class="kw">await</span>.unwrap();
+    <span class="kw">let </span>first_recv = sub.next().<span class="kw">await</span>.unwrap().unwrap();
+    <span class="macro">assert_eq!</span>(first_recv, <span class="string">&quot;Response_A&quot;</span>.to_string());
+    <span class="kw">let </span>second_recv = sub.next().<span class="kw">await</span>.unwrap().unwrap();
+    <span class="macro">assert_eq!</span>(second_recv, <span class="string">&quot;Response_B&quot;</span>.to_string());
+}</code></pre></div>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="jsonrpsee_proc_macros" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

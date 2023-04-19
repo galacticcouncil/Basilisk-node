@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ErrorBuffer",""],["ErrorMessage",""]],"type":[["AckMessage",""]]};

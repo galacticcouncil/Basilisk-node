@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["LINK_HEADER_LEN",""]],"mod":[["nlas",""]],"struct":[["LinkHeader","High level representation of `RTM_GETLINK`, `RTM_SETLINK`, `RTM_NEWLINK` and `RTM_DELLINK` messages headers."],["LinkMessage",""],["LinkMessageBuffer",""]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Keypair","An Ed25519 keypair."],["PublicKey","An Ed25519 public key."],["SecretKey","An Ed25519 secret key."]]};

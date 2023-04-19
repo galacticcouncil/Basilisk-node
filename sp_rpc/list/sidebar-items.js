@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ListOrValue","RPC list or value wrapper."]]};

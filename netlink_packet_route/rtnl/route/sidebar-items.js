@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["ROUTE_HEADER_LEN",""]],"mod":[["nlas",""]],"struct":[["RouteFlags","Flags that can be set in a `RTM_GETROUTE` ([`RtnlMessage::GetRoute`]) message."],["RouteHeader","High level representation of `RTM_GETROUTE`, `RTM_ADDROUTE`, `RTM_DELROUTE` messages headers."],["RouteMessage",""],["RouteMessageBuffer",""]]};

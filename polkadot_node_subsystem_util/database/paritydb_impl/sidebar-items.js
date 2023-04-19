@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["DbAdapter","Implementation of of `Database` for parity-db adapter."]]};

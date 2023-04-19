@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ChildParachainRouter","XCM sender for relay chain. It only sends downward message."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["RocksDbWeight","By default, Substrate uses `RocksDB`, so this will be the weight used throughout the runtime."]]};

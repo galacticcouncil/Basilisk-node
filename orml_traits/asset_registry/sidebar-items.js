@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["AssetMetadata","Data describing the asset properties."]],"trait":[["AssetProcessor",""],["FixedConversionRateProvider",""],["Inspect",""],["Mutate",""],["WeightToFeeConverter",""]]};

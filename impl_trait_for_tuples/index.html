@@ -1,0 +1,101 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="  "><meta name="keywords" content="rust, rustlang, rust-lang, impl_trait_for_tuples"><title>impl_trait_for_tuples - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../impl_trait_for_tuples/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../impl_trait_for_tuples/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate impl_trait_for_tuples</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 0.2.2</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#attributes">Attribute Macros</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Crate <a class="mod" href="#">impl_trait_for_tuples</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/impl_trait_for_tuples/lib.rs.html#1-255">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><a href="https://docs.rs/impl-trait-for-tuples/"><img src="https://docs.rs/impl-trait-for-tuples/badge.svg" alt="" /></a> <a href="https://crates.io/crates/impl-trait-for-tuples"><img src="https://img.shields.io/crates/v/impl-trait-for-tuples.svg" alt="" /></a> <a href="https://crates.io/crates/impl-trait-for-tuples"><img src="https://img.shields.io/crates/d/impl-trait-for-tuples.png" alt="" /></a></p>
+<p>Attribute macro to implement a trait for tuples</p>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#syntax">Syntax</a></li>
+<li><a href="#limitations">Limitations</a></li>
+<li><a href="#example">Example</a></li>
+<li><a href="#license">License</a></li>
+</ul>
+<h3 id="introduction"><a href="#introduction">Introduction</a></h3>
+<p>When wanting to implement a trait for combinations of tuples, Rust requires the trait to be implemented
+for each combination manually. With this crate you just need to place <code>#[impl_for_tuples(5)]</code> above
+your trait declaration (in full-automatic mode) to implement the trait for the tuple combinations
+<code>(), (T0), (T0, T1), (T0, T1, T2), (T0, T1, T2, T3), (T0, T1, T2, T3, T4, T5)</code>. The number of tuples is the
+parameter given to the attribute and can be chosen freely.</p>
+<p>This crate provides two modes full-automatic and semi-automatic. The full-automatic mode just requires
+the trait definition to implement the trait for the tuple combinations. While being much easier to
+use, it also comes with some restrictions like no associated types, no return values or no associated
+consts. To support these, the semi-automatic mode is provided. This mode requires a dummy implementation
+block of the trait that is expanded to all the tuple combinations implementations. To express the
+tuple access in this dummy implementation a special syntax is required <code>for_tuples!( #( Tuple::function(); )* )</code>.
+This would expand to <code>Tuple::function();</code> for each tuple while <code>Tuple</code> is chosen by the user and will be
+replaced by the corresponding tuple identifier per iteration.</p>
+<h3 id="syntax"><a href="#syntax">Syntax</a></h3>
+<p>The attribute macro can be called with one <code>#[impl_for_tuples(5)]</code> or with two <code>#[impl_for_tuples(2, 5)]</code>
+parameters. The former instructs the macro to generate up to a tuple of five elements and the later instructs it
+to generate from a tuple with two element up to five elements.</p>
+<h4 id="semi-automatic-syntax"><a href="#semi-automatic-syntax">Semi-automatic syntax</a></h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">trait </span>Trait {
+    <span class="kw">type </span>Ret;
+    <span class="kw">type </span>Arg;
+    <span class="kw">type </span>FixedType;
+    <span class="kw">const </span>VALUE: u32;
+
+    <span class="kw">fn </span>test(arg: <span class="self">Self</span>::Arg) -&gt; <span class="self">Self</span>::Ret;
+
+    <span class="kw">fn </span>test_with_self(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt;;
+}
+
+<span class="attr">#[impl_for_tuples(<span class="number">1</span>, <span class="number">5</span>)]
+</span><span class="kw">impl </span>Trait <span class="kw">for </span>Tuple {
+    <span class="comment">// Here we expand the `Ret` and `Arg` associated types.
+    </span><span class="macro">for_tuples!</span>( <span class="kw">type </span>Ret = ( #( Tuple::Ret ),* ); );
+    <span class="macro">for_tuples!</span>( <span class="kw">type </span>Arg = ( #( Tuple::Arg ),* ); );
+    <span class="macro">for_tuples!</span>( <span class="kw">const </span>VALUE: u32 = #( Tuple::VALUE )+<span class="kw-2">*</span>; );
+
+    <span class="comment">// Here we set the `FixedType` to `u32` and add a custom where bound that forces the same
+    // `FixedType` for all tuple types.
+    </span><span class="kw">type </span>FixedType = u32;
+    <span class="macro">for_tuples!</span>( <span class="kw">where </span>#( Tuple: Trait&lt;FixedType=u32&gt; )* );
+
+    <span class="kw">fn </span>test(arg: <span class="self">Self</span>::Arg) -&gt; <span class="self">Self</span>::Ret {
+        <span class="macro">for_tuples!</span>( ( #( Tuple::test(arg.Tuple) ),* ) )
+    }
+
+    <span class="kw">fn </span>test_with_self(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
+        <span class="macro">for_tuples!</span>( #( Tuple.test_with_self()<span class="question-mark">?</span>; )* );
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+</code></pre></div>
+<p>The given example shows all supported combinations of <code>for_tuples!</code>. When accessing a method from the
+<code>self</code> tuple instance, <code>self.Tuple</code> is the required syntax and is replaced by <code>self.0</code>, <code>self.1</code>, etc.
+The placeholder tuple identifer is taken from the self type given to the implementation block. So, it
+is up to the user to chose any valid identifier.</p>
+<p>The separator given to <code>#( Tuple::something() )SEPARATOR*</code> can be chosen from <code>,</code>, <code>+</code>, <code>-</code>,
+<code>*</code>, <code>/</code>, <code>|</code>, <code>&amp;</code> or nothing for no separator.</p>
+<p>By adding the <code>#[tuple_types_no_default_trait_bound]</code> above the impl block, the macro will not add the
+automatic bound to the implemented trait for each tuple type.</p>
+<p>The trait bound can be customized using <code>#[tuple_types_custom_trait_bound(NewBound)]</code>.
+The new bound will be used instead of the impleted trait for each tuple type.</p>
+<h3 id="limitations"><a href="#limitations">Limitations</a></h3>
+<p>The macro does not supports <code>for_tuples!</code> calls in a different macro, so stuff like
+<code>vec![ for_tuples!( bla ) ]</code> will generate invalid code.</p>
+<h3 id="example"><a href="#example">Example</a></h3><h4 id="full-automatic"><a href="#full-automatic">Full-automatic</a></h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attr">#[impl_for_tuples(<span class="number">5</span>)]
+</span><span class="kw">trait </span>Notify {
+    <span class="kw">fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>);
+}
+</code></pre></div>
+<h4 id="semi-automatic"><a href="#semi-automatic">Semi-automatic</a></h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">trait </span>Notify {
+    <span class="kw">fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt;;
+}
+
+<span class="attr">#[impl_for_tuples(<span class="number">5</span>)]
+</span><span class="kw">impl </span>Notify <span class="kw">for </span>TupleIdentifier {
+    <span class="kw">fn </span>notify(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), ()&gt; {
+        <span class="macro">for_tuples!</span>( #( TupleIdentifier.notify()<span class="question-mark">?</span>; )* );
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+</code></pre></div>
+<h3 id="license"><a href="#license">License</a></h3>
+<p>Licensed under either of</p>
+<ul>
+<li><a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License, Version 2.0</a></li>
+<li><a href="http://opensource.org/licenses/MIT">MIT license</a>
+at your option.</li>
+</ul>
+</div></details><h2 id="attributes" class="small-section-header"><a href="#attributes">Attribute Macros</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="attr" href="attr.impl_for_tuples.html" title="impl_trait_for_tuples::impl_for_tuples attr">impl_for_tuples</a></div><div class="item-right docblock-short">See <a href="index.html">crate</a> documentation.</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="impl_trait_for_tuples" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

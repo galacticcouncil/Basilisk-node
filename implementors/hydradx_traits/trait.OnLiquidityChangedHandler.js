@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"hydradx_traits":[],
+"pallet_ema_oracle":[["impl&lt;T:&nbsp;<a class=\"trait\" href=\"pallet_ema_oracle/pallet/trait.Config.html\" title=\"trait pallet_ema_oracle::pallet::Config\">Config</a>&gt; <a class=\"trait\" href=\"hydradx_traits/trait.OnLiquidityChangedHandler.html\" title=\"trait hydradx_traits::OnLiquidityChangedHandler\">OnLiquidityChangedHandler</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u32.html\">u32</a>, <a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.u128.html\">u128</a>&gt; for <a class=\"struct\" href=\"pallet_ema_oracle/struct.OnActivityHandler.html\" title=\"struct pallet_ema_oracle::OnActivityHandler\">OnActivityHandler</a>&lt;T&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

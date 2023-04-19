@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ConnectedPoint","The endpoint roles associated with an established peer-to-peer connection."],["Endpoint","The endpoint roles associated with a peer-to-peer communication channel."],["PendingPoint","The endpoint roles associated with a pending peer-to-peer connection."]],"struct":[["ConnectionId","Connection identifier."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["MultiInspectAdapter","An adapter to use inspect functionality for both native and multi currency"]]};

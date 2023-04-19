@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Event","The events produced by the [`Relay`] behaviour."]],"mod":[["rate_limiter",""]],"struct":[["CircuitId",""],["Config","Configuration for the [`Relay`] [`NetworkBehaviour`]."],["Relay","[`Relay`] is a [`NetworkBehaviour`] that implements the relay server functionality of the circuit relay v2 protocol."]]};

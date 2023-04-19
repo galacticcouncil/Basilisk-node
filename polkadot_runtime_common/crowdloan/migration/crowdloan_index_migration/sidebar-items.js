@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["migrate","This migration converts crowdloans to use a crowdloan index rather than the parachain id as a unique identifier. This makes it easier to swap two crowdloans between parachains."],["post_migrate",""],["pre_migrate",""]]};

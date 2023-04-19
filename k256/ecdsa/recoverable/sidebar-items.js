@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["SIZE","Size of an Ethereum-style recoverable signature in bytes"]],"struct":[["Id","Identifier used to compute a [`VerifyingKey`] from a [`Signature`]."],["Signature","Ethereum-style “recoverable signatures” which allow for the recovery of the signer’s [`VerifyingKey`] from the signature itself."]]};

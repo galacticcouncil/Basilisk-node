@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["InspectExtended","Trait to complement the Inspect trait"]]};

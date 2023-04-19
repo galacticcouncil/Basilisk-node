@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["DeriveOriginFromPalletInstanceGeneralIndex",""]],"type":[["DeriveOriginFromTinkernetMultisig",""]]};

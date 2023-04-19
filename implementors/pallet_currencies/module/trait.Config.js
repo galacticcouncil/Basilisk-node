@@ -1,0 +1,5 @@
+(function() {var implementors = {
+"basilisk_runtime":[["impl <a class=\"trait\" href=\"pallet_currencies/module/trait.Config.html\" title=\"trait pallet_currencies::module::Config\">Config</a> for <a class=\"struct\" href=\"basilisk_runtime/struct.Runtime.html\" title=\"struct basilisk_runtime::Runtime\">Runtime</a>"]],
+"parachain_runtime_mock":[["impl <a class=\"trait\" href=\"pallet_currencies/module/trait.Config.html\" title=\"trait pallet_currencies::module::Config\">Config</a> for <a class=\"struct\" href=\"parachain_runtime_mock/struct.ParachainRuntime.html\" title=\"struct parachain_runtime_mock::ParachainRuntime\">ParachainRuntime</a>"]],
+"testing_basilisk_runtime":[["impl <a class=\"trait\" href=\"pallet_currencies/module/trait.Config.html\" title=\"trait pallet_currencies::module::Config\">Config</a> for <a class=\"struct\" href=\"testing_basilisk_runtime/struct.Runtime.html\" title=\"struct testing_basilisk_runtime::Runtime\">Runtime</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

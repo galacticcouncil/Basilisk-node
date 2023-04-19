@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Box","A pointer type that uniquely owns a heap allocation of type `T`."],["ThinBox","ThinBox."]]};

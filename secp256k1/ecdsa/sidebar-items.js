@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["serialized_signature","Implements [`SerializedSignature`] and related types."]],"struct":[["RecoverableSignature","An ECDSA signature with a recovery ID for pubkey recovery."],["RecoveryId","A tag used for recovering the public key from a compact signature."],["Signature","An ECDSA signature"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["NETLINK_HEADER_LEN","Length of a Netlink packet header"]],"struct":[["NetlinkBuffer","A raw Netlink buffer that provides getters and setter for the various header fields, and to retrieve the payloads."]]};

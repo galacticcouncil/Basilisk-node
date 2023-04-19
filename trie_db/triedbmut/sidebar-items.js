@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ChildReference","Used to build a collection of child nodes from a collection of `NodeHandle`s"],["Value","Value representation for Node."]],"struct":[["TrieDBMut","A `Trie` implementation using a generic `HashDB` backing database."],["TrieDBMutBuilder","A builder for creating a [`TrieDBMut`]."]]};

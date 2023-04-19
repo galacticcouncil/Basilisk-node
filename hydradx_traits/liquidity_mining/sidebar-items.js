@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["Mutate","Trait for providing interface for liquidity mining."],["PriceAdjustment","Implementers of this trait provide `price_adjustment` for given `GlobalFarm`."]],"type":[["DepositId",""],["GlobalFarmId",""],["YieldFarmId",""]]};

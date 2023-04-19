@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["RwStreamSink","Wraps a [`Stream`] and [`Sink`] whose items are buffers. Implements [`AsyncRead`] and [`AsyncWrite`]."]]};

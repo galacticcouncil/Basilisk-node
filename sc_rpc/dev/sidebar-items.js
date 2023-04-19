@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["BlockStats","Statistics of a block returned by the `dev_getBlockStats` RPC."],["Dev","The Dev API. All methods are unsafe."]],"trait":[["DevApiServer","Server trait implementation for the `DevApi` RPC API."]]};

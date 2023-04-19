@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error","Transaction pool error type."]],"trait":[["IntoPoolError","Transaction pool error conversion."]],"type":[["Result","Transaction pool result."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["COLLECTION_ID_0",""],["ENDOWMENT",""],["ITEM_ID_0",""]],"enum":[["SelectedBenchmark",""]],"fn":[["create_account",""],["create_collection_and_mint",""]],"struct":[["Benchmark",""],["accept_offer",""],["add_royalty",""],["buy",""],["make_offer",""],["set_price",""],["withdraw_offer",""]]};

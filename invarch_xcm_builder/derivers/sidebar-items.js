@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["derive_tinkernet_multisig",""]],"struct":[["TinkernetMultisigAccountIdDeriver",""],["TinkernetMultisigSignedDeriver",""]],"trait":[["ParachainPalletGeneralIndexAccountIdDeriver",""],["ParachainPalletGeneralIndexOriginDeriver",""]]};

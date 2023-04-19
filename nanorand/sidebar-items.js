@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["crypto","Implementation of cryptography, for CSPRNGs."],["entropy","Sources for obtaining entropy."],["gen","Traits for generating types from an RNG."],["rand","RNG algorithms."]]};

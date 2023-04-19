@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["AndThen","See the [`Transport::and_then`] method."],["AndThenFuture","Custom `Future` to avoid boxing."]]};

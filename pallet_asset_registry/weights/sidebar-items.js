@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["HydraWeight","Weights for lbp using the hack.hydraDX node and recommended hardware."]],"trait":[["WeightInfo","Weight functions needed for lbp."]]};

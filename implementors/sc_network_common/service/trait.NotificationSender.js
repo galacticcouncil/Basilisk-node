@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"sc_network":[["impl <a class=\"trait\" href=\"sc_network_common/service/trait.NotificationSender.html\" title=\"trait sc_network_common::service::NotificationSender\">NotificationSender</a> for <a class=\"struct\" href=\"sc_network/struct.NotificationSender.html\" title=\"struct sc_network::NotificationSender\">NotificationSender</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

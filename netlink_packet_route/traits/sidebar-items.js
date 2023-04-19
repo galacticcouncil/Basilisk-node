@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["Emitable","A type that implements `Emitable` can be serialized."],["Parseable","A `Parseable` type can be used to deserialize data from the type `T` for which it is implemented."],["ParseableParametrized","A `Parseable` type can be used to deserialize data from the type `T` for which it is implemented."]]};

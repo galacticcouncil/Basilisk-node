@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["AccountIdFor","Abstraction over account id and account name creation for `Assets`"],["AssetPairAccountIdFor",""],["Registry",""],["ShareTokenRegistry",""]]};

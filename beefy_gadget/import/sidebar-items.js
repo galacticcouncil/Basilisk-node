@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["BeefyBlockImport","A block-import handler for BEEFY."]]};

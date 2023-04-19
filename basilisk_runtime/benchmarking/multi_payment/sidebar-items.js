@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["SEED",""]],"enum":[["SelectedBenchmark",""]],"struct":[["Benchmark",""],["add_currency",""],["get_spot_price",""],["remove_currency",""],["set_currency",""]],"type":[["MultiPaymentPallet",""]]};

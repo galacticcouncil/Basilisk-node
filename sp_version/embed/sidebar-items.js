@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Error",""]],"fn":[["embed_runtime_version","Embed the given `version` to the given `wasm` blob."]]};

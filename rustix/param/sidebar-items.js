@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["clock_ticks_per_second","`sysconf(_SC_CLK_TCK)`—Returns the process’ clock ticks per second."],["linux_execfn","`getauxval(AT_EXECFN)`—Returns the Linux “execfn” string."],["linux_hwcap","`(getauxval(AT_HWCAP), getauxval(AT_HWCAP2)`—Returns the Linux “hwcap” data."],["page_size","`sysconf(_SC_PAGESIZE)`—Returns the process’ page size."]]};

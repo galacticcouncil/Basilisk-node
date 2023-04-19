@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"type":[["BeefyVersionedFinalityProof","A finality proof with matching BEEFY authorities’ signatures."]]};

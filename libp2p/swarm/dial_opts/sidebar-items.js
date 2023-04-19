@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["PeerCondition","The available conditions under which a new dialing attempt to a known peer is initiated."]],"struct":[["DialOpts","Options to configure a dial to a known or unknown peer."],["WithPeerId",""],["WithPeerIdWithAddresses",""],["WithoutPeerId",""],["WithoutPeerIdWithAddress",""]]};

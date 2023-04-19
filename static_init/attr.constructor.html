@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Attribute for functions run at program initialization (before main)."><meta name="keywords" content="rust, rustlang, rust-lang, constructor"><title>constructor in static_init - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc attr"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../static_init/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../static_init/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><div class="sidebar-elems"><h2><a href="index.html">In static_init</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Attribute Macro <a href="index.html">static_init</a>::<wbr><a class="attr" href="#">constructor</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/static_init_macro/lib.rs.html#91">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><div class="item-decl"><pre class="rust attr"><code>#[constructor]</code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Attribute for functions run at program initialization (before main).</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="attr">#[constructor]
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>initer () {
+<span class="comment">// run before main start
+</span>}</code></pre></div>
+<p>The execution order of constructors is unspecified. Nevertheless on ELF plateform (linux, any unixes but mac) and
+windows plateform a priority can be specified using the syntax <code>constructor(&lt;num&gt;)</code> where
+<code>&lt;num&gt;</code> is a number included in the range [0 ; 2<sup>16</sup>-1].</p>
+<p>Constructors with a priority of 65535 are run first (in unspecified order), then constructors
+with priority 65534 are run …  then constructors
+with priority number 0 </p>
+<p>An abscence of priority is equivalent to a priority of 0.</p>
+<h2 id="safety"><a href="#safety">Safety</a></h2>
+<p>Any access to <a href="attr.dynamic.html" title="dynamic">dynamic</a> statics with an equal or lower
+initialization priority will cause undefined behavior. (NB: usual static data initialized
+by a const expression are always in an initialized state so it is always safe to read them).</p>
+<p>Notably, on Elf gnu variant platforms, accesses to the program argument or environment through <code>std::env::*</code> functionalities
+with a priority 65535-100 will cause undefined behavior. On windows thoses accesses <code>std::env::*</code> will never cause
+undefined behavior. On other plateforms (non gnu variant of unixes and mac), any access to
+<code>std::env::*</code> in a constructor, whatever its priority, will cause undefined behavior. In this
+last case, the information may be accessible in the /proc/self directory.</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="attr">#[constructor(<span class="number">0</span>)]
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>first () {
+<span class="comment">// run before main start
+</span>}
+
+<span class="attr">#[constructor(<span class="number">1</span>)]
+</span><span class="kw">extern </span><span class="string">&quot;C&quot; </span><span class="kw">fn </span>then () {
+<span class="comment">// run before main start
+</span>}</code></pre></div>
+<p>NB: Whatever the priority, constructors are run after initialization of libc resources. C++ static
+objects are initialized as constructors with no priorities. On ELF plateform, libstdc++
+resources are initialized with priority 65535-100.</p>
+<h2 id="constructor-signature"><a href="#constructor-signature">Constructor signature</a></h2>
+<p>Constructor function should have type <code>extern &quot;C&quot; fn() -&gt; ()</code>.</p>
+<p>But on plateform where the program is linked
+with the gnu variant of libc (which covers all gnu variant platforms) constructor functions
+can take (or not) <code>argc: i32, argv: **const u8, env: **const u8</code> arguments.
+<code>argc</code> is the size of the argv
+sequence, <code>argv</code> and <code>env</code> both refer to null terminated contiguous sequence of pointer
+to c-string (c-strings are null terminated sequence of u8).
+Cf “glibc source”/csu/elf-init.c, and System V ABI.</p>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="static_init" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

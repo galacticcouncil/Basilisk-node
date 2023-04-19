@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"basilisk_runtime":[["impl <a class=\"trait\" href=\"pallet_xyk_liquidity_mining_benchmarking/trait.Config.html\" title=\"trait pallet_xyk_liquidity_mining_benchmarking::Config\">Config</a> for <a class=\"struct\" href=\"basilisk_runtime/struct.Runtime.html\" title=\"struct basilisk_runtime::Runtime\">Runtime</a>"]],
+"testing_basilisk_runtime":[["impl <a class=\"trait\" href=\"pallet_xyk_liquidity_mining_benchmarking/trait.Config.html\" title=\"trait pallet_xyk_liquidity_mining_benchmarking::Config\">Config</a> for <a class=\"struct\" href=\"testing_basilisk_runtime/struct.Runtime.html\" title=\"struct testing_basilisk_runtime::Runtime\">Runtime</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

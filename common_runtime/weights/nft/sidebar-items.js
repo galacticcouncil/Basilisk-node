@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["CREATE_COLLECTION_OFFSET",""],["MINT_OFFSET",""]],"struct":[["BasiliskWeight",""]]};

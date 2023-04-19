@@ -1,0 +1,156 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`netlink-proto` is an asynchronous implementation of the Netlink protocol."><meta name="keywords" content="rust, rustlang, rust-lang, netlink_proto"><title>netlink_proto - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../netlink_proto/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../netlink_proto/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate netlink_proto</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 0.10.0</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Crate <a class="mod" href="#">netlink_proto</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/netlink_proto/lib.rs.html#3-275">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><code>netlink-proto</code> is an asynchronous implementation of the Netlink
+protocol.</p>
+<h2 id="example-listening-for-audit-events"><a href="#example-listening-for-audit-events">Example: listening for audit events</a></h2>
+<p>This example shows how to use <code>netlink-proto</code> with the <code>tokio</code>
+runtime to print audit events. It requires extra external
+dependencies:</p>
+<ul>
+<li><code>futures = &quot;^0.3&quot;</code></li>
+<li><code>tokio = &quot;^1.0&quot;</code></li>
+<li><code>netlink-packet-audit = &quot;^0.1&quot;</code></li>
+</ul>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::stream::StreamExt;
+<span class="kw">use </span>netlink_packet_audit::{
+    AuditMessage,
+    NetlinkMessage,
+    NetlinkPayload,
+    StatusMessage,
+    NLM_F_ACK,
+    NLM_F_REQUEST,
+};
+<span class="kw">use </span>std::process;
+
+<span class="kw">use </span>netlink_proto::{
+    new_connection,
+    sys::{protocols::NETLINK_AUDIT, SocketAddr},
+};
+
+<span class="kw">const </span>AUDIT_STATUS_ENABLED: u32 = <span class="number">1</span>;
+<span class="kw">const </span>AUDIT_STATUS_PID: u32 = <span class="number">4</span>;
+
+<span class="attr">#[tokio::main]
+</span><span class="kw">async fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
+    <span class="comment">// Create a netlink socket. Here:
+    //
+    // - `conn` is a `Connection` that has the netlink socket. It&#39;s a
+    //   `Future` that keeps polling the socket and must be spawned an
+    //   the event loop.
+    //
+    // - `handle` is a `Handle` to the `Connection`. We use it to send
+    //   netlink messages and receive responses to these messages.
+    //
+    // - `messages` is a channel receiver through which we receive
+    //   messages that we have not solicited, ie that are not
+    //   response to a request we made. In this example, we&#39;ll receive
+    //   the audit event through that channel.
+    </span><span class="kw">let </span>(conn, <span class="kw-2">mut </span>handle, <span class="kw-2">mut </span>messages) = new_connection(NETLINK_AUDIT)
+        .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Failed to create a new netlink connection: {}&quot;</span>, e))<span class="question-mark">?</span>;
+
+    <span class="comment">// Spawn the `Connection` so that it starts polling the netlink
+    // socket in the background.
+    </span>tokio::spawn(conn);
+
+    <span class="comment">// Use the `ConnectionHandle` to send a request to the kernel
+    // asking it to start multicasting audit event messages.
+    </span>tokio::spawn(<span class="kw">async move </span>{
+        <span class="comment">// Craft the packet to enable audit events
+        </span><span class="kw">let </span><span class="kw-2">mut </span>status = StatusMessage::new();
+        status.enabled = <span class="number">1</span>;
+        status.pid = process::id();
+        status.mask = AUDIT_STATUS_ENABLED | AUDIT_STATUS_PID;
+        <span class="kw">let </span>payload = AuditMessage::SetStatus(status);
+        <span class="kw">let </span><span class="kw-2">mut </span>nl_msg = NetlinkMessage::from(payload);
+        nl_msg.header.flags = NLM_F_REQUEST | NLM_F_ACK;
+
+        <span class="comment">// We&#39;ll send unicast messages to the kernel.
+        </span><span class="kw">let </span>kernel_unicast: SocketAddr = SocketAddr::new(<span class="number">0</span>, <span class="number">0</span>);
+        <span class="kw">let </span><span class="kw-2">mut </span>response = <span class="kw">match </span>handle.request(nl_msg, kernel_unicast) {
+            <span class="prelude-val">Ok</span>(response) =&gt; response,
+            <span class="prelude-val">Err</span>(e) =&gt; {
+                <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, e);
+                <span class="kw">return</span>;
+            }
+        };
+
+        <span class="kw">while let </span><span class="prelude-val">Some</span>(message) = response.next().<span class="kw">await </span>{
+            <span class="kw">if let </span>NetlinkPayload::Error(err_message) = message.payload {
+                <span class="macro">eprintln!</span>(<span class="string">&quot;Received an error message: {:?}&quot;</span>, err_message);
+                <span class="kw">return</span>;
+            }
+        }
+    });
+
+    <span class="comment">// Finally, start receiving event through the `messages` channel.
+    </span><span class="macro">println!</span>(<span class="string">&quot;Starting to print audit events... press ^C to interrupt&quot;</span>);
+    <span class="kw">while let </span><span class="prelude-val">Some</span>((message, _addr)) = messages.next().<span class="kw">await </span>{
+        <span class="kw">if let </span>NetlinkPayload::Error(err_message) = message.payload {
+            <span class="macro">eprintln!</span>(<span class="string">&quot;received an error message: {:?}&quot;</span>, err_message);
+        } <span class="kw">else </span>{
+            <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, message);
+        }
+    }
+
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div>
+<h2 id="example-dumping-all-the-machines-links"><a href="#example-dumping-all-the-machines-links">Example: dumping all the machine’s links</a></h2>
+<p>This example shows how to use <code>netlink-proto</code> with the ROUTE
+protocol.</p>
+<p>Here we do not use <code>netlink_proto::new_connection()</code>, and instead
+create the socket manually and use call <code>send()</code> and <code>receive()</code>
+directly. In the previous example, the <code>NetlinkFramed</code> was wrapped
+in a <code>Connection</code> which was polled automatically by the runtime.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::StreamExt;
+
+<span class="kw">use </span>netlink_packet_route::{
+    LinkMessage,
+    NetlinkHeader,
+    NetlinkMessage,
+    RtnlMessage,
+    NLM_F_DUMP,
+    NLM_F_REQUEST,
+};
+
+<span class="kw">use </span>netlink_proto::{
+    new_connection,
+    sys::{protocols::NETLINK_ROUTE, SocketAddr},
+};
+
+<span class="attr">#[tokio::main]
+</span><span class="kw">async fn </span>main() -&gt; <span class="prelude-ty">Result</span>&lt;(), String&gt; {
+    <span class="comment">// Create the netlink socket. Here, we won&#39;t use the channel that
+    // receives unsolicited messages.
+    </span><span class="kw">let </span>(conn, <span class="kw-2">mut </span>handle, <span class="kw">_</span>) = new_connection(NETLINK_ROUTE)
+        .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Failed to create a new netlink connection: {}&quot;</span>, e))<span class="question-mark">?</span>;
+
+    <span class="comment">// Spawn the `Connection` in the background
+    </span>tokio::spawn(conn);
+
+    <span class="comment">// Create the netlink message that requests the links to be dumped
+    </span><span class="kw">let </span>msg = NetlinkMessage {
+        header: NetlinkHeader {
+            sequence_number: <span class="number">1</span>,
+            flags: NLM_F_DUMP | NLM_F_REQUEST,
+            ..Default::default()
+        },
+        payload: RtnlMessage::GetLink(LinkMessage::default()).into(),
+    };
+
+    <span class="comment">// Send the request
+    </span><span class="kw">let </span><span class="kw-2">mut </span>response = handle
+        .request(msg, SocketAddr::new(<span class="number">0</span>, <span class="number">0</span>))
+        .map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Failed to send request: {}&quot;</span>, e))<span class="question-mark">?</span>;
+
+    <span class="comment">// Print all the messages received in response
+    </span><span class="kw">loop </span>{
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(packet) = response.next().<span class="kw">await </span>{
+            <span class="macro">println!</span>(<span class="string">&quot;&lt;&lt;&lt; {:?}&quot;</span>, packet);
+        } <span class="kw">else </span>{
+            <span class="kw">break</span>;
+        }
+    }
+
+    <span class="prelude-val">Ok</span>(())
+}</code></pre></div>
+</div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2><div class="item-table"><div class="item-row"><div class="item-left import-item" id="reexport.packet"><code>pub use <a class="mod" href="../netlink_packet_core/index.html" title="mod netlink_packet_core">netlink_packet_core</a> as packet;</code></div></div></div><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="sys/index.html" title="netlink_proto::sys mod">sys</a></div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Connection.html" title="netlink_proto::Connection struct">Connection</a></div><div class="item-right docblock-short">Connection to a Netlink socket, running in the background.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ConnectionHandle.html" title="netlink_proto::ConnectionHandle struct">ConnectionHandle</a></div><div class="item-right docblock-short">A handle to pass requests to a <a href="struct.Connection.html"><code>Connection</code></a>.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.NetlinkCodec.html" title="netlink_proto::NetlinkCodec struct">NetlinkCodec</a></div><div class="item-right docblock-short">Standard implementation of <code>NetlinkMessageCodec</code></div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.NetlinkFramed.html" title="netlink_proto::NetlinkFramed struct">NetlinkFramed</a></div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Error.html" title="netlink_proto::Error enum">Error</a></div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.NetlinkMessageCodec.html" title="netlink_proto::NetlinkMessageCodec trait">NetlinkMessageCodec</a></div><div class="item-right docblock-short">Protocol to serialize and deserialize messages to and from datagrams</div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.new_connection_with_codec.html" title="netlink_proto::new_connection_with_codec fn">new_connection_with_codec</a></div><div class="item-right docblock-short">Variant of [<code>new_connection</code>] that allows specifying a socket type to use for async handling and a special codec</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.new_connection_with_socket.html" title="netlink_proto::new_connection_with_socket fn">new_connection_with_socket</a></div><div class="item-right docblock-short">Variant of [<code>new_connection</code>] that allows specifying a socket type to use for async handling</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="netlink_proto" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

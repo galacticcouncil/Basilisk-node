@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Ratio","A rational number represented by a `n`umerator and `d`enominator."]]};

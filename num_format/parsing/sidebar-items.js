@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["FromFormattedStr","Marker trait for number types (e.g. `u32`) that string-like types can be parsed into via the `ParseFormatted` trait."],["ParseFormatted","Trait that provides string-like types with a `parse_formatted` method, allowing conversion from a formatted string into a number."]]};

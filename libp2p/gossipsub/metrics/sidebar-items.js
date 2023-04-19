@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Churn","Reasons why a peer was removed from the mesh."],["Inclusion","Reasons why a peer was included in the mesh."],["Penalty","Kinds of reasons a peer’s score has been penalized"]],"struct":[["Config",""],["Metrics","A collection of metrics used throughout the Gossipsub behaviour."]]};

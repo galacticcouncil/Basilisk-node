@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["OutOfRangeError","Error returned when the value of scalar is invalid - larger than the curve order."],["Scalar","Positive 256-bit integer guaranteed to be less than the secp256k1 curve order."]]};

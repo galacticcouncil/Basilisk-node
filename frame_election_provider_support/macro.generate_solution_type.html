@@ -1,0 +1,67 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Re-export the solution generation macro. Generates a struct to store the election result in a small/compact way. This can encode a structure which is the equivalent of a `sp_npos_elections::Assignment&lt;_&gt;`."><meta name="keywords" content="rust, rustlang, rust-lang, generate_solution_type"><title>generate_solution_type in frame_election_provider_support - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../frame_election_provider_support/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../frame_election_provider_support/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><div class="sidebar-elems"><h2><a href="index.html">In frame_election_provider_support</a></h2></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Macro <a href="index.html">frame_election_provider_support</a>::<wbr><a class="macro" href="#">generate_solution_type</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/frame_election_provider_solution_type/lib.rs.html#126">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><div class="item-decl"><pre class="rust macro"><code>generate_solution_type!() { /* proc-macro */ }</code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Re-export the solution generation macro.
+Generates a struct to store the election result in a small/compact way. This can encode a
+structure which is the equivalent of a <code>sp_npos_elections::Assignment&lt;_&gt;</code>.</p>
+<p>The following data types can be configured by the macro.</p>
+<ul>
+<li>The identifier of the voter. This can be any type that supports <code>parity-scale-codec</code>’s compact
+encoding.</li>
+<li>The identifier of the target. This can be any type that supports <code>parity-scale-codec</code>’s
+compact encoding.</li>
+<li>The accuracy of the ratios. This must be one of the <code>PerThing</code> types defined in
+<code>sp-arithmetic</code>.</li>
+<li>The maximum number of voters. This must be of type <code>Get&lt;u32&gt;</code>. Check <a href="https://github.com/paritytech/substrate/issues/10866">https://github.com/paritytech/substrate/issues/10866</a>
+for more details. This is used to bound the struct, by leveraging the fact that <code>votes1.len() &lt; votes2.len() &lt; ... &lt; votesn.len()</code> (the details of the struct is explained further below).
+We know that <code>sum_i votes_i.len() &lt;= MaxVoters</code>, and we know that the maximum size of the
+struct would be achieved if all voters fall in the last bucket. One can also check the tests
+and more specifically <code>max_encoded_len_exact</code> for a concrete example.</li>
+</ul>
+<p>Moreover, the maximum number of edges per voter (distribution per assignment) also need to be
+specified. Attempting to convert from/to an assignment with more distributions will fail.</p>
+<p>For example, the following generates a public struct with name <code>TestSolution</code> with <code>u16</code> voter
+type, <code>u8</code> target type and <code>Perbill</code> accuracy with maximum of 4 edges per voter.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">generate_solution_type!</span>(<span class="kw">pub struct </span>TestSolution::&lt;
+    VoterIndex = u16,
+    TargetIndex = u8,
+    Accuracy = Perbill,
+    MaxVoters = ConstU32::&lt;<span class="number">10</span>&gt;,
+&gt;(<span class="number">4</span>));</code></pre></div>
+<p>The output of this macro will roughly look like:</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">struct </span>TestSolution {
+	voters1: <span class="macro">vec!</span>[(u16 <span class="comment">/* voter */</span>, u8 <span class="comment">/* target */</span>)]
+	voters2: <span class="macro">vec!</span>[
+		(u16 <span class="comment">/* voter */</span>, [u8 <span class="comment">/* first target*/</span>, Perbill <span class="comment">/* proportion for first target */</span>], u8 <span class="comment">/* last target */</span>)
+	]
+	voters3: <span class="macro">vec!</span>[
+		(u16 <span class="comment">/* voter */</span>,  [
+			(u8 <span class="comment">/* first target*/</span>, Perbill <span class="comment">/* proportion for first target */ </span>),
+			(u8 <span class="comment">/* second target */</span>, Perbill <span class="comment">/* proportion for second target*/</span>)
+		], u8 <span class="comment">/* last target */</span>)
+		],
+	voters4: ...,
+}
+
+<span class="kw">impl </span>NposSolution <span class="kw">for </span>TestSolution {};
+<span class="kw">impl </span>Solution <span class="kw">for </span>TestSolution {};</code></pre></div>
+<p>The given struct provides function to convert from/to <code>Assignment</code> as part of
+<code>frame_election_provider_support::NposSolution</code> trait:</p>
+<ul>
+<li><code>fn from_assignment&lt;..&gt;(..)</code></li>
+<li><code>fn into_assignment&lt;..&gt;(..)</code></li>
+</ul>
+<h3 id="compact-encoding"><a href="#compact-encoding">Compact Encoding</a></h3>
+<p>The generated struct is by default deriving both <code>Encode</code> and <code>Decode</code>. This is okay but could
+lead to many <code>0</code>s in the solution. If prefixed with <code>#[compact]</code>, then a custom compact encoding
+for numbers will be used, similar to how <code>parity-scale-codec</code>’s <code>Compact</code> works.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="macro">generate_solution_type!</span>(
+    <span class="attr">#[compact]
+    </span><span class="kw">pub struct </span>TestSolutionCompact::&lt;
+         VoterIndex = u16,
+         TargetIndex = u8,
+         Accuracy = Perbill,
+         MaxVoters = ConstU32::&lt;<span class="number">10</span>&gt;,
+    &gt;(<span class="number">8</span>)
+);</code></pre></div>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="frame_election_provider_support" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Rounding","Enum to specify how to round a rational number. `Nearest` rounds both numerator and denominator down. `Down` ensures the output is less than or equal to the input. `Up` ensures the output is greater than or equal to the input."]],"fn":[["round_to_rational",""]]};

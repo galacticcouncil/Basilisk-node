@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"basilisk_runtime":[["impl <a class=\"trait\" href=\"pallet_uniques/pallet/trait.Config.html\" title=\"trait pallet_uniques::pallet::Config\">Config</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.unit.html\">()</a>&gt; for <a class=\"struct\" href=\"basilisk_runtime/struct.Runtime.html\" title=\"struct basilisk_runtime::Runtime\">Runtime</a>"]],
+"testing_basilisk_runtime":[["impl <a class=\"trait\" href=\"pallet_uniques/pallet/trait.Config.html\" title=\"trait pallet_uniques::pallet::Config\">Config</a>&lt;<a class=\"primitive\" href=\"https://doc.rust-lang.org/nightly/std/primitive.unit.html\">()</a>&gt; for <a class=\"struct\" href=\"testing_basilisk_runtime/struct.Runtime.html\" title=\"struct testing_basilisk_runtime::Runtime\">Runtime</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

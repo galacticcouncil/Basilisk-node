@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["AvailabilityRecoverySubsystem","The Availability Recovery Subsystem."]]};

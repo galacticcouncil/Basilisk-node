@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["ECDSAExt","Extension trait for [`Public`] to be used from inside the runtime."]]};

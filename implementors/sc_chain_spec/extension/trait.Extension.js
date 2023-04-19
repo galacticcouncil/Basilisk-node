@@ -1,0 +1,6 @@
+(function() {var implementors = {
+"basilisk":[["impl <a class=\"trait\" href=\"sc_chain_spec/extension/trait.Extension.html\" title=\"trait sc_chain_spec::extension::Extension\">Extension</a> for <a class=\"struct\" href=\"basilisk/chain_spec/struct.ExtensionsFork.html\" title=\"struct basilisk::chain_spec::ExtensionsFork\">ExtensionsFork</a>"],["impl <a class=\"trait\" href=\"sc_chain_spec/extension/trait.Extension.html\" title=\"trait sc_chain_spec::extension::Extension\">Extension</a> for <a class=\"struct\" href=\"basilisk/chain_spec/struct.Extensions.html\" title=\"struct basilisk::chain_spec::Extensions\">Extensions</a>"]],
+"polkadot_service":[["impl <a class=\"trait\" href=\"sc_chain_spec/extension/trait.Extension.html\" title=\"trait sc_chain_spec::extension::Extension\">Extension</a> for <a class=\"struct\" href=\"polkadot_service/chain_spec/struct.Extensions.html\" title=\"struct polkadot_service::chain_spec::Extensions\">Extensions</a>"]],
+"sc_chain_spec":[],
+"sc_service":[]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

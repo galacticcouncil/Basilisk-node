@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["FromBlock","Identifies starting point of a block sequence."]],"struct":[["BlockAnnounce","Announce a new complete relay chain block on the network."],["BlockData","Block data sent in the response."],["BlockRequest","Request block data from a peer."],["BlockResponse","Response to `BlockRequest`"]]};

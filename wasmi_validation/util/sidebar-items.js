@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Locals","Locals are the concatenation of a slice of function parameters with function declared local variables."]]};

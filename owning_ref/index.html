@@ -1,0 +1,198 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="An owning reference."><meta name="keywords" content="rust, rustlang, rust-lang, owning_ref"><title>owning_ref - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Regular-1f7d512b176f0f72.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Regular-018c141bf0843ffd.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/FiraSans-Medium-8f9a781e4970d388.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceSerif4-Bold-124a1ca42af929b6.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2"><link rel="stylesheet" href="../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../static.files/rustdoc-e963ab4a0d0c903e.css" id="mainThemeStyle"><link rel="stylesheet" id="themeStyle" href="../static.files/light-046227e470cd3629.css"><link rel="stylesheet" disabled href="../static.files/dark-800f2ee593c8e6f7.css"><link rel="stylesheet" disabled href="../static.files/ayu-9edae3c387f5a5b3.css"><script id="default-settings" ></script><script src="../static.files/storage-d43fa987303ecbbb.js"></script><script defer src="../crates.js"></script><script defer src="../static.files/main-287cecec4dbb45b0.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-13285aec31fa243e.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-16x16-8b506e7a72182f1c.png"><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../owning_ref/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../owning_ref/index.html"><div class="logo-container"><img class="rust-logo" src="../static.files/rust-logo-151179464ae7ed46.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate owning_ref</a></h2><div class="sidebar-elems"><ul class="block"><li class="version">Version 0.4.1</li><li><a id="all-types" href="all.html">All Items</a></li></ul><section><ul class="block"><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li><li><a href="#types">Type Definitions</a></li></ul></section></div></nav><main><div class="width-limiter"><nav class="sub"><form class="search-form"><span></span><input class="search-input" name="search" aria-label="Run search in the documentation" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><a href="../help.html">?</a></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../static.files/wheel-5ec35bf9ca753509.svg"></a></div></form></nav><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn">Crate <a class="mod" href="#">owning_ref</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../static.files/clipboard-7571035ce49a181d.svg" width="19" height="18" alt="Copy item path"></button></h1><span class="out-of-band"><a class="srclink" href="../src/owning_ref/lib.rs.html#1-2016">source</a> · <button id="toggle-all-docs" title="collapse all docs">[<span>&#x2212;</span>]</button></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="an-owning-reference"><a href="#an-owning-reference">An owning reference.</a></h2>
+<p>This crate provides the <em>owning reference</em> types <code>OwningRef</code> and <code>OwningRefMut</code>
+that enables it to bundle a reference together with the owner of the data it points to.
+This allows moving and dropping of a <code>OwningRef</code> without needing to recreate the reference.</p>
+<p>This can sometimes be useful because Rust borrowing rules normally prevent
+moving a type that has been moved from. For example, this kind of code gets rejected:</p>
+
+<div class="example-wrap ignore"><div class='tooltip'>ⓘ</div><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>return_owned_and_referenced&lt;<span class="lifetime">&#39;a</span>&gt;() -&gt; (Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) {
+    <span class="kw">let </span>v = <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
+    <span class="kw">let </span>s = <span class="kw-2">&amp;</span>v[<span class="number">1</span>..<span class="number">3</span>];
+    (v, s)
+}</code></pre></div>
+<p>Even though, from a memory-layout point of view, this can be entirely safe
+if the new location of the vector still lives longer than the lifetime <code>'a</code>
+of the reference because the backing allocation of the vector does not change.</p>
+<p>This library enables this safe usage by keeping the owner and the reference
+bundled together in a wrapper type that ensure that lifetime constraint:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">fn </span>return_owned_and_referenced() -&gt; OwningRef&lt;Vec&lt;u8&gt;, [u8]&gt; {
+    <span class="kw">let </span>v = <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>];
+    <span class="kw">let </span>or = OwningRef::new(v);
+    <span class="kw">let </span>or = or.map(|v| <span class="kw-2">&amp;</span>v[<span class="number">1</span>..<span class="number">3</span>]);
+    or
+}</code></pre></div>
+<p>It works by requiring owner types to dereference to stable memory locations
+and preventing mutable access to root containers, which in practice requires heap allocation
+as provided by <code>Box&lt;T&gt;</code>, <code>Rc&lt;T&gt;</code>, etc.</p>
+<p>Also provided are typedefs for common owner type combinations,
+which allow for less verbose type signatures. For example, <code>BoxRef&lt;T&gt;</code> instead of <code>OwningRef&lt;Box&lt;T&gt;, T&gt;</code>.</p>
+<p>The crate also provides the more advanced <code>OwningHandle</code> type,
+which allows more freedom in bundling a dependent handle object
+along with the data it depends on, at the cost of some unsafe needed in the API.
+See the documentation around <code>OwningHandle</code> for more details.</p>
+<h2 id="examples"><a href="#examples">Examples</a></h2><h3 id="basics"><a href="#basics">Basics</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern crate </span>owning_ref;
+<span class="kw">use </span>owning_ref::BoxRef;
+
+<span class="kw">fn </span>main() {
+    <span class="comment">// Create an array owned by a Box.
+    </span><span class="kw">let </span>arr = Box::new([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]) <span class="kw">as </span>Box&lt;[i32]&gt;;
+
+    <span class="comment">// Transfer into a BoxRef.
+    </span><span class="kw">let </span>arr: BoxRef&lt;[i32]&gt; = BoxRef::new(arr);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>arr, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]);
+
+    <span class="comment">// We can slice the array without losing ownership or changing type.
+    </span><span class="kw">let </span>arr: BoxRef&lt;[i32]&gt; = arr.map(|arr| <span class="kw-2">&amp;</span>arr[<span class="number">1</span>..<span class="number">3</span>]);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>arr, <span class="kw-2">&amp;</span>[<span class="number">2</span>, <span class="number">3</span>]);
+
+    <span class="comment">// Also works for Arc, Rc, String and Vec!
+</span>}</code></pre></div>
+<h3 id="caching-a-reference-to-a-struct-field"><a href="#caching-a-reference-to-a-struct-field">Caching a reference to a struct field</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern crate </span>owning_ref;
+<span class="kw">use </span>owning_ref::BoxRef;
+
+<span class="kw">fn </span>main() {
+    <span class="kw">struct </span>Foo {
+        tag: u32,
+        x: u16,
+        y: u16,
+        z: u16,
+    }
+    <span class="kw">let </span>foo = Foo { tag: <span class="number">1</span>, x: <span class="number">100</span>, y: <span class="number">200</span>, z: <span class="number">300 </span>};
+
+    <span class="kw">let </span>or = BoxRef::new(Box::new(foo)).map(|foo| {
+        <span class="kw">match </span>foo.tag {
+            <span class="number">0 </span>=&gt; <span class="kw-2">&amp;</span>foo.x,
+            <span class="number">1 </span>=&gt; <span class="kw-2">&amp;</span>foo.y,
+            <span class="number">2 </span>=&gt; <span class="kw-2">&amp;</span>foo.z,
+            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(),
+        }
+    });
+
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>or, <span class="number">200</span>);
+}</code></pre></div>
+<h3 id="caching-a-reference-to-an-entry-in-a-vector"><a href="#caching-a-reference-to-an-entry-in-a-vector">Caching a reference to an entry in a vector</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern crate </span>owning_ref;
+<span class="kw">use </span>owning_ref::VecRef;
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>v = VecRef::new(<span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]).map(|v| <span class="kw-2">&amp;</span>v[<span class="number">3</span>]);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>v, <span class="number">4</span>);
+}</code></pre></div>
+<h3 id="caching-a-subslice-of-a-string"><a href="#caching-a-subslice-of-a-string">Caching a subslice of a String</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern crate </span>owning_ref;
+<span class="kw">use </span>owning_ref::StringRef;
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>s = StringRef::new(<span class="string">&quot;hello world&quot;</span>.to_owned())
+        .map(|s| s.split(<span class="string">&#39; &#39;</span>).nth(<span class="number">1</span>).unwrap());
+
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>s, <span class="string">&quot;world&quot;</span>);
+}</code></pre></div>
+<h3 id="reference-counted-slices-that-share-ownership-of-the-backing-storage"><a href="#reference-counted-slices-that-share-ownership-of-the-backing-storage">Reference counted slices that share ownership of the backing storage</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern crate </span>owning_ref;
+<span class="kw">use </span>owning_ref::RcRef;
+<span class="kw">use </span>std::rc::Rc;
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>rc: RcRef&lt;[i32]&gt; = RcRef::new(Rc::new([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]) <span class="kw">as </span>Rc&lt;[i32]&gt;);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>rc, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]);
+
+    <span class="kw">let </span>rc_a: RcRef&lt;[i32]&gt; = rc.clone().map(|s| <span class="kw-2">&amp;</span>s[<span class="number">0</span>..<span class="number">2</span>]);
+    <span class="kw">let </span>rc_b = rc.clone().map(|s| <span class="kw-2">&amp;</span>s[<span class="number">1</span>..<span class="number">3</span>]);
+    <span class="kw">let </span>rc_c = rc.clone().map(|s| <span class="kw-2">&amp;</span>s[<span class="number">2</span>..<span class="number">4</span>]);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>rc_a, <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>]);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>rc_b, <span class="kw-2">&amp;</span>[<span class="number">2</span>, <span class="number">3</span>]);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>rc_c, <span class="kw-2">&amp;</span>[<span class="number">3</span>, <span class="number">4</span>]);
+
+    <span class="kw">let </span>rc_c_a = rc_c.clone().map(|s| <span class="kw-2">&amp;</span>s[<span class="number">1</span>]);
+    <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;*</span>rc_c_a, <span class="kw-2">&amp;</span><span class="number">4</span>);
+}</code></pre></div>
+<h3 id="atomic-reference-counted-slices-that-share-ownership-of-the-backing-storage"><a href="#atomic-reference-counted-slices-that-share-ownership-of-the-backing-storage">Atomic reference counted slices that share ownership of the backing storage</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern crate </span>owning_ref;
+<span class="kw">use </span>owning_ref::ArcRef;
+<span class="kw">use </span>std::sync::Arc;
+
+<span class="kw">fn </span>main() {
+    <span class="kw">use </span>std::thread;
+
+    <span class="kw">fn </span>par_sum(rc: ArcRef&lt;[i32]&gt;) -&gt; i32 {
+        <span class="kw">if </span>rc.len() == <span class="number">0 </span>{
+            <span class="kw">return </span><span class="number">0</span>;
+        } <span class="kw">else if </span>rc.len() == <span class="number">1 </span>{
+            <span class="kw">return </span>rc[<span class="number">0</span>];
+        }
+        <span class="kw">let </span>mid = rc.len() / <span class="number">2</span>;
+        <span class="kw">let </span>left = rc.clone().map(|s| <span class="kw-2">&amp;</span>s[..mid]);
+        <span class="kw">let </span>right = rc.map(|s| <span class="kw-2">&amp;</span>s[mid..]);
+
+        <span class="kw">let </span>left = thread::spawn(<span class="kw">move </span>|| par_sum(left));
+        <span class="kw">let </span>right = thread::spawn(<span class="kw">move </span>|| par_sum(right));
+
+        left.join().unwrap() + right.join().unwrap()
+    }
+
+    <span class="kw">let </span>rc: Arc&lt;[i32]&gt; = Arc::new([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]);
+    <span class="kw">let </span>rc: ArcRef&lt;[i32]&gt; = rc.into();
+
+    <span class="macro">assert_eq!</span>(par_sum(rc), <span class="number">10</span>);
+}</code></pre></div>
+<h3 id="references-into-raii-locks"><a href="#references-into-raii-locks">References into RAII locks</a></h3>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern crate </span>owning_ref;
+<span class="kw">use </span>owning_ref::RefRef;
+<span class="kw">use </span>std::cell::{RefCell, Ref};
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>refcell = RefCell::new((<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>));
+    <span class="comment">// Also works with Mutex and RwLock
+
+    </span><span class="kw">let </span>refref = {
+        <span class="kw">let </span>refref = RefRef::new(refcell.borrow()).map(|x| <span class="kw-2">&amp;</span>x.<span class="number">3</span>);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>refref, <span class="number">4</span>);
+
+        <span class="comment">// We move the RAII lock and the reference to one of
+        // the subfields in the data it guards here:
+        </span>refref
+    };
+
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>refref, <span class="number">4</span>);
+
+    drop(refref);
+
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>refcell.borrow(), (<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>));
+}</code></pre></div>
+<h3 id="mutable-reference"><a href="#mutable-reference">Mutable reference</a></h3>
+<p>When the owned container implements <code>DerefMut</code>, it is also possible to make
+a <em>mutable owning reference</em>. (E.g. with <code>Box</code>, <code>RefMut</code>, <code>MutexGuard</code>)</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern crate </span>owning_ref;
+<span class="kw">use </span>owning_ref::RefMutRefMut;
+<span class="kw">use </span>std::cell::{RefCell, RefMut};
+
+<span class="kw">fn </span>main() {
+    <span class="kw">let </span>refcell = RefCell::new((<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>));
+
+    <span class="kw">let </span><span class="kw-2">mut </span>refmut_refmut = {
+        <span class="kw">let </span><span class="kw-2">mut </span>refmut_refmut = RefMutRefMut::new(refcell.borrow_mut()).map_mut(|x| <span class="kw-2">&amp;mut </span>x.<span class="number">3</span>);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>refmut_refmut, <span class="number">4</span>);
+        <span class="kw-2">*</span>refmut_refmut <span class="kw-2">*</span>= <span class="number">2</span>;
+
+        refmut_refmut
+    };
+
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>refmut_refmut, <span class="number">8</span>);
+    <span class="kw-2">*</span>refmut_refmut <span class="kw-2">*</span>= <span class="number">2</span>;
+
+    drop(refmut_refmut);
+
+    <span class="macro">assert_eq!</span>(<span class="kw-2">*</span>refcell.borrow(), (<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">16</span>));
+}</code></pre></div>
+</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.OwningHandle.html" title="owning_ref::OwningHandle struct">OwningHandle</a></div><div class="item-right docblock-short"><code>OwningHandle</code> is a complement to <code>OwningRef</code>. Where <code>OwningRef</code> allows
+consumers to pass around an owned object and a dependent reference,
+<code>OwningHandle</code> contains an owned object and a dependent <em>object</em>.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.OwningRef.html" title="owning_ref::OwningRef struct">OwningRef</a></div><div class="item-right docblock-short">An owning reference.</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.OwningRefMut.html" title="owning_ref::OwningRefMut struct">OwningRefMut</a></div><div class="item-right docblock-short">An mutable owning reference.</div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.CloneStableAddress.html" title="owning_ref::CloneStableAddress trait">CloneStableAddress</a></div><div class="item-right docblock-short">An unsafe marker trait for types where clones deref to the same address. This has all the requirements of StableDeref, and additionally requires that after calling clone(), both the old and new value deref to the same address. For example, Rc and Arc implement CloneStableDeref, but Box and Vec do not.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Erased.html" title="owning_ref::Erased trait">Erased</a></div><div class="item-right docblock-short">Helper trait for an erased concrete type an owner dereferences to.
+This is used in form of a trait object for keeping
+something around to (virtually) call the destructor.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.IntoErased.html" title="owning_ref::IntoErased trait">IntoErased</a></div><div class="item-right docblock-short">Helper trait for erasing the concrete type of what an owner derferences to,
+for example <code>Box&lt;T&gt; -&gt; Box&lt;dyn Erased&gt;</code>. This would be unneeded with
+higher kinded types support in the language.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.StableAddress.html" title="owning_ref::StableAddress trait">StableAddress</a></div><div class="item-right docblock-short">An unsafe marker trait for types that deref to a stable address, even when moved. For example, this is implemented by Box, Vec, Rc, Arc and String, among others. Even when a Box is moved, the underlying storage remains at a fixed location.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.ToHandle.html" title="owning_ref::ToHandle trait">ToHandle</a></div><div class="item-right docblock-short">Trait to implement the conversion of owner to handle for common types.</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.ToHandleMut.html" title="owning_ref::ToHandleMut trait">ToHandleMut</a></div><div class="item-right docblock-short">Trait to implement the conversion of owner to mutable handle for common types.</div></div></div><h2 id="types" class="small-section-header"><a href="#types">Type Definitions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ArcRef.html" title="owning_ref::ArcRef type">ArcRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses a <code>Arc</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.BoxRef.html" title="owning_ref::BoxRef type">BoxRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses a <code>Box</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.BoxRefMut.html" title="owning_ref::BoxRefMut type">BoxRefMut</a></div><div class="item-right docblock-short">Typedef of a mutable owning reference that uses a <code>Box</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ErasedArcRef.html" title="owning_ref::ErasedArcRef type">ErasedArcRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses an erased <code>Arc</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ErasedBoxRef.html" title="owning_ref::ErasedBoxRef type">ErasedBoxRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses an erased <code>Box</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ErasedBoxRefMut.html" title="owning_ref::ErasedBoxRefMut type">ErasedBoxRefMut</a></div><div class="item-right docblock-short">Typedef of a mutable owning reference that uses an erased <code>Box</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.ErasedRcRef.html" title="owning_ref::ErasedRcRef type">ErasedRcRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses an erased <code>Rc</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.MutexGuardRef.html" title="owning_ref::MutexGuardRef type">MutexGuardRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses a <code>MutexGuard</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.MutexGuardRefMut.html" title="owning_ref::MutexGuardRefMut type">MutexGuardRefMut</a></div><div class="item-right docblock-short">Typedef of a mutable owning reference that uses a <code>MutexGuard</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.RcRef.html" title="owning_ref::RcRef type">RcRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses a <code>Rc</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.RefMutRef.html" title="owning_ref::RefMutRef type">RefMutRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses a <code>RefMut</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.RefMutRefMut.html" title="owning_ref::RefMutRefMut type">RefMutRefMut</a></div><div class="item-right docblock-short">Typedef of a mutable owning reference that uses a <code>RefMut</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.RefRef.html" title="owning_ref::RefRef type">RefRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses a <code>Ref</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.RwLockReadGuardRef.html" title="owning_ref::RwLockReadGuardRef type">RwLockReadGuardRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses a <code>RwLockReadGuard</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.RwLockWriteGuardRef.html" title="owning_ref::RwLockWriteGuardRef type">RwLockWriteGuardRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses a <code>RwLockWriteGuard</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.RwLockWriteGuardRefMut.html" title="owning_ref::RwLockWriteGuardRefMut type">RwLockWriteGuardRefMut</a></div><div class="item-right docblock-short">Typedef of a mutable owning reference that uses a <code>RwLockWriteGuard</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.StringRef.html" title="owning_ref::StringRef type">StringRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses a <code>String</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.StringRefMut.html" title="owning_ref::StringRefMut type">StringRefMut</a></div><div class="item-right docblock-short">Typedef of a mutable owning reference that uses a <code>String</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.VecRef.html" title="owning_ref::VecRef type">VecRef</a></div><div class="item-right docblock-short">Typedef of a owning reference that uses a <code>Vec</code> as the owner.</div></div><div class="item-row"><div class="item-left module-item"><a class="type" href="type.VecRefMut.html" title="owning_ref::VecRefMut type">VecRefMut</a></div><div class="item-right docblock-short">Typedef of a mutable owning reference that uses a <code>Vec</code> as the owner.</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="owning_ref" data-themes="" data-resource-suffix="" data-rustdoc-version="1.67.0-nightly (234151769 2022-12-03)" data-search-js="search-444266647c4dba98.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-af96d9e2fc13e081.css" ></div></body></html>

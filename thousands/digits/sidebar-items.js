@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["ASCII_DECIMAL","The decimal digits, in ASCII."],["ASCII_HEXADECIMAL","The hexadecimal digits, in ASCII."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Hub","A subscription hub."],["Receiver","The receiving side of the subscription."]],"trait":[["Dispatch","Dispatch a message of type `M`."],["Subscribe","Subscribe using a key of type `K`"],["Unsubscribe","Unsubscribe: unregisters a previously created subscription."]]};

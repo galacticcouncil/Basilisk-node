@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["error","Error helpers for Chain RPC module."]],"trait":[["ChainApiClient","Client implementation for the `ChainApi` RPC API."],["ChainApiServer","Server trait implementation for the `ChainApi` RPC API."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["AuthorityDiscovery","An abstraction over the authority discovery service."]]};
