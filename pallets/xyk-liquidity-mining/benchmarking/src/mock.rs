@@ -148,6 +148,7 @@ impl pallet_liquidity_mining::Config<Instance1> for Test {
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
 	type AssetRegistry = AssetRegistry;
 	type NonDustableWhitelistHandler = Duster;
+	type PriceAdjustment = pallet_liquidity_mining::DefaultPriceAdjustment;
 	type Event = Event;
 }
 

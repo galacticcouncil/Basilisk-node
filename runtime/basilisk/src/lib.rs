@@ -597,7 +597,7 @@ impl pallet_democracy::Config for Runtime {
 	type MaxVotes = MaxVotes;
 	type WeightInfo = weights::democracy::BasiliskWeight<Runtime>;
 	type MaxProposals = MaxProposals;
-	type VoteLockingPeriod = EnactmentPeriod;
+	type VoteLockingPeriod = VoteLockingPeriod;
 }
 
 impl pallet_elections_phragmen::Config for Runtime {
@@ -869,6 +869,7 @@ impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime 
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
 	type AssetRegistry = AssetRegistry;
 	type NonDustableWhitelistHandler = Duster;
+	type PriceAdjustment = warehouse_liquidity_mining::DefaultPriceAdjustment;
 	type Event = Event;
 }
 
