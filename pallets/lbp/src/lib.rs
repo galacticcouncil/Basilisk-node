@@ -877,7 +877,7 @@ impl<T: Config> Pallet<T> {
 			transfer.assets.asset_out,
 			&pool_account,
 			&transfer.origin,
-			transfer.amount_out,
+			transfer.amount_b,
 		)?;
 
 		// Fee is deducted from the sent out amount of accumulated asset and transferred to the fee collector
@@ -1035,7 +1035,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 				origin: who.clone(),
 				assets,
 				amount: amount_without_fee,
-				amount_out,
+				amount_b: amount_out,
 				discount: false,
 				discount_amount: 0_u128,
 				fee: (fee_asset, fee),
@@ -1073,7 +1073,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 				origin: who.clone(),
 				assets,
 				amount,
-				amount_out: amount_out_without_fee,
+				amount_b: amount_out_without_fee,
 				discount: false,
 				discount_amount: 0_u128,
 				fee: (fee_asset, fee),
@@ -1089,7 +1089,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			asset_in: transfer.assets.asset_in,
 			asset_out: transfer.assets.asset_out,
 			amount: transfer.amount,
-			sale_price: transfer.amount_out,
+			sale_price: transfer.amount_b,
 			fee_asset: transfer.fee.0,
 			fee_amount: transfer.fee.1,
 		});
@@ -1161,7 +1161,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 				origin: who.clone(),
 				assets,
 				amount: calculated_in,
-				amount_out: amount,
+				amount_b: amount,
 				discount: false,
 				discount_amount: 0_u128,
 				fee: (fee_asset, fee),
@@ -1201,7 +1201,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 				origin: who.clone(),
 				assets,
 				amount: calculated_in_without_fee,
-				amount_out: amount,
+				amount_b: amount,
 				discount: false,
 				discount_amount: 0_u128,
 				fee: (fee_asset, fee),
@@ -1217,7 +1217,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, BalanceOf<T>> for Pallet<T
 			asset_out: transfer.assets.asset_out,
 			asset_in: transfer.assets.asset_in,
 			amount: transfer.amount,
-			buy_price: transfer.amount_out,
+			buy_price: transfer.amount_b,
 			fee_asset: transfer.fee.0,
 			fee_amount: transfer.fee.1,
 		});

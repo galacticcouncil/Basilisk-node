@@ -1652,12 +1652,12 @@ fn execute_trade_should_work() {
 		let pool_id = KUSD_BSX_POOL_ID;
 
 		let amount_in = 5_000_000_u128;
-		let amount_out = 10_000_000_u128;
+		let amount_b = 10_000_000_u128;
 		let t_sell = AMMTransfer {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -1685,7 +1685,7 @@ fn execute_trade_should_work() {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -1713,7 +1713,7 @@ fn trade_fails_when_first_fee_lesser_than_existential_deposit() {
 				asset_out: BSX,
 			},
 			amount: 1000,
-			amount_out: 1000,
+			amount_b: 1000,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (KUSD, EXISTENTIAL_DEPOSIT - 1),
@@ -1735,12 +1735,12 @@ fn execute_trade_should_not_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		let amount_in = 5_000_000_u128;
-		let amount_out = 10_000_000_000_000_000u128;
+		let amount_b = 10_000_000_000_000_000u128;
 		let t = AMMTransfer {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -1772,12 +1772,12 @@ fn execute_sell_should_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		let amount_in = 8_000_000_u128;
-		let amount_out = 20_000_000_u128;
+		let amount_b = 20_000_000_u128;
 		let t = AMMTransfer {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -1797,7 +1797,7 @@ fn execute_sell_should_work() {
 			asset_in,
 			asset_out,
 			amount: amount_in,
-			sale_price: amount_out,
+			sale_price: amount_b,
 			fee_asset: asset_in,
 			fee_amount: 1_000,
 		}
@@ -1834,7 +1834,7 @@ fn execute_sell_should_not_work() {
 				asset_out: BSX,
 			},
 			amount: 8_000_000_000_u128,
-			amount_out: 200_000_000_000_000_u128,
+			amount_b: 200_000_000_000_000_u128,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (KUSD, 1_000),
@@ -1903,12 +1903,12 @@ fn execute_buy_should_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		let amount_in = 8_000_000_u128;
-		let amount_out = 20_000_000_u128;
+		let amount_b = 20_000_000_u128;
 		let t = AMMTransfer {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -1954,12 +1954,12 @@ fn execute_buy_should_not_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		let amount_in = 8_000_000_000_u128;
-		let amount_out = 200_000_000_000_000_u128;
+		let amount_b = 200_000_000_000_000_u128;
 		let t = AMMTransfer {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -2719,7 +2719,7 @@ fn amm_trait_should_work() {
 			origin: who,
 			assets: asset_pair,
 			amount: amount_in - fee,
-			amount_out: 563_732,
+			amount_b: 563_732,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_pair.asset_in, fee),
@@ -2730,13 +2730,13 @@ fn amm_trait_should_work() {
 			t_sell
 		);
 
-		let amount_out = 1_000_000;
+		let amount_b = 1_000_000;
 		let buy_limit = 10_000_000;
 		let t_buy = AMMTransfer {
 			origin: who,
 			assets: asset_pair,
 			amount: 1_771_201,
-			amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_pair.asset_in, 3_548),
@@ -3065,7 +3065,7 @@ fn validate_trade_should_work() {
 					asset_out: BSX
 				},
 				amount: 1_998_503_u128,
-				amount_out: 1_000_000_u128,
+				amount_b: 1_000_000_u128,
 				discount: false,
 				discount_amount: 0_u128,
 				fee: (KUSD, 4_004),
@@ -3091,7 +3091,7 @@ fn validate_trade_should_work() {
 					asset_out: BSX
 				},
 				amount: 998_000_u128,
-				amount_out: 499_678_u128,
+				amount_b: 499_678_u128,
 				discount: false,
 				discount_amount: 0_u128,
 				fee: (KUSD, 2000),
