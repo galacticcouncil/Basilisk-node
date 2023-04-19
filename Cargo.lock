@@ -1204,7 +1204,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.3.7"
+version = "2.3.8"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
@@ -5797,7 +5797,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-duster"
-version = "3.1.13"
+version = "3.1.14"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6028,7 +6028,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "5.0.10"
+version = "5.0.11"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6677,7 +6677,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining"
-version = "1.1.4"
+version = "1.1.5"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6703,7 +6703,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.9"
+version = "1.0.10"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
