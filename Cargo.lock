@@ -517,6 +517,7 @@ dependencies = [
  "hex-literal",
  "hydradx-adapters",
  "hydradx-traits",
+ "invarch-xcm-builder",
  "orml-benchmarking",
  "orml-tokens",
  "orml-traits",
@@ -3655,6 +3656,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "276ec31bcb4a9ee45f58bec6f9ec700ae4cf4f4f8f2fa7e06cb406bd5ffdd770"
 dependencies = [
  "num-traits",
+]
+
+[[package]]
+name = "invarch-xcm-builder"
+version = "0.1.0"
+source = "git+https://github.com/InvArch/InvArch-XCM-Builder?branch=polkadot-v0.9.29#cf1022a0f6e973ba670b3a4a396a4e15a756d66e"
+dependencies = [
+ "frame-support",
+ "log",
+ "parity-scale-codec",
+ "sp-core",
+ "sp-io",
+ "xcm",
+ "xcm-executor",
 ]
 
 [[package]]

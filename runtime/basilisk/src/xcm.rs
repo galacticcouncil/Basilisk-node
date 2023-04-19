@@ -34,6 +34,9 @@ pub type Barrier = (
 	AllowKnownQueryResponses<PolkadotXcm>,
 	// Subscriptions for version tracking are OK.
 	AllowSubscriptionsFrom<Everything>,
+	// Tinkernet Multisigs require DescendOrigin, this barrier makes sure it's followed by payment.
+	// The barrier will only pass when the origin is a Tinkernet multisig.
+	invarch_xcm_builder::AllowPaidTinkernetMultisig,
 );
 
 parameter_types! {
@@ -67,6 +70,8 @@ pub type XcmOriginToCallOrigin = (
 	SignedAccountId32AsNative<RelayNetwork, Origin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	XcmPassthrough<Origin>,
+	// Derives signed AccountId32 origins for Tinkernet multisigs.
+	invarch_xcm_builder::DeriveOriginFromTinkernetMultisig<Origin>,
 );
 
 parameter_types! {
@@ -285,6 +290,8 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
 	AccountId32Aliases<RelayNetwork, AccountId>,
+	// Mapping Tinkernet multisig to the correctly derived AccountId32.
+	invarch_xcm_builder::TinkernetMultisigAsAccountId<AccountId>,
 );
 
 parameter_types! {
