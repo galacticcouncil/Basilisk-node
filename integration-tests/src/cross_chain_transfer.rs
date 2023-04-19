@@ -549,7 +549,7 @@ fn trap_asset() -> MultiAsset {
 		);
 	});
 
-	let loc = MultiLocation::new(1, X2(Parachain(3000), GeneralIndex(0)));
+	let loc = MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0)));
 	let asset: MultiAsset = (loc, 30 * UNITS).into();
 
 	Basilisk::execute_with(|| {
