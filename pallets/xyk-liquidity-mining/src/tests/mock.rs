@@ -624,13 +624,16 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		Ok(())
 	}
 
-	fn deposit_lp_shares(
+	fn deposit_lp_shares<F>(
 		global_farm_id: u32,
 		yield_farm_id: u32,
 		amm_pool_id: Self::AmmPoolId,
 		shares_amount: Self::Balance,
-		get_token_value_of_lp_shares: fn(AssetId, Self::AmmPoolId, Balance) -> Result<Self::Balance, Self::Error>,
-	) -> Result<u128, Self::Error> {
+		get_token_value_of_lp_shares: F,
+	) -> Result<u128, Self::Error>
+	where
+		F: Fn(AssetId, Self::AmmPoolId, Self::Balance) -> Result<Self::Balance, Self::Error>,
+	{
 		let deposit_id = get_next_deposit_id();
 
 		let incentivized_asset = GLOBAL_FARMS.with(|v| v.borrow().get(&global_farm_id).unwrap().incentivized_asset);
@@ -663,12 +666,15 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		Ok(deposit_id)
 	}
 
-	fn redeposit_lp_shares(
+	fn redeposit_lp_shares<F>(
 		global_farm_id: u32,
 		yield_farm_id: u32,
 		deposit_id: u128,
-		get_token_value_of_lp_shares: fn(AssetId, Self::AmmPoolId, Balance) -> Result<Self::Balance, Self::Error>,
-	) -> Result<(Self::Balance, Self::AmmPoolId), Self::Error> {
+		get_token_value_of_lp_shares: F,
+	) -> Result<(Self::Balance, Self::AmmPoolId), Self::Error>
+	where
+		F: Fn(AssetId, Self::AmmPoolId, Self::Balance) -> Result<Self::Balance, Self::Error>,
+	{
 		let deposit = DEPOSITS.with(|v| {
 			let mut p = v.borrow_mut();
 			let mut deposit = p.get_mut(&deposit_id).unwrap();
@@ -752,6 +758,34 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 
 	fn get_global_farm_id(deposit_id: u128, yield_farm_id: u32) -> Option<u32> {
 		DEPOSIT_ENTRIES.with(|v| v.borrow().get(&(deposit_id, yield_farm_id)).map(|d| d.global_farm_id))
+	}
+
+	fn create_global_farm_without_price_adjustment(
+		_total_rewards: Self::Balance,
+		_planned_yielding_periods: Self::Period,
+		_blocks_per_period: BlockNumber,
+		_incentivized_asset: AssetId,
+		_reward_currency: AssetId,
+		_owner: AccountId,
+		_yield_per_period: Perquintill,
+		_min_deposit: Self::Balance,
+	) -> Result<(YieldFarmId, Self::Balance), Self::Error> {
+		//NOTE: Basilisk is not using this fn.
+		Err(sp_runtime::DispatchError::Other("Not implemented"))
+	}
+}
+
+//NOTE: this is and should not be used anywhere. This exists only to make trait bellow happy. Trait
+//bellow is not really used. Basilisk is using `DefaultPriceAdjustment` implementation.
+struct FakeGlobalFarm;
+
+impl hydradx_traits::liquidity_mining::PriceAdjustment<FakeGlobalFarm> for DummyLiquidityMining {
+	type Error = DispatchError;
+	type PriceAdjustment = FixedU128;
+
+	//NOTE: basilisk is using `DefaultPriceAdjustment` for now.
+	fn get(_global_farm: &FakeGlobalFarm) -> Result<Self::PriceAdjustment, Self::Error> {
+		Err(sp_runtime::DispatchError::Other("Not implemented"))
 	}
 }
 
