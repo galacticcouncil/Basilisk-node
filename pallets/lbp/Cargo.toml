@@ -22,7 +22,7 @@ serde = { features = ["derive"], optional = true, version = "1.0.136" }
 
 # Warehouse dependencies
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-math", rev = "a0cd48c26dca53e7e351434276c572d70ffd0b72", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "b67141958f31fc3af0894a22b5534a26e67f6334", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "fdab7de930afd7d656e2e41355406770519aaf8f", default-features = false }
 
 ## Local dependencies
 primitives = { default-features = false, path = "../../primitives" }
@@ -44,7 +44,7 @@ sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkad
 
 [dev-dependencies]
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-test-utils = {git = "https://github.com/galacticcouncil/warehouse", rev = "b67141958f31fc3af0894a22b5534a26e67f6334", default-features = false}
+test-utils = {git = "https://github.com/galacticcouncil/warehouse", rev = "fdab7de930afd7d656e2e41355406770519aaf8f", default-features = false}
 
 [features]
 default = ["std"]
