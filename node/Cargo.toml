@@ -20,7 +20,7 @@ hydra-dx-build-script-utils = { git = "https://github.com/galacticcouncil/HydraD
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "3.4.0" }
-hex-literal = "0.3.4"
+hex-literal = "0.4.1"
 jsonrpsee = { version = "0.16.2", features = ["server", "macros"] }
 log = "0.4.17"
 serde = { version = "1.0.136", features = ["derive"] }

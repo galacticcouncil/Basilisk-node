@@ -34,15 +34,8 @@ fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 	KusamaRelay::execute_with(|| {
 		assert_ok!(kusama_runtime::XcmPallet::reserve_transfer_assets(
 			kusama_runtime::RuntimeOrigin::signed(ALICE.into()),
-			Box::new(Parachain(BASILISK_PARA_ID).into().into()),
-			Box::new(
-				Junction::AccountId32 {
-					id: BOB,
-					network: NetworkId::Any
-				}
-				.into()
-				.into()
-			),
+			Box::new(Parachain(BASILISK_PARA_ID).into_versioned()),
+			Box::new(Junction::AccountId32 { id: BOB, network: None }.into()),
 			Box::new((Here, 300 * UNITS).into()),
 			0,
 		));
@@ -78,17 +71,8 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			1,
 			3 * UNITS,
-			Box::new(
-				MultiLocation::new(
-					1,
-					X1(Junction::AccountId32 {
-						id: BOB,
-						network: NetworkId::Any,
-					})
-				)
-				.into()
-			),
-			WeightLimit::Limited(4_600_000_000)
+			Box::new(MultiLocation::new(1, X1(Junction::AccountId32 { id: BOB, network: None })).into()),
+			WeightLimit::Limited(Weight::from_ref_time(4_600_000_000))
 		));
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(ALICE)),
@@ -99,7 +83,7 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 	KusamaRelay::execute_with(|| {
 		assert_eq!(
 			kusama_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			2999895428355 // 3 * BSX - fee
+			2999909712564 // 3 * BSX - fee
 		);
 	});
 }
@@ -128,15 +112,12 @@ fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 					1,
 					X2(
 						Junction::Parachain(BASILISK_PARA_ID),
-						Junction::AccountId32 {
-							id: BOB,
-							network: NetworkId::Any,
-						}
+						Junction::AccountId32 { id: BOB, network: None }
 					)
 				)
 				.into()
 			),
-			WeightLimit::Limited(399_600_000_000)
+			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
@@ -189,15 +170,12 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 					1,
 					X2(
 						Junction::Parachain(OTHER_PARA_ID),
-						Junction::AccountId32 {
-							id: BOB,
-							network: NetworkId::Any,
-						}
+						Junction::AccountId32 { id: BOB, network: None }
 					)
 				)
 				.into()
 			),
-			WeightLimit::Limited(399_600_000_000)
+			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
 		));
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
@@ -243,15 +221,12 @@ fn transfer_from_other_parachain_and_back() {
 					1,
 					X2(
 						Junction::Parachain(BASILISK_PARA_ID),
-						Junction::AccountId32 {
-							id: BOB,
-							network: NetworkId::Any,
-						}
+						Junction::AccountId32 { id: BOB, network: None }
 					)
 				)
 				.into()
 			),
-			WeightLimit::Limited(399_600_000_000)
+			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
@@ -287,13 +262,13 @@ fn transfer_from_other_parachain_and_back() {
 						Junction::Parachain(OTHER_PARA_ID),
 						Junction::AccountId32 {
 							id: ALICE,
-							network: NetworkId::Any,
+							network: None,
 						}
 					)
 				)
 				.into()
 			),
-			WeightLimit::Limited(399_600_000_000)
+			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
 		));
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
@@ -342,15 +317,12 @@ fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amoun
 						1,
 						X2(
 							Junction::Parachain(BASILISK_PARA_ID),
-							Junction::AccountId32 {
-								id: BOB,
-								network: NetworkId::Any,
-							}
+							Junction::AccountId32 { id: BOB, network: None }
 						)
 					)
 					.into()
 				),
-				WeightLimit::Limited(399_600_000_000)
+				WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
 			),
 			orml_xtokens::Error::<basilisk_runtime::Runtime>::XcmExecutionFailed
 		);
@@ -404,13 +376,13 @@ fn fee_currency_set_on_xcm_transfer() {
 						Junction::Parachain(BASILISK_PARA_ID),
 						Junction::AccountId32 {
 							id: HITCHHIKER,
-							network: NetworkId::Any,
+							network: None,
 						}
 					)
 				)
 				.into()
 			),
-			WeightLimit::Limited(399_600_000_000)
+			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
@@ -450,15 +422,12 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 					1,
 					X2(
 						Junction::Parachain(BASILISK_PARA_ID),
-						Junction::AccountId32 {
-							id: BOB,
-							network: NetworkId::Any,
-						}
+						Junction::AccountId32 { id: BOB, network: None }
 					)
 				)
 				.into()
 			),
-			WeightLimit::Limited(399_600_000_000)
+			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
@@ -469,7 +438,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
 			cumulus_pallet_xcmp_queue::Event::Fail {
-				message_hash: Some(hex!["4efbf4d7ba73f43d5bb4ebbec3189e132ccf2686aed37e97985af019e1cf62dc"].into()),
+				message_hash: Some(hex!["4efbf4d7ba73f43d5bb4ebbec3189e132ccf2686aed37e97985af019e1cf62dc"]),
 				error: XcmError::AssetNotFound,
 				weight: Weight::from_ref_time(300_000_000),
 			}

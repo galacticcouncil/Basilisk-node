@@ -396,7 +396,7 @@ dependencies = [
  "log",
  "parking",
  "polling",
- "rustix 0.37.12",
+ "rustix 0.37.13",
  "slab",
  "socket2",
  "waker-fn",
@@ -523,7 +523,7 @@ dependencies = [
  "clap",
  "common-runtime",
  "cumulus-client-cli",
- "cumulus-client-collator 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.38)",
+ "cumulus-client-collator",
  "cumulus-client-consensus-aura",
  "cumulus-client-consensus-common",
  "cumulus-client-consensus-relay-chain",
@@ -531,7 +531,7 @@ dependencies = [
  "cumulus-client-service",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
- "cumulus-relay-chain-inprocess-interface 0.1.0 (git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.38)",
+ "cumulus-relay-chain-inprocess-interface",
  "cumulus-relay-chain-interface",
  "cumulus-relay-chain-minimal-node",
  "frame-benchmarking",
@@ -539,7 +539,7 @@ dependencies = [
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
  "futures",
- "hex-literal",
+ "hex-literal 0.4.1",
  "hydra-dx-build-script-utils",
  "jsonrpsee",
  "log",
@@ -618,7 +618,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "hex-literal",
+ "hex-literal 0.4.1",
  "hydradx-adapters",
  "hydradx-traits",
  "orml-benchmarking",
@@ -1207,9 +1207,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.2.3"
+version = "4.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49f9152d70e42172fdb87de2efd7327160beee37886027cf86f30a233d5b30b4"
+checksum = "956ac1f6381d8d82ab4684768f89c0ea3afe66925ceadb4eeb3fc452ffc55d62"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -1218,9 +1218,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.2.3"
+version = "4.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e067b220911598876eb55d52725ddcc201ffe3f0904018195973bc5b012ea2ca"
+checksum = "84080e799e54cff944f4b4a4b0e71630b0e0443b25b985175c7dddc1a859b749"
 dependencies = [
  "anstream",
  "anstyle",
@@ -1699,29 +1699,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cumulus-client-collator"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.38#9b4e0247137f158d1a35118197d34adfa58858b7"
-dependencies = [
- "cumulus-client-consensus-common",
- "cumulus-client-network",
- "cumulus-primitives-core",
- "futures",
- "parity-scale-codec",
- "parking_lot 0.12.1",
- "polkadot-node-primitives",
- "polkadot-node-subsystem",
- "polkadot-overseer",
- "polkadot-primitives",
- "sc-client-api",
- "sp-api",
- "sp-consensus",
- "sp-core",
- "sp-runtime",
- "tracing",
-]
-
-[[package]]
 name = "cumulus-client-consensus-aura"
 version = "0.1.0"
 source = "git+https://github.com/paritytech//cumulus?branch=polkadot-v0.9.38#9b4e0247137f158d1a35118197d34adfa58858b7"
@@ -1848,11 +1825,11 @@ version = "0.1.0"
 source = "git+https://github.com/paritytech//cumulus?branch=polkadot-v0.9.38#9b4e0247137f158d1a35118197d34adfa58858b7"
 dependencies = [
  "cumulus-client-cli",
- "cumulus-client-collator 0.1.0 (git+https://github.com/paritytech//cumulus?branch=polkadot-v0.9.38)",
+ "cumulus-client-collator",
  "cumulus-client-consensus-common",
  "cumulus-client-pov-recovery",
  "cumulus-primitives-core",
- "cumulus-relay-chain-inprocess-interface 0.1.0 (git+https://github.com/paritytech//cumulus?branch=polkadot-v0.9.38)",
+ "cumulus-relay-chain-inprocess-interface",
  "cumulus-relay-chain-interface",
  "cumulus-relay-chain-minimal-node",
  "futures",
@@ -1861,7 +1838,7 @@ dependencies = [
  "sc-client-api",
  "sc-consensus",
  "sc-service",
- "sc-sysinfo 6.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.38)",
+ "sc-sysinfo",
  "sc-telemetry",
  "sp-api",
  "sp-blockchain",
@@ -2065,32 +2042,7 @@ dependencies = [
  "polkadot-service",
  "sc-cli",
  "sc-client-api",
- "sc-sysinfo 6.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.38)",
- "sc-telemetry",
- "sc-tracing",
- "sp-api",
- "sp-consensus",
- "sp-core",
- "sp-runtime",
- "sp-state-machine",
-]
-
-[[package]]
-name = "cumulus-relay-chain-inprocess-interface"
-version = "0.1.0"
-source = "git+https://github.com/paritytech/cumulus?branch=polkadot-v0.9.38#9b4e0247137f158d1a35118197d34adfa58858b7"
-dependencies = [
- "async-trait",
- "cumulus-primitives-core",
- "cumulus-relay-chain-interface",
- "futures",
- "futures-timer",
- "polkadot-cli",
- "polkadot-client",
- "polkadot-service",
- "sc-cli",
- "sc-client-api",
- "sc-sysinfo 6.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.38)",
+ "sc-sysinfo",
  "sc-telemetry",
  "sc-tracing",
  "sp-api",
@@ -3073,7 +3025,7 @@ dependencies = [
  "sc-client-db",
  "sc-executor",
  "sc-service",
- "sc-sysinfo 6.0.0-dev (git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.38)",
+ "sc-sysinfo",
  "serde",
  "serde_json",
  "sp-api",
@@ -3694,6 +3646,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ebdb29d2ea9ed0083cd8cece49bbd968021bd99b0849edb4a9a7ee0fdf6a4e0"
 
 [[package]]
+name = "hex-literal"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
+
+[[package]]
 name = "hkdf"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3802,7 +3760,7 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 [[package]]
 name = "hydra-dx-build-script-utils"
 version = "1.0.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#e5ad32557bed627664f840a3d551dce67bddd796"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=master#cb53f0709aff736aea777d228fbc0cce99dc3dba"
 dependencies = [
  "cargo-lock",
  "platforms 1.1.0",
@@ -3826,7 +3784,7 @@ dependencies = [
 [[package]]
 name = "hydradx-adapters"
 version = "0.2.3"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-support",
  "hydradx-traits",
@@ -3843,7 +3801,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "2.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -4114,7 +4072,7 @@ checksum = "adcf93614601c8129ddf72e2d5633df827ba6551541c6d8c59520a371475be1f"
 dependencies = [
  "hermit-abi 0.3.1",
  "io-lifetimes 1.0.10",
- "rustix 0.37.12",
+ "rustix 0.37.13",
  "windows-sys 0.48.0",
 ]
 
@@ -4310,7 +4268,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "hex-literal",
+ "hex-literal 0.3.4",
  "kusama-runtime-constants",
  "log",
  "pallet-authority-discovery",
@@ -4454,9 +4412,9 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 
 [[package]]
 name = "libc"
-version = "0.2.141"
+version = "0.2.142"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3304a64d199bb964be99741b7a14d26972741915b3649639149b2479bb46f4b5"
+checksum = "6a987beff54b60ffa6d51982e1aa1146bc42f19bd26be28b0586f252fccf5317"
 
 [[package]]
 name = "libloading"
@@ -5049,9 +5007,9 @@ checksum = "d4d2456c373231a208ad294c33dc5bff30051eafd954cd4caae83a712b12854d"
 
 [[package]]
 name = "linux-raw-sys"
-version = "0.3.2"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f508063cc7bb32987c71511216bd5a32be15bccb6a80b52df8b9d7f01fc3aa2"
+checksum = "9b085a4f2cde5781fc4b1717f2e86c62f5cda49de7ba99a7c2eae02b61c9064c"
 
 [[package]]
 name = "lock_api"
@@ -5179,7 +5137,7 @@ version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ffc89ccdc6e10d6907450f753537ebc5c5d3460d2e4e62ea74bd571db62c0f9e"
 dependencies = [
- "rustix 0.37.12",
+ "rustix 0.37.13",
 ]
 
 [[package]]
@@ -6000,7 +5958,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "2.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6256,7 +6214,7 @@ dependencies = [
 [[package]]
 name = "pallet-currencies"
 version = "1.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6291,7 +6249,7 @@ dependencies = [
 [[package]]
 name = "pallet-duster"
 version = "3.2.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6375,7 +6333,7 @@ dependencies = [
 [[package]]
 name = "pallet-ema-oracle"
 version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6513,7 +6471,7 @@ dependencies = [
 [[package]]
 name = "pallet-liquidity-mining"
 version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6603,7 +6561,7 @@ dependencies = [
 [[package]]
 name = "pallet-nft"
 version = "7.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6743,7 +6701,7 @@ dependencies = [
 [[package]]
 name = "pallet-price-oracle"
 version = "0.3.3"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6826,7 +6784,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.3.3"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -6841,7 +6799,7 @@ dependencies = [
 [[package]]
 name = "pallet-route-executor"
 version = "1.0.3"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7036,7 +6994,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "8.0.5"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7054,7 +7012,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-pause"
 version = "0.1.3"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7328,6 +7286,7 @@ name = "parachain-runtime-mock"
 version = "0.2.2"
 dependencies = [
  "basilisk-runtime",
+ "common-runtime",
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
@@ -7343,7 +7302,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
- "hex-literal",
+ "hex-literal 0.4.1",
  "hydradx-adapters",
  "hydradx-traits",
  "kusama-runtime",
@@ -7807,7 +7766,7 @@ dependencies = [
  "sc-executor",
  "sc-service",
  "sc-storage-monitor 0.1.0 (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.38)",
- "sc-sysinfo 6.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.38)",
+ "sc-sysinfo",
  "sc-tracing",
  "sp-core",
  "sp-io",
@@ -8514,7 +8473,7 @@ version = "0.9.38"
 source = "git+https://github.com/galacticcouncil/polkadot?branch=fix-xcm-executor-atomicity-9-38#a225599ab533bb5f7913429690e5c12ee3cff5ba"
 dependencies = [
  "bitvec",
- "hex-literal",
+ "hex-literal 0.3.4",
  "parity-scale-codec",
  "polkadot-core-primitives",
  "polkadot-parachain",
@@ -8580,7 +8539,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "hex-literal",
+ "hex-literal 0.3.4",
  "log",
  "pallet-authority-discovery",
  "pallet-authorship",
@@ -8784,7 +8743,7 @@ dependencies = [
  "frame-support",
  "frame-system-rpc-runtime-api",
  "futures",
- "hex-literal",
+ "hex-literal 0.3.4",
  "kusama-runtime",
  "kvdb",
  "kvdb-rocksdb",
@@ -8849,7 +8808,7 @@ dependencies = [
  "sc-offchain",
  "sc-service",
  "sc-sync-state-rpc",
- "sc-sysinfo 6.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.38)",
+ "sc-sysinfo",
  "sc-telemetry",
  "sc-transaction-pool",
  "serde",
@@ -9633,7 +9592,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "hex-literal",
+ "hex-literal 0.3.4",
  "log",
  "pallet-authority-discovery",
  "pallet-authorship",
@@ -9802,7 +9761,7 @@ dependencies = [
  "frame-system",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
- "hex-literal",
+ "hex-literal 0.4.1",
  "hydradx-traits",
  "kusama-runtime",
  "orml-tokens",
@@ -9923,15 +9882,15 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.37.12"
+version = "0.37.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "722529a737f5a942fdbac3a46cee213053196737c5eaa3386d52e85b786f2659"
+checksum = "f79bef90eb6d984c72722595b5b1348ab39275a5e5123faca6863bf07d75a4e0"
 dependencies = [
  "bitflags",
  "errno 0.3.1",
  "io-lifetimes 1.0.10",
  "libc",
- "linux-raw-sys 0.3.2",
+ "linux-raw-sys 0.3.3",
  "windows-sys 0.48.0",
 ]
 
@@ -10881,7 +10840,7 @@ dependencies = [
  "sc-rpc-server",
  "sc-rpc-spec-v2",
  "sc-storage-monitor 0.1.0 (git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.38)",
- "sc-sysinfo 6.0.0-dev (git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.38)",
+ "sc-sysinfo",
  "sc-telemetry",
  "sc-tracing",
  "sc-transaction-pool",
@@ -10978,25 +10937,6 @@ dependencies = [
 name = "sc-sysinfo"
 version = "6.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.38#18bb7c7c841b101c19a8d1881b893ae8e37de460"
-dependencies = [
- "futures",
- "libc",
- "log",
- "rand 0.8.5",
- "rand_pcg",
- "regex",
- "sc-telemetry",
- "serde",
- "serde_json",
- "sp-core",
- "sp-io",
- "sp-std",
-]
-
-[[package]]
-name = "sc-sysinfo"
-version = "6.0.0-dev"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.38#18bb7c7c841b101c19a8d1881b893ae8e37de460"
 dependencies = [
  "futures",
  "libc",
@@ -12628,7 +12568,7 @@ dependencies = [
  "cfg-if",
  "fastrand",
  "redox_syscall 0.3.5",
- "rustix 0.37.12",
+ "rustix 0.37.13",
  "windows-sys 0.45.0",
 ]
 
@@ -12649,18 +12589,18 @@ checksum = "3369f5ac52d5eb6ab48c6b4ffdc8efbcad6b89c765749064ba298f2c68a16a76"
 
 [[package]]
 name = "test-case"
-version = "2.2.2"
+version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21d6cf5a7dffb3f9dceec8e6b8ca528d9bd71d36c9f074defb548ce161f598c0"
+checksum = "2a1d6e7bde536b0412f20765b76e921028059adfd1b90d8974d33fd3c91b25df"
 dependencies = [
  "test-case-macros",
 ]
 
 [[package]]
-name = "test-case-macros"
-version = "2.2.2"
+name = "test-case-core"
+version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e45b7bf6e19353ddd832745c8fcf77a17a93171df7151187f26623f2b75b5b26"
+checksum = "d10394d5d1e27794f772b6fc854c7e91a2dc26e2cbf807ad523370c2a59c0cee"
 dependencies = [
  "cfg-if",
  "proc-macro-error",
@@ -12670,9 +12610,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "test-case-macros"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eeb9a44b1c6a54c1ba58b152797739dba2a83ca74e18168a68c980eb142f9404"
+dependencies = [
+ "proc-macro-error",
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+ "test-case-core",
+]
+
+[[package]]
 name = "test-utils"
 version = "1.1.1"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=2eeb98d3d9755dc714cf474bb445a5fdac865352#2eeb98d3d9755dc714cf474bb445a5fdac865352"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=952c55ea9417f09f02c30625b5468757df4aca9a#952c55ea9417f09f02c30625b5468757df4aca9a"
 dependencies = [
  "frame-system",
  "pretty_assertions",
@@ -12699,7 +12652,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "hex-literal",
+ "hex-literal 0.4.1",
  "hydradx-adapters",
  "hydradx-traits",
  "orml-tokens",
@@ -14168,7 +14121,7 @@ dependencies = [
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
  "frame-try-runtime",
- "hex-literal",
+ "hex-literal 0.3.4",
  "log",
  "pallet-authority-discovery",
  "pallet-authorship",

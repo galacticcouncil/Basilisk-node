@@ -63,7 +63,7 @@ pub const SAMPLE_AMM_TRANSFER: AMMTransfer<AccountId, AssetId, AssetPair, Balanc
 		asset_out: BSX,
 	},
 	amount: 1000,
-	amount_out: 10000,
+	amount_b: 10000,
 	discount: false,
 	discount_amount: 0_u128,
 	fee: (KUSD, 200),
