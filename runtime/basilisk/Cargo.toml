@@ -38,18 +38,18 @@ pallet-tips = { git = "https://github.com/paritytech/substrate", branch = "polka
 pallet-identity = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
 
 # Warehouse dependencies
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false}
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-pallet-ema-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-pallet-duster = { git = "https://github.com/galacticcouncil/warehouse", rev = "3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/warehouse", rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false}
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/warehouse", rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+hydradx-adapters = { git = "https://github.com/galacticcouncil/warehouse",rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+pallet-currencies = { git = "https://github.com/galacticcouncil/warehouse", rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse", rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+pallet-ema-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+pallet-duster = { git = "https://github.com/galacticcouncil/warehouse", rev = "474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.37", default-features = false }
@@ -121,6 +121,9 @@ sp-version = { git = "https://github.com/paritytech/substrate", branch = "polkad
 sp-staking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
 sp-trie = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
 sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }
+
+# InvArch Tinkernet Multisig dependencies
+invarch-xcm-builder = { git = "https://github.com/InvArch/InvArch-XCM-Builder", branch = "polkadot-v0.9.29", default-features = false }
 
 [features]
 default = ["std"]

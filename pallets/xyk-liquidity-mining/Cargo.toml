@@ -24,9 +24,9 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 primitives = { path = "../../primitives", default-features = false }
 
 # Warehouse dependencies
-pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="3f3de45ffaceba188c7052d28284414f72bc2218", default-features = false }
+pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="474064eba4671e31f94d4334f62eb4789be13587", default-features = false }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.37", default-features = false }

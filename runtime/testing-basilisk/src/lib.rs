@@ -620,10 +620,10 @@ impl pallet_democracy::Config for Runtime {
 	type MaxVotes = MaxVotes;
 	type WeightInfo = weights::democracy::BasiliskWeight<Runtime>;
 	type MaxProposals = MaxProposals;
-	type VoteLockingPeriod = EnactmentPeriod;
 	type Preimages = Preimage;
 	type MaxDeposits = ConstU32<100>;
 	type MaxBlacklisted = ConstU32<100>;
+	type VoteLockingPeriod = VoteLockingPeriod;
 }
 
 impl pallet_elections_phragmen::Config for Runtime {
@@ -893,6 +893,7 @@ impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime 
 	type AssetRegistry = AssetRegistry;
 	type NonDustableWhitelistHandler = Duster;
 	type RuntimeEvent = RuntimeEvent;
+	type PriceAdjustment = warehouse_liquidity_mining::DefaultPriceAdjustment;
 }
 
 impl pallet_transaction_pause::Config for Runtime {
@@ -941,7 +942,7 @@ construct_runtime!(
 		Authorship: pallet_authorship exclude_parts { Inherent } = 14,
 		CollatorSelection: pallet_collator_selection = 15,
 		Session: pallet_session = 16, // Session must be after collator and before aura
-		Aura: pallet_aura exclude_parts { Storage } = 17,
+		Aura: pallet_aura = 17,
 		AuraExt: cumulus_pallet_aura_ext exclude_parts { Storage } = 18,
 		Preimage: pallet_preimage = 19,
 		Uniques: pallet_uniques = 20,

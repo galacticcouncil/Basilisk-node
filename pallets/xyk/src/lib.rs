@@ -822,7 +822,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			origin: who.clone(),
 			assets,
 			amount,
-			amount_out: amount_out_without_fee,
+			amount_b: amount_out_without_fee,
 			discount,
 			discount_amount: discount_fee,
 			fee: (assets.asset_out, transfer_fee),
@@ -853,7 +853,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.assets.asset_out,
 			&pair_account,
 			&transfer.origin,
-			transfer.amount_out,
+			transfer.amount_b,
 		)?;
 
 		let liquidity_in = T::Currency::total_balance(transfer.assets.asset_in, &pair_account);
@@ -863,7 +863,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.assets.asset_in,
 			transfer.assets.asset_out,
 			transfer.amount,
-			transfer.amount_out,
+			transfer.amount_b,
 			liquidity_in,
 			liquidity_out,
 		)
@@ -874,7 +874,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			asset_in: transfer.assets.asset_in,
 			asset_out: transfer.assets.asset_out,
 			amount: transfer.amount,
-			sale_price: transfer.amount_out,
+			sale_price: transfer.amount_b,
 			fee_asset: transfer.fee.0,
 			fee_amount: transfer.fee.1,
 			pool: pair_account,
@@ -983,7 +983,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			origin: who.clone(),
 			assets,
 			amount,
-			amount_out: buy_price,
+			amount_b: buy_price,
 			discount,
 			discount_amount: discount_fee,
 			fee: (assets.asset_in, transfer_fee),
@@ -1014,7 +1014,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.assets.asset_in,
 			&transfer.origin,
 			&pair_account,
-			transfer.amount_out + transfer.fee.1,
+			transfer.amount_b + transfer.fee.1,
 		)?;
 
 		let liquidity_in = T::Currency::total_balance(transfer.assets.asset_in, &pair_account);
@@ -1024,7 +1024,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.assets.asset_in,
 			transfer.assets.asset_out,
 			transfer.amount,
-			transfer.amount_out,
+			transfer.amount_b,
 			liquidity_in,
 			liquidity_out,
 		)
@@ -1035,7 +1035,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			asset_out: transfer.assets.asset_out,
 			asset_in: transfer.assets.asset_in,
 			amount: transfer.amount,
-			buy_price: transfer.amount_out,
+			buy_price: transfer.amount_b,
 			fee_asset: transfer.fee.0,
 			fee_amount: transfer.fee.1,
 			pool: pair_account,
