@@ -190,7 +190,9 @@ parameter_types! {
 	pub const VotingPeriod: BlockNumber = 3 * DAYS;
 	pub const FastTrackVotingPeriod: BlockNumber = 3 * HOURS;
 	pub const MinimumDeposit: Balance = 1000 * DOLLARS;
-	pub const EnactmentPeriod: BlockNumber = 6 * DAYS;
+	pub const EnactmentPeriod: BlockNumber = 12 * HOURS;
+	// Make sure VoteLockingPeriod > EnactmentPeriod
+	pub const VoteLockingPeriod: BlockNumber = 6 * DAYS;
 	pub const CooloffPeriod: BlockNumber = 7 * DAYS;
 	// $10,000 / MB
 	pub const PreimageByteDeposit: Balance = 10 * MILLICENTS;

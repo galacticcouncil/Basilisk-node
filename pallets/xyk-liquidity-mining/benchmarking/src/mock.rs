@@ -149,6 +149,7 @@ impl pallet_liquidity_mining::Config<Instance1> for Test {
 	type AssetRegistry = AssetRegistry;
 	type NonDustableWhitelistHandler = Duster;
 	type RuntimeEvent = RuntimeEvent;
+	type PriceAdjustment = pallet_liquidity_mining::DefaultPriceAdjustment;
 }
 
 parameter_types! {

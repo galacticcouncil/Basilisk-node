@@ -1653,12 +1653,12 @@ fn execute_trade_should_work() {
 		let pool_id = KUSD_BSX_POOL_ID;
 
 		let amount_in = 5_000_000_u128;
-		let amount_out = 10_000_000_u128;
+		let amount_b = 10_000_000_u128;
 		let t_sell = AMMTransfer {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_b: amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -1686,7 +1686,7 @@ fn execute_trade_should_work() {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_b: amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -1736,12 +1736,12 @@ fn execute_trade_should_not_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		let amount_in = 5_000_000_u128;
-		let amount_out = 10_000_000_000_000_000u128;
+		let amount_b = 10_000_000_000_000_000u128;
 		let t = AMMTransfer {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_b: amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -1773,12 +1773,12 @@ fn execute_sell_should_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		let amount_in = 8_000_000_u128;
-		let amount_out = 20_000_000_u128;
+		let amount_b = 20_000_000_u128;
 		let t = AMMTransfer {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_b: amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -1798,7 +1798,7 @@ fn execute_sell_should_work() {
 			asset_in,
 			asset_out,
 			amount: amount_in,
-			sale_price: amount_out,
+			sale_price: amount_b,
 			fee_asset: asset_in,
 			fee_amount: 1_000,
 		}
@@ -1904,12 +1904,12 @@ fn execute_buy_should_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		let amount_in = 8_000_000_u128;
-		let amount_out = 20_000_000_u128;
+		let amount_b = 20_000_000_u128;
 		let t = AMMTransfer {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_b: amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -1955,12 +1955,12 @@ fn execute_buy_should_not_work() {
 		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		let amount_in = 8_000_000_000_u128;
-		let amount_out = 200_000_000_000_000_u128;
+		let amount_b = 200_000_000_000_000_u128;
 		let t = AMMTransfer {
 			origin: ALICE,
 			assets: AssetPair { asset_in, asset_out },
 			amount: amount_in,
-			amount_b: amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_in, 1_000),
@@ -2731,13 +2731,13 @@ fn amm_trait_should_work() {
 			t_sell
 		);
 
-		let amount_out = 1_000_000;
+		let amount_b = 1_000_000;
 		let buy_limit = 10_000_000;
 		let t_buy = AMMTransfer {
 			origin: who,
 			assets: asset_pair,
 			amount: 1_771_201,
-			amount_b: amount_out,
+			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_pair.asset_in, 3_548),
