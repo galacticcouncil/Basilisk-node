@@ -151,7 +151,7 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 
 	<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&pallet_xcm::GenesisConfig {
-			safe_xcm_version: Some(2),
+			safe_xcm_version: Some(3),
 		},
 		&mut t,
 	)
@@ -229,7 +229,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&pallet_xcm::GenesisConfig {
-			safe_xcm_version: Some(2),
+			safe_xcm_version: Some(3),
 		},
 		&mut t,
 	)
@@ -298,7 +298,7 @@ pub fn other_parachain_ext() -> sp_io::TestExternalities {
 
 	<pallet_xcm::GenesisConfig as GenesisBuild<ParachainRuntime>>::assimilate_storage(
 		&pallet_xcm::GenesisConfig {
-			safe_xcm_version: Some(2),
+			safe_xcm_version: Some(3),
 		},
 		&mut t,
 	)

@@ -502,10 +502,7 @@ fn trap_asset() -> MultiAsset {
 					1,
 					X2(
 						Junction::Parachain(BASILISK_PARA_ID),
-						Junction::AccountId32 {
-							id: BOB,
-							network: None,
-						}
+						Junction::AccountId32 { id: BOB, network: None }
 					)
 				)
 				.into()
@@ -524,7 +521,7 @@ fn trap_asset() -> MultiAsset {
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
 			cumulus_pallet_xcmp_queue::Event::Fail {
-				message_hash: Some(hex!["4efbf4d7ba73f43d5bb4ebbec3189e132ccf2686aed37e97985af019e1cf62dc"]),
+				message_hash: Some(hex!["30291d1dfb68ae6f66d4c841facb78f44e7611ab2a25c84f4fb7347f448d2944"]),
 				error: XcmError::AssetNotFound,
 				weight: Weight::from_ref_time(300_000_000),
 			}
