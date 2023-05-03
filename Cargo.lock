@@ -526,7 +526,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "9.0.0"
+version = "10.0.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -9030,7 +9030,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.4.5"
+version = "6.4.6"
 dependencies = [
  "frame-support",
  "frame-system",
