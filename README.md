@@ -96,3 +96,17 @@ or against the Basilisk testnet on Rococo
 ```
 cargo run --release --features=try-runtime try-runtime on-runtime-upgrade live --uri wss://rococo-basilisk-rpc.hydration.dev:443
 ```
+
+### Chopsticks simulations
+`Chopsticks` can be used to dry-run any transaction in parallel reality of any Substrate network.
+
+Setting up the repo:
+```bash
+git clone --recurse-submodules https://github.com/AcalaNetwork/chopsticks.git && cd chopsticks
+yarn
+yarn build-wasm
+```
+To run Kusama-Basilisk-Karura setup use configs from `launch-configs/chopsticks` and run
+```bash
+npx @acala-network/chopsticks@0.3.11 xcm --relaychain=configs/kusama.yml --parachain=configs/basilisk.yml --parachain=configs/karura.yml
+```
