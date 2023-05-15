@@ -189,7 +189,7 @@ impl Config for XcmConfig {
 			Price,
 			CurrencyIdConvert,
 			DepositAll<ParachainRuntime>,
-			MultiTransactionPayment,
+			ParachainTreasuryAccount,
 		>,
 	>;
 	type ResponseHandler = PolkadotXcm;
@@ -419,7 +419,7 @@ pub type SlowAdjustingFeeUpdate<R> =
 
 impl pallet_transaction_payment::Config for ParachainRuntime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = TransferFees<Currencies, MultiTransactionPayment, DepositAll<ParachainRuntime>>;
+	type OnChargeTransaction = TransferFees<Currencies, DepositAll<ParachainRuntime>, ParachainTreasuryAccount>;
 	type OperationalFeeMultiplier = ();
 	type WeightToFee = WeightToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
@@ -446,10 +446,8 @@ impl pallet_transaction_multi_payment::Config for ParachainRuntime {
 	type Currencies = Currencies;
 	type SpotPriceProvider = ParachainSpotPriceProviderStub;
 	type WeightInfo = ();
-	type WithdrawFeeForSetCurrency = MultiPaymentCurrencySetFee;
 	type WeightToFee = WeightToFee;
 	type NativeAssetId = ParachainNativeCurrencyId;
-	type FeeReceiver = ParachainTreasuryAccount;
 }
 
 construct_runtime!(

@@ -23,8 +23,7 @@ pub mod weights;
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
-	dispatch::Pays, parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_REF_TIME_PER_MICROS, PalletId,
-	RuntimeDebug,
+	parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_REF_TIME_PER_MICROS, PalletId, RuntimeDebug,
 };
 pub use pallet_transaction_payment::Multiplier;
 use polkadot_xcm::prelude::Here;
@@ -135,7 +134,6 @@ parameter_types! {
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
 	pub MaximumMultiplier: Multiplier = Bounded::max_value();
-	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
 }
 
 // pallet proxy

@@ -4,6 +4,8 @@ use crate::kusama_test_net::*;
 
 use frame_support::{
 	assert_ok,
+	dispatch::{DispatchInfo, Weight},
+	sp_runtime::traits::SignedExtension,
 	traits::{OnFinalize, OnInitialize},
 };
 
@@ -34,23 +36,33 @@ pub fn basilisk_run_to_block(to: BlockNumber) {
 
 #[test]
 fn non_native_fee_payment_works_with_xyk_spot_price() {
-	use pallet_transaction_multi_payment::TransactionMultiPaymentDataProvider;
-
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
 		let currency_0 = 0;
 		let currency_1 = 1;
 
-		// ------------ BOB ------------
-		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
-			basilisk_runtime::RuntimeOrigin::signed(BOB.into()),
-			currency_1,
-		));
+		let call = basilisk_runtime::RuntimeCall::MultiTransactionPayment(
+			pallet_transaction_multi_payment::Call::set_currency { currency: currency_1 },
+		);
+
+		let info = DispatchInfo {
+			weight: Weight::from_ref_time(106_957_000),
+			..Default::default()
+		};
+		let len: usize = 10;
+
+		assert_ok!(
+			pallet_transaction_payment::ChargeTransactionPayment::<basilisk_runtime::Runtime>::from(0).pre_dispatch(
+				&AccountId::from(BOB),
+				&call,
+				&info,
+				len,
+			)
+		);
 
 		let bob_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB));
-
-		assert_eq!(bob_balance, 999_999_979_279_336);
+		assert_eq!(bob_balance, 999_999_992_137_669);
 
 		let pair_account = basilisk_runtime::XYK::get_pair_id(AssetPair {
 			asset_in: currency_0,
@@ -102,31 +114,21 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 		);
 
 		// ------------ DAVE ------------
-		assert_ok!(basilisk_runtime::MultiTransactionPayment::set_currency(
-			basilisk_runtime::RuntimeOrigin::signed(DAVE.into()),
-			currency_1,
-		));
+		let call = basilisk_runtime::RuntimeCall::MultiTransactionPayment(
+			pallet_transaction_multi_payment::Call::set_currency { currency: currency_1 },
+		);
+
+		assert_ok!(
+			pallet_transaction_payment::ChargeTransactionPayment::<basilisk_runtime::Runtime>::from(0).pre_dispatch(
+				&AccountId::from(DAVE),
+				&call,
+				&info,
+				len,
+			)
+		);
 
 		let dave_balance = basilisk_runtime::Tokens::free_balance(1, &AccountId::from(DAVE));
-		assert_eq!(dave_balance, 974_342_185_521_892);
-
-		expect_basilisk_events(vec![
-			pallet_transaction_multi_payment::Event::FeeWithdrawn {
-				account_id: DAVE.into(),
-				asset_id: 1,
-				native_fee_amount: 44_756_635_000_000,
-				non_native_fee_amount: 25_657_814_478_108,
-				destination_account_id: basilisk_runtime::MultiTransactionPayment::get_fee_receiver(),
-			}
-			.into(),
-			pallet_transaction_multi_payment::Event::CurrencySet {
-				account_id: DAVE.into(),
-				asset_id: 1,
-			}
-			.into(),
-		]);
-
-		basilisk_run_to_block(11);
+		assert_eq!(dave_balance, 970_376_058_464_304);
 	});
 }
 

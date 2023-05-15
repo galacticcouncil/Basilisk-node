@@ -276,7 +276,7 @@ fn transfer_from_other_parachain_and_back() {
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			30_905_849 // fees should go to treasury
+			10_185_185 // fees should go to treasury
 		);
 	});
 
