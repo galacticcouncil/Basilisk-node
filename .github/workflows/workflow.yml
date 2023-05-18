@@ -218,9 +218,6 @@ jobs:
   test-inclusion:
     needs: [build]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        chain: [ main ]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -249,7 +246,7 @@ jobs:
         with:
           node-version: '14'
           check-latest: true
-      - run: npm install && npm run ${{ matrix.chain }}
+      - run: npm install && npm start
         name: Launch rococo local & wait for inclusion
         working-directory: scripts/wait-for-inclusion
 
