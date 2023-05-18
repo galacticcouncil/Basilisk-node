@@ -6,7 +6,6 @@ members = [
   'node',
   'runtime/common',
   'runtime/basilisk',
-  'runtime/testing-basilisk',
   'pallets/marketplace',
   'pallets/duster',
   'pallets/xyk',
