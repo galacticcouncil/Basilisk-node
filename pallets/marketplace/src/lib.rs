@@ -99,7 +99,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_nft::Config {
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		type Currency: ReservableCurrency<Self::AccountId>;
 		type WeightInfo: WeightInfo;
 		#[pallet::constant]
@@ -117,6 +117,7 @@ pub mod pallet {
 		/// Parameters:
 		/// - `collection_id`: The identifier of a non-fungible token collection
 		/// - `item_id`: The item identifier of a collection
+		#[pallet::call_index(0)]
 		#[pallet::weight(<T as Config>::WeightInfo::buy())]
 		pub fn buy(origin: OriginFor<T>, collection_id: T::NftCollectionId, item_id: T::NftItemId) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
@@ -131,6 +132,7 @@ pub mod pallet {
 		/// - `collection_id`: The identifier of a non-fungible token collection
 		/// - `item_id`: The item identifier of a collection
 		/// - `new_price`: price the token will be listed for
+		#[pallet::call_index(1)]
 		#[pallet::weight(<T as Config>::WeightInfo::set_price())]
 		pub fn set_price(
 			origin: OriginFor<T>,
@@ -166,6 +168,7 @@ pub mod pallet {
 		/// - `item_id`: The item identifier of a collection
 		/// - `amount`: The amount user is willing to pay
 		/// - `expires`: The block until the current owner can accept the offer
+		#[pallet::call_index(2)]
 		#[pallet::weight(<T as Config>::WeightInfo::make_offer())]
 		pub fn make_offer(
 			origin: OriginFor<T>,
@@ -215,6 +218,7 @@ pub mod pallet {
 		/// - `collection_id`: The identifier of a non-fungible token collection
 		/// - `item_id`: The item identifier of a collection
 		/// - `maker`: User who made the offer
+		#[pallet::call_index(3)]
 		#[pallet::weight(<T as Config>::WeightInfo::withdraw_offer())]
 		pub fn withdraw_offer(
 			origin: OriginFor<T>,
@@ -255,6 +259,7 @@ pub mod pallet {
 		/// - `collection_id`: The identifier of a non-fungible token collection
 		/// - `item_id`: The item identifier of a collection
 		/// - `maker`: User who made the offer
+		#[pallet::call_index(4)]
 		#[pallet::weight(<T as Config>::WeightInfo::accept_offer())]
 		pub fn accept_offer(
 			origin: OriginFor<T>,
@@ -299,6 +304,7 @@ pub mod pallet {
 		/// - `item_id`: The item value of the asset to be minted.
 		/// - `author`: Receiver of the royalty
 		/// - `royalty`: Percentage reward from each trade for the author, represented in basis points
+		#[pallet::call_index(5)]
 		#[pallet::weight(<T as Config>::WeightInfo::add_royalty())]
 		pub fn add_royalty(
 			origin: OriginFor<T>,
@@ -439,7 +445,7 @@ impl<T: Config> Pallet<T> {
 			pallet_nft::Pallet::<T>::owner(&collection_id, &item_id).ok_or(Error::<T>::CollectionOrItemUnknown)?;
 		ensure!(buyer != owner, Error::<T>::BuyFromSelf);
 
-		let owner_origin = T::Origin::from(RawOrigin::Signed(owner.clone()));
+		let owner_origin = T::RuntimeOrigin::from(RawOrigin::Signed(owner.clone()));
 
 		let token_id = (collection_id, item_id);
 

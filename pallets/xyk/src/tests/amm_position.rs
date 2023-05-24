@@ -14,7 +14,7 @@ fn get_liquidity_behind_shares_should_return_both_assets_value_when_pool_exists(
 		.execute_with(|| {
 			//arange
 			assert_ok!(XYK::create_pool(
-				Origin::signed(ALICE),
+				RuntimeOrigin::signed(ALICE),
 				asset_a,
 				100 * ONE,
 				asset_b,

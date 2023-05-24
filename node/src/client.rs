@@ -9,7 +9,7 @@ use sp_api::{CallApiAt, NumberFor, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
 use sp_consensus::BlockStatus;
 use sp_runtime::{
-	generic::{BlockId, SignedBlock},
+	generic::SignedBlock,
 	traits::{BlakeTwo256, Block as BlockT},
 	Justifications,
 };
@@ -146,31 +146,34 @@ impl sc_client_api::UsageProvider<Block> for Client {
 }
 
 impl sc_client_api::BlockBackend<Block> for Client {
-	fn block_body(&self, id: &BlockId<Block>) -> sp_blockchain::Result<Option<Vec<<Block as BlockT>::Extrinsic>>> {
+	fn block_body(
+		&self,
+		hash: <Block as BlockT>::Hash,
+	) -> sp_blockchain::Result<Option<Vec<<Block as BlockT>::Extrinsic>>> {
 		match self {
-			Self::Basilisk(client) => client.block_body(id),
-			Self::TestingBasilisk(client) => client.block_body(id),
+			Self::Basilisk(client) => client.block_body(hash),
+			Self::TestingBasilisk(client) => client.block_body(hash),
 		}
 	}
 
-	fn block(&self, id: &BlockId<Block>) -> sp_blockchain::Result<Option<SignedBlock<Block>>> {
+	fn block(&self, hash: <Block as BlockT>::Hash) -> sp_blockchain::Result<Option<SignedBlock<Block>>> {
 		match self {
-			Self::Basilisk(client) => client.block(id),
-			Self::TestingBasilisk(client) => client.block(id),
+			Self::Basilisk(client) => client.block(hash),
+			Self::TestingBasilisk(client) => client.block(hash),
 		}
 	}
 
-	fn block_status(&self, id: &BlockId<Block>) -> sp_blockchain::Result<BlockStatus> {
+	fn block_status(&self, hash: <Block as BlockT>::Hash) -> sp_blockchain::Result<BlockStatus> {
 		match self {
-			Self::Basilisk(client) => client.block_status(id),
-			Self::TestingBasilisk(client) => client.block_status(id),
+			Self::Basilisk(client) => client.block_status(hash),
+			Self::TestingBasilisk(client) => client.block_status(hash),
 		}
 	}
 
-	fn justifications(&self, id: &BlockId<Block>) -> sp_blockchain::Result<Option<Justifications>> {
+	fn justifications(&self, hash: <Block as BlockT>::Hash) -> sp_blockchain::Result<Option<Justifications>> {
 		match self {
-			Self::Basilisk(client) => client.justifications(id),
-			Self::TestingBasilisk(client) => client.justifications(id),
+			Self::Basilisk(client) => client.justifications(hash),
+			Self::TestingBasilisk(client) => client.justifications(hash),
 		}
 	}
 
@@ -181,17 +184,17 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		}
 	}
 
-	fn indexed_transaction(&self, id: &<Block as BlockT>::Hash) -> sp_blockchain::Result<Option<Vec<u8>>> {
+	fn indexed_transaction(&self, hash: <Block as BlockT>::Hash) -> sp_blockchain::Result<Option<Vec<u8>>> {
 		match self {
-			Self::Basilisk(client) => client.indexed_transaction(id),
-			Self::TestingBasilisk(client) => client.indexed_transaction(id),
+			Self::Basilisk(client) => client.indexed_transaction(hash),
+			Self::TestingBasilisk(client) => client.indexed_transaction(hash),
 		}
 	}
 
-	fn block_indexed_body(&self, id: &BlockId<Block>) -> sp_blockchain::Result<Option<Vec<Vec<u8>>>> {
+	fn block_indexed_body(&self, hash: <Block as BlockT>::Hash) -> sp_blockchain::Result<Option<Vec<Vec<u8>>>> {
 		match self {
-			Self::Basilisk(client) => client.block_indexed_body(id),
-			Self::TestingBasilisk(client) => client.block_indexed_body(id),
+			Self::Basilisk(client) => client.block_indexed_body(hash),
+			Self::TestingBasilisk(client) => client.block_indexed_body(hash),
 		}
 	}
 
@@ -204,109 +207,113 @@ impl sc_client_api::BlockBackend<Block> for Client {
 }
 
 impl sc_client_api::StorageProvider<Block, FullBackend> for Client {
-	fn storage(&self, id: &BlockId<Block>, key: &StorageKey) -> sp_blockchain::Result<Option<StorageData>> {
+	fn storage(&self, hash: <Block as BlockT>::Hash, key: &StorageKey) -> sp_blockchain::Result<Option<StorageData>> {
 		match self {
-			Self::Basilisk(client) => client.storage(id, key),
-			Self::TestingBasilisk(client) => client.storage(id, key),
+			Self::Basilisk(client) => client.storage(hash, key),
+			Self::TestingBasilisk(client) => client.storage(hash, key),
 		}
 	}
 
-	fn storage_keys(&self, id: &BlockId<Block>, key_prefix: &StorageKey) -> sp_blockchain::Result<Vec<StorageKey>> {
+	fn storage_keys(
+		&self,
+		hash: <Block as BlockT>::Hash,
+		key_prefix: &StorageKey,
+	) -> sp_blockchain::Result<Vec<StorageKey>> {
 		match self {
-			Self::Basilisk(client) => client.storage_keys(id, key_prefix),
-			Self::TestingBasilisk(client) => client.storage_keys(id, key_prefix),
+			Self::Basilisk(client) => client.storage_keys(hash, key_prefix),
+			Self::TestingBasilisk(client) => client.storage_keys(hash, key_prefix),
 		}
 	}
 
 	fn storage_hash(
 		&self,
-		id: &BlockId<Block>,
+		hash: <Block as BlockT>::Hash,
 		key: &StorageKey,
 	) -> sp_blockchain::Result<Option<<Block as BlockT>::Hash>> {
 		match self {
-			Self::Basilisk(client) => client.storage_hash(id, key),
-			Self::TestingBasilisk(client) => client.storage_hash(id, key),
+			Self::Basilisk(client) => client.storage_hash(hash, key),
+			Self::TestingBasilisk(client) => client.storage_hash(hash, key),
 		}
 	}
 
 	fn storage_pairs(
 		&self,
-		id: &BlockId<Block>,
+		hash: <Block as BlockT>::Hash,
 		key_prefix: &StorageKey,
 	) -> sp_blockchain::Result<Vec<(StorageKey, StorageData)>> {
 		match self {
-			Self::Basilisk(client) => client.storage_pairs(id, key_prefix),
-			Self::TestingBasilisk(client) => client.storage_pairs(id, key_prefix),
+			Self::Basilisk(client) => client.storage_pairs(hash, key_prefix),
+			Self::TestingBasilisk(client) => client.storage_pairs(hash, key_prefix),
 		}
 	}
 
 	fn storage_keys_iter<'a>(
 		&self,
-		id: &BlockId<Block>,
+		hash: <Block as BlockT>::Hash,
 		prefix: Option<&'a StorageKey>,
 		start_key: Option<&StorageKey>,
-	) -> sp_blockchain::Result<KeyIterator<'a, <FullBackend as sc_client_api::Backend<Block>>::State, Block>> {
+	) -> sp_blockchain::Result<KeyIterator<<FullBackend as sc_client_api::Backend<Block>>::State, Block>> {
 		match self {
-			Self::Basilisk(client) => client.storage_keys_iter(id, prefix, start_key),
-			Self::TestingBasilisk(client) => client.storage_keys_iter(id, prefix, start_key),
+			Self::Basilisk(client) => client.storage_keys_iter(hash, prefix, start_key),
+			Self::TestingBasilisk(client) => client.storage_keys_iter(hash, prefix, start_key),
 		}
 	}
 
 	fn child_storage(
 		&self,
-		id: &BlockId<Block>,
+		hash: <Block as BlockT>::Hash,
 		child_info: &ChildInfo,
 		key: &StorageKey,
 	) -> sp_blockchain::Result<Option<StorageData>> {
 		match self {
-			Self::Basilisk(client) => client.child_storage(id, child_info, key),
-			Self::TestingBasilisk(client) => client.child_storage(id, child_info, key),
+			Self::Basilisk(client) => client.child_storage(hash, child_info, key),
+			Self::TestingBasilisk(client) => client.child_storage(hash, child_info, key),
 		}
 	}
 
 	fn child_storage_keys(
 		&self,
-		id: &BlockId<Block>,
+		hash: <Block as BlockT>::Hash,
 		child_info: &ChildInfo,
 		key_prefix: &StorageKey,
 	) -> sp_blockchain::Result<Vec<StorageKey>> {
 		match self {
-			Self::Basilisk(client) => client.child_storage_keys(id, child_info, key_prefix),
-			Self::TestingBasilisk(client) => client.child_storage_keys(id, child_info, key_prefix),
+			Self::Basilisk(client) => client.child_storage_keys(hash, child_info, key_prefix),
+			Self::TestingBasilisk(client) => client.child_storage_keys(hash, child_info, key_prefix),
 		}
 	}
 
 	fn child_storage_keys_iter<'a>(
 		&self,
-		id: &BlockId<Block>,
+		hash: <Block as BlockT>::Hash,
 		child_info: ChildInfo,
 		prefix: Option<&'a StorageKey>,
 		start_key: Option<&StorageKey>,
-	) -> sp_blockchain::Result<KeyIterator<'a, <FullBackend as sc_client_api::Backend<Block>>::State, Block>> {
+	) -> sp_blockchain::Result<KeyIterator<<FullBackend as sc_client_api::Backend<Block>>::State, Block>> {
 		match self {
-			Self::Basilisk(client) => client.child_storage_keys_iter(id, child_info, prefix, start_key),
-			Self::TestingBasilisk(client) => client.child_storage_keys_iter(id, child_info, prefix, start_key),
+			Self::Basilisk(client) => client.child_storage_keys_iter(hash, child_info, prefix, start_key),
+			Self::TestingBasilisk(client) => client.child_storage_keys_iter(hash, child_info, prefix, start_key),
 		}
 	}
 
 	fn child_storage_hash(
 		&self,
-		id: &BlockId<Block>,
+		hash: <Block as BlockT>::Hash,
 		child_info: &ChildInfo,
 		key: &StorageKey,
 	) -> sp_blockchain::Result<Option<<Block as BlockT>::Hash>> {
 		match self {
-			Self::Basilisk(client) => client.child_storage_hash(id, child_info, key),
-			Self::TestingBasilisk(client) => client.child_storage_hash(id, child_info, key),
+			Self::Basilisk(client) => client.child_storage_hash(hash, child_info, key),
+			Self::TestingBasilisk(client) => client.child_storage_hash(hash, child_info, key),
 		}
 	}
 }
 
 impl sp_blockchain::HeaderBackend<Block> for Client {
-	fn header(&self, id: BlockId<Block>) -> sp_blockchain::Result<Option<Header>> {
+	fn header(&self, hash: <Block as BlockT>::Hash) -> sp_blockchain::Result<Option<Header>> {
 		match self {
-			Self::Basilisk(client) => client.header(&id),
-			Self::TestingBasilisk(client) => client.header(&id),
+			Self::Basilisk(client) => client.header(hash),
+			Self::TestingBasilisk(client) => client.header(hash),
 		}
 	}
 
@@ -317,10 +324,10 @@ impl sp_blockchain::HeaderBackend<Block> for Client {
 		}
 	}
 
-	fn status(&self, id: BlockId<Block>) -> sp_blockchain::Result<sp_blockchain::BlockStatus> {
+	fn status(&self, hash: <Block as BlockT>::Hash) -> sp_blockchain::Result<sp_blockchain::BlockStatus> {
 		match self {
-			Self::Basilisk(client) => client.status(id),
-			Self::TestingBasilisk(client) => client.status(id),
+			Self::Basilisk(client) => client.status(hash),
+			Self::TestingBasilisk(client) => client.status(hash),
 		}
 	}
 

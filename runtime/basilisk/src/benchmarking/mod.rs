@@ -18,6 +18,7 @@ use frame_system::RawOrigin;
 
 use common_runtime::AccountId;
 use primitives::{AssetId, Balance};
+use sp_std::vec;
 use sp_std::vec::Vec;
 
 use orml_traits::MultiCurrencyExtended;
