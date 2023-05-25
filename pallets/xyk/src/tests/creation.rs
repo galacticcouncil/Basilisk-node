@@ -15,7 +15,7 @@ fn create_pool_should_work() {
 		let asset_a = HDX;
 		let asset_b = ACA;
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			100_000_000_000_000,
 			asset_b,
@@ -87,21 +87,27 @@ fn create_same_pool_should_not_work() {
 		let asset_a = HDX;
 		let asset_b = ACA;
 
-		assert_ok!(XYK::create_pool(Origin::signed(user), asset_b, 1000, asset_a, 2000,));
+		assert_ok!(XYK::create_pool(
+			RuntimeOrigin::signed(user),
+			asset_b,
+			1000,
+			asset_a,
+			2000,
+		));
 		assert_noop!(
-			XYK::create_pool(Origin::signed(user), asset_b, 999, asset_a, 2 * 999),
+			XYK::create_pool(RuntimeOrigin::signed(user), asset_b, 999, asset_a, 2 * 999),
 			Error::<Test>::InsufficientLiquidity
 		);
 		assert_noop!(
-			XYK::create_pool(Origin::signed(user), asset_b, 1000, asset_a, 0),
+			XYK::create_pool(RuntimeOrigin::signed(user), asset_b, 1000, asset_a, 0),
 			Error::<Test>::InsufficientLiquidity
 		);
 		assert_noop!(
-			XYK::create_pool(Origin::signed(user), asset_a, 1000, asset_a, 2000),
+			XYK::create_pool(RuntimeOrigin::signed(user), asset_a, 1000, asset_a, 2000),
 			Error::<Test>::CannotCreatePoolWithSameAssets
 		);
 		assert_noop!(
-			XYK::create_pool(Origin::signed(user), asset_b, 1000, asset_a, 2000),
+			XYK::create_pool(RuntimeOrigin::signed(user), asset_b, 1000, asset_a, 2000),
 			Error::<Test>::TokenPoolAlreadyExists
 		);
 
@@ -131,7 +137,7 @@ fn create_pool_with_insufficient_balance_should_not_work() {
 
 		assert_noop!(
 			XYK::create_pool(
-				Origin::signed(user),
+				RuntimeOrigin::signed(user),
 				4000,
 				100_000_000_000_000,
 				asset_a,
@@ -142,7 +148,7 @@ fn create_pool_with_insufficient_balance_should_not_work() {
 
 		assert_noop!(
 			XYK::create_pool(
-				Origin::signed(user),
+				RuntimeOrigin::signed(user),
 				asset_a,
 				100_000_000_000_000,
 				4000,
@@ -157,12 +163,12 @@ fn create_pool_with_insufficient_balance_should_not_work() {
 fn create_pool_with_insufficient_liquidity_should_not_work() {
 	new_test_ext().execute_with(|| {
 		assert_noop!(
-			XYK::create_pool(Origin::signed(ALICE), ACA, 500, HDX, 5000),
+			XYK::create_pool(RuntimeOrigin::signed(ALICE), ACA, 500, HDX, 5000),
 			Error::<Test>::InsufficientLiquidity
 		);
 
 		assert_noop!(
-			XYK::create_pool(Origin::signed(ALICE), ACA, 5000, HDX, 500),
+			XYK::create_pool(RuntimeOrigin::signed(ALICE), ACA, 5000, HDX, 500),
 			Error::<Test>::InsufficientLiquidity
 		);
 	});
@@ -175,7 +181,7 @@ fn create_pool_small_fixed_point_amount_should_work() {
 		let asset_b = ACA;
 
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			100_000_000_000_000,
 			asset_b,
@@ -215,7 +221,7 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 		let asset_b = DOT;
 
 		assert_ok!(XYK::create_pool(
-			Origin::signed(user),
+			RuntimeOrigin::signed(user),
 			asset_a,
 			100_000_000,
 			asset_b,
@@ -233,7 +239,7 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 		assert!(XYK::exists(asset_pair));
 
 		assert_ok!(XYK::remove_liquidity(
-			Origin::signed(user),
+			RuntimeOrigin::signed(user),
 			asset_a,
 			asset_b,
 			100_000_000
@@ -246,7 +252,7 @@ fn destroy_pool_on_remove_liquidity_and_recreate_should_work() {
 		// It should be possible to recreate the pool again
 
 		assert_ok!(XYK::create_pool(
-			Origin::signed(user),
+			RuntimeOrigin::signed(user),
 			asset_a,
 			100_000_000,
 			asset_b,
@@ -319,7 +325,7 @@ fn create_pool_with_same_assets_should_not_be_allowed() {
 
 		assert_noop!(
 			XYK::create_pool(
-				Origin::signed(user),
+				RuntimeOrigin::signed(user),
 				asset_a,
 				100_000_000,
 				asset_a,
@@ -337,7 +343,7 @@ fn can_create_pool_should_work() {
 		let asset_b = 10u32;
 		assert_noop!(
 			XYK::create_pool(
-				Origin::signed(ALICE),
+				RuntimeOrigin::signed(ALICE),
 				asset_a,
 				100_000_000_000_000,
 				asset_b,
@@ -367,7 +373,7 @@ fn share_asset_id_should_be_offset() {
 		// Register the share token within the range of reserved IDs.
 		// This is how share tokens were registered before the offset was introduced.
 		assert_ok!(AssetRegistry::register(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_pair.name(),
 			AssetType::PoolShare(HDX, ACA),
 			<Test as crate::Config>::MinPoolLiquidity::get(),
@@ -378,7 +384,7 @@ fn share_asset_id_should_be_offset() {
 
 		// Create_pool doesn't register new share token if it already exists
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			HDX,
 			100_000_000_000_000,
 			ACA,
@@ -396,7 +402,7 @@ fn share_asset_id_should_be_offset() {
 
 		// Create new pool. The share token should be created with offset ID.
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			HDX,
 			100_000_000_000_000,
 			DOT,

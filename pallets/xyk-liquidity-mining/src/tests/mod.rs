@@ -28,13 +28,15 @@ const BOB_FARM: u32 = KSM_FARM;
 
 use pallet_liquidity_mining::LoyaltyCurve;
 
+pub type Origin = RuntimeOrigin;
+
 macro_rules! assert_last_event {
 	( $x:expr ) => {{
 		pretty_assertions::assert_eq!(System::events().last().expect("events expected").event, $x);
 	}};
 }
 
-pub fn has_event(event: mock::Event) -> bool {
+pub fn has_event(event: mock::RuntimeEvent) -> bool {
 	System::events().iter().any(|record| record.event == event)
 }
 

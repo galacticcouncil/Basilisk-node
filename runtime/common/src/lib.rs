@@ -23,20 +23,20 @@ pub mod weights;
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
-	parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_PER_MICROS, weights::Pays, PalletId,
-	RuntimeDebug,
+	parameter_types, traits::LockIdentifier, weights::constants::WEIGHT_REF_TIME_PER_MICROS, PalletId, RuntimeDebug,
 };
 pub use pallet_transaction_payment::Multiplier;
 use polkadot_xcm::prelude::Here;
-use polkadot_xcm::v1::MultiLocation;
+use polkadot_xcm::v3::MultiLocation;
 pub use primitives::constants::{chain::*, currency::*, time::*};
 pub use primitives::{Amount, AssetId, Balance};
 use scale_info::TypeInfo;
 use sp_runtime::{
 	generic,
-	traits::{BlakeTwo256, IdentifyAccount, Verify},
+	traits::{AccountIdConversion, BlakeTwo256, Bounded, IdentifyAccount, Verify},
 	FixedPointNumber, MultiSignature, Perbill, Percent, Permill, Perquintill,
 };
+use sp_std::vec;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -74,19 +74,20 @@ pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
 /// by  Operational  extrinsics.
 pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
-#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+#[derive(Debug, Default, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
 pub struct AssetLocation(pub MultiLocation);
-
-impl Default for AssetLocation {
-	fn default() -> Self {
-		AssetLocation(MultiLocation::here())
-	}
-}
 
 pub const RELAY_CHAIN_ASSET_LOCATION: AssetLocation = AssetLocation(MultiLocation {
 	parents: 1,
 	interior: Here,
 });
+
+pub fn get_all_module_accounts() -> vec::Vec<AccountId> {
+	vec![
+		TreasuryPalletId::get().into_account_truncating(),
+		VestingPalletId::get().into_account_truncating(),
+	]
+}
 
 // frame system
 parameter_types! {
@@ -99,7 +100,7 @@ parameter_types! {
 	/// Basilisk base weight of an extrinsic
 	/// This includes weight for payment in non-native currency.
 	// Default substrate base weight is 125 * WEIGHT_PER_MICROS
-	pub const BasiliskExtrinsicBaseWeight: Weight = Weight::from_ref_time(200 * WEIGHT_PER_MICROS.ref_time());
+	pub const BasiliskExtrinsicBaseWeight: Weight = Weight::from_ref_time(200 * WEIGHT_REF_TIME_PER_MICROS);
 }
 
 // pallet timestamp
@@ -132,7 +133,7 @@ parameter_types! {
 	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
-	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
+	pub MaximumMultiplier: Multiplier = Bounded::max_value();
 }
 
 // pallet proxy

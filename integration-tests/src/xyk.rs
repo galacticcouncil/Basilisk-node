@@ -2,7 +2,7 @@
 
 use crate::kusama_test_net::*;
 
-use basilisk_runtime::{DustRemovalWhitelist, Origin, XYK};
+use basilisk_runtime::{DustRemovalWhitelist, RuntimeOrigin, XYK};
 use hydradx_traits::AMM;
 use primitives::{asset::AssetPair, AssetId};
 use xcm_emulator::TestExt;
@@ -27,7 +27,7 @@ fn pair_account_should_be_added_into_whitelist_when_pool_is_created() {
 	Basilisk::execute_with(|| {
 		//arrange & act
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			asset_a,
 			100 * UNITS,
 			asset_b,
@@ -49,7 +49,7 @@ fn pair_account_should_be_removed_from_whitelist_when_pool_was_destroyed() {
 	Basilisk::execute_with(|| {
 		//arrange
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			asset_a,
 			100 * UNITS,
 			asset_b,
@@ -59,7 +59,7 @@ fn pair_account_should_be_removed_from_whitelist_when_pool_was_destroyed() {
 
 		//act
 		assert_ok!(XYK::remove_liquidity(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			asset_a,
 			asset_b,
 			100 * UNITS
@@ -80,14 +80,14 @@ fn pool_should_be_created_when_it_was_destroyed_previously() {
 	Basilisk::execute_with(|| {
 		//arrange
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			asset_a,
 			100 * UNITS,
 			asset_b,
 			200 * UNITS,
 		));
 		assert_ok!(XYK::remove_liquidity(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			asset_a,
 			asset_b,
 			100 * UNITS
@@ -95,7 +95,7 @@ fn pool_should_be_created_when_it_was_destroyed_previously() {
 
 		//act & assert
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			asset_a,
 			100 * UNITS,
 			asset_b,
@@ -111,7 +111,7 @@ fn share_asset_id_should_be_offset() {
 	Basilisk::execute_with(|| {
 		//arrange
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			KSM,
 			100 * UNITS,
 			AUSD,

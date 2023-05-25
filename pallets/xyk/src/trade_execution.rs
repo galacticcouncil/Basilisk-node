@@ -8,7 +8,7 @@ use primitives::asset::AssetPair;
 use primitives::{AssetId, Balance};
 use sp_runtime::DispatchError;
 
-impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pallet<T> {
+impl<T: Config> TradeExecution<T::RuntimeOrigin, T::AccountId, AssetId, Balance> for Pallet<T> {
 	type Error = DispatchError;
 
 	fn calculate_sell(
@@ -94,7 +94,7 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 	}
 
 	fn execute_sell(
-		who: T::Origin,
+		who: T::RuntimeOrigin,
 		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
@@ -109,7 +109,7 @@ impl<T: Config> TradeExecution<T::Origin, T::AccountId, AssetId, Balance> for Pa
 	}
 
 	fn execute_buy(
-		who: T::Origin,
+		who: T::RuntimeOrigin,
 		pool_type: PoolType<AssetId>,
 		asset_in: AssetId,
 		asset_out: AssetId,
