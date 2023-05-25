@@ -24,7 +24,7 @@ impl<T: crate::Config> SpotPriceProvider<AssetId> for XYKSpotPrice<T> {
 			let asset_a_reserve = T::Currency::free_balance(asset_a, &pair_account);
 			let asset_b_reserve = T::Currency::free_balance(asset_b, &pair_account);
 
-			Price::checked_from_rational(asset_b_reserve, asset_a_reserve)
+			Price::checked_from_rational(asset_a_reserve, asset_b_reserve)
 		} else {
 			None
 		}
