@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "94.0.0"
+version = "95.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -50,6 +50,7 @@ pallet-transaction-pause = { git = "https://github.com/galacticcouncil/warehouse
 pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", rev = "eae2ce4963fb35ad2592a536293eb5609ed33244", default-features = false }
 warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev = "eae2ce4963fb35ad2592a536293eb5609ed33244", default-features = false }
 pallet-ema-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "eae2ce4963fb35ad2592a536293eb5609ed33244", default-features = false }
+pallet-collator-rewards = { git = "https://github.com/galacticcouncil/warehouse",rev = "eae2ce4963fb35ad2592a536293eb5609ed33244", default-features = false}
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.29", default-features = false }
@@ -282,5 +283,6 @@ try-runtime= [
     "pallet-route-executor/try-runtime",
     "pallet-xyk-liquidity-mining/try-runtime",
     "warehouse-liquidity-mining/try-runtime",
-    "pallet-ema-oracle/try-runtime"
+    "pallet-ema-oracle/try-runtime",
+    "pallet-collator-rewards/try-runtime",
 ]

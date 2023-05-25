@@ -495,7 +495,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "94.0.0"
+version = "95.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -530,6 +530,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-rewards",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",
@@ -5738,6 +5739,25 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-collator-rewards"
+version = "1.0.3"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=eae2ce4963fb35ad2592a536293eb5609ed33244#eae2ce4963fb35ad2592a536293eb5609ed33244"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "orml-traits",
+ "pallet-session",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
+ "substrate-wasm-builder",
 ]
 
 [[package]]
@@ -11742,7 +11762,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "94.0.0"
+version = "95.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -11775,6 +11795,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-rewards",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",
