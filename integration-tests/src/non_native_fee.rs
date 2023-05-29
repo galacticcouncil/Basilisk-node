@@ -13,7 +13,7 @@ use frame_support::{
 	},
 	traits::{OnFinalize, OnInitialize},
 };
-use hydradx_traits::{pools::SpotPriceProvider, AMM};
+use hydradx_traits::{pools::SpotPriceProvider, NativePriceOracle, AMM};
 use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;
@@ -112,7 +112,7 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 			basilisk_runtime::RuntimeOrigin::root(),
 			DAVE.into(),
 			NEW_TOKEN,
-			100 * UNITS,
+			1000 * UNITS,
 			0,
 		));
 
@@ -146,10 +146,13 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 			asset_out: NEW_TOKEN,
 		}));
 
-		let spot_price = XYKSpotPrice::<basilisk_runtime::Runtime>::spot_price(BSX, NEW_TOKEN);
-		assert_eq!(spot_price, Some(Price::from_float(2.0)));
+		let spot_price = XYKSpotPrice::<basilisk_runtime::Runtime>::spot_price(NEW_TOKEN, BSX);
+		assert_eq!(spot_price, Some(Price::from_float(0.5)));
 
 		basilisk_run_to_block(2);
+
+		let pallet_price = basilisk_runtime::MultiTransactionPayment::price(NEW_TOKEN);
+		assert_eq!(spot_price, pallet_price);
 
 		assert_ok!(basilisk_runtime::XYK::buy(
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
@@ -173,7 +176,7 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 		);
 
 		let dave_balance = basilisk_runtime::Tokens::free_balance(NEW_TOKEN, &AccountId::from(DAVE));
-		assert_eq!(dave_balance, 90_264_297_166_679);
+		assert_eq!(dave_balance, 990_264_297_166_679);
 	});
 }
 
