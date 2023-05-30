@@ -130,7 +130,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	/// The range of component `r` is `[1, 20]`.
 	/// The range of component `c` is `[1, 20]`.
-	fn new_session(r: u32, c: u32) -> Weight {
+	fn new_session(_r: u32, c: u32) -> Weight {
 		// Minimum execution time: 14_855 nanoseconds.
 		Weight::from_ref_time(27_820_837 as u64) // Standard Error: 748_906
 			.saturating_add(Weight::from_ref_time(4_783_710 as u64).saturating_mul(c as u64))

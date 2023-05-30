@@ -110,7 +110,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: Tips Reasons (r:0 w:1)
 	// Proof Skipped: Tips Reasons (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `t` is `[1, 7]`.
-	fn close_tip(t: u32) -> Weight {
+	fn close_tip(_t: u32) -> Weight {
 		// Minimum execution time: 26_852 nanoseconds.
 		Weight::from_ref_time(28_122_916 as u64)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
