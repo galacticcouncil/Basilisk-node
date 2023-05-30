@@ -380,6 +380,7 @@ fn share_asset_id_should_be_offset() {
 			Some(next_asset_id),
 			None,
 			None,
+			None,
 		));
 
 		// Create_pool doesn't register new share token if it already exists

@@ -186,10 +186,14 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_asset_registry::GenesisConfig::<Runtime> {
 		registered_assets: vec![
-			(b"KSM".to_vec(), 1_000_000u128, Some(1)),
-			(b"aUSD".to_vec(), 1_000u128, Some(2)),
-			(b"MOVR".to_vec(), 1_000u128, Some(3)),
-			(b"NEW_BOOTSRAPPED_TOKEN".to_vec(), 1_000u128, Some(4)),
+			(b"aUSD".to_vec(), 1_000_000u128, Some(AUSD)),
+			(b"MOVR".to_vec(), 1_000u128, Some(MOVR)),
+			(b"KSMN".to_vec(), 1_000u128, Some(KSM)),
+			(
+				b"NEW_BOOTSRAPPED_TOKEN".to_vec(),
+				1_000u128,
+				Some(NEW_BOOTSTRAPPED_TOKEN),
+			),
 		],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
@@ -236,7 +240,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_transaction_multi_payment::GenesisConfig::<Runtime> {
-		currencies: vec![(1, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
+		currencies: vec![(AUSD, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
 		account_currencies: vec![],
 	}
 	.assimilate_storage(&mut t)
@@ -268,7 +272,7 @@ pub fn other_parachain_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_asset_registry::GenesisConfig::<ParachainRuntime> {
-		registered_assets: vec![(b"AUSD".to_vec(), 1_000_000u128, Some(1))],
+		registered_assets: vec![(b"AUSD".to_vec(), 1_000_000u128, Some(AUSD))],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
 	}
