@@ -45,13 +45,7 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_asset_registry.
-pub trait WeightInfo {
-	fn register() -> Weight;
-	fn update() -> Weight;
-	fn set_metadata() -> Weight;
-	fn set_location() -> Weight;
-}
+use pallet_asset_registry::weights::WeightInfo;
 
 /// Weights for pallet_asset_registry using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
@@ -106,59 +100,5 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		Weight::from_ref_time(13_886_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: AssetRegistry AssetIds (r:1 w:1)
-	// Proof Skipped: AssetRegistry AssetIds (max_values: None, max_size: None, mode: Measured)
-	// Storage: AssetRegistry NextAssetId (r:1 w:1)
-	// Proof Skipped: AssetRegistry NextAssetId (max_values: Some(1), max_size: None, mode: Measured)
-	// Storage: AssetRegistry LocationAssets (r:1 w:1)
-	// Proof Skipped: AssetRegistry LocationAssets (max_values: None, max_size: None, mode: Measured)
-	// Storage: AssetRegistry AssetLocations (r:0 w:1)
-	// Proof Skipped: AssetRegistry AssetLocations (max_values: None, max_size: None, mode: Measured)
-	// Storage: AssetRegistry AssetMetadataMap (r:0 w:1)
-	// Proof Skipped: AssetRegistry AssetMetadataMap (max_values: None, max_size: None, mode: Measured)
-	// Storage: AssetRegistry Assets (r:0 w:1)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	fn register() -> Weight {
-		// Minimum execution time: 20_380 nanoseconds.
-		Weight::from_ref_time(20_945_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(3 as u64))
-			.saturating_add(RocksDbWeight::get().writes(6 as u64))
-	}
-	// Storage: AssetRegistry Assets (r:1 w:1)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: AssetRegistry AssetIds (r:1 w:2)
-	// Proof Skipped: AssetRegistry AssetIds (max_values: None, max_size: None, mode: Measured)
-	fn update() -> Weight {
-		// Minimum execution time: 16_727 nanoseconds.
-		Weight::from_ref_time(17_000_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(2 as u64))
-			.saturating_add(RocksDbWeight::get().writes(3 as u64))
-	}
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: AssetRegistry AssetMetadataMap (r:0 w:1)
-	// Proof Skipped: AssetRegistry AssetMetadataMap (max_values: None, max_size: None, mode: Measured)
-	fn set_metadata() -> Weight {
-		// Minimum execution time: 12_559 nanoseconds.
-		Weight::from_ref_time(12_805_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: AssetRegistry LocationAssets (r:1 w:1)
-	// Proof Skipped: AssetRegistry LocationAssets (max_values: None, max_size: None, mode: Measured)
-	// Storage: AssetRegistry AssetLocations (r:1 w:1)
-	// Proof Skipped: AssetRegistry AssetLocations (max_values: None, max_size: None, mode: Measured)
-	fn set_location() -> Weight {
-		// Minimum execution time: 13_584 nanoseconds.
-		Weight::from_ref_time(13_886_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(3 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 }

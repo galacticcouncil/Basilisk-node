@@ -45,12 +45,7 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_duster.
-pub trait WeightInfo {
-	fn dust_account() -> Weight;
-	fn add_nondustable_account() -> Weight;
-	fn remove_nondustable_account() -> Weight;
-}
+use pallet_duster::weights::WeightInfo;
 
 /// Weights for pallet_duster using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
@@ -89,43 +84,5 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		Weight::from_ref_time(19_458_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: Duster AccountBlacklist (r:1 w:0)
-	// Proof Skipped: Duster AccountBlacklist (max_values: None, max_size: None, mode: Measured)
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: Tokens Accounts (r:2 w:2)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: Duster DustAccount (r:1 w:0)
-	// Proof Skipped: Duster DustAccount (max_values: Some(1), max_size: None, mode: Measured)
-	// Storage: System Account (r:1 w:1)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: Duster RewardAccount (r:1 w:0)
-	// Proof Skipped: Duster RewardAccount (max_values: Some(1), max_size: None, mode: Measured)
-	// Storage: MultiTransactionPayment AccountCurrencyMap (r:0 w:1)
-	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	fn dust_account() -> Weight {
-		// Minimum execution time: 52_598 nanoseconds.
-		Weight::from_ref_time(53_064_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(7 as u64))
-			.saturating_add(RocksDbWeight::get().writes(4 as u64))
-	}
-	// Storage: Duster AccountBlacklist (r:0 w:1)
-	// Proof Skipped: Duster AccountBlacklist (max_values: None, max_size: None, mode: Measured)
-	fn add_nondustable_account() -> Weight {
-		// Minimum execution time: 13_657 nanoseconds.
-		Weight::from_ref_time(13_958_000 as u64).saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: Duster AccountBlacklist (r:1 w:1)
-	// Proof Skipped: Duster AccountBlacklist (max_values: None, max_size: None, mode: Measured)
-	fn remove_nondustable_account() -> Weight {
-		// Minimum execution time: 19_155 nanoseconds.
-		Weight::from_ref_time(19_458_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 }

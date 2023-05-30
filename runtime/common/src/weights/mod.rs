@@ -21,3 +21,4 @@ pub mod xcm;
 pub mod xcmp_queue;
 pub mod xyk;
 pub mod xyk_liquidity_mining;
+pub mod tips;

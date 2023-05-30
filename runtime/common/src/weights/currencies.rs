@@ -45,14 +45,7 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_currencies.
-pub trait WeightInfo {
-	fn transfer_non_native_currency() -> Weight;
-	fn transfer_native_currency() -> Weight;
-	fn update_balance_non_native_currency() -> Weight;
-	fn update_balance_native_currency_creating() -> Weight;
-	fn update_balance_native_currency_killing() -> Weight;
-}
+use pallet_currencies::WeightInfo;
 
 /// Weights for pallet_currencies using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
@@ -115,67 +108,5 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		Weight::from_ref_time(27_880_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: Tokens Accounts (r:2 w:2)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:1 w:1)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AccountCurrencyMap (r:1 w:1)
-	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:0)
-	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	fn transfer_non_native_currency() -> Weight {
-		// Minimum execution time: 54_983 nanoseconds.
-		Weight::from_ref_time(55_636_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(6 as u64))
-			.saturating_add(RocksDbWeight::get().writes(4 as u64))
-	}
-	// Storage: System Account (r:1 w:1)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn transfer_native_currency() -> Weight {
-		// Minimum execution time: 31_080 nanoseconds.
-		Weight::from_ref_time(31_582_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: Tokens Accounts (r:1 w:1)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: Tokens TotalIssuance (r:1 w:1)
-	// Proof: Tokens TotalIssuance (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	// Storage: System Account (r:1 w:1)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AccountCurrencyMap (r:1 w:0)
-	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:0)
-	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	fn update_balance_non_native_currency() -> Weight {
-		// Minimum execution time: 42_499 nanoseconds.
-		Weight::from_ref_time(43_235_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(6 as u64))
-			.saturating_add(RocksDbWeight::get().writes(3 as u64))
-	}
-	// Storage: System Account (r:1 w:1)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn update_balance_native_currency_creating() -> Weight {
-		// Minimum execution time: 26_972 nanoseconds.
-		Weight::from_ref_time(27_477_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: System Account (r:1 w:1)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn update_balance_native_currency_killing() -> Weight {
-		// Minimum execution time: 27_381 nanoseconds.
-		Weight::from_ref_time(27_880_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 }

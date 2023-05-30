@@ -45,16 +45,7 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_collator_selection.
-pub trait WeightInfo {
-	fn set_invulnerables(b: u32) -> Weight;
-	fn set_desired_candidates() -> Weight;
-	fn set_candidacy_bond() -> Weight;
-	fn register_as_candidate(c: u32) -> Weight;
-	fn leave_intent(c: u32) -> Weight;
-	fn note_author() -> Weight;
-	fn new_session(r: u32, c: u32) -> Weight;
-}
+use pallet_collator_selection::WeightInfo;
 
 /// Weights for pallet_collator_selection using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
@@ -148,102 +139,5 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(c as u64)))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(c as u64)))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: Session NextKeys (r:50 w:0)
-	// Proof Skipped: Session NextKeys (max_values: None, max_size: None, mode: Measured)
-	// Storage: CollatorSelection Invulnerables (r:0 w:1)
-	// Proof: CollatorSelection Invulnerables (max_values: Some(1), max_size: Some(1601), added: 2096, mode: MaxEncodedLen)
-	/// The range of component `b` is `[1, 50]`.
-	fn set_invulnerables(b: u32) -> Weight {
-		// Minimum execution time: 10_891 nanoseconds.
-		Weight::from_ref_time(11_032_212 as u64)
-			// Standard Error: 13_948
-			.saturating_add(Weight::from_ref_time(2_130_619 as u64).saturating_mul(b as u64))
-			.saturating_add(RocksDbWeight::get().reads((1 as u64).saturating_mul(b as u64)))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: CollatorSelection DesiredCandidates (r:0 w:1)
-	// Proof: CollatorSelection DesiredCandidates (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
-	fn set_desired_candidates() -> Weight {
-		// Minimum execution time: 7_220 nanoseconds.
-		Weight::from_ref_time(7_707_000 as u64).saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: CollatorSelection CandidacyBond (r:0 w:1)
-	// Proof: CollatorSelection CandidacyBond (max_values: Some(1), max_size: Some(16), added: 511, mode: MaxEncodedLen)
-	fn set_candidacy_bond() -> Weight {
-		// Minimum execution time: 4_482 nanoseconds.
-		Weight::from_ref_time(4_672_000 as u64).saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: CollatorSelection Candidates (r:1 w:1)
-	// Proof: CollatorSelection Candidates (max_values: Some(1), max_size: Some(961), added: 1456, mode: MaxEncodedLen)
-	// Storage: CollatorSelection DesiredCandidates (r:1 w:0)
-	// Proof: CollatorSelection DesiredCandidates (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
-	// Storage: CollatorSelection Invulnerables (r:1 w:0)
-	// Proof: CollatorSelection Invulnerables (max_values: Some(1), max_size: Some(1601), added: 2096, mode: MaxEncodedLen)
-	// Storage: Session NextKeys (r:1 w:0)
-	// Proof Skipped: Session NextKeys (max_values: None, max_size: None, mode: Measured)
-	// Storage: CollatorSelection CandidacyBond (r:1 w:0)
-	// Proof: CollatorSelection CandidacyBond (max_values: Some(1), max_size: Some(16), added: 511, mode: MaxEncodedLen)
-	// Storage: CollatorSelection LastAuthoredBlock (r:0 w:1)
-	// Proof: CollatorSelection LastAuthoredBlock (max_values: None, max_size: Some(44), added: 2519, mode: MaxEncodedLen)
-	/// The range of component `c` is `[1, 19]`.
-	fn register_as_candidate(c: u32) -> Weight {
-		// Minimum execution time: 29_860 nanoseconds.
-		Weight::from_ref_time(30_330_564 as u64)
-			// Standard Error: 6_166
-			.saturating_add(Weight::from_ref_time(132_646 as u64).saturating_mul(c as u64))
-			.saturating_add(RocksDbWeight::get().reads(5 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
-	}
-	// Storage: CollatorSelection Candidates (r:1 w:1)
-	// Proof: CollatorSelection Candidates (max_values: Some(1), max_size: Some(961), added: 1456, mode: MaxEncodedLen)
-	// Storage: CollatorSelection LastAuthoredBlock (r:0 w:1)
-	// Proof: CollatorSelection LastAuthoredBlock (max_values: None, max_size: Some(44), added: 2519, mode: MaxEncodedLen)
-	/// The range of component `c` is `[5, 20]`.
-	fn leave_intent(c: u32) -> Weight {
-		// Minimum execution time: 19_957 nanoseconds.
-		Weight::from_ref_time(20_183_274 as u64)
-			// Standard Error: 8_176
-			.saturating_add(Weight::from_ref_time(49_402 as u64).saturating_mul(c as u64))
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
-	}
-	// Storage: System Account (r:2 w:2)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: System BlockWeight (r:1 w:1)
-	// Proof: System BlockWeight (max_values: Some(1), max_size: Some(48), added: 543, mode: MaxEncodedLen)
-	// Storage: CollatorSelection LastAuthoredBlock (r:0 w:1)
-	// Proof: CollatorSelection LastAuthoredBlock (max_values: None, max_size: Some(44), added: 2519, mode: MaxEncodedLen)
-	fn note_author() -> Weight {
-		// Minimum execution time: 16_572 nanoseconds.
-		Weight::from_ref_time(16_719_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(3 as u64))
-			.saturating_add(RocksDbWeight::get().writes(4 as u64))
-	}
-	// Storage: CollatorSelection Candidates (r:1 w:0)
-	// Proof: CollatorSelection Candidates (max_values: Some(1), max_size: Some(961), added: 1456, mode: MaxEncodedLen)
-	// Storage: CollatorSelection LastAuthoredBlock (r:20 w:0)
-	// Proof: CollatorSelection LastAuthoredBlock (max_values: None, max_size: Some(44), added: 2519, mode: MaxEncodedLen)
-	// Storage: CollatorSelection Invulnerables (r:1 w:0)
-	// Proof: CollatorSelection Invulnerables (max_values: Some(1), max_size: Some(1601), added: 2096, mode: MaxEncodedLen)
-	// Storage: System BlockWeight (r:1 w:1)
-	// Proof: System BlockWeight (max_values: Some(1), max_size: Some(48), added: 543, mode: MaxEncodedLen)
-	// Storage: System Account (r:15 w:15)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	/// The range of component `r` is `[1, 20]`.
-	/// The range of component `c` is `[1, 20]`.
-	fn new_session(r: u32, c: u32) -> Weight {
-		// Minimum execution time: 14_597 nanoseconds.
-		Weight::from_ref_time(26_900_553 as u64)
-			// Standard Error: 757_040
-			.saturating_add(Weight::from_ref_time(4_859_821 as u64).saturating_mul(c as u64))
-			.saturating_add(RocksDbWeight::get().reads(4 as u64))
-			.saturating_add(RocksDbWeight::get().reads((1 as u64).saturating_mul(c as u64)))
-			.saturating_add(RocksDbWeight::get().writes(4 as u64))
-			.saturating_add(RocksDbWeight::get().writes((1 as u64).saturating_mul(c as u64)))
 	}
 }
