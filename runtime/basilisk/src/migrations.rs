@@ -82,7 +82,6 @@ where
 	}
 }
 
-
 pub struct XcmRateLimitMigration;
 impl OnRuntimeUpgrade for XcmRateLimitMigration {
 	#[cfg(feature = "try-runtime")]
