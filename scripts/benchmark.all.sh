@@ -24,9 +24,8 @@ pallets=("pallet-xyk:xyk"
 "pallet-transaction-multi-payment:multi_payment"
 "pallet-route-executor:route_executor"
 "pallet-marketplace:marketplace"
-
-
 )
+
 command="cargo run --release --features=runtime-benchmarks -- benchmark pallet --pallet=[pallet] --chain=dev --extrinsic='*' --steps=5 --repeat=20 --output [output].rs --template .maintain/pallet-weight-template.hbs"
 
 for string in "${pallets[@]}"; do
@@ -42,6 +41,4 @@ for string in "${pallets[@]}"; do
   replaced_command="${replaced_command/\[output\]/$output}"
 
   eval "$replaced_command"
-
-
 done
