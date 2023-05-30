@@ -74,9 +74,9 @@ runtime_benchmarks! {
 
 		create_pool(maker, asset_out, 1_000_000_000_000_000, asset_id, 500_000_000_000_000);
 
-	}: { <Runtime as pallet_transaction_multi_payment::Config>::SpotPriceProvider::spot_price(asset_id, asset_out) }
+	}: { <Runtime as pallet_transaction_multi_payment::Config>::SpotPriceProvider::spot_price(asset_out, asset_id) }
 	verify{
-		assert_eq!(<Runtime as pallet_transaction_multi_payment::Config>::SpotPriceProvider::spot_price(asset_id, asset_out),
+		assert_eq!(<Runtime as pallet_transaction_multi_payment::Config>::SpotPriceProvider::spot_price(asset_out, asset_id),
 			Some(Price::from((2,1))));
 
 	}
