@@ -43,6 +43,7 @@ fn create_collection_and_mint(
 		None,
 		None,
 		None,
+		None,
 	));
 	let asset_id = AssetRegistry::retrieve_asset(&name).unwrap();
 	assert_ok!(AssetRegistry::set_location(
