@@ -33,7 +33,7 @@
 // --output
 // route_executor.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -45,13 +45,8 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_route_executor.
-pub trait WeightInfo {
-	fn sell(n: u32) -> Weight;
-	fn buy(n: u32) -> Weight;
-}
+use pallet_route_executor::weights::WeightInfo;
 
-/// Weights for pallet_route_executor using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
@@ -69,9 +64,9 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	/// The range of component `n` is `[1, 5]`.
 	fn sell(n: u32) -> Weight {
-		// Minimum execution time: 99_600 nanoseconds.
-		Weight::from_ref_time(50_779_650 as u64) // Standard Error: 136_028
-			.saturating_add(Weight::from_ref_time(48_214_210 as u64).saturating_mul(n as u64))
+		// Minimum execution time: 98_641 nanoseconds.
+		Weight::from_ref_time(49_482_770 as u64) // Standard Error: 234_668
+			.saturating_add(Weight::from_ref_time(49_453_290 as u64).saturating_mul(n as u64))
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().reads((7 as u64).saturating_mul(n as u64)))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
@@ -91,62 +86,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	/// The range of component `n` is `[1, 5]`.
 	fn buy(n: u32) -> Weight {
-		// Minimum execution time: 95_816 nanoseconds.
-		Weight::from_ref_time(48_035_270 as u64) // Standard Error: 114_009
-			.saturating_add(Weight::from_ref_time(48_391_870 as u64).saturating_mul(n as u64))
+		// Minimum execution time: 97_086 nanoseconds.
+		Weight::from_ref_time(47_516_770 as u64) // Standard Error: 162_307
+			.saturating_add(Weight::from_ref_time(49_402_790 as u64).saturating_mul(n as u64))
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().reads((7 as u64).saturating_mul(n as u64)))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 			.saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: Tokens Accounts (r:16 w:16)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: System Account (r:6 w:1)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: XYK ShareToken (r:5 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:6 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: MultiTransactionPayment AccountCurrencyMap (r:1 w:0)
-	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AcceptedCurrencies (r:5 w:0)
-	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	/// The range of component `n` is `[1, 5]`.
-	fn sell(n: u32) -> Weight {
-		// Minimum execution time: 99_600 nanoseconds.
-		Weight::from_ref_time(50_779_650 as u64)
-			// Standard Error: 136_028
-			.saturating_add(Weight::from_ref_time(48_214_210 as u64).saturating_mul(n as u64))
-			.saturating_add(RocksDbWeight::get().reads(4 as u64))
-			.saturating_add(RocksDbWeight::get().reads((7 as u64).saturating_mul(n as u64)))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
-			.saturating_add(RocksDbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
-	}
-	// Storage: Tokens Accounts (r:16 w:16)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: System Account (r:6 w:1)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: XYK ShareToken (r:5 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:6 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: MultiTransactionPayment AccountCurrencyMap (r:1 w:0)
-	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AcceptedCurrencies (r:5 w:0)
-	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	/// The range of component `n` is `[1, 5]`.
-	fn buy(n: u32) -> Weight {
-		// Minimum execution time: 95_816 nanoseconds.
-		Weight::from_ref_time(48_035_270 as u64)
-			// Standard Error: 114_009
-			.saturating_add(Weight::from_ref_time(48_391_870 as u64).saturating_mul(n as u64))
-			.saturating_add(RocksDbWeight::get().reads(4 as u64))
-			.saturating_add(RocksDbWeight::get().reads((7 as u64).saturating_mul(n as u64)))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
-			.saturating_add(RocksDbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
 	}
 }

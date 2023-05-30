@@ -33,7 +33,7 @@
 // --output
 // treasury.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -45,31 +45,22 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_treasury.
-pub trait WeightInfo {
-	fn spend() -> Weight;
-	fn propose_spend() -> Weight;
-	fn reject_proposal() -> Weight;
-	fn approve_proposal(p: u32) -> Weight;
-	fn remove_approval() -> Weight;
-	fn on_initialize_proposals(p: u32) -> Weight;
-}
+use pallet_treasury::weights::WeightInfo;
 
-/// Weights for pallet_treasury using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn spend() -> Weight {
-		// Minimum execution time: 76 nanoseconds.
-		Weight::from_ref_time(92_000 as u64)
+		// Minimum execution time: 89 nanoseconds.
+		Weight::from_ref_time(109_000 as u64)
 	}
 	// Storage: Treasury ProposalCount (r:1 w:1)
 	// Proof: Treasury ProposalCount (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
 	// Storage: Treasury Proposals (r:0 w:1)
 	// Proof: Treasury Proposals (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
 	fn propose_spend() -> Weight {
-		// Minimum execution time: 15_739 nanoseconds.
-		Weight::from_ref_time(16_475_000 as u64)
+		// Minimum execution time: 15_685 nanoseconds.
+		Weight::from_ref_time(16_615_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -78,8 +69,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:1 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn reject_proposal() -> Weight {
-		// Minimum execution time: 21_827 nanoseconds.
-		Weight::from_ref_time(22_257_000 as u64)
+		// Minimum execution time: 21_748 nanoseconds.
+		Weight::from_ref_time(22_135_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -89,17 +80,17 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Treasury Approvals (max_values: Some(1), max_size: Some(402), added: 897, mode: MaxEncodedLen)
 	/// The range of component `p` is `[0, 99]`.
 	fn approve_proposal(p: u32) -> Weight {
-		// Minimum execution time: 8_294 nanoseconds.
-		Weight::from_ref_time(10_118_449 as u64) // Standard Error: 5_283
-			.saturating_add(Weight::from_ref_time(41_829 as u64).saturating_mul(p as u64))
+		// Minimum execution time: 8_325 nanoseconds.
+		Weight::from_ref_time(10_198_088 as u64) // Standard Error: 5_275
+			.saturating_add(Weight::from_ref_time(40_129 as u64).saturating_mul(p as u64))
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: Treasury Approvals (r:1 w:1)
 	// Proof: Treasury Approvals (max_values: Some(1), max_size: Some(402), added: 897, mode: MaxEncodedLen)
 	fn remove_approval() -> Weight {
-		// Minimum execution time: 6_801 nanoseconds.
-		Weight::from_ref_time(7_023_000 as u64)
+		// Minimum execution time: 6_909 nanoseconds.
+		Weight::from_ref_time(7_241_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -115,82 +106,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	/// The range of component `p` is `[0, 100]`.
 	fn on_initialize_proposals(p: u32) -> Weight {
-		// Minimum execution time: 14_340 nanoseconds.
-		Weight::from_ref_time(15_410_600 as u64) // Standard Error: 24_878
-			.saturating_add(Weight::from_ref_time(16_795_486 as u64).saturating_mul(p as u64))
+		// Minimum execution time: 14_589 nanoseconds.
+		Weight::from_ref_time(12_801_500 as u64) // Standard Error: 36_670
+			.saturating_add(Weight::from_ref_time(16_895_277 as u64).saturating_mul(p as u64))
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().reads((3 as u64).saturating_mul(p as u64)))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 			.saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(p as u64)))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	fn spend() -> Weight {
-		// Minimum execution time: 76 nanoseconds.
-		Weight::from_ref_time(92_000 as u64)
-	}
-	// Storage: Treasury ProposalCount (r:1 w:1)
-	// Proof: Treasury ProposalCount (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
-	// Storage: Treasury Proposals (r:0 w:1)
-	// Proof: Treasury Proposals (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	fn propose_spend() -> Weight {
-		// Minimum execution time: 15_739 nanoseconds.
-		Weight::from_ref_time(16_475_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
-	}
-	// Storage: Treasury Proposals (r:1 w:1)
-	// Proof: Treasury Proposals (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: System Account (r:1 w:1)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn reject_proposal() -> Weight {
-		// Minimum execution time: 21_827 nanoseconds.
-		Weight::from_ref_time(22_257_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(2 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
-	}
-	// Storage: Treasury Proposals (r:1 w:0)
-	// Proof: Treasury Proposals (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: Treasury Approvals (r:1 w:1)
-	// Proof: Treasury Approvals (max_values: Some(1), max_size: Some(402), added: 897, mode: MaxEncodedLen)
-	/// The range of component `p` is `[0, 99]`.
-	fn approve_proposal(p: u32) -> Weight {
-		// Minimum execution time: 8_294 nanoseconds.
-		Weight::from_ref_time(10_118_449 as u64)
-			// Standard Error: 5_283
-			.saturating_add(Weight::from_ref_time(41_829 as u64).saturating_mul(p as u64))
-			.saturating_add(RocksDbWeight::get().reads(2 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: Treasury Approvals (r:1 w:1)
-	// Proof: Treasury Approvals (max_values: Some(1), max_size: Some(402), added: 897, mode: MaxEncodedLen)
-	fn remove_approval() -> Weight {
-		// Minimum execution time: 6_801 nanoseconds.
-		Weight::from_ref_time(7_023_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: Treasury Deactivated (r:1 w:1)
-	// Proof: Treasury Deactivated (max_values: Some(1), max_size: Some(16), added: 511, mode: MaxEncodedLen)
-	// Storage: Balances InactiveIssuance (r:1 w:1)
-	// Proof: Balances InactiveIssuance (max_values: Some(1), max_size: Some(16), added: 511, mode: MaxEncodedLen)
-	// Storage: Treasury Approvals (r:1 w:1)
-	// Proof: Treasury Approvals (max_values: Some(1), max_size: Some(402), added: 897, mode: MaxEncodedLen)
-	// Storage: Treasury Proposals (r:100 w:100)
-	// Proof: Treasury Proposals (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: System Account (r:200 w:200)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	/// The range of component `p` is `[0, 100]`.
-	fn on_initialize_proposals(p: u32) -> Weight {
-		// Minimum execution time: 14_340 nanoseconds.
-		Weight::from_ref_time(15_410_600 as u64)
-			// Standard Error: 24_878
-			.saturating_add(Weight::from_ref_time(16_795_486 as u64).saturating_mul(p as u64))
-			.saturating_add(RocksDbWeight::get().reads(3 as u64))
-			.saturating_add(RocksDbWeight::get().reads((3 as u64).saturating_mul(p as u64)))
-			.saturating_add(RocksDbWeight::get().writes(3 as u64))
-			.saturating_add(RocksDbWeight::get().writes((3 as u64).saturating_mul(p as u64)))
 	}
 }

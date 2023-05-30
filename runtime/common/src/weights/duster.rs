@@ -33,7 +33,7 @@
 // --output
 // duster.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -47,7 +47,6 @@ use sp_std::marker::PhantomData;
 
 use pallet_duster::weights::WeightInfo;
 
-/// Weights for pallet_duster using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
@@ -66,22 +65,22 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: MultiTransactionPayment AccountCurrencyMap (r:0 w:1)
 	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
 	fn dust_account() -> Weight {
-		// Minimum execution time: 52_598 nanoseconds.
-		Weight::from_ref_time(53_064_000 as u64)
+		// Minimum execution time: 52_018 nanoseconds.
+		Weight::from_ref_time(52_843_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	// Storage: Duster AccountBlacklist (r:0 w:1)
 	// Proof Skipped: Duster AccountBlacklist (max_values: None, max_size: None, mode: Measured)
 	fn add_nondustable_account() -> Weight {
-		// Minimum execution time: 13_657 nanoseconds.
-		Weight::from_ref_time(13_958_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
+		// Minimum execution time: 13_470 nanoseconds.
+		Weight::from_ref_time(13_752_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: Duster AccountBlacklist (r:1 w:1)
 	// Proof Skipped: Duster AccountBlacklist (max_values: None, max_size: None, mode: Measured)
 	fn remove_nondustable_account() -> Weight {
-		// Minimum execution time: 19_155 nanoseconds.
-		Weight::from_ref_time(19_458_000 as u64)
+		// Minimum execution time: 18_427 nanoseconds.
+		Weight::from_ref_time(18_752_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}

@@ -33,7 +33,7 @@
 // --output
 // utility.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -45,76 +45,35 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_utility.
-pub trait WeightInfo {
-	fn batch(c: u32) -> Weight;
-	fn as_derivative() -> Weight;
-	fn batch_all(c: u32) -> Weight;
-	fn dispatch_as() -> Weight;
-	fn force_batch(c: u32) -> Weight;
-}
+use pallet_utility::weights::WeightInfo;
 
-/// Weights for pallet_utility using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `c` is `[0, 1000]`.
 	fn batch(c: u32) -> Weight {
-		// Minimum execution time: 4_212 nanoseconds.
-		Weight::from_ref_time(10_041_380 as u64) // Standard Error: 4_132
-			.saturating_add(Weight::from_ref_time(1_894_821 as u64).saturating_mul(c as u64))
+		// Minimum execution time: 4_222 nanoseconds.
+		Weight::from_ref_time(6_765_000 as u64) // Standard Error: 3_647
+			.saturating_add(Weight::from_ref_time(1_917_639 as u64).saturating_mul(c as u64))
 	}
 	fn as_derivative() -> Weight {
-		// Minimum execution time: 3_195 nanoseconds.
-		Weight::from_ref_time(3_358_000 as u64)
+		// Minimum execution time: 3_079 nanoseconds.
+		Weight::from_ref_time(3_265_000 as u64)
 	}
 	/// The range of component `c` is `[0, 1000]`.
 	fn batch_all(c: u32) -> Weight {
-		// Minimum execution time: 4_187 nanoseconds.
-		Weight::from_ref_time(3_136_180 as u64) // Standard Error: 3_766
-			.saturating_add(Weight::from_ref_time(1_915_235 as u64).saturating_mul(c as u64))
+		// Minimum execution time: 4_193 nanoseconds.
+		Weight::from_ref_time(1_048_620 as u64) // Standard Error: 4_349
+			.saturating_add(Weight::from_ref_time(1_944_701 as u64).saturating_mul(c as u64))
 	}
 	fn dispatch_as() -> Weight {
-		// Minimum execution time: 5_226 nanoseconds.
-		Weight::from_ref_time(5_455_000 as u64)
+		// Minimum execution time: 5_249 nanoseconds.
+		Weight::from_ref_time(5_486_000 as u64)
 	}
 	/// The range of component `c` is `[0, 1000]`.
 	fn force_batch(c: u32) -> Weight {
-		// Minimum execution time: 4_180 nanoseconds.
-		Weight::from_ref_time(428_360 as u64) // Standard Error: 3_434
-			.saturating_add(Weight::from_ref_time(1_905_630 as u64).saturating_mul(c as u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	/// The range of component `c` is `[0, 1000]`.
-	fn batch(c: u32) -> Weight {
-		// Minimum execution time: 4_212 nanoseconds.
-		Weight::from_ref_time(10_041_380 as u64)
-			// Standard Error: 4_132
-			.saturating_add(Weight::from_ref_time(1_894_821 as u64).saturating_mul(c as u64))
-	}
-	fn as_derivative() -> Weight {
-		// Minimum execution time: 3_195 nanoseconds.
-		Weight::from_ref_time(3_358_000 as u64)
-	}
-	/// The range of component `c` is `[0, 1000]`.
-	fn batch_all(c: u32) -> Weight {
-		// Minimum execution time: 4_187 nanoseconds.
-		Weight::from_ref_time(3_136_180 as u64)
-			// Standard Error: 3_766
-			.saturating_add(Weight::from_ref_time(1_915_235 as u64).saturating_mul(c as u64))
-	}
-	fn dispatch_as() -> Weight {
-		// Minimum execution time: 5_226 nanoseconds.
-		Weight::from_ref_time(5_455_000 as u64)
-	}
-	/// The range of component `c` is `[0, 1000]`.
-	fn force_batch(c: u32) -> Weight {
-		// Minimum execution time: 4_180 nanoseconds.
-		Weight::from_ref_time(428_360 as u64)
-			// Standard Error: 3_434
-			.saturating_add(Weight::from_ref_time(1_905_630 as u64).saturating_mul(c as u64))
+		// Minimum execution time: 4_217 nanoseconds.
+		Weight::from_ref_time(2_882_100 as u64) // Standard Error: 3_592
+			.saturating_add(Weight::from_ref_time(1_917_544 as u64).saturating_mul(c as u64))
 	}
 }

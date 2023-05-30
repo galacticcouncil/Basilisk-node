@@ -33,7 +33,7 @@
 // --output
 // currencies.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -47,7 +47,6 @@ use sp_std::marker::PhantomData;
 
 use pallet_currencies::WeightInfo;
 
-/// Weights for pallet_currencies using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
@@ -62,16 +61,16 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:0)
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	fn transfer_non_native_currency() -> Weight {
-		// Minimum execution time: 54_983 nanoseconds.
-		Weight::from_ref_time(55_636_000 as u64)
+		// Minimum execution time: 53_937 nanoseconds.
+		Weight::from_ref_time(54_972_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	// Storage: System Account (r:1 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn transfer_native_currency() -> Weight {
-		// Minimum execution time: 31_080 nanoseconds.
-		Weight::from_ref_time(31_582_000 as u64)
+		// Minimum execution time: 29_919 nanoseconds.
+		Weight::from_ref_time(30_521_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -88,24 +87,24 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:0)
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	fn update_balance_non_native_currency() -> Weight {
-		// Minimum execution time: 42_499 nanoseconds.
-		Weight::from_ref_time(43_235_000 as u64)
+		// Minimum execution time: 42_856 nanoseconds.
+		Weight::from_ref_time(43_437_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	// Storage: System Account (r:1 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn update_balance_native_currency_creating() -> Weight {
-		// Minimum execution time: 26_972 nanoseconds.
-		Weight::from_ref_time(27_477_000 as u64)
+		// Minimum execution time: 27_005 nanoseconds.
+		Weight::from_ref_time(27_667_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: System Account (r:1 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn update_balance_native_currency_killing() -> Weight {
-		// Minimum execution time: 27_381 nanoseconds.
-		Weight::from_ref_time(27_880_000 as u64)
+		// Minimum execution time: 26_927 nanoseconds.
+		Weight::from_ref_time(27_460_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}

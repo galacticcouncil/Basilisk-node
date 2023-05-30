@@ -33,7 +33,7 @@
 // --output
 // xyk.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -45,16 +45,8 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_xyk.
-pub trait WeightInfo {
-	fn create_pool() -> Weight;
-	fn add_liquidity() -> Weight;
-	fn remove_liquidity() -> Weight;
-	fn sell() -> Weight;
-	fn buy() -> Weight;
-}
+use pallet_xyk::weights::WeightInfo;
 
-/// Weights for pallet_xyk using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
@@ -85,8 +77,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: XYK PoolAssets (r:0 w:1)
 	// Proof: XYK PoolAssets (max_values: None, max_size: Some(56), added: 2531, mode: MaxEncodedLen)
 	fn create_pool() -> Weight {
-		// Minimum execution time: 93_185 nanoseconds.
-		Weight::from_ref_time(94_179_000 as u64)
+		// Minimum execution time: 94_270 nanoseconds.
+		Weight::from_ref_time(95_053_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(17 as u64))
 			.saturating_add(T::DbWeight::get().writes(16 as u64))
 	}
@@ -105,8 +97,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: MultiTransactionPayment AccountCurrencyMap (r:1 w:0)
 	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
 	fn add_liquidity() -> Weight {
-		// Minimum execution time: 83_551 nanoseconds.
-		Weight::from_ref_time(84_789_000 as u64)
+		// Minimum execution time: 84_317 nanoseconds.
+		Weight::from_ref_time(85_155_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(13 as u64))
 			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
@@ -123,8 +115,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: Tokens TotalIssuance (r:1 w:1)
 	// Proof: Tokens TotalIssuance (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	fn remove_liquidity() -> Weight {
-		// Minimum execution time: 78_337 nanoseconds.
-		Weight::from_ref_time(79_281_000 as u64)
+		// Minimum execution time: 78_864 nanoseconds.
+		Weight::from_ref_time(79_736_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(12 as u64))
 			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
@@ -137,8 +129,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:2 w:0)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn sell() -> Weight {
-		// Minimum execution time: 62_092 nanoseconds.
-		Weight::from_ref_time(63_125_000 as u64)
+		// Minimum execution time: 61_590 nanoseconds.
+		Weight::from_ref_time(62_708_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(9 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -151,111 +143,9 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:2 w:0)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn buy() -> Weight {
-		// Minimum execution time: 62_270 nanoseconds.
-		Weight::from_ref_time(63_158_000 as u64)
+		// Minimum execution time: 62_326 nanoseconds.
+		Weight::from_ref_time(62_885_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(9 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: LBP PoolData (r:1 w:0)
-	// Proof Skipped: LBP PoolData (max_values: None, max_size: None, mode: Measured)
-	// Storage: XYK ShareToken (r:1 w:1)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: Tokens Accounts (r:5 w:5)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: AssetRegistry AssetIds (r:1 w:1)
-	// Proof Skipped: AssetRegistry AssetIds (max_values: None, max_size: None, mode: Measured)
-	// Storage: AssetRegistry NextAssetId (r:1 w:1)
-	// Proof Skipped: AssetRegistry NextAssetId (max_values: Some(1), max_size: None, mode: Measured)
-	// Storage: AssetRegistry Assets (r:2 w:1)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:2 w:2)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AccountCurrencyMap (r:2 w:1)
-	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:0)
-	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	// Storage: Tokens TotalIssuance (r:1 w:1)
-	// Proof: Tokens TotalIssuance (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	// Storage: Duster AccountBlacklist (r:0 w:1)
-	// Proof Skipped: Duster AccountBlacklist (max_values: None, max_size: None, mode: Measured)
-	// Storage: XYK TotalLiquidity (r:0 w:1)
-	// Proof: XYK TotalLiquidity (max_values: None, max_size: Some(64), added: 2539, mode: MaxEncodedLen)
-	// Storage: XYK PoolAssets (r:0 w:1)
-	// Proof: XYK PoolAssets (max_values: None, max_size: Some(56), added: 2531, mode: MaxEncodedLen)
-	fn create_pool() -> Weight {
-		// Minimum execution time: 93_185 nanoseconds.
-		Weight::from_ref_time(94_179_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(17 as u64))
-			.saturating_add(RocksDbWeight::get().writes(16 as u64))
-	}
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: Tokens Accounts (r:5 w:5)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: XYK TotalLiquidity (r:1 w:1)
-	// Proof: XYK TotalLiquidity (max_values: None, max_size: Some(64), added: 2539, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:3 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:1 w:1)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: Tokens TotalIssuance (r:1 w:1)
-	// Proof: Tokens TotalIssuance (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AccountCurrencyMap (r:1 w:0)
-	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	fn add_liquidity() -> Weight {
-		// Minimum execution time: 83_551 nanoseconds.
-		Weight::from_ref_time(84_789_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(13 as u64))
-			.saturating_add(RocksDbWeight::get().writes(8 as u64))
-	}
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: XYK TotalLiquidity (r:1 w:1)
-	// Proof: XYK TotalLiquidity (max_values: None, max_size: Some(64), added: 2539, mode: MaxEncodedLen)
-	// Storage: Tokens Accounts (r:5 w:5)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:3 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:1 w:0)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: Tokens TotalIssuance (r:1 w:1)
-	// Proof: Tokens TotalIssuance (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	fn remove_liquidity() -> Weight {
-		// Minimum execution time: 78_337 nanoseconds.
-		Weight::from_ref_time(79_281_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(12 as u64))
-			.saturating_add(RocksDbWeight::get().writes(7 as u64))
-	}
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: Tokens Accounts (r:4 w:4)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:2 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:2 w:0)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn sell() -> Weight {
-		// Minimum execution time: 62_092 nanoseconds.
-		Weight::from_ref_time(63_125_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(9 as u64))
-			.saturating_add(RocksDbWeight::get().writes(4 as u64))
-	}
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: Tokens Accounts (r:4 w:4)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:2 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:2 w:0)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn buy() -> Weight {
-		// Minimum execution time: 62_270 nanoseconds.
-		Weight::from_ref_time(63_158_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(9 as u64))
-			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 }

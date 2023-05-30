@@ -33,7 +33,7 @@
 // --output
 // multi_payment.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -45,31 +45,24 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_transaction_multi_payment.
-pub trait WeightInfo {
-	fn add_currency() -> Weight;
-	fn remove_currency() -> Weight;
-	fn set_currency() -> Weight;
-	fn get_spot_price() -> Weight;
-}
+use pallet_transaction_multi_payment::weights::WeightInfo;
 
-/// Weights for pallet_transaction_multi_payment using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:1)
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	fn add_currency() -> Weight {
-		// Minimum execution time: 17_220 nanoseconds.
-		Weight::from_ref_time(17_638_000 as u64)
+		// Minimum execution time: 16_866 nanoseconds.
+		Weight::from_ref_time(17_238_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:1)
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	fn remove_currency() -> Weight {
-		// Minimum execution time: 18_090 nanoseconds.
-		Weight::from_ref_time(18_562_000 as u64)
+		// Minimum execution time: 17_442 nanoseconds.
+		Weight::from_ref_time(17_701_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -78,8 +71,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: MultiTransactionPayment AccountCurrencyMap (r:0 w:1)
 	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
 	fn set_currency() -> Weight {
-		// Minimum execution time: 21_440 nanoseconds.
-		Weight::from_ref_time(21_766_000 as u64)
+		// Minimum execution time: 21_079 nanoseconds.
+		Weight::from_ref_time(21_352_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -90,47 +83,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: Tokens Accounts (r:1 w:0)
 	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
 	fn get_spot_price() -> Weight {
-		// Minimum execution time: 20_504 nanoseconds.
-		Weight::from_ref_time(21_261_000 as u64).saturating_add(T::DbWeight::get().reads(3 as u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:1)
-	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	fn add_currency() -> Weight {
-		// Minimum execution time: 17_220 nanoseconds.
-		Weight::from_ref_time(17_638_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:1)
-	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	fn remove_currency() -> Weight {
-		// Minimum execution time: 18_090 nanoseconds.
-		Weight::from_ref_time(18_562_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:0)
-	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AccountCurrencyMap (r:0 w:1)
-	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	fn set_currency() -> Weight {
-		// Minimum execution time: 21_440 nanoseconds.
-		Weight::from_ref_time(21_766_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: System Account (r:1 w:0)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: Tokens Accounts (r:1 w:0)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	fn get_spot_price() -> Weight {
-		// Minimum execution time: 20_504 nanoseconds.
-		Weight::from_ref_time(21_261_000 as u64).saturating_add(RocksDbWeight::get().reads(3 as u64))
+		// Minimum execution time: 21_078 nanoseconds.
+		Weight::from_ref_time(21_388_000 as u64).saturating_add(T::DbWeight::get().reads(3 as u64))
 	}
 }

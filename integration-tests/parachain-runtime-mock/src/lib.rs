@@ -251,7 +251,7 @@ impl pallet_xcm::Config for ParachainRuntime {
 	type TrustedLockers = ();
 	type SovereignAccountOf = ();
 	type MaxLockers = ConstU32<8>;
-	type WeightInfo = common_runtime::weights::xcm::WeightInfo<ParachainRuntime>;
+	type WeightInfo = common_runtime::weights::xcm::BasiliskWeight<ParachainRuntime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type ReachableDest = ();
 }

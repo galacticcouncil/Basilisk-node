@@ -33,7 +33,7 @@
 // --output
 // timestamp.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -45,42 +45,21 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_timestamp.
-pub trait WeightInfo {
-	fn set() -> Weight;
-	fn on_finalize() -> Weight;
-}
+use pallet_timestamp::weights::WeightInfo;
 
-/// Weights for pallet_timestamp using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: Timestamp Now (r:1 w:1)
 	// Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
 	fn set() -> Weight {
-		// Minimum execution time: 5_568 nanoseconds.
-		Weight::from_ref_time(5_876_000 as u64)
+		// Minimum execution time: 5_471 nanoseconds.
+		Weight::from_ref_time(5_699_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn on_finalize() -> Weight {
-		// Minimum execution time: 4_430 nanoseconds.
-		Weight::from_ref_time(4_615_000 as u64)
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: Timestamp Now (r:1 w:1)
-	// Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
-	fn set() -> Weight {
-		// Minimum execution time: 5_568 nanoseconds.
-		Weight::from_ref_time(5_876_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	fn on_finalize() -> Weight {
-		// Minimum execution time: 4_430 nanoseconds.
-		Weight::from_ref_time(4_615_000 as u64)
+		// Minimum execution time: 4_280 nanoseconds.
+		Weight::from_ref_time(4_546_000 as u64)
 	}
 }

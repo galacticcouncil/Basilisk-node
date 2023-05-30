@@ -33,7 +33,7 @@
 // --output
 // registry.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -47,7 +47,6 @@ use sp_std::marker::PhantomData;
 
 use pallet_asset_registry::weights::WeightInfo;
 
-/// Weights for pallet_asset_registry using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
@@ -64,8 +63,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: AssetRegistry Assets (r:0 w:1)
 	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
 	fn register() -> Weight {
-		// Minimum execution time: 20_380 nanoseconds.
-		Weight::from_ref_time(20_945_000 as u64)
+		// Minimum execution time: 20_314 nanoseconds.
+		Weight::from_ref_time(21_178_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
@@ -74,8 +73,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: AssetRegistry AssetIds (r:1 w:2)
 	// Proof Skipped: AssetRegistry AssetIds (max_values: None, max_size: None, mode: Measured)
 	fn update() -> Weight {
-		// Minimum execution time: 16_727 nanoseconds.
-		Weight::from_ref_time(17_000_000 as u64)
+		// Minimum execution time: 16_761 nanoseconds.
+		Weight::from_ref_time(17_125_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -84,8 +83,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: AssetRegistry AssetMetadataMap (r:0 w:1)
 	// Proof Skipped: AssetRegistry AssetMetadataMap (max_values: None, max_size: None, mode: Measured)
 	fn set_metadata() -> Weight {
-		// Minimum execution time: 12_559 nanoseconds.
-		Weight::from_ref_time(12_805_000 as u64)
+		// Minimum execution time: 12_598 nanoseconds.
+		Weight::from_ref_time(12_804_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -96,8 +95,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: AssetRegistry AssetLocations (r:1 w:1)
 	// Proof Skipped: AssetRegistry AssetLocations (max_values: None, max_size: None, mode: Measured)
 	fn set_location() -> Weight {
-		// Minimum execution time: 13_584 nanoseconds.
-		Weight::from_ref_time(13_886_000 as u64)
+		// Minimum execution time: 13_345 nanoseconds.
+		Weight::from_ref_time(13_718_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}

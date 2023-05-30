@@ -33,7 +33,7 @@
 // --output
 // xcm.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -45,26 +45,8 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_xcm.
-pub trait WeightInfo {
-	fn send() -> Weight;
-	fn teleport_assets() -> Weight;
-	fn reserve_transfer_assets() -> Weight;
-	fn execute() -> Weight;
-	fn force_xcm_version() -> Weight;
-	fn force_default_xcm_version() -> Weight;
-	fn force_subscribe_version_notify() -> Weight;
-	fn force_unsubscribe_version_notify() -> Weight;
-	fn migrate_supported_version() -> Weight;
-	fn migrate_version_notifiers() -> Weight;
-	fn already_notified_target() -> Weight;
-	fn notify_current_targets() -> Weight;
-	fn notify_target_migration_fail() -> Weight;
-	fn migrate_version_notify_targets() -> Weight;
-	fn migrate_and_notify_old_targets() -> Weight;
-}
+use pallet_xcm::WeightInfo;
 
-/// Weights for pallet_xcm using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
@@ -87,8 +69,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		Weight::from_ref_time(18_446_744_073_709_551_000 as u64)
 	}
 	fn execute() -> Weight {
-		// Minimum execution time: 5_230 nanoseconds.
-		Weight::from_ref_time(5_447_000 as u64)
+		// Minimum execution time: 5_228 nanoseconds.
+		Weight::from_ref_time(5_475_000 as u64)
 	}
 	// Storage: Benchmark Override (r:0 w:0)
 	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
@@ -99,8 +81,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: PolkadotXcm SafeXcmVersion (r:0 w:1)
 	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
 	fn force_default_xcm_version() -> Weight {
-		// Minimum execution time: 1_897 nanoseconds.
-		Weight::from_ref_time(1_989_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
+		// Minimum execution time: 1_999 nanoseconds.
+		Weight::from_ref_time(2_099_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: Benchmark Override (r:0 w:0)
 	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
@@ -117,16 +99,16 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: PolkadotXcm SupportedVersion (r:4 w:2)
 	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	fn migrate_supported_version() -> Weight {
-		// Minimum execution time: 14_018 nanoseconds.
-		Weight::from_ref_time(14_422_000 as u64)
+		// Minimum execution time: 14_232 nanoseconds.
+		Weight::from_ref_time(14_465_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	// Storage: PolkadotXcm VersionNotifiers (r:4 w:2)
 	// Proof Skipped: PolkadotXcm VersionNotifiers (max_values: None, max_size: None, mode: Measured)
 	fn migrate_version_notifiers() -> Weight {
-		// Minimum execution time: 14_596 nanoseconds.
-		Weight::from_ref_time(15_090_000 as u64)
+		// Minimum execution time: 14_011 nanoseconds.
+		Weight::from_ref_time(14_396_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -145,114 +127,16 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: PolkadotXcm VersionNotifyTargets (r:3 w:0)
 	// Proof Skipped: PolkadotXcm VersionNotifyTargets (max_values: None, max_size: None, mode: Measured)
 	fn notify_target_migration_fail() -> Weight {
-		// Minimum execution time: 6_796 nanoseconds.
-		Weight::from_ref_time(6_950_000 as u64).saturating_add(T::DbWeight::get().reads(3 as u64))
+		// Minimum execution time: 7_014 nanoseconds.
+		Weight::from_ref_time(7_178_000 as u64).saturating_add(T::DbWeight::get().reads(3 as u64))
 	}
 	// Storage: PolkadotXcm VersionNotifyTargets (r:4 w:2)
 	// Proof Skipped: PolkadotXcm VersionNotifyTargets (max_values: None, max_size: None, mode: Measured)
 	fn migrate_version_notify_targets() -> Weight {
-		// Minimum execution time: 14_944 nanoseconds.
-		Weight::from_ref_time(15_562_000 as u64)
+		// Minimum execution time: 14_702 nanoseconds.
+		Weight::from_ref_time(15_011_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
-	}
-	// Storage: Benchmark Override (r:0 w:0)
-	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
-	fn migrate_and_notify_old_targets() -> Weight {
-		// Minimum execution time: 325_000 nanoseconds.
-		Weight::from_ref_time(325_000_000 as u64)
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: Benchmark Override (r:0 w:0)
-	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
-	fn send() -> Weight {
-		// Minimum execution time: 18_446_744_073_709_551 nanoseconds.
-		Weight::from_ref_time(18_446_744_073_709_551_000 as u64)
-	}
-	// Storage: Benchmark Override (r:0 w:0)
-	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
-	fn teleport_assets() -> Weight {
-		// Minimum execution time: 18_446_744_073_709_551 nanoseconds.
-		Weight::from_ref_time(18_446_744_073_709_551_000 as u64)
-	}
-	// Storage: Benchmark Override (r:0 w:0)
-	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
-	fn reserve_transfer_assets() -> Weight {
-		// Minimum execution time: 18_446_744_073_709_551 nanoseconds.
-		Weight::from_ref_time(18_446_744_073_709_551_000 as u64)
-	}
-	fn execute() -> Weight {
-		// Minimum execution time: 5_230 nanoseconds.
-		Weight::from_ref_time(5_447_000 as u64)
-	}
-	// Storage: Benchmark Override (r:0 w:0)
-	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
-	fn force_xcm_version() -> Weight {
-		// Minimum execution time: 18_446_744_073_709_551 nanoseconds.
-		Weight::from_ref_time(18_446_744_073_709_551_000 as u64)
-	}
-	// Storage: PolkadotXcm SafeXcmVersion (r:0 w:1)
-	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
-	fn force_default_xcm_version() -> Weight {
-		// Minimum execution time: 1_897 nanoseconds.
-		Weight::from_ref_time(1_989_000 as u64).saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: Benchmark Override (r:0 w:0)
-	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
-	fn force_subscribe_version_notify() -> Weight {
-		// Minimum execution time: 18_446_744_073_709_551 nanoseconds.
-		Weight::from_ref_time(18_446_744_073_709_551_000 as u64)
-	}
-	// Storage: Benchmark Override (r:0 w:0)
-	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
-	fn force_unsubscribe_version_notify() -> Weight {
-		// Minimum execution time: 18_446_744_073_709_551 nanoseconds.
-		Weight::from_ref_time(18_446_744_073_709_551_000 as u64)
-	}
-	// Storage: PolkadotXcm SupportedVersion (r:4 w:2)
-	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
-	fn migrate_supported_version() -> Weight {
-		// Minimum execution time: 14_018 nanoseconds.
-		Weight::from_ref_time(14_422_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(4 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
-	}
-	// Storage: PolkadotXcm VersionNotifiers (r:4 w:2)
-	// Proof Skipped: PolkadotXcm VersionNotifiers (max_values: None, max_size: None, mode: Measured)
-	fn migrate_version_notifiers() -> Weight {
-		// Minimum execution time: 14_596 nanoseconds.
-		Weight::from_ref_time(15_090_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(4 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
-	}
-	// Storage: Benchmark Override (r:0 w:0)
-	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
-	fn already_notified_target() -> Weight {
-		// Minimum execution time: 25_000 nanoseconds.
-		Weight::from_ref_time(25_000_000 as u64)
-	}
-	// Storage: Benchmark Override (r:0 w:0)
-	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
-	fn notify_current_targets() -> Weight {
-		// Minimum execution time: 325_000 nanoseconds.
-		Weight::from_ref_time(325_000_000 as u64)
-	}
-	// Storage: PolkadotXcm VersionNotifyTargets (r:3 w:0)
-	// Proof Skipped: PolkadotXcm VersionNotifyTargets (max_values: None, max_size: None, mode: Measured)
-	fn notify_target_migration_fail() -> Weight {
-		// Minimum execution time: 6_796 nanoseconds.
-		Weight::from_ref_time(6_950_000 as u64).saturating_add(RocksDbWeight::get().reads(3 as u64))
-	}
-	// Storage: PolkadotXcm VersionNotifyTargets (r:4 w:2)
-	// Proof Skipped: PolkadotXcm VersionNotifyTargets (max_values: None, max_size: None, mode: Measured)
-	fn migrate_version_notify_targets() -> Weight {
-		// Minimum execution time: 14_944 nanoseconds.
-		Weight::from_ref_time(15_562_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(4 as u64))
-			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	// Storage: Benchmark Override (r:0 w:0)
 	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)

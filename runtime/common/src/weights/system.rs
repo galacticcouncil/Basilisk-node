@@ -33,7 +33,7 @@
 // --output
 // system.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -45,31 +45,30 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-use frame_system::WeightInfo;
+use frame_system::weights::WeightInfo;
 
-/// Weights for frame_system using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `b` is `[0, 3932160]`.
 	fn remark(b: u32) -> Weight {
-		// Minimum execution time: 1_230 nanoseconds.
-		Weight::from_ref_time(1_298_000 as u64) // Standard Error: 2
+		// Minimum execution time: 1_306 nanoseconds.
+		Weight::from_ref_time(1_345_000 as u64) // Standard Error: 1
 			.saturating_add(Weight::from_ref_time(306 as u64).saturating_mul(b as u64))
 	}
 	/// The range of component `b` is `[0, 3932160]`.
 	fn remark_with_event(b: u32) -> Weight {
-		// Minimum execution time: 4_367 nanoseconds.
-		Weight::from_ref_time(4_414_000 as u64) // Standard Error: 2
-			.saturating_add(Weight::from_ref_time(1_279 as u64).saturating_mul(b as u64))
+		// Minimum execution time: 4_492 nanoseconds.
+		Weight::from_ref_time(4_554_000 as u64) // Standard Error: 2
+			.saturating_add(Weight::from_ref_time(1_278 as u64).saturating_mul(b as u64))
 	}
 	// Storage: System Digest (r:1 w:1)
 	// Proof Skipped: System Digest (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: unknown `0x3a686561707061676573` (r:0 w:1)
 	// Proof Skipped: unknown `0x3a686561707061676573` (r:0 w:1)
 	fn set_heap_pages() -> Weight {
-		// Minimum execution time: 2_743 nanoseconds.
-		Weight::from_ref_time(2_879_000 as u64)
+		// Minimum execution time: 2_808 nanoseconds.
+		Weight::from_ref_time(3_019_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -77,27 +76,27 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: Skipped Metadata (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `i` is `[0, 1000]`.
 	fn set_storage(i: u32) -> Weight {
-		// Minimum execution time: 1_162 nanoseconds.
-		Weight::from_ref_time(1_204_000 as u64) // Standard Error: 3_565
-			.saturating_add(Weight::from_ref_time(488_075 as u64).saturating_mul(i as u64))
+		// Minimum execution time: 1_191 nanoseconds.
+		Weight::from_ref_time(1_292_000 as u64) // Standard Error: 4_074
+			.saturating_add(Weight::from_ref_time(487_655 as u64).saturating_mul(i as u64))
 			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(i as u64)))
 	}
 	// Storage: Skipped Metadata (r:0 w:0)
 	// Proof Skipped: Skipped Metadata (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `i` is `[0, 1000]`.
 	fn kill_storage(i: u32) -> Weight {
-		// Minimum execution time: 1_210 nanoseconds.
-		Weight::from_ref_time(1_238_000 as u64) // Standard Error: 2_899
-			.saturating_add(Weight::from_ref_time(406_023 as u64).saturating_mul(i as u64))
+		// Minimum execution time: 1_284 nanoseconds.
+		Weight::from_ref_time(1_347_000 as u64) // Standard Error: 2_945
+			.saturating_add(Weight::from_ref_time(423_500 as u64).saturating_mul(i as u64))
 			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(i as u64)))
 	}
 	// Storage: Skipped Metadata (r:0 w:0)
 	// Proof Skipped: Skipped Metadata (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `p` is `[0, 1000]`.
 	fn kill_prefix(p: u32) -> Weight {
-		// Minimum execution time: 2_954 nanoseconds.
-		Weight::from_ref_time(3_045_000 as u64) // Standard Error: 7_587
-			.saturating_add(Weight::from_ref_time(1_020_966 as u64).saturating_mul(p as u64))
+		// Minimum execution time: 2_955 nanoseconds.
+		Weight::from_ref_time(3_000_000 as u64) // Standard Error: 3_509
+			.saturating_add(Weight::from_ref_time(1_015_686 as u64).saturating_mul(p as u64))
 			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(p as u64)))
 	}
 }

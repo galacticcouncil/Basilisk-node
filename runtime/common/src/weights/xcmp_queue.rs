@@ -33,7 +33,7 @@
 // --output
 // xcmp_queue.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -45,50 +45,25 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for cumulus_pallet_xcmp_queue.
-pub trait WeightInfo {
-	fn set_config_with_u32() -> Weight;
-	fn set_config_with_weight() -> Weight;
-}
+use cumulus_pallet_xcmp_queue::weights::WeightInfo;
 
-/// Weights for cumulus_pallet_xcmp_queue using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: XcmpQueue QueueConfig (r:1 w:1)
 	// Proof Skipped: XcmpQueue QueueConfig (max_values: Some(1), max_size: None, mode: Measured)
 	fn set_config_with_u32() -> Weight {
-		// Minimum execution time: 5_070 nanoseconds.
-		Weight::from_ref_time(5_291_000 as u64)
+		// Minimum execution time: 5_099 nanoseconds.
+		Weight::from_ref_time(5_369_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: XcmpQueue QueueConfig (r:1 w:1)
 	// Proof Skipped: XcmpQueue QueueConfig (max_values: Some(1), max_size: None, mode: Measured)
 	fn set_config_with_weight() -> Weight {
-		// Minimum execution time: 5_171 nanoseconds.
-		Weight::from_ref_time(5_316_000 as u64)
+		// Minimum execution time: 5_212 nanoseconds.
+		Weight::from_ref_time(5_420_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: XcmpQueue QueueConfig (r:1 w:1)
-	// Proof Skipped: XcmpQueue QueueConfig (max_values: Some(1), max_size: None, mode: Measured)
-	fn set_config_with_u32() -> Weight {
-		// Minimum execution time: 5_070 nanoseconds.
-		Weight::from_ref_time(5_291_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: XcmpQueue QueueConfig (r:1 w:1)
-	// Proof Skipped: XcmpQueue QueueConfig (max_values: Some(1), max_size: None, mode: Measured)
-	fn set_config_with_weight() -> Weight {
-		// Minimum execution time: 5_171 nanoseconds.
-		Weight::from_ref_time(5_316_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 }

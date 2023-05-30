@@ -33,29 +33,20 @@
 // --output
 // tips.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_tips.
-pub trait WeightInfo {
-    fn report_awesome(r: u32, ) -> Weight;
-    fn retract_tip() -> Weight;
-    fn tip_new(r: u32, t: u32, ) -> Weight;
-    fn tip(t: u32, ) -> Weight;
-    fn close_tip(t: u32, ) -> Weight;
-    fn slash_tip(t: u32, ) -> Weight;
-}
+use pallet_tips::weights::WeightInfo;
 
-/// Weights for pallet_tips using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
@@ -64,22 +55,23 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: Tips Tips (r:1 w:1)
 	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `r` is `[0, 1024]`.
-    fn report_awesome(r: u32, ) -> Weight {
-        // Minimum execution time: 13_493 nanoseconds.
-        Weight::from_ref_time(14_167_380 as u64)            // Standard Error: 50
-            .saturating_add(Weight::from_ref_time(1_312 as u64).saturating_mul(r as u64))
-            .saturating_add(T::DbWeight::get().reads(2 as u64))
-            .saturating_add(T::DbWeight::get().writes(2 as u64))
-    }
+	fn report_awesome(r: u32) -> Weight {
+		// Minimum execution time: 14_250 nanoseconds.
+		Weight::from_ref_time(14_548_580 as u64) // Standard Error: 57
+			.saturating_add(Weight::from_ref_time(1_035 as u64).saturating_mul(r as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+	}
 	// Storage: Tips Tips (r:1 w:1)
 	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
 	// Storage: Tips Reasons (r:0 w:1)
 	// Proof Skipped: Tips Reasons (max_values: None, max_size: None, mode: Measured)
-    fn retract_tip() -> Weight {
-        // Minimum execution time: 14_489 nanoseconds.
-        Weight::from_ref_time(14_846_000 as u64)            .saturating_add(T::DbWeight::get().reads(1 as u64))
-            .saturating_add(T::DbWeight::get().writes(2 as u64))
-    }
+	fn retract_tip() -> Weight {
+		// Minimum execution time: 14_572 nanoseconds.
+		Weight::from_ref_time(14_877_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+	}
 	// Storage: Elections Members (r:1 w:0)
 	// Proof Skipped: Elections Members (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: Tips Reasons (r:1 w:1)
@@ -88,27 +80,27 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `r` is `[0, 1024]`.
 	/// The range of component `t` is `[1, 7]`.
-    fn tip_new(r: u32, t: u32, ) -> Weight {
-        // Minimum execution time: 13_784 nanoseconds.
-        Weight::from_ref_time(13_437_518 as u64)            // Standard Error: 60
-            .saturating_add(Weight::from_ref_time(1_296 as u64).saturating_mul(r as u64))
-            // Standard Error: 10_019
-            .saturating_add(Weight::from_ref_time(89_543 as u64).saturating_mul(t as u64))
-            .saturating_add(T::DbWeight::get().reads(2 as u64))
-            .saturating_add(T::DbWeight::get().writes(2 as u64))
-    }
+	fn tip_new(r: u32, t: u32) -> Weight {
+		// Minimum execution time: 13_599 nanoseconds.
+		Weight::from_ref_time(13_227_866 as u64) // Standard Error: 71
+			.saturating_add(Weight::from_ref_time(1_368 as u64).saturating_mul(r as u64))
+			// Standard Error: 11_820
+			.saturating_add(Weight::from_ref_time(149_869 as u64).saturating_mul(t as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+	}
 	// Storage: Elections Members (r:1 w:0)
 	// Proof Skipped: Elections Members (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: Tips Tips (r:1 w:1)
 	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `t` is `[1, 7]`.
-    fn tip(t: u32, ) -> Weight {
-        // Minimum execution time: 12_032 nanoseconds.
-        Weight::from_ref_time(12_171_450 as u64)            // Standard Error: 7_943
-            .saturating_add(Weight::from_ref_time(148_581 as u64).saturating_mul(t as u64))
-            .saturating_add(T::DbWeight::get().reads(2 as u64))
-            .saturating_add(T::DbWeight::get().writes(1 as u64))
-    }
+	fn tip(t: u32) -> Weight {
+		// Minimum execution time: 12_293 nanoseconds.
+		Weight::from_ref_time(12_611_583 as u64) // Standard Error: 14_351
+			.saturating_add(Weight::from_ref_time(111_793 as u64).saturating_mul(t as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 	// Storage: Tips Tips (r:1 w:1)
 	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
 	// Storage: Elections Members (r:1 w:0)
@@ -118,111 +110,22 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: Tips Reasons (r:0 w:1)
 	// Proof Skipped: Tips Reasons (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `t` is `[1, 7]`.
-    fn close_tip(t: u32, ) -> Weight {
-        // Minimum execution time: 26_962 nanoseconds.
-        Weight::from_ref_time(27_564_933 as u64)            // Standard Error: 27_047
-            .saturating_add(Weight::from_ref_time(103_564 as u64).saturating_mul(t as u64))
-            .saturating_add(T::DbWeight::get().reads(3 as u64))
-            .saturating_add(T::DbWeight::get().writes(3 as u64))
-    }
+	fn close_tip(t: u32) -> Weight {
+		// Minimum execution time: 26_852 nanoseconds.
+		Weight::from_ref_time(28_122_916 as u64)
+			.saturating_add(T::DbWeight::get().reads(3 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
+	}
 	// Storage: Tips Tips (r:1 w:1)
 	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
 	// Storage: Tips Reasons (r:0 w:1)
 	// Proof Skipped: Tips Reasons (max_values: None, max_size: None, mode: Measured)
 	/// The range of component `t` is `[1, 7]`.
-    fn slash_tip(t: u32, ) -> Weight {
-        // Minimum execution time: 10_787 nanoseconds.
-        Weight::from_ref_time(11_184_133 as u64)            // Standard Error: 9_259
-            .saturating_add(Weight::from_ref_time(22_975 as u64).saturating_mul(t as u64))
-            .saturating_add(T::DbWeight::get().reads(1 as u64))
-            .saturating_add(T::DbWeight::get().writes(2 as u64))
-    }
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: Tips Reasons (r:1 w:1)
-	// Proof Skipped: Tips Reasons (max_values: None, max_size: None, mode: Measured)
-	// Storage: Tips Tips (r:1 w:1)
-	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
-	/// The range of component `r` is `[0, 1024]`.
-    fn report_awesome(r: u32, ) -> Weight {
-        // Minimum execution time: 13_493 nanoseconds.
-        Weight::from_ref_time(14_167_380 as u64)
-            // Standard Error: 50
-            .saturating_add(Weight::from_ref_time(1_312 as u64).saturating_mul(r as u64))
-            .saturating_add(RocksDbWeight::get().reads(2 as u64))
-            .saturating_add(RocksDbWeight::get().writes(2 as u64))
-    }
-	// Storage: Tips Tips (r:1 w:1)
-	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
-	// Storage: Tips Reasons (r:0 w:1)
-	// Proof Skipped: Tips Reasons (max_values: None, max_size: None, mode: Measured)
-    fn retract_tip() -> Weight {
-        // Minimum execution time: 14_489 nanoseconds.
-        Weight::from_ref_time(14_846_000 as u64)
-            .saturating_add(RocksDbWeight::get().reads(1 as u64))
-            .saturating_add(RocksDbWeight::get().writes(2 as u64))
-    }
-	// Storage: Elections Members (r:1 w:0)
-	// Proof Skipped: Elections Members (max_values: Some(1), max_size: None, mode: Measured)
-	// Storage: Tips Reasons (r:1 w:1)
-	// Proof Skipped: Tips Reasons (max_values: None, max_size: None, mode: Measured)
-	// Storage: Tips Tips (r:0 w:1)
-	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
-	/// The range of component `r` is `[0, 1024]`.
-	/// The range of component `t` is `[1, 7]`.
-    fn tip_new(r: u32, t: u32, ) -> Weight {
-        // Minimum execution time: 13_784 nanoseconds.
-        Weight::from_ref_time(13_437_518 as u64)
-            // Standard Error: 60
-            .saturating_add(Weight::from_ref_time(1_296 as u64).saturating_mul(r as u64))
-            // Standard Error: 10_019
-            .saturating_add(Weight::from_ref_time(89_543 as u64).saturating_mul(t as u64))
-            .saturating_add(RocksDbWeight::get().reads(2 as u64))
-            .saturating_add(RocksDbWeight::get().writes(2 as u64))
-    }
-	// Storage: Elections Members (r:1 w:0)
-	// Proof Skipped: Elections Members (max_values: Some(1), max_size: None, mode: Measured)
-	// Storage: Tips Tips (r:1 w:1)
-	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
-	/// The range of component `t` is `[1, 7]`.
-    fn tip(t: u32, ) -> Weight {
-        // Minimum execution time: 12_032 nanoseconds.
-        Weight::from_ref_time(12_171_450 as u64)
-            // Standard Error: 7_943
-            .saturating_add(Weight::from_ref_time(148_581 as u64).saturating_mul(t as u64))
-            .saturating_add(RocksDbWeight::get().reads(2 as u64))
-            .saturating_add(RocksDbWeight::get().writes(1 as u64))
-    }
-	// Storage: Tips Tips (r:1 w:1)
-	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
-	// Storage: Elections Members (r:1 w:0)
-	// Proof Skipped: Elections Members (max_values: Some(1), max_size: None, mode: Measured)
-	// Storage: System Account (r:1 w:1)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: Tips Reasons (r:0 w:1)
-	// Proof Skipped: Tips Reasons (max_values: None, max_size: None, mode: Measured)
-	/// The range of component `t` is `[1, 7]`.
-    fn close_tip(t: u32, ) -> Weight {
-        // Minimum execution time: 26_962 nanoseconds.
-        Weight::from_ref_time(27_564_933 as u64)
-            // Standard Error: 27_047
-            .saturating_add(Weight::from_ref_time(103_564 as u64).saturating_mul(t as u64))
-            .saturating_add(RocksDbWeight::get().reads(3 as u64))
-            .saturating_add(RocksDbWeight::get().writes(3 as u64))
-    }
-	// Storage: Tips Tips (r:1 w:1)
-	// Proof Skipped: Tips Tips (max_values: None, max_size: None, mode: Measured)
-	// Storage: Tips Reasons (r:0 w:1)
-	// Proof Skipped: Tips Reasons (max_values: None, max_size: None, mode: Measured)
-	/// The range of component `t` is `[1, 7]`.
-    fn slash_tip(t: u32, ) -> Weight {
-        // Minimum execution time: 10_787 nanoseconds.
-        Weight::from_ref_time(11_184_133 as u64)
-            // Standard Error: 9_259
-            .saturating_add(Weight::from_ref_time(22_975 as u64).saturating_mul(t as u64))
-            .saturating_add(RocksDbWeight::get().reads(1 as u64))
-            .saturating_add(RocksDbWeight::get().writes(2 as u64))
-    }
+	fn slash_tip(t: u32) -> Weight {
+		// Minimum execution time: 10_851 nanoseconds.
+		Weight::from_ref_time(11_291_916 as u64) // Standard Error: 6_387
+			.saturating_add(Weight::from_ref_time(8_416 as u64).saturating_mul(t as u64))
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+	}
 }

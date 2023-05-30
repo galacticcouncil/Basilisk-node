@@ -33,7 +33,7 @@
 // --output
 // lbp.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -47,7 +47,6 @@ use sp_std::marker::PhantomData;
 
 use pallet_lbp::weights::WeightInfo;
 
-/// Weights for pallet_lbp using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
@@ -66,8 +65,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:0)
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	fn create_pool() -> Weight {
-		// Minimum execution time: 68_457 nanoseconds.
-		Weight::from_ref_time(69_179_000 as u64)
+		// Minimum execution time: 69_688 nanoseconds.
+		Weight::from_ref_time(70_939_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(12 as u64))
 			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
@@ -76,8 +75,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: LBP FeeCollectorWithAsset (r:1 w:2)
 	// Proof Skipped: LBP FeeCollectorWithAsset (max_values: None, max_size: None, mode: Measured)
 	fn update_pool_data() -> Weight {
-		// Minimum execution time: 17_301 nanoseconds.
-		Weight::from_ref_time(17_752_000 as u64)
+		// Minimum execution time: 17_774 nanoseconds.
+		Weight::from_ref_time(18_169_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -90,8 +89,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:1 w:0)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn add_liquidity() -> Weight {
-		// Minimum execution time: 53_695 nanoseconds.
-		Weight::from_ref_time(54_767_000 as u64)
+		// Minimum execution time: 55_542 nanoseconds.
+		Weight::from_ref_time(56_296_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(8 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -110,8 +109,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: LBP FeeCollectorWithAsset (r:0 w:1)
 	// Proof Skipped: LBP FeeCollectorWithAsset (max_values: None, max_size: None, mode: Measured)
 	fn remove_liquidity() -> Weight {
-		// Minimum execution time: 66_549 nanoseconds.
-		Weight::from_ref_time(67_888_000 as u64)
+		// Minimum execution time: 67_950 nanoseconds.
+		Weight::from_ref_time(69_726_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(10 as u64))
 			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
@@ -126,8 +125,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:3 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn sell() -> Weight {
-		// Minimum execution time: 91_867 nanoseconds.
-		Weight::from_ref_time(92_902_000 as u64)
+		// Minimum execution time: 90_484 nanoseconds.
+		Weight::from_ref_time(91_363_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(12 as u64))
 			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
@@ -142,8 +141,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:3 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn buy() -> Weight {
-		// Minimum execution time: 89_729 nanoseconds.
-		Weight::from_ref_time(91_242_000 as u64)
+		// Minimum execution time: 90_703 nanoseconds.
+		Weight::from_ref_time(91_330_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(12 as u64))
 			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}

@@ -33,7 +33,7 @@
 // --output
 // transaction_pause.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -45,50 +45,25 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_transaction_pause.
-pub trait WeightInfo {
-	fn pause_transaction() -> Weight;
-	fn unpause_transaction() -> Weight;
-}
+use pallet_transaction_pause::weights::WeightInfo;
 
-/// Weights for pallet_transaction_pause using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: TransactionPause PausedTransactions (r:1 w:1)
 	// Proof Skipped: TransactionPause PausedTransactions (max_values: None, max_size: None, mode: Measured)
 	fn pause_transaction() -> Weight {
-		// Minimum execution time: 7_746 nanoseconds.
-		Weight::from_ref_time(8_029_000 as u64)
+		// Minimum execution time: 7_607 nanoseconds.
+		Weight::from_ref_time(8_083_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: TransactionPause PausedTransactions (r:1 w:1)
 	// Proof Skipped: TransactionPause PausedTransactions (max_values: None, max_size: None, mode: Measured)
 	fn unpause_transaction() -> Weight {
-		// Minimum execution time: 8_831 nanoseconds.
-		Weight::from_ref_time(9_141_000 as u64)
+		// Minimum execution time: 9_187 nanoseconds.
+		Weight::from_ref_time(9_359_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: TransactionPause PausedTransactions (r:1 w:1)
-	// Proof Skipped: TransactionPause PausedTransactions (max_values: None, max_size: None, mode: Measured)
-	fn pause_transaction() -> Weight {
-		// Minimum execution time: 7_746 nanoseconds.
-		Weight::from_ref_time(8_029_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
-	}
-	// Storage: TransactionPause PausedTransactions (r:1 w:1)
-	// Proof Skipped: TransactionPause PausedTransactions (max_values: None, max_size: None, mode: Measured)
-	fn unpause_transaction() -> Weight {
-		// Minimum execution time: 8_831 nanoseconds.
-		Weight::from_ref_time(9_141_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(1 as u64))
-			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 }

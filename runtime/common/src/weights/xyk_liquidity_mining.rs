@@ -33,7 +33,7 @@
 // --output
 // xyk_liquidity_mining.rs
 // --template
-// .maintain/pallet-weight-template.hbs
+// .maintain/pallet-weight-template-no-back.hbs
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -45,23 +45,8 @@ use frame_support::{
 };
 use sp_std::marker::PhantomData;
 
-/// Weight functions needed for pallet_xyk_liquidity_mining.
-pub trait WeightInfo {
-	fn create_global_farm() -> Weight;
-	fn update_global_farm() -> Weight;
-	fn terminate_global_farm() -> Weight;
-	fn create_yield_farm() -> Weight;
-	fn update_yield_farm() -> Weight;
-	fn stop_yield_farm() -> Weight;
-	fn terminate_yield_farm() -> Weight;
-	fn deposit_shares() -> Weight;
-	fn redeposit_shares() -> Weight;
-	fn claim_rewards() -> Weight;
-	fn withdraw_shares() -> Weight;
-	fn resume_yield_farm() -> Weight;
-}
+use pallet_xyk_liquidity_mining::weights::WeightInfo;
 
-/// Weights for pallet_xyk_liquidity_mining using the hydraDX node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
@@ -76,8 +61,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: XYKWarehouseLM GlobalFarm (r:0 w:1)
 	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
 	fn create_global_farm() -> Weight {
-		// Minimum execution time: 33_637 nanoseconds.
-		Weight::from_ref_time(34_189_000 as u64)
+		// Minimum execution time: 34_299 nanoseconds.
+		Weight::from_ref_time(34_966_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
@@ -88,8 +73,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:2 w:2)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn update_global_farm() -> Weight {
-		// Minimum execution time: 39_453 nanoseconds.
-		Weight::from_ref_time(39_976_000 as u64)
+		// Minimum execution time: 40_121 nanoseconds.
+		Weight::from_ref_time(40_766_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -100,8 +85,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: Duster AccountBlacklist (r:1 w:1)
 	// Proof Skipped: Duster AccountBlacklist (max_values: None, max_size: None, mode: Measured)
 	fn terminate_global_farm() -> Weight {
-		// Minimum execution time: 37_333 nanoseconds.
-		Weight::from_ref_time(37_747_000 as u64)
+		// Minimum execution time: 36_998 nanoseconds.
+		Weight::from_ref_time(37_409_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -120,8 +105,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: XYKWarehouseLM YieldFarm (r:0 w:1)
 	// Proof: XYKWarehouseLM YieldFarm (max_values: None, max_size: Some(226), added: 2701, mode: MaxEncodedLen)
 	fn create_yield_farm() -> Weight {
-		// Minimum execution time: 54_741 nanoseconds.
-		Weight::from_ref_time(55_334_000 as u64)
+		// Minimum execution time: 54_373 nanoseconds.
+		Weight::from_ref_time(55_152_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
@@ -138,8 +123,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:2 w:2)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn update_yield_farm() -> Weight {
-		// Minimum execution time: 58_211 nanoseconds.
-		Weight::from_ref_time(59_192_000 as u64)
+		// Minimum execution time: 57_805 nanoseconds.
+		Weight::from_ref_time(58_410_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -154,8 +139,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:2 w:2)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn stop_yield_farm() -> Weight {
-		// Minimum execution time: 54_795 nanoseconds.
-		Weight::from_ref_time(55_299_000 as u64)
+		// Minimum execution time: 54_056 nanoseconds.
+		Weight::from_ref_time(54_719_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
@@ -168,8 +153,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:2 w:2)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn terminate_yield_farm() -> Weight {
-		// Minimum execution time: 38_577 nanoseconds.
-		Weight::from_ref_time(39_610_000 as u64)
+		// Minimum execution time: 38_529 nanoseconds.
+		Weight::from_ref_time(39_064_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -212,8 +197,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: XYKWarehouseLM Deposit (r:0 w:1)
 	// Proof: XYKWarehouseLM Deposit (max_values: None, max_size: Some(413), added: 2888, mode: MaxEncodedLen)
 	fn deposit_shares() -> Weight {
-		// Minimum execution time: 129_292 nanoseconds.
-		Weight::from_ref_time(131_145_000 as u64)
+		// Minimum execution time: 128_570 nanoseconds.
+		Weight::from_ref_time(130_027_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(22 as u64))
 			.saturating_add(T::DbWeight::get().writes(13 as u64))
 	}
@@ -236,8 +221,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: Tokens Accounts (r:1 w:0)
 	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
 	fn redeposit_shares() -> Weight {
-		// Minimum execution time: 55_003 nanoseconds.
-		Weight::from_ref_time(55_738_000 as u64)
+		// Minimum execution time: 54_917 nanoseconds.
+		Weight::from_ref_time(56_085_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(9 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -254,8 +239,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:3 w:3)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn claim_rewards() -> Weight {
-		// Minimum execution time: 69_695 nanoseconds.
-		Weight::from_ref_time(70_636_000 as u64)
+		// Minimum execution time: 69_618 nanoseconds.
+		Weight::from_ref_time(70_151_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(8 as u64))
 			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
@@ -294,8 +279,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: NFT Items (r:0 w:1)
 	// Proof: NFT Items (max_values: None, max_size: Some(122), added: 2597, mode: MaxEncodedLen)
 	fn withdraw_shares() -> Weight {
-		// Minimum execution time: 149_763 nanoseconds.
-		Weight::from_ref_time(151_374_000 as u64)
+		// Minimum execution time: 149_187 nanoseconds.
+		Weight::from_ref_time(150_295_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(19 as u64))
 			.saturating_add(T::DbWeight::get().writes(15 as u64))
 	}
@@ -312,265 +297,9 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:2 w:2)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn resume_yield_farm() -> Weight {
-		// Minimum execution time: 56_319 nanoseconds.
-		Weight::from_ref_time(57_972_000 as u64)
+		// Minimum execution time: 56_409 nanoseconds.
+		Weight::from_ref_time(57_202_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
-	}
-}
-
-// For backwards compatibility and tests
-impl WeightInfo for () {
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:2 w:2)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM FarmSequencer (r:1 w:1)
-	// Proof: XYKWarehouseLM FarmSequencer (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
-	// Storage: Duster AccountBlacklist (r:0 w:1)
-	// Proof Skipped: Duster AccountBlacklist (max_values: None, max_size: None, mode: Measured)
-	// Storage: XYKWarehouseLM GlobalFarm (r:0 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	fn create_global_farm() -> Weight {
-		// Minimum execution time: 33_637 nanoseconds.
-		Weight::from_ref_time(34_189_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(4 as u64))
-			.saturating_add(RocksDbWeight::get().writes(5 as u64))
-	}
-	// Storage: XYKWarehouseLM GlobalFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:2 w:2)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn update_global_farm() -> Weight {
-		// Minimum execution time: 39_453 nanoseconds.
-		Weight::from_ref_time(39_976_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(4 as u64))
-			.saturating_add(RocksDbWeight::get().writes(3 as u64))
-	}
-	// Storage: XYKWarehouseLM GlobalFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	// Storage: System Account (r:2 w:2)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: Duster AccountBlacklist (r:1 w:1)
-	// Proof Skipped: Duster AccountBlacklist (max_values: None, max_size: None, mode: Measured)
-	fn terminate_global_farm() -> Weight {
-		// Minimum execution time: 37_333 nanoseconds.
-		Weight::from_ref_time(37_747_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(4 as u64))
-			.saturating_add(RocksDbWeight::get().writes(4 as u64))
-	}
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM GlobalFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM ActiveYieldFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM ActiveYieldFarm (max_values: None, max_size: Some(72), added: 2547, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:2 w:2)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM FarmSequencer (r:1 w:1)
-	// Proof: XYKWarehouseLM FarmSequencer (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM YieldFarm (r:0 w:1)
-	// Proof: XYKWarehouseLM YieldFarm (max_values: None, max_size: Some(226), added: 2701, mode: MaxEncodedLen)
-	fn create_yield_farm() -> Weight {
-		// Minimum execution time: 54_741 nanoseconds.
-		Weight::from_ref_time(55_334_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(7 as u64))
-			.saturating_add(RocksDbWeight::get().writes(6 as u64))
-	}
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM ActiveYieldFarm (r:1 w:0)
-	// Proof: XYKWarehouseLM ActiveYieldFarm (max_values: None, max_size: Some(72), added: 2547, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM YieldFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM YieldFarm (max_values: None, max_size: Some(226), added: 2701, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM GlobalFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:2 w:2)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn update_yield_farm() -> Weight {
-		// Minimum execution time: 58_211 nanoseconds.
-		Weight::from_ref_time(59_192_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(7 as u64))
-			.saturating_add(RocksDbWeight::get().writes(4 as u64))
-	}
-	// Storage: XYKWarehouseLM ActiveYieldFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM ActiveYieldFarm (max_values: None, max_size: Some(72), added: 2547, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM YieldFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM YieldFarm (max_values: None, max_size: Some(226), added: 2701, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM GlobalFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:2 w:2)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn stop_yield_farm() -> Weight {
-		// Minimum execution time: 54_795 nanoseconds.
-		Weight::from_ref_time(55_299_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(6 as u64))
-			.saturating_add(RocksDbWeight::get().writes(5 as u64))
-	}
-	// Storage: XYKWarehouseLM ActiveYieldFarm (r:1 w:0)
-	// Proof: XYKWarehouseLM ActiveYieldFarm (max_values: None, max_size: Some(72), added: 2547, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM GlobalFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM YieldFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM YieldFarm (max_values: None, max_size: Some(226), added: 2701, mode: MaxEncodedLen)
-	// Storage: System Account (r:2 w:2)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn terminate_yield_farm() -> Weight {
-		// Minimum execution time: 38_577 nanoseconds.
-		Weight::from_ref_time(39_610_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(5 as u64))
-			.saturating_add(RocksDbWeight::get().writes(4 as u64))
-	}
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: Tokens Accounts (r:3 w:2)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM YieldFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM YieldFarm (max_values: None, max_size: Some(226), added: 2701, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM GlobalFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:2 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:4 w:3)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: XYK PoolAssets (r:1 w:0)
-	// Proof: XYK PoolAssets (max_values: None, max_size: Some(56), added: 2531, mode: MaxEncodedLen)
-	// Storage: XYK TotalLiquidity (r:1 w:0)
-	// Proof: XYK TotalLiquidity (max_values: None, max_size: Some(64), added: 2539, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM DepositSequencer (r:1 w:1)
-	// Proof: XYKWarehouseLM DepositSequencer (max_values: Some(1), max_size: Some(16), added: 511, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AccountCurrencyMap (r:1 w:0)
-	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: NFT Collections (r:1 w:0)
-	// Proof: NFT Collections (max_values: None, max_size: Some(99), added: 2574, mode: MaxEncodedLen)
-	// Storage: Uniques Asset (r:1 w:1)
-	// Proof: Uniques Asset (max_values: None, max_size: Some(146), added: 2621, mode: MaxEncodedLen)
-	// Storage: Uniques Class (r:1 w:1)
-	// Proof: Uniques Class (max_values: None, max_size: Some(190), added: 2665, mode: MaxEncodedLen)
-	// Storage: Uniques CollectionMaxSupply (r:1 w:0)
-	// Proof: Uniques CollectionMaxSupply (max_values: None, max_size: Some(36), added: 2511, mode: MaxEncodedLen)
-	// Storage: AssetRegistry NextAssetId (r:1 w:0)
-	// Proof Skipped: AssetRegistry NextAssetId (max_values: Some(1), max_size: None, mode: Measured)
-	// Storage: AssetRegistry LocationAssets (r:1 w:0)
-	// Proof Skipped: AssetRegistry LocationAssets (max_values: None, max_size: None, mode: Measured)
-	// Storage: Uniques Account (r:0 w:1)
-	// Proof: Uniques Account (max_values: None, max_size: Some(112), added: 2587, mode: MaxEncodedLen)
-	// Storage: NFT Items (r:0 w:1)
-	// Proof: NFT Items (max_values: None, max_size: Some(122), added: 2597, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM Deposit (r:0 w:1)
-	// Proof: XYKWarehouseLM Deposit (max_values: None, max_size: Some(413), added: 2888, mode: MaxEncodedLen)
-	fn deposit_shares() -> Weight {
-		// Minimum execution time: 129_292 nanoseconds.
-		Weight::from_ref_time(131_145_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(22 as u64))
-			.saturating_add(RocksDbWeight::get().writes(13 as u64))
-	}
-	// Storage: Uniques Asset (r:1 w:0)
-	// Proof: Uniques Asset (max_values: None, max_size: Some(146), added: 2621, mode: MaxEncodedLen)
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM Deposit (r:1 w:1)
-	// Proof: XYKWarehouseLM Deposit (max_values: None, max_size: Some(413), added: 2888, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM YieldFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM YieldFarm (max_values: None, max_size: Some(226), added: 2701, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM GlobalFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	// Storage: XYK PoolAssets (r:1 w:0)
-	// Proof: XYK PoolAssets (max_values: None, max_size: Some(56), added: 2531, mode: MaxEncodedLen)
-	// Storage: XYK TotalLiquidity (r:1 w:0)
-	// Proof: XYK TotalLiquidity (max_values: None, max_size: Some(64), added: 2539, mode: MaxEncodedLen)
-	// Storage: System Account (r:1 w:0)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: Tokens Accounts (r:1 w:0)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	fn redeposit_shares() -> Weight {
-		// Minimum execution time: 55_003 nanoseconds.
-		Weight::from_ref_time(55_738_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(9 as u64))
-			.saturating_add(RocksDbWeight::get().writes(3 as u64))
-	}
-	// Storage: Uniques Asset (r:1 w:0)
-	// Proof: Uniques Asset (max_values: None, max_size: Some(146), added: 2621, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM Deposit (r:1 w:1)
-	// Proof: XYKWarehouseLM Deposit (max_values: None, max_size: Some(413), added: 2888, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM YieldFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM YieldFarm (max_values: None, max_size: Some(226), added: 2701, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM GlobalFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:3 w:3)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn claim_rewards() -> Weight {
-		// Minimum execution time: 69_695 nanoseconds.
-		Weight::from_ref_time(70_636_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(8 as u64))
-			.saturating_add(RocksDbWeight::get().writes(6 as u64))
-	}
-	// Storage: Uniques Asset (r:1 w:1)
-	// Proof: Uniques Asset (max_values: None, max_size: Some(146), added: 2621, mode: MaxEncodedLen)
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM Deposit (r:1 w:1)
-	// Proof: XYKWarehouseLM Deposit (max_values: None, max_size: Some(413), added: 2888, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM YieldFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM YieldFarm (max_values: None, max_size: Some(226), added: 2701, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM GlobalFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:2 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:4 w:4)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: XYK PoolAssets (r:1 w:0)
-	// Proof: XYK PoolAssets (max_values: None, max_size: Some(56), added: 2531, mode: MaxEncodedLen)
-	// Storage: Tokens Accounts (r:2 w:2)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AccountCurrencyMap (r:1 w:1)
-	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: MultiTransactionPayment AcceptedCurrencies (r:1 w:0)
-	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-	// Storage: Uniques Class (r:1 w:1)
-	// Proof: Uniques Class (max_values: None, max_size: Some(190), added: 2665, mode: MaxEncodedLen)
-	// Storage: AssetRegistry NextAssetId (r:1 w:0)
-	// Proof Skipped: AssetRegistry NextAssetId (max_values: Some(1), max_size: None, mode: Measured)
-	// Storage: AssetRegistry LocationAssets (r:1 w:0)
-	// Proof Skipped: AssetRegistry LocationAssets (max_values: None, max_size: None, mode: Measured)
-	// Storage: Uniques Account (r:0 w:1)
-	// Proof: Uniques Account (max_values: None, max_size: Some(112), added: 2587, mode: MaxEncodedLen)
-	// Storage: Uniques ItemPriceOf (r:0 w:1)
-	// Proof: Uniques ItemPriceOf (max_values: None, max_size: Some(113), added: 2588, mode: MaxEncodedLen)
-	// Storage: NFT Items (r:0 w:1)
-	// Proof: NFT Items (max_values: None, max_size: Some(122), added: 2597, mode: MaxEncodedLen)
-	fn withdraw_shares() -> Weight {
-		// Minimum execution time: 149_763 nanoseconds.
-		Weight::from_ref_time(151_374_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(19 as u64))
-			.saturating_add(RocksDbWeight::get().writes(15 as u64))
-	}
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM ActiveYieldFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM ActiveYieldFarm (max_values: None, max_size: Some(72), added: 2547, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM YieldFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM YieldFarm (max_values: None, max_size: Some(226), added: 2701, mode: MaxEncodedLen)
-	// Storage: XYKWarehouseLM GlobalFarm (r:1 w:1)
-	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
-	// Storage: AssetRegistry Assets (r:1 w:0)
-	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-	// Storage: System Account (r:2 w:2)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	fn resume_yield_farm() -> Weight {
-		// Minimum execution time: 56_319 nanoseconds.
-		Weight::from_ref_time(57_972_000 as u64)
-			.saturating_add(RocksDbWeight::get().reads(7 as u64))
-			.saturating_add(RocksDbWeight::get().writes(5 as u64))
 	}
 }
