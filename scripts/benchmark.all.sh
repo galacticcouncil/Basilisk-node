@@ -1,6 +1,5 @@
 #!/bin/bash
 
-echo "huh"
 pallets=("pallet-xyk:xyk"
 "pallet-lbp:lbp"
 "pallet-nft:nft"
