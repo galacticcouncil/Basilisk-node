@@ -917,7 +917,7 @@ parameter_types! {
 	//GalacticCouncil collators
 	pub ExcludedCollators: Vec<AccountId> = vec![
 		// Alice
-		hex_literal::hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into(),
+		// hex_literal::hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into(),
 		// Bob
 		// hex!["8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"].into(),
 	];

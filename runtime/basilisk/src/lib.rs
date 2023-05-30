@@ -942,7 +942,7 @@ impl pallet_route_executor::Config for Runtime {
 }
 
 parameter_types! {
-	pub const RewardPerCollator: Balance = 12_680_000_001_200; // 12.68[BSX/block] * 1200[block]
+	pub const RewardPerCollator: Balance = 15_216_000_000_000_000; // 12.68[BSX/block] * 1200[block]
 	//GalacticCouncil collators
 	pub ExcludedCollators: Vec<AccountId> = vec![
 		// bXn5CfJB2qHvqnuMqTpXn6un9Fjch8mwkb9i3JUsGVD4ChLoe
