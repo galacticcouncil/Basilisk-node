@@ -26,7 +26,7 @@ pallets=("pallet-xyk:xyk"
 "pallet-marketplace:marketplace"
 )
 
-command="cargo run --release --features=runtime-benchmarks -- benchmark pallet --pallet=[pallet] --chain=dev --extrinsic='*' --steps=5 --repeat=20 --output [output].rs --template .maintain/pallet-weight-template.hbs"
+command="cargo run --release --features=runtime-benchmarks -- benchmark pallet --pallet=[pallet] --chain=dev --extrinsic='*' --steps=5 --repeat=20 --output [output].rs --template .maintain/pallet-weight-template-no-back.hbs"
 
 for string in "${pallets[@]}"; do
 
