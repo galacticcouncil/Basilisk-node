@@ -1,6 +1,6 @@
 [package]
 name = "pallet-marketplace"
-version = "5.0.11"
+version = "5.0.12"
 authors = ["GalacticCoucil"]
 description = "The marketplace for trading NFTs"
 edition = "2018"
@@ -12,29 +12,29 @@ repository = "https://github.com/galacticcouncil/Basilisk-node"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "3.1.5" }
-scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
-frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false, optional = true }
-frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.29", default-features = false }
+codec = { default-features = false, features = ["derive"], package = "parity-scale-codec", version = "3.4.0" }
+scale-info = { version = "2.3.1", default-features = false, features = ["derive"] }
+frame-benchmarking = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false, optional = true }
+frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
+orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.38", default-features = false }
 serde = { version = "1.0.136", optional = true, features = ["derive"] }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
+sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
+pallet-uniques = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
 
 # Warehouse dependency
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "eae2ce4963fb35ad2592a536293eb5609ed33244", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev = "f64f50255965a1177d28bbc969a371013584bbdd", default-features = false }
 
 # local dependency
 primitives = { default-features = false, path = "../../primitives" }
 
 [dev-dependencies]
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.29", default-features = false }
+pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38" }
+sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
 pretty_assertions = "1.2.1"
 
 [features]
@@ -49,6 +49,7 @@ std = [
     "sp-runtime/std",
     "pallet-nft/std",
     "pallet-uniques/std",
+    "primitives/std",
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",

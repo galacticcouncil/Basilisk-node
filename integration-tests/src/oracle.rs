@@ -2,7 +2,7 @@
 
 use crate::kusama_test_net::*;
 
-use basilisk_runtime::{EmaOracle, Origin, XYK};
+use basilisk_runtime::{EmaOracle, RuntimeOrigin, XYK};
 use frame_support::{
 	assert_ok,
 	traits::{OnFinalize, OnInitialize},
@@ -40,14 +40,14 @@ fn xyk_trades_are_ingested_into_oracle() {
 		basilisk_run_to_block(2);
 
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			asset_a,
 			100 * UNITS,
 			asset_b,
 			200 * UNITS,
 		));
 		assert_ok!(XYK::sell(
-			Origin::signed(ALICE.into()),
+			RuntimeOrigin::signed(ALICE.into()),
 			asset_a,
 			asset_b,
 			5 * UNITS,

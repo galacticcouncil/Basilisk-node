@@ -55,21 +55,18 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
-	fn second(s: u32) -> Weight {
+	fn second() -> Weight {
 		Weight::from_ref_time(48_847_000 as u64) // Standard Error: 3_000
-			.saturating_add(Weight::from_ref_time(135_000 as u64).saturating_mul(s as u64))
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
-	fn vote_new(r: u32) -> Weight {
+	fn vote_new() -> Weight {
 		Weight::from_ref_time(62_363_000 as u64) // Standard Error: 3_000
-			.saturating_add(Weight::from_ref_time(202_000 as u64).saturating_mul(r as u64))
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
-	fn vote_existing(r: u32) -> Weight {
+	fn vote_existing() -> Weight {
 		Weight::from_ref_time(62_176_000 as u64) // Standard Error: 4_000
-			.saturating_add(Weight::from_ref_time(204_000 as u64).saturating_mul(r as u64))
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -78,15 +75,13 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
-	fn blacklist(p: u32) -> Weight {
+	fn blacklist() -> Weight {
 		Weight::from_ref_time(62_035_000 as u64) // Standard Error: 56_000
-			.saturating_add(Weight::from_ref_time(625_000 as u64).saturating_mul(p as u64))
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
-	fn external_propose(v: u32) -> Weight {
+	fn external_propose() -> Weight {
 		Weight::from_ref_time(21_317_000 as u64) // Standard Error: 1_000
-			.saturating_add(Weight::from_ref_time(29_000 as u64).saturating_mul(v as u64))
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -101,26 +96,18 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
-	fn veto_external(v: u32) -> Weight {
+	fn veto_external() -> Weight {
 		Weight::from_ref_time(33_419_000 as u64) // Standard Error: 1_000
-			.saturating_add(Weight::from_ref_time(41_000 as u64).saturating_mul(v as u64))
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
-	fn cancel_proposal(p: u32) -> Weight {
+	fn cancel_proposal() -> Weight {
 		Weight::from_ref_time(69_673_000 as u64) // Standard Error: 8_000
-			.saturating_add(Weight::from_ref_time(293_000 as u64).saturating_mul(p as u64))
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn cancel_referendum() -> Weight {
 		Weight::from_ref_time(23_219_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
-	}
-	fn cancel_queued(r: u32) -> Weight {
-		Weight::from_ref_time(36_915_000 as u64) // Standard Error: 6_000
-			.saturating_add(Weight::from_ref_time(1_957_000 as u64).saturating_mul(r as u64))
-			.saturating_add(T::DbWeight::get().reads(2 as u64))
-			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	fn on_initialize_base(r: u32) -> Weight {
 		Weight::from_ref_time(12_788_000 as u64) // Standard Error: 7_000
@@ -154,24 +141,6 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	}
 	fn clear_public_proposals() -> Weight {
 		Weight::from_ref_time(10_668_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
-	}
-	fn note_preimage(b: u32) -> Weight {
-		Weight::from_ref_time(36_858_000 as u64) // Standard Error: 0
-			.saturating_add(Weight::from_ref_time(3_000 as u64).saturating_mul(b as u64))
-			.saturating_add(T::DbWeight::get().reads(1 as u64))
-			.saturating_add(T::DbWeight::get().writes(1 as u64))
-	}
-	fn note_imminent_preimage(b: u32) -> Weight {
-		Weight::from_ref_time(34_379_000 as u64) // Standard Error: 0
-			.saturating_add(Weight::from_ref_time(2_000 as u64).saturating_mul(b as u64))
-			.saturating_add(T::DbWeight::get().reads(1 as u64))
-			.saturating_add(T::DbWeight::get().writes(1 as u64))
-	}
-	fn reap_preimage(b: u32) -> Weight {
-		Weight::from_ref_time(44_966_000 as u64) // Standard Error: 0
-			.saturating_add(Weight::from_ref_time(2_000 as u64).saturating_mul(b as u64))
-			.saturating_add(T::DbWeight::get().reads(1 as u64))
-			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn unlock_remove(r: u32) -> Weight {
 		Weight::from_ref_time(46_275_000 as u64) // Standard Error: 2_000

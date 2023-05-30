@@ -19,7 +19,7 @@ fn spot_price_provider_should_return_correct_price_when_pool_exists() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(XYK::create_pool(
-				Origin::signed(ALICE),
+				RuntimeOrigin::signed(ALICE),
 				asset_a,
 				initial,
 				asset_b,
@@ -56,7 +56,7 @@ fn spot_price_provider_should_return_none_when_asset_reserve_is_zero() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(XYK::create_pool(
-				Origin::signed(ALICE),
+				RuntimeOrigin::signed(ALICE),
 				asset_a,
 				initial,
 				asset_b,

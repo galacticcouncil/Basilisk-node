@@ -106,7 +106,7 @@ parameter_types! {
 }
 
 impl pallet_asset_registry::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;
 	type Balance = Balance;
@@ -121,8 +121,8 @@ impl system::Config for Test {
 	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
-	type Origin = Origin;
-	type Call = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
 	type Index = u64;
 	type BlockNumber = u64;
 	type Hash = H256;
@@ -130,7 +130,7 @@ impl system::Config for Test {
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = ();
 	type Version = ();
@@ -151,19 +151,17 @@ parameter_type_with_key! {
 }
 
 impl orml_tokens::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
 	type WeightInfo = ();
 	type ExistentialDeposits = ExistentialDeposits;
-	type OnDust = ();
 	type MaxLocks = ();
 	type DustRemovalWhitelist = Nothing;
-	type OnNewTokenAccount = ();
-	type OnKilledTokenAccount = ();
 	type ReserveIdentifier = ();
 	type MaxReserves = ();
+	type CurrencyHooks = ();
 }
 
 pub struct AssetPairAccountIdTest();
@@ -197,7 +195,7 @@ impl CanCreatePool<AssetId> for Disallow10_10Pool {
 }
 
 impl Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currency;
@@ -277,7 +275,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-pub fn expect_events(e: Vec<Event>) {
+pub fn expect_events(e: Vec<RuntimeEvent>) {
 	e.into_iter().for_each(frame_system::Pallet::<Test>::assert_has_event);
 }
 

@@ -31,6 +31,10 @@ clippy:
 format:
 	cargo fmt
 
+.PHONY: try-runtime
+try-runtime:
+	cargo run --release --features=try-runtime --bin basilisk try-runtime --runtime ./target/release/wbuild/basilisk-runtime/basilisk_runtime.wasm on-runtime-upgrade --checks live --uri wss://rpc.basilisk.cloud:443
+
 .PHONY: build-docs
 build-docs:
 	cargo doc --release --target-dir ./Basilisk-dev-docs --no-deps

@@ -62,7 +62,7 @@ decl_test_relay_chain! {
 decl_test_parachain! {
 	pub struct Basilisk{
 		Runtime = basilisk_runtime::Runtime,
-		Origin = basilisk_runtime::Origin,
+		RuntimeOrigin = basilisk_runtime::RuntimeOrigin,
 		XcmpMessageHandler = basilisk_runtime::XcmpQueue,
 		DmpMessageHandler = basilisk_runtime::DmpQueue,
 		new_ext = basilisk_ext(),
@@ -72,7 +72,7 @@ decl_test_parachain! {
 decl_test_parachain! {
 	pub struct OtherParachain{
 		Runtime = parachain_runtime_mock::ParachainRuntime,
-		Origin = parachain_runtime_mock::Origin,
+		RuntimeOrigin = parachain_runtime_mock::RuntimeOrigin,
 		XcmpMessageHandler = parachain_runtime_mock::XcmpQueue,
 		DmpMessageHandler = parachain_runtime_mock::DmpQueue,
 		new_ext = other_parachain_ext(),
@@ -151,7 +151,7 @@ pub fn kusama_ext() -> sp_io::TestExternalities {
 
 	<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&pallet_xcm::GenesisConfig {
-			safe_xcm_version: Some(2),
+			safe_xcm_version: Some(3),
 		},
 		&mut t,
 	)
@@ -229,7 +229,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 		&pallet_xcm::GenesisConfig {
-			safe_xcm_version: Some(2),
+			safe_xcm_version: Some(3),
 		},
 		&mut t,
 	)
@@ -298,7 +298,7 @@ pub fn other_parachain_ext() -> sp_io::TestExternalities {
 
 	<pallet_xcm::GenesisConfig as GenesisBuild<ParachainRuntime>>::assimilate_storage(
 		&pallet_xcm::GenesisConfig {
-			safe_xcm_version: Some(2),
+			safe_xcm_version: Some(3),
 		},
 		&mut t,
 	)
@@ -321,7 +321,7 @@ pub fn other_parachain_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::Event> {
+fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::RuntimeEvent> {
 	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
 		.into_iter()
 		.rev()
@@ -331,7 +331,7 @@ fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::Event> {
 		.collect()
 }
 
-pub fn expect_basilisk_events(e: Vec<basilisk_runtime::Event>) {
+pub fn expect_basilisk_events(e: Vec<basilisk_runtime::RuntimeEvent>) {
 	assert_eq!(last_basilisk_events(e.len()), e);
 }
 
@@ -340,8 +340,8 @@ pub fn vesting_account() -> AccountId {
 }
 
 pub fn set_relaychain_block_number(number: BlockNumber) {
-	use basilisk_runtime::Origin;
 	use basilisk_runtime::ParachainSystem;
+	use basilisk_runtime::RuntimeOrigin;
 	use frame_support::traits::OnInitialize;
 
 	kusama_run_to_block(number); //We need to set block number this way as well because tarpaulin code coverage tool does not like the way how we set the block number with `cumulus-test-relay-sproof-builder` package
@@ -351,7 +351,7 @@ pub fn set_relaychain_block_number(number: BlockNumber) {
 	let (relay_storage_root, proof) = RelayStateSproofBuilder::default().into_state_root_and_proof();
 
 	assert_ok!(ParachainSystem::set_validation_data(
-		Origin::none(),
+		RuntimeOrigin::none(),
 		cumulus_primitives_parachain_inherent::ParachainInherentData {
 			validation_data: cumulus_primitives_core::PersistedValidationData {
 				parent_head: Default::default(),

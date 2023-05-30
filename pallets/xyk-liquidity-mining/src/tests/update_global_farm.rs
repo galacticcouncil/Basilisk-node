@@ -72,7 +72,7 @@ fn update_global_farm_should_fail_when_origin_is_not_signed() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				LiquidityMining::update_global_farm(mock::Origin::none(), BOB_FARM, FixedU128::from_float(0.268_756_6)),
+				LiquidityMining::update_global_farm(Origin::none(), BOB_FARM, FixedU128::from_float(0.268_756_6)),
 				BadOrigin
 			);
 		});
