@@ -91,6 +91,7 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 			Some(NEW_TOKEN),
 			None,
 			None,
+			None,
 		));
 
 		assert_ok!(basilisk_runtime::Balances::set_balance(
