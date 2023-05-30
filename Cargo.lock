@@ -643,6 +643,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-rewards",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",
@@ -6187,6 +6188,25 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-collator-rewards"
+version = "1.0.4"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=f64f50255965a1177d28bbc969a371013584bbdd#f64f50255965a1177d28bbc969a371013584bbdd"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "orml-traits",
+ "pallet-session",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
+ "substrate-wasm-builder",
 ]
 
 [[package]]
@@ -12703,6 +12723,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-rewards",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",

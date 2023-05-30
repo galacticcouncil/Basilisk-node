@@ -912,6 +912,30 @@ impl pallet_route_executor::Config for Runtime {
 	type WeightInfo = common_runtime::weights::route_executor::BasiliskWeight<Runtime>;
 }
 
+parameter_types! {
+	pub const RewardPerCollator: Balance = 10_000 * UNITS;
+	//GalacticCouncil collators
+	pub ExcludedCollators: Vec<AccountId> = vec![
+		// Alice
+		// hex_literal::hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into(),
+		// Bob
+		// hex!["8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"].into(),
+	];
+}
+
+impl pallet_collator_rewards::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type CurrencyId = AssetId;
+	type Currency = Currencies;
+	type RewardPerCollator = RewardPerCollator;
+	type ExcludedCollators = ExcludedCollators;
+	type RewardCurrencyId = NativeAssetId;
+	// We wrap the ` SessionManager` implementation of `CollatorSelection` to get the collatrs that
+	// we hand out rewards to.
+	type SessionManager = CollatorSelection;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -964,15 +988,14 @@ construct_runtime!(
 		Duster: pallet_duster = 102,
 		LBP: pallet_lbp = 104,
 		NFT: pallet_nft = 105,
-
 		MultiTransactionPayment: pallet_transaction_multi_payment = 106,
 		RelayChainInfo: pallet_relaychain_info = 108,
 		Marketplace: pallet_marketplace = 109,
 		TransactionPause: pallet_transaction_pause = 110,
 		Router: pallet_route_executor = 111,
-
 		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
+		CollatorRewards: pallet_collator_rewards = 114,
 
 		// ORML related modules - starts at 150
 		Currencies: pallet_currencies = 150,
