@@ -77,7 +77,7 @@ runtime_benchmarks! {
 	}: { <Runtime as pallet_transaction_multi_payment::Config>::SpotPriceProvider::spot_price(asset_id, asset_out) }
 	verify{
 		assert_eq!(<Runtime as pallet_transaction_multi_payment::Config>::SpotPriceProvider::spot_price(asset_id, asset_out),
-			Some(Price::from((2,1))));
+			Some(Price::from((1,2))));
 
 	}
 }
