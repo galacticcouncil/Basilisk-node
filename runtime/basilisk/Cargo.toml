@@ -50,6 +50,7 @@ pallet-route-executor = { git = "https://github.com/galacticcouncil/warehouse", 
 warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/warehouse", rev = "d6a78b5d51bc8af525d2b8f856efcfce2159e334", default-features = false }
 pallet-ema-oracle = { git = "https://github.com/galacticcouncil/warehouse", rev = "d6a78b5d51bc8af525d2b8f856efcfce2159e334", default-features = false }
 pallet-duster = { git = "https://github.com/galacticcouncil/warehouse", rev = "d6a78b5d51bc8af525d2b8f856efcfce2159e334", default-features = false }
+pallet-collator-rewards = { git = "https://github.com/galacticcouncil/warehouse",rev = "f64f50255965a1177d28bbc969a371013584bbdd", default-features = false}
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.38", default-features = false }
@@ -282,5 +283,6 @@ try-runtime= [
     "pallet-route-executor/try-runtime",
     "pallet-xyk-liquidity-mining/try-runtime",
     "warehouse-liquidity-mining/try-runtime",
-    "pallet-ema-oracle/try-runtime"
+    "pallet-ema-oracle/try-runtime",
+    "pallet-collator-rewards/try-runtime",
 ]

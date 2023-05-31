@@ -643,6 +643,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-rewards",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",
@@ -6191,6 +6192,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-collator-rewards"
+version = "1.0.4"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=f64f50255965a1177d28bbc969a371013584bbdd#f64f50255965a1177d28bbc969a371013584bbdd"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "orml-traits",
+ "pallet-session",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
 name = "pallet-collator-selection"
 version = "3.0.0"
 source = "git+https://github.com/paritytech//cumulus?branch=polkadot-v0.9.38#9b4e0247137f158d1a35118197d34adfa58858b7"
@@ -7218,7 +7238,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "6.2.5"
+version = "6.2.6"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -12704,6 +12724,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-rewards",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",
