@@ -13,6 +13,24 @@ members = [
   'integration-tests/parachain-runtime-mock'
 ]
 
+[workspace.dependencies]
+hydradx-traits = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+hydradx-adapters = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-currencies = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-transaction-pause = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-route-executor = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-ema-oracle = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-duster = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-price-oracle = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+pallet-collator-rewards = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+test-utils = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
+
 [patch."https://github.com/paritytech/substrate"]
 frame-benchmarking = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.38" }
 frame-benchmarking-cli = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.38" }

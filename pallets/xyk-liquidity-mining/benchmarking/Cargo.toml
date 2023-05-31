@@ -25,11 +25,11 @@ orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-li
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.38", default-features = false }
 
 # HydraDX dependencies
-pallet-nft = { git = "https://github.com/galacticcouncil/warehouse", rev="d6a78b5d51bc8af525d2b8f856efcfce2159e334", default-features = false}
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/warehouse", rev="d6a78b5d51bc8af525d2b8f856efcfce2159e334", default-features = false }
-pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/warehouse", rev="d6a78b5d51bc8af525d2b8f856efcfce2159e334", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/warehouse", rev="d6a78b5d51bc8af525d2b8f856efcfce2159e334", default-features = false }
-pallet-duster = { git = "https://github.com/galacticcouncil/warehouse", rev="d6a78b5d51bc8af525d2b8f856efcfce2159e334", default-features = false }
+pallet-nft = { workspace = true }
+pallet-asset-registry = { workspace = true }
+pallet-liquidity-mining = { workspace = true }
+hydradx-traits = { workspace = true }
+pallet-duster = { workspace = true }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
