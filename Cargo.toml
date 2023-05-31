@@ -14,6 +14,7 @@ members = [
 ]
 
 [workspace.dependencies]
+hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
 hydradx-adapters = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "091bc9d084139bfc1d7899534d311f7f2f46dbdb", default-features = false }

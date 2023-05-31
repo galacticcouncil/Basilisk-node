@@ -3794,20 +3794,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hydra-dx-math"
-version = "7.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-math?rev=380b80b59bbf62abb8848fb8a10bb206861eab41#380b80b59bbf62abb8848fb8a10bb206861eab41"
-dependencies = [
- "fixed",
- "num-traits",
- "parity-scale-codec",
- "primitive-types 0.12.1",
- "scale-info",
- "sp-arithmetic",
- "sp-std",
-]
-
-[[package]]
 name = "hydradx-adapters"
 version = "0.3.0"
 source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=091bc9d084139bfc1d7899534d311f7f2f46dbdb#091bc9d084139bfc1d7899534d311f7f2f46dbdb"
@@ -6404,7 +6390,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "hydra-dx-math 7.1.0 (git+https://github.com/galacticcouncil/HydraDX-node?rev=091bc9d084139bfc1d7899534d311f7f2f46dbdb)",
+ "hydra-dx-math",
  "hydradx-traits",
  "log",
  "parity-scale-codec",
@@ -6517,7 +6503,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 7.1.0 (git+https://github.com/galacticcouncil/HydraDX-math?rev=380b80b59bbf62abb8848fb8a10bb206861eab41)",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -6541,7 +6527,7 @@ source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=091bc9d084139b
 dependencies = [
  "frame-support",
  "frame-system",
- "hydra-dx-math 7.1.0 (git+https://github.com/galacticcouncil/HydraDX-node?rev=091bc9d084139bfc1d7899534d311f7f2f46dbdb)",
+ "hydra-dx-math",
  "hydradx-traits",
  "orml-traits",
  "parity-scale-codec",
@@ -7258,7 +7244,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
- "hydra-dx-math 7.1.0 (git+https://github.com/galacticcouncil/HydraDX-math?rev=380b80b59bbf62abb8848fb8a10bb206861eab41)",
+ "hydra-dx-math",
  "hydradx-traits",
  "log",
  "orml-tokens",
