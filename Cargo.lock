@@ -526,7 +526,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "9.0.0"
+version = "9.0.1"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -608,7 +608,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "96.0.0"
+version = "97.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1299,7 +1299,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.3.10"
+version = "2.3.11"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
@@ -1314,6 +1314,7 @@ dependencies = [
  "pallet-currencies",
  "pallet-democracy",
  "pallet-duster",
+ "pallet-ema-oracle",
  "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft",
@@ -9799,7 +9800,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -12690,7 +12691,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "96.0.0"
+version = "97.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",

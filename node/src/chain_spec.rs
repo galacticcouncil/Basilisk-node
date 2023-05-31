@@ -728,6 +728,7 @@ fn parachain_genesis(
 			dust_account: Some(hex!["6d6f646c70792f74727372790000000000000000000000000000000000000000"].into()),
 		},
 		polkadot_xcm: Default::default(),
+		ema_oracle: Default::default(),
 		xyk_liquidity_mining: Default::default(),
 		xyk_warehouse_lm: Default::default(),
 	}
@@ -830,6 +831,7 @@ fn testnet_parachain_genesis(
 			dust_account: Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 		},
 		polkadot_xcm: Default::default(),
+		ema_oracle: Default::default(),
 		xyk_liquidity_mining: Default::default(),
 		xyk_warehouse_lm: Default::default(),
 	}

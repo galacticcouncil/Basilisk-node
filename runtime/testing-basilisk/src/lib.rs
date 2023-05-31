@@ -63,8 +63,9 @@ use frame_support::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
+	BoundedVec,
 };
-use hydradx_traits::AssetPairAccountIdFor;
+use hydradx_traits::{AssetPairAccountIdFor, OraclePeriod};
 use orml_traits::currency::MutationHooks;
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -134,7 +135,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("testing-basilisk"),
 	impl_name: create_runtime_str!("testing-basilisk"),
 	authoring_version: 1,
-	spec_version: 96,
+	spec_version: 97,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -467,7 +468,7 @@ impl pallet_xyk::Config for Runtime {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
-	type AMMHandler = ();
+	type AMMHandler = pallet_ema_oracle::OnActivityHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
 }
@@ -936,6 +937,26 @@ impl pallet_collator_rewards::Config for Runtime {
 	type SessionManager = CollatorSelection;
 }
 
+// constants need to be in scope to be used in generics
+use pallet_ema_oracle::MAX_PERIODS;
+
+parameter_types! {
+	pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<MAX_PERIODS>> = BoundedVec::truncate_from(
+		vec![OraclePeriod::LastBlock, OraclePeriod::Hour, OraclePeriod::Day, OraclePeriod::Week]
+	);
+	// There are currently only a few pools, so the number of entries per block is limited.
+	// NOTE: Needs to be updated once the number of pools grows.
+	pub MaxUniqueOracleEntries: u32 = 30;
+}
+
+impl pallet_ema_oracle::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::ema_oracle::BasiliskWeight<Runtime>;
+	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type SupportedPeriods = SupportedPeriods;
+	type MaxUniqueEntries = MaxUniqueOracleEntries;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -996,6 +1017,8 @@ construct_runtime!(
 		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
 		CollatorRewards: pallet_collator_rewards = 114,
+
+		EmaOracle: pallet_ema_oracle = 120,
 
 		// ORML related modules - starts at 150
 		Currencies: pallet_currencies = 150,
