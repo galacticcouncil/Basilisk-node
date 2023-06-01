@@ -608,7 +608,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "97.0.0"
+version = "98.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1299,7 +1299,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.3.11"
+version = "2.3.12"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
@@ -6498,7 +6498,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.6.11"
+version = "4.6.12"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6540,7 +6540,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "5.0.13"
+version = "5.0.14"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7239,7 +7239,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "6.2.6"
+version = "6.2.7"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7268,7 +7268,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining"
-version = "1.1.7"
+version = "1.1.8"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7294,7 +7294,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.12"
+version = "1.0.13"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9801,7 +9801,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.9.5"
+version = "0.9.6"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -12692,7 +12692,7 @@ dependencies = [
 
 [[package]]
 name = "testing-basilisk-runtime"
-version = "97.0.0"
+version = "98.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
