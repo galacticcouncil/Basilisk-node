@@ -13,6 +13,7 @@ pub mod route_executor;
 pub mod scheduler;
 pub mod system;
 pub mod timestamp;
+pub mod tips;
 pub mod tokens;
 pub mod transaction_pause;
 pub mod treasury;
