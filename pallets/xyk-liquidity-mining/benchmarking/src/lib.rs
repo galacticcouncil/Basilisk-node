@@ -71,36 +71,6 @@ fn create_funded_account<T: Config>(name: &'static str, index: u32) -> T::Accoun
 
 	<T as pallet_xyk_liquidity_mining::Config>::MultiCurrency::deposit(DOT, &caller, INITIAL_BALANCE * ONE).unwrap();
 
-	let next_available_asset_id = pallet_asset_registry::Pallet::<T>::next_asset_id().unwrap();
-	<T as pallet_xyk_liquidity_mining::Config>::MultiCurrency::deposit(
-		next_available_asset_id.try_into().ok().unwrap(),
-		&caller,
-		INITIAL_BALANCE * ONE,
-	)
-	.unwrap();
-
-	<T as pallet_xyk_liquidity_mining::Config>::MultiCurrency::deposit(
-		TryInto::<u32>::try_into(next_available_asset_id)
-			.ok()
-			.unwrap()
-			.checked_add(1)
-			.unwrap(),
-		&caller,
-		INITIAL_BALANCE * ONE,
-	)
-	.unwrap();
-
-	<T as pallet_xyk_liquidity_mining::Config>::MultiCurrency::deposit(
-		TryInto::<u32>::try_into(next_available_asset_id)
-			.ok()
-			.unwrap()
-			.checked_add(2)
-			.unwrap(),
-		&caller,
-		INITIAL_BALANCE * ONE,
-	)
-	.unwrap();
-
 	caller
 }
 

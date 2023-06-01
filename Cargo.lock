@@ -1321,6 +1321,7 @@ dependencies = [
  "pallet-route-executor",
  "pallet-scheduler",
  "pallet-timestamp",
+ "pallet-tips",
  "pallet-transaction-multi-payment",
  "pallet-transaction-pause",
  "pallet-transaction-payment",
