@@ -40,8 +40,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -52,51 +52,58 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: System Account (r:1 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-    fn transfer() -> Weight {
-        // Minimum execution time: 38_236 nanoseconds.
-        Weight::from_ref_time(38_941_000 as u64)            .saturating_add(T::DbWeight::get().reads(1 as u64))
-            .saturating_add(T::DbWeight::get().writes(1 as u64))
-    }
+	fn transfer() -> Weight {
+		// Minimum execution time: 38_236 nanoseconds.
+		Weight::from_ref_time(38_941_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 	// Storage: System Account (r:1 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-    fn transfer_keep_alive() -> Weight {
-        // Minimum execution time: 28_222 nanoseconds.
-        Weight::from_ref_time(28_677_000 as u64)            .saturating_add(T::DbWeight::get().reads(1 as u64))
-            .saturating_add(T::DbWeight::get().writes(1 as u64))
-    }
+	fn transfer_keep_alive() -> Weight {
+		// Minimum execution time: 28_222 nanoseconds.
+		Weight::from_ref_time(28_677_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 	// Storage: System Account (r:1 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-    fn set_balance_creating() -> Weight {
-        // Minimum execution time: 23_486 nanoseconds.
-        Weight::from_ref_time(23_855_000 as u64)            .saturating_add(T::DbWeight::get().reads(1 as u64))
-            .saturating_add(T::DbWeight::get().writes(1 as u64))
-    }
+	fn set_balance_creating() -> Weight {
+		// Minimum execution time: 23_486 nanoseconds.
+		Weight::from_ref_time(23_855_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 	// Storage: System Account (r:1 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-    fn set_balance_killing() -> Weight {
-        // Minimum execution time: 24_931 nanoseconds.
-        Weight::from_ref_time(25_416_000 as u64)            .saturating_add(T::DbWeight::get().reads(1 as u64))
-            .saturating_add(T::DbWeight::get().writes(1 as u64))
-    }
+	fn set_balance_killing() -> Weight {
+		// Minimum execution time: 24_931 nanoseconds.
+		Weight::from_ref_time(25_416_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 	// Storage: System Account (r:2 w:2)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-    fn force_transfer() -> Weight {
-        // Minimum execution time: 38_145 nanoseconds.
-        Weight::from_ref_time(38_657_000 as u64)            .saturating_add(T::DbWeight::get().reads(2 as u64))
-            .saturating_add(T::DbWeight::get().writes(2 as u64))
-    }
+	fn force_transfer() -> Weight {
+		// Minimum execution time: 38_145 nanoseconds.
+		Weight::from_ref_time(38_657_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+	}
 	// Storage: System Account (r:1 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-    fn transfer_all() -> Weight {
-        // Minimum execution time: 30_840 nanoseconds.
-        Weight::from_ref_time(31_610_000 as u64)            .saturating_add(T::DbWeight::get().reads(1 as u64))
-            .saturating_add(T::DbWeight::get().writes(1 as u64))
-    }
+	fn transfer_all() -> Weight {
+		// Minimum execution time: 30_840 nanoseconds.
+		Weight::from_ref_time(31_610_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 	// Storage: System Account (r:1 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-    fn force_unreserve() -> Weight {
-        // Minimum execution time: 19_723 nanoseconds.
-        Weight::from_ref_time(20_369_000 as u64)            .saturating_add(T::DbWeight::get().reads(1 as u64))
-            .saturating_add(T::DbWeight::get().writes(1 as u64))
-    }
+	fn force_unreserve() -> Weight {
+		// Minimum execution time: 19_723 nanoseconds.
+		Weight::from_ref_time(20_369_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 }

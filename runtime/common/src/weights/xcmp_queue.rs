@@ -40,8 +40,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -52,16 +52,18 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: XcmpQueue QueueConfig (r:1 w:1)
 	// Proof Skipped: XcmpQueue QueueConfig (max_values: Some(1), max_size: None, mode: Measured)
-    fn set_config_with_u32() -> Weight {
-        // Minimum execution time: 4_876 nanoseconds.
-        Weight::from_ref_time(5_070_000 as u64)            .saturating_add(T::DbWeight::get().reads(1 as u64))
-            .saturating_add(T::DbWeight::get().writes(1 as u64))
-    }
+	fn set_config_with_u32() -> Weight {
+		// Minimum execution time: 4_876 nanoseconds.
+		Weight::from_ref_time(5_070_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 	// Storage: XcmpQueue QueueConfig (r:1 w:1)
 	// Proof Skipped: XcmpQueue QueueConfig (max_values: Some(1), max_size: None, mode: Measured)
-    fn set_config_with_weight() -> Weight {
-        // Minimum execution time: 5_162 nanoseconds.
-        Weight::from_ref_time(5_377_000 as u64)            .saturating_add(T::DbWeight::get().reads(1 as u64))
-            .saturating_add(T::DbWeight::get().writes(1 as u64))
-    }
+	fn set_config_with_weight() -> Weight {
+		// Minimum execution time: 5_162 nanoseconds.
+		Weight::from_ref_time(5_377_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 }

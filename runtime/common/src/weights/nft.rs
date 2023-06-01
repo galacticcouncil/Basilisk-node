@@ -40,8 +40,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -60,11 +60,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Uniques ClassAccount (max_values: None, max_size: Some(80), added: 2555, mode: MaxEncodedLen)
 	// Storage: NFT Collections (r:0 w:1)
 	// Proof: NFT Collections (max_values: None, max_size: Some(99), added: 2574, mode: MaxEncodedLen)
-    fn create_collection() -> Weight {
-        // Minimum execution time: 19_500 nanoseconds.
-        Weight::from_ref_time(19_928_000 as u64)            .saturating_add(T::DbWeight::get().reads(3 as u64))
-            .saturating_add(T::DbWeight::get().writes(3 as u64))
-    }
+	fn create_collection() -> Weight {
+		// Minimum execution time: 19_500 nanoseconds.
+		Weight::from_ref_time(19_928_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(3 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
+	}
 	// Storage: NFT Collections (r:1 w:0)
 	// Proof: NFT Collections (max_values: None, max_size: Some(99), added: 2574, mode: MaxEncodedLen)
 	// Storage: Uniques Class (r:1 w:1)
@@ -81,11 +82,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Uniques Account (max_values: None, max_size: Some(112), added: 2587, mode: MaxEncodedLen)
 	// Storage: NFT Items (r:0 w:1)
 	// Proof: NFT Items (max_values: None, max_size: Some(122), added: 2597, mode: MaxEncodedLen)
-    fn mint() -> Weight {
-        // Minimum execution time: 31_625 nanoseconds.
-        Weight::from_ref_time(32_251_000 as u64)            .saturating_add(T::DbWeight::get().reads(6 as u64))
-            .saturating_add(T::DbWeight::get().writes(4 as u64))
-    }
+	fn mint() -> Weight {
+		// Minimum execution time: 31_625 nanoseconds.
+		Weight::from_ref_time(32_251_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
+	}
 	// Storage: NFT Collections (r:1 w:0)
 	// Proof: NFT Collections (max_values: None, max_size: Some(99), added: 2574, mode: MaxEncodedLen)
 	// Storage: Uniques Asset (r:1 w:1)
@@ -96,11 +98,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Uniques Account (max_values: None, max_size: Some(112), added: 2587, mode: MaxEncodedLen)
 	// Storage: Uniques ItemPriceOf (r:0 w:1)
 	// Proof: Uniques ItemPriceOf (max_values: None, max_size: Some(113), added: 2588, mode: MaxEncodedLen)
-    fn transfer() -> Weight {
-        // Minimum execution time: 28_903 nanoseconds.
-        Weight::from_ref_time(29_233_000 as u64)            .saturating_add(T::DbWeight::get().reads(3 as u64))
-            .saturating_add(T::DbWeight::get().writes(4 as u64))
-    }
+	fn transfer() -> Weight {
+		// Minimum execution time: 28_903 nanoseconds.
+		Weight::from_ref_time(29_233_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(3 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
+	}
 	// Storage: NFT Collections (r:1 w:1)
 	// Proof: NFT Collections (max_values: None, max_size: Some(99), added: 2574, mode: MaxEncodedLen)
 	// Storage: Uniques Class (r:1 w:1)
@@ -117,11 +120,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Uniques ClassMetadataOf (max_values: None, max_size: Some(123), added: 2598, mode: MaxEncodedLen)
 	// Storage: Uniques CollectionMaxSupply (r:0 w:1)
 	// Proof: Uniques CollectionMaxSupply (max_values: None, max_size: Some(36), added: 2511, mode: MaxEncodedLen)
-    fn destroy_collection() -> Weight {
-        // Minimum execution time: 38_674 nanoseconds.
-        Weight::from_ref_time(39_564_000 as u64)            .saturating_add(T::DbWeight::get().reads(5 as u64))
-            .saturating_add(T::DbWeight::get().writes(5 as u64))
-    }
+	fn destroy_collection() -> Weight {
+		// Minimum execution time: 38_674 nanoseconds.
+		Weight::from_ref_time(39_564_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(5 as u64))
+	}
 	// Storage: NFT Collections (r:1 w:0)
 	// Proof: NFT Collections (max_values: None, max_size: Some(99), added: 2574, mode: MaxEncodedLen)
 	// Storage: Uniques Asset (r:1 w:1)
@@ -138,9 +142,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Uniques ItemPriceOf (max_values: None, max_size: Some(113), added: 2588, mode: MaxEncodedLen)
 	// Storage: NFT Items (r:0 w:1)
 	// Proof: NFT Items (max_values: None, max_size: Some(122), added: 2597, mode: MaxEncodedLen)
-    fn burn() -> Weight {
-        // Minimum execution time: 32_790 nanoseconds.
-        Weight::from_ref_time(33_331_000 as u64)            .saturating_add(T::DbWeight::get().reads(5 as u64))
-            .saturating_add(T::DbWeight::get().writes(5 as u64))
-    }
+	fn burn() -> Weight {
+		// Minimum execution time: 32_790 nanoseconds.
+		Weight::from_ref_time(33_331_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(5 as u64))
+	}
 }

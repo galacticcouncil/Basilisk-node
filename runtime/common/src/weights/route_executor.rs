@@ -40,8 +40,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -63,15 +63,15 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: MultiTransactionPayment AcceptedCurrencies (r:5 w:0)
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	/// The range of component `n` is `[1, 5]`.
-    fn sell(n: u32, ) -> Weight {
-        // Minimum execution time: 102_357 nanoseconds.
-        Weight::from_ref_time(53_920_890 as u64)            // Standard Error: 79_051
-            .saturating_add(Weight::from_ref_time(49_147_710 as u64).saturating_mul(n as u64))
-            .saturating_add(T::DbWeight::get().reads(4 as u64))
-            .saturating_add(T::DbWeight::get().reads((7 as u64).saturating_mul(n as u64)))
-            .saturating_add(T::DbWeight::get().writes(2 as u64))
-            .saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
-    }
+	fn sell(n: u32) -> Weight {
+		// Minimum execution time: 102_357 nanoseconds.
+		Weight::from_ref_time(53_920_890 as u64) // Standard Error: 79_051
+			.saturating_add(Weight::from_ref_time(49_147_710 as u64).saturating_mul(n as u64))
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().reads((7 as u64).saturating_mul(n as u64)))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
+	}
 	// Storage: Tokens Accounts (r:16 w:16)
 	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
 	// Storage: System Account (r:6 w:1)
@@ -85,13 +85,13 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: MultiTransactionPayment AcceptedCurrencies (r:5 w:0)
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	/// The range of component `n` is `[1, 5]`.
-    fn buy(n: u32, ) -> Weight {
-        // Minimum execution time: 98_383 nanoseconds.
-        Weight::from_ref_time(48_960_480 as u64)            // Standard Error: 149_822
-            .saturating_add(Weight::from_ref_time(50_004_240 as u64).saturating_mul(n as u64))
-            .saturating_add(T::DbWeight::get().reads(4 as u64))
-            .saturating_add(T::DbWeight::get().reads((7 as u64).saturating_mul(n as u64)))
-            .saturating_add(T::DbWeight::get().writes(2 as u64))
-            .saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
-    }
+	fn buy(n: u32) -> Weight {
+		// Minimum execution time: 98_383 nanoseconds.
+		Weight::from_ref_time(48_960_480 as u64) // Standard Error: 149_822
+			.saturating_add(Weight::from_ref_time(50_004_240 as u64).saturating_mul(n as u64))
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().reads((7 as u64).saturating_mul(n as u64)))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+			.saturating_add(T::DbWeight::get().writes((3 as u64).saturating_mul(n as u64)))
+	}
 }

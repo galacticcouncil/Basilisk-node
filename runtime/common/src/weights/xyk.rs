@@ -40,8 +40,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -76,11 +76,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: XYK TotalLiquidity (max_values: None, max_size: Some(64), added: 2539, mode: MaxEncodedLen)
 	// Storage: XYK PoolAssets (r:0 w:1)
 	// Proof: XYK PoolAssets (max_values: None, max_size: Some(56), added: 2531, mode: MaxEncodedLen)
-    fn create_pool() -> Weight {
-        // Minimum execution time: 95_546 nanoseconds.
-        Weight::from_ref_time(96_295_000 as u64)            .saturating_add(T::DbWeight::get().reads(17 as u64))
-            .saturating_add(T::DbWeight::get().writes(16 as u64))
-    }
+	fn create_pool() -> Weight {
+		// Minimum execution time: 95_546 nanoseconds.
+		Weight::from_ref_time(96_295_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(17 as u64))
+			.saturating_add(T::DbWeight::get().writes(16 as u64))
+	}
 	// Storage: XYK ShareToken (r:1 w:0)
 	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
 	// Storage: Tokens Accounts (r:5 w:5)
@@ -95,11 +96,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Tokens TotalIssuance (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	// Storage: MultiTransactionPayment AccountCurrencyMap (r:1 w:0)
 	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-    fn add_liquidity() -> Weight {
-        // Minimum execution time: 85_059 nanoseconds.
-        Weight::from_ref_time(86_161_000 as u64)            .saturating_add(T::DbWeight::get().reads(13 as u64))
-            .saturating_add(T::DbWeight::get().writes(8 as u64))
-    }
+	fn add_liquidity() -> Weight {
+		// Minimum execution time: 85_059 nanoseconds.
+		Weight::from_ref_time(86_161_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(13 as u64))
+			.saturating_add(T::DbWeight::get().writes(8 as u64))
+	}
 	// Storage: XYK ShareToken (r:1 w:0)
 	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
 	// Storage: XYK TotalLiquidity (r:1 w:1)
@@ -112,11 +114,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	// Storage: Tokens TotalIssuance (r:1 w:1)
 	// Proof: Tokens TotalIssuance (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
-    fn remove_liquidity() -> Weight {
-        // Minimum execution time: 78_848 nanoseconds.
-        Weight::from_ref_time(79_720_000 as u64)            .saturating_add(T::DbWeight::get().reads(12 as u64))
-            .saturating_add(T::DbWeight::get().writes(7 as u64))
-    }
+	fn remove_liquidity() -> Weight {
+		// Minimum execution time: 78_848 nanoseconds.
+		Weight::from_ref_time(79_720_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(12 as u64))
+			.saturating_add(T::DbWeight::get().writes(7 as u64))
+	}
 	// Storage: XYK ShareToken (r:1 w:0)
 	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
 	// Storage: Tokens Accounts (r:4 w:4)
@@ -125,11 +128,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
 	// Storage: System Account (r:2 w:0)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-    fn sell() -> Weight {
-        // Minimum execution time: 62_381 nanoseconds.
-        Weight::from_ref_time(62_961_000 as u64)            .saturating_add(T::DbWeight::get().reads(9 as u64))
-            .saturating_add(T::DbWeight::get().writes(4 as u64))
-    }
+	fn sell() -> Weight {
+		// Minimum execution time: 62_381 nanoseconds.
+		Weight::from_ref_time(62_961_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(9 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
+	}
 	// Storage: XYK ShareToken (r:1 w:0)
 	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
 	// Storage: Tokens Accounts (r:4 w:4)
@@ -138,9 +142,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
 	// Storage: System Account (r:2 w:0)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-    fn buy() -> Weight {
-        // Minimum execution time: 61_990 nanoseconds.
-        Weight::from_ref_time(63_177_000 as u64)            .saturating_add(T::DbWeight::get().reads(9 as u64))
-            .saturating_add(T::DbWeight::get().writes(4 as u64))
-    }
+	fn buy() -> Weight {
+		// Minimum execution time: 61_990 nanoseconds.
+		Weight::from_ref_time(63_177_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(9 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
+	}
 }

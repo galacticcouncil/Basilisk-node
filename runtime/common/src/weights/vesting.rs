@@ -40,12 +40,12 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
-use orml_vesting::weights::WeightInfo;
+use orml_vesting::WeightInfo;
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
@@ -56,23 +56,24 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	// Storage: Balances Locks (r:1 w:1)
 	// Proof: Balances Locks (max_values: None, max_size: Some(1299), added: 3774, mode: MaxEncodedLen)
-    fn vested_transfer() -> Weight {
-        // Minimum execution time: 45_615 nanoseconds.
-        Weight::from_ref_time(46_574_000 as u64)            .saturating_add(T::DbWeight::get().reads(4 as u64))
-            .saturating_add(T::DbWeight::get().writes(4 as u64))
-    }
+	fn vested_transfer() -> Weight {
+		// Minimum execution time: 45_615 nanoseconds.
+		Weight::from_ref_time(46_574_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().writes(4 as u64))
+	}
 	// Storage: Vesting VestingSchedules (r:1 w:1)
 	// Proof: Vesting VestingSchedules (max_values: None, max_size: Some(469), added: 2944, mode: MaxEncodedLen)
 	// Storage: Balances Locks (r:1 w:1)
 	// Proof: Balances Locks (max_values: None, max_size: Some(1299), added: 3774, mode: MaxEncodedLen)
 	/// The range of component `i` is `[1, 15]`.
-    fn claim(i: u32, ) -> Weight {
-        // Minimum execution time: 37_873 nanoseconds.
-        Weight::from_ref_time(38_786_783 as u64)            // Standard Error: 9_805
-            .saturating_add(Weight::from_ref_time(83_184 as u64).saturating_mul(i as u64))
-            .saturating_add(T::DbWeight::get().reads(2 as u64))
-            .saturating_add(T::DbWeight::get().writes(2 as u64))
-    }
+	fn claim(i: u32) -> Weight {
+		// Minimum execution time: 37_873 nanoseconds.
+		Weight::from_ref_time(38_786_783 as u64) // Standard Error: 9_805
+			.saturating_add(Weight::from_ref_time(83_184 as u64).saturating_mul(i as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+	}
 	// Storage: System Account (r:1 w:1)
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	// Storage: Balances Locks (r:1 w:1)
@@ -80,11 +81,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: Vesting VestingSchedules (r:0 w:1)
 	// Proof: Vesting VestingSchedules (max_values: None, max_size: Some(469), added: 2944, mode: MaxEncodedLen)
 	/// The range of component `i` is `[1, 15]`.
-    fn update_vesting_schedules(i: u32, ) -> Weight {
-        // Minimum execution time: 28_006 nanoseconds.
-        Weight::from_ref_time(28_815_764 as u64)            // Standard Error: 7_802
-            .saturating_add(Weight::from_ref_time(95_130 as u64).saturating_mul(i as u64))
-            .saturating_add(T::DbWeight::get().reads(2 as u64))
-            .saturating_add(T::DbWeight::get().writes(3 as u64))
-    }
+	fn update_vesting_schedules(i: u32) -> Weight {
+		// Minimum execution time: 28_006 nanoseconds.
+		Weight::from_ref_time(28_815_764 as u64) // Standard Error: 7_802
+			.saturating_add(Weight::from_ref_time(95_130 as u64).saturating_mul(i as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
+	}
 }

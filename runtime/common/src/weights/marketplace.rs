@@ -40,8 +40,8 @@
 #![allow(clippy::unnecessary_cast)]
 
 use frame_support::{
-    traits::Get,
-    weights::{constants::RocksDbWeight, Weight},
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_std::marker::PhantomData;
 
@@ -72,20 +72,22 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Uniques Account (max_values: None, max_size: Some(112), added: 2587, mode: MaxEncodedLen)
 	// Storage: Uniques ItemPriceOf (r:0 w:1)
 	// Proof: Uniques ItemPriceOf (max_values: None, max_size: Some(113), added: 2588, mode: MaxEncodedLen)
-    fn buy() -> Weight {
-        // Minimum execution time: 78_475 nanoseconds.
-        Weight::from_ref_time(79_790_000 as u64)            .saturating_add(T::DbWeight::get().reads(10 as u64))
-            .saturating_add(T::DbWeight::get().writes(7 as u64))
-    }
+	fn buy() -> Weight {
+		// Minimum execution time: 78_475 nanoseconds.
+		Weight::from_ref_time(79_790_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(10 as u64))
+			.saturating_add(T::DbWeight::get().writes(7 as u64))
+	}
 	// Storage: Uniques Asset (r:1 w:0)
 	// Proof: Uniques Asset (max_values: None, max_size: Some(146), added: 2621, mode: MaxEncodedLen)
 	// Storage: Marketplace Prices (r:1 w:1)
 	// Proof Skipped: Marketplace Prices (max_values: None, max_size: None, mode: Measured)
-    fn set_price() -> Weight {
-        // Minimum execution time: 25_612 nanoseconds.
-        Weight::from_ref_time(26_033_000 as u64)            .saturating_add(T::DbWeight::get().reads(2 as u64))
-            .saturating_add(T::DbWeight::get().writes(1 as u64))
-    }
+	fn set_price() -> Weight {
+		// Minimum execution time: 25_612 nanoseconds.
+		Weight::from_ref_time(26_033_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 	// Storage: Marketplace Offers (r:1 w:1)
 	// Proof Skipped: Marketplace Offers (max_values: None, max_size: None, mode: Measured)
 	// Storage: AssetRegistry NextAssetId (r:1 w:0)
@@ -96,11 +98,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
 	// Storage: AssetRegistry Assets (r:1 w:0)
 	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-    fn make_offer() -> Weight {
-        // Minimum execution time: 42_274 nanoseconds.
-        Weight::from_ref_time(42_869_000 as u64)            .saturating_add(T::DbWeight::get().reads(5 as u64))
-            .saturating_add(T::DbWeight::get().writes(2 as u64))
-    }
+	fn make_offer() -> Weight {
+		// Minimum execution time: 42_274 nanoseconds.
+		Weight::from_ref_time(42_869_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+	}
 	// Storage: Marketplace Offers (r:1 w:1)
 	// Proof Skipped: Marketplace Offers (max_values: None, max_size: None, mode: Measured)
 	// Storage: Uniques Asset (r:1 w:0)
@@ -113,11 +116,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
 	// Storage: AssetRegistry Assets (r:1 w:0)
 	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
-    fn withdraw_offer() -> Weight {
-        // Minimum execution time: 45_565 nanoseconds.
-        Weight::from_ref_time(47_083_000 as u64)            .saturating_add(T::DbWeight::get().reads(6 as u64))
-            .saturating_add(T::DbWeight::get().writes(2 as u64))
-    }
+	fn withdraw_offer() -> Weight {
+		// Minimum execution time: 45_565 nanoseconds.
+		Weight::from_ref_time(47_083_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
+	}
 	// Storage: Uniques Asset (r:1 w:1)
 	// Proof: Uniques Asset (max_values: None, max_size: Some(146), added: 2621, mode: MaxEncodedLen)
 	// Storage: Marketplace Offers (r:1 w:1)
@@ -142,11 +146,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Uniques Account (max_values: None, max_size: Some(112), added: 2587, mode: MaxEncodedLen)
 	// Storage: Uniques ItemPriceOf (r:0 w:1)
 	// Proof: Uniques ItemPriceOf (max_values: None, max_size: Some(113), added: 2588, mode: MaxEncodedLen)
-    fn accept_offer() -> Weight {
-        // Minimum execution time: 86_739 nanoseconds.
-        Weight::from_ref_time(87_641_000 as u64)            .saturating_add(T::DbWeight::get().reads(11 as u64))
-            .saturating_add(T::DbWeight::get().writes(8 as u64))
-    }
+	fn accept_offer() -> Weight {
+		// Minimum execution time: 86_739 nanoseconds.
+		Weight::from_ref_time(87_641_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(11 as u64))
+			.saturating_add(T::DbWeight::get().writes(8 as u64))
+	}
 	// Storage: Marketplace MarketplaceItems (r:1 w:1)
 	// Proof Skipped: Marketplace MarketplaceItems (max_values: None, max_size: None, mode: Measured)
 	// Storage: Uniques Asset (r:1 w:0)
@@ -155,9 +160,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: AssetRegistry NextAssetId (max_values: Some(1), max_size: None, mode: Measured)
 	// Storage: AssetRegistry LocationAssets (r:1 w:0)
 	// Proof Skipped: AssetRegistry LocationAssets (max_values: None, max_size: None, mode: Measured)
-    fn add_royalty() -> Weight {
-        // Minimum execution time: 33_170 nanoseconds.
-        Weight::from_ref_time(33_774_000 as u64)            .saturating_add(T::DbWeight::get().reads(4 as u64))
-            .saturating_add(T::DbWeight::get().writes(1 as u64))
-    }
+	fn add_royalty() -> Weight {
+		// Minimum execution time: 33_170 nanoseconds.
+		Weight::from_ref_time(33_774_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 }
