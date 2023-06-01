@@ -526,7 +526,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "9.0.0"
+version = "9.0.1"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -643,6 +643,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-rewards",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",
@@ -1298,7 +1299,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.3.10"
+version = "2.3.11"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
@@ -1313,6 +1314,7 @@ dependencies = [
  "pallet-currencies",
  "pallet-democracy",
  "pallet-duster",
+ "pallet-ema-oracle",
  "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft",
@@ -6191,6 +6193,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-collator-rewards"
+version = "1.0.4"
+source = "git+https://github.com/galacticcouncil/warehouse?rev=f64f50255965a1177d28bbc969a371013584bbdd#f64f50255965a1177d28bbc969a371013584bbdd"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "orml-traits",
+ "pallet-session",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
 name = "pallet-collator-selection"
 version = "3.0.0"
 source = "git+https://github.com/paritytech//cumulus?branch=polkadot-v0.9.38#9b4e0247137f158d1a35118197d34adfa58858b7"
@@ -9780,7 +9801,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -12704,6 +12725,7 @@ dependencies = [
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
+ "pallet-collator-rewards",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",

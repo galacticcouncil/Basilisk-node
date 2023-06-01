@@ -65,8 +65,9 @@ use frame_support::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
+	BoundedVec,
 };
-use hydradx_traits::AssetPairAccountIdFor;
+use hydradx_traits::{AssetPairAccountIdFor, OraclePeriod};
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 
@@ -494,7 +495,7 @@ impl pallet_xyk::Config for Runtime {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
-	type AMMHandler = ();
+	type AMMHandler = pallet_ema_oracle::OnActivityHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
 }
@@ -740,7 +741,7 @@ impl pallet_session::Config for Runtime {
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ShouldEndSession = pallet_session::PeriodicSessions<Period, Offset>;
 	type NextSessionRotation = pallet_session::PeriodicSessions<Period, Offset>;
-	type SessionManager = CollatorSelection;
+	type SessionManager = CollatorRewards;
 	// Essentially just Aura, but lets be pedantic.
 	type SessionHandler = <opaque::SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = opaque::SessionKeys;
@@ -941,6 +942,48 @@ impl pallet_route_executor::Config for Runtime {
 	type WeightInfo = weights::route_executor::BasiliskWeight<Runtime>;
 }
 
+parameter_types! {
+	pub const RewardPerCollator: Balance = 15_216_000_000_000_000; // 12.68[BSX/block] * 1200[block]
+	//GalacticCouncil collators
+	pub ExcludedCollators: Vec<AccountId> = vec![
+		// bXn5CfJB2qHvqnuMqTpXn6un9Fjch8mwkb9i3JUsGVD4ChLoe
+		hex_literal::hex!["f25e5d7b43266a5b4cca762c9be917f18852d7a5db85e734776206eeb539dd4f"].into(),
+	];
+}
+
+impl pallet_collator_rewards::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type CurrencyId = AssetId;
+	type Currency = Currencies;
+	type RewardPerCollator = RewardPerCollator;
+	type ExcludedCollators = ExcludedCollators;
+	type RewardCurrencyId = NativeAssetId;
+	// We wrap the ` SessionManager` implementation of `CollatorSelection` to get the collatrs that
+	// we hand out rewards to.
+	type SessionManager = CollatorSelection;
+}
+
+// constants need to be in scope to be used in generics
+use pallet_ema_oracle::MAX_PERIODS;
+
+parameter_types! {
+	pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<MAX_PERIODS>> = BoundedVec::truncate_from(
+		vec![OraclePeriod::LastBlock, OraclePeriod::Hour, OraclePeriod::Day, OraclePeriod::Week]
+	);
+	// There are currently only a few pools, so the number of entries per block is limited.
+	// NOTE: Needs to be updated once the number of pools grows.
+	pub MaxUniqueOracleEntries: u32 = 30;
+}
+
+impl pallet_ema_oracle::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::ema_oracle::BasiliskWeight<Runtime>;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type SupportedPeriods = SupportedPeriods;
+	type MaxUniqueEntries = MaxUniqueOracleEntries;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -993,15 +1036,16 @@ construct_runtime!(
 		Duster: pallet_duster = 102,
 		LBP: pallet_lbp = 104,
 		NFT: pallet_nft = 105,
-
 		MultiTransactionPayment: pallet_transaction_multi_payment = 106,
 		RelayChainInfo: pallet_relaychain_info = 108,
 		Marketplace: pallet_marketplace = 109,
 		TransactionPause: pallet_transaction_pause = 110,
 		Router: pallet_route_executor = 111,
-
 		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
+		CollatorRewards: pallet_collator_rewards = 114,
+
+		EmaOracle: pallet_ema_oracle = 120,
 
 		// ORML related modules - runtime module index for orml starts at 150
 		Currencies: pallet_currencies = 150,
@@ -1214,6 +1258,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
 			list_benchmark!(list, extra, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_transaction_pause, TransactionPause);
+			list_benchmark!(list, extra, pallet_ema_oracle, EmaOracle);
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
@@ -1279,6 +1324,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
 			add_benchmark!(params, batches, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_transaction_pause, TransactionPause);
+			add_benchmark!(params, batches, pallet_ema_oracle, EmaOracle);
 
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);

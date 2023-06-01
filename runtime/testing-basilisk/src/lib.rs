@@ -63,8 +63,9 @@ use frame_support::{
 		constants::{BlockExecutionWeight, RocksDbWeight},
 		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
+	BoundedVec,
 };
-use hydradx_traits::AssetPairAccountIdFor;
+use hydradx_traits::{AssetPairAccountIdFor, OraclePeriod};
 use orml_traits::currency::MutationHooks;
 use pallet_transaction_payment::TargetedFeeAdjustment;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -467,7 +468,7 @@ impl pallet_xyk::Config for Runtime {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
-	type AMMHandler = ();
+	type AMMHandler = pallet_ema_oracle::OnActivityHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
 }
@@ -912,6 +913,50 @@ impl pallet_route_executor::Config for Runtime {
 	type WeightInfo = common_runtime::weights::route_executor::BasiliskWeight<Runtime>;
 }
 
+parameter_types! {
+	pub const RewardPerCollator: Balance = 10_000 * UNITS;
+	//GalacticCouncil collators
+	pub ExcludedCollators: Vec<AccountId> = vec![
+		// Alice
+		// hex_literal::hex!["d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"].into(),
+		// Bob
+		// hex!["8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"].into(),
+	];
+}
+
+impl pallet_collator_rewards::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type CurrencyId = AssetId;
+	type Currency = Currencies;
+	type RewardPerCollator = RewardPerCollator;
+	type ExcludedCollators = ExcludedCollators;
+	type RewardCurrencyId = NativeAssetId;
+	// We wrap the ` SessionManager` implementation of `CollatorSelection` to get the collatrs that
+	// we hand out rewards to.
+	type SessionManager = CollatorSelection;
+}
+
+// constants need to be in scope to be used in generics
+use pallet_ema_oracle::MAX_PERIODS;
+
+parameter_types! {
+	pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<MAX_PERIODS>> = BoundedVec::truncate_from(
+		vec![OraclePeriod::LastBlock, OraclePeriod::Hour, OraclePeriod::Day, OraclePeriod::Week]
+	);
+	// There are currently only a few pools, so the number of entries per block is limited.
+	// NOTE: Needs to be updated once the number of pools grows.
+	pub MaxUniqueOracleEntries: u32 = 30;
+}
+
+impl pallet_ema_oracle::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::ema_oracle::BasiliskWeight<Runtime>;
+	type BlockNumberProvider = cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Runtime>;
+	type SupportedPeriods = SupportedPeriods;
+	type MaxUniqueEntries = MaxUniqueOracleEntries;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime where
@@ -964,15 +1009,16 @@ construct_runtime!(
 		Duster: pallet_duster = 102,
 		LBP: pallet_lbp = 104,
 		NFT: pallet_nft = 105,
-
 		MultiTransactionPayment: pallet_transaction_multi_payment = 106,
 		RelayChainInfo: pallet_relaychain_info = 108,
 		Marketplace: pallet_marketplace = 109,
 		TransactionPause: pallet_transaction_pause = 110,
 		Router: pallet_route_executor = 111,
-
 		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
+		CollatorRewards: pallet_collator_rewards = 114,
+
+		EmaOracle: pallet_ema_oracle = 120,
 
 		// ORML related modules - starts at 150
 		Currencies: pallet_currencies = 150,
