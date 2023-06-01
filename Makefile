@@ -56,4 +56,4 @@ checksum:
 
 release: build checksum
 
-all: test test-benchmarks build build-benchmarks checksum
+all: clippy test test-benchmarks build build-benchmarks checksum
