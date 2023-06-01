@@ -53,3 +53,7 @@ checksum:
 	sha256sum target/release/basilisk > target/release/basilisk.sha256
 	cp target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm target/release/
 	sha256sum target/release/basilisk_runtime.compact.compressed.wasm > target/release/basilisk_runtime.compact.compressed.wasm.sha256
+
+release: build checksum
+
+all: clippy test test-benchmarks build build-benchmarks checksum
