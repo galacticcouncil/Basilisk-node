@@ -1,6 +1,6 @@
 #![cfg(test)]
-
-use crate::polkadot_test_net::*;
+use crate::kusama_test_net::*;
+use frame_support::traits::Contains;
 use polkadot_xcm::latest::prelude::*;
 use polkadot_xcm::VersionedXcm;
 use xcm_emulator::TestExt;
@@ -9,13 +9,13 @@ use xcm_emulator::TestExt;
 fn calling_pallet_uniques_extrinsic_should_be_filtered_by_call_filter() {
 	TestNet::reset();
 
-	Hydra::execute_with(|| {
-		let call = hydradx_runtime::Call::Uniques(pallet_uniques::Call::create {
+	Basilisk::execute_with(|| {
+		let call = basilisk_runtime::RuntimeCall::Uniques(pallet_uniques::Call::create {
 			collection: 1u128,
 			admin: AccountId::from(ALICE),
 		});
 
-		assert!(!hydradx_runtime::CallFilter::contains(&call));
+		assert!(!basilisk_runtime::BaseFilter::contains(&call));
 	});
 }
 
@@ -23,14 +23,14 @@ fn calling_pallet_uniques_extrinsic_should_be_filtered_by_call_filter() {
 fn calling_pallet_xcm_extrinsic_should_be_filtered_by_call_filter() {
 	TestNet::reset();
 
-	Hydra::execute_with(|| {
+	Basilisk::execute_with(|| {
 		// the values here don't need to make sense, all we need is a valid Call
-		let call = hydradx_runtime::Call::PolkadotXcm(pallet_xcm::Call::send {
+		let call = basilisk_runtime::RuntimeCall::PolkadotXcm(pallet_xcm::Call::send {
 			dest: Box::new(MultiLocation::parent().into()),
 			message: Box::new(VersionedXcm::from(Xcm(vec![]))),
 		});
 
-		assert!(!hydradx_runtime::CallFilter::contains(&call));
+		assert!(!basilisk_runtime::BaseFilter::contains(&call));
 	});
 }
 
@@ -38,13 +38,13 @@ fn calling_pallet_xcm_extrinsic_should_be_filtered_by_call_filter() {
 fn calling_orml_xcm_extrinsic_should_be_filtered_by_call_filter() {
 	TestNet::reset();
 
-	Hydra::execute_with(|| {
+	Basilisk::execute_with(|| {
 		// the values here don't need to make sense, all we need is a valid Call
-		let call = hydradx_runtime::Call::OrmlXcm(orml_xcm::Call::send_as_sovereign {
+		let call = basilisk_runtime::RuntimeCall::OrmlXcm(orml_xcm::Call::send_as_sovereign {
 			dest: Box::new(MultiLocation::parent().into()),
 			message: Box::new(VersionedXcm::from(Xcm(vec![]))),
 		});
 
-		assert!(!hydradx_runtime::CallFilter::contains(&call));
+		assert!(!basilisk_runtime::BaseFilter::contains(&call));
 	});
 }
