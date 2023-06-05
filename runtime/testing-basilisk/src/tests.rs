@@ -21,10 +21,9 @@ fn full_block_cost() {
 		.max_total
 		.unwrap_or(Weight::from_ref_time(1));
 	let weight_fee = crate::WeightToFee::weight_to_fee(&max_weight);
-	assert_eq!(weight_fee, 58791251861625);
+	assert_eq!(weight_fee, 187500000000000);
 
-	//let target_fee = 393 * DOLLARS + 68_950_233_386_750;
-	let target_fee = 39380391889711625;
+	let target_fee = 395 * DOLLARS + 09_100_200_000_000;
 
 	assert_eq!(
 		ExtrinsicBaseWeight::get().ref_time() as u128 + length_fee + weight_fee,
@@ -107,6 +106,24 @@ fn multiplier_growth_simulator() {
 			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
 			// ensure that it is growing as well.
 			assert!(next > multiplier, "{next:?} !>= {multiplier:?}");
+			multiplier = next;
+		});
+	}
+	println!("multiplier = {multiplier:?}");
+}
+
+#[test]
+#[ignore]
+fn max_multiplier() {
+	// calculate the value of the fee multiplier after one hour of operation with fully loaded blocks
+	let max_multiplier = MaximumMultiplier::get();
+	let mut multiplier = Multiplier::saturating_from_integer(1);
+	let block_weight = BlockWeights::get().get(DispatchClass::Normal).max_total.unwrap();
+	for _block_num in 1..=10 * DAYS {
+		run_with_system_weight(block_weight, || {
+			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(multiplier);
+			// ensure that the multiplier is not greater than max_multiplier
+			assert!(next <= max_multiplier, "{next:?} !<= {max_multiplier:?}");
 			multiplier = next;
 		});
 	}
