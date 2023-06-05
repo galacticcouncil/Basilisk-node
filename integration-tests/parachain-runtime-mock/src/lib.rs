@@ -60,7 +60,7 @@ pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 pub const CORE_ASSET_ID: AssetId = 0;
 
 parameter_types! {
-	pub ParachainNativeCurrencyId: AssetId = 0;
+	pub const ParachainNativeCurrencyId: AssetId = 0;
 	pub const MultiPaymentCurrencySetFee: Pays = Pays::Yes;
 	pub const NativeExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
 	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
@@ -78,7 +78,6 @@ parameter_types! {
 	pub const ReservedXcmpWeight: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND / 4);
 	pub const ReservedDmpWeight: Weight =Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND / 4);
 	pub RegistryStringLimit: u32 = 100;
-	pub const NativeAssetId : AssetId = CORE_ASSET_ID;
 	pub const TreasuryPalletId: PalletId = PalletId(*b"aca/trsy");
 	pub ParachainTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
 	pub KsmPerSecond: (AssetId, u128) = (0, 10);

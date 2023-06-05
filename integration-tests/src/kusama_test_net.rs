@@ -19,7 +19,7 @@ pub const MOVR: AssetId = 2;
 pub const KSM: AssetId = 3;
 pub const NEW_BOOTSTRAPPED_TOKEN: AssetId = 4;
 
-pub const ALICE_INITIAL_BSX_BALANCE: u128 = 200 * UNITS;
+pub const ALICE_INITIAL_BSX_BALANCE: u128 = 1_000 * UNITS;
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
 pub const CHARLIE_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
 pub const DAVE_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
@@ -37,6 +37,10 @@ pub const ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE: u128 = 400 * UNITS;
 pub const ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN: u128 = 200 * UNITS;
 pub const ALICE_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN: u128 = 200 * UNITS;
 pub const BOB_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN: u128 = 1000 * UNITS;
+
+pub fn parachain_reserve_account() -> AccountId {
+	polkadot_parachain::primitives::Sibling::from(OTHER_PARA_ID).into_account_truncating()
+}
 
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;

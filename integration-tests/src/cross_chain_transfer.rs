@@ -179,7 +179,7 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 		));
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
-			200 * UNITS - amount_to_send
+			ALICE_INITIAL_BSX_BALANCE - amount_to_send
 		);
 	});
 
