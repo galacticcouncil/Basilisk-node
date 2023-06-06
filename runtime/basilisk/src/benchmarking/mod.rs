@@ -18,6 +18,7 @@ use frame_system::RawOrigin;
 
 use common_runtime::AccountId;
 use primitives::{AssetId, Balance};
+use sp_std::vec;
 use sp_std::vec::Vec;
 
 use orml_traits::MultiCurrencyExtended;
@@ -30,6 +31,7 @@ pub fn register_asset(name: Vec<u8>, deposit: Balance) -> Result<AssetId, ()> {
 		AssetRegistry::to_bounded_name(name).map_err(|_| ())?,
 		pallet_asset_registry::AssetType::<AssetId>::Token,
 		deposit,
+		None,
 		None,
 	)
 	.map_err(|_| ())
@@ -50,6 +52,7 @@ pub fn update_asset(asset_id: AssetId, name: Vec<u8>, deposit: Balance) -> Resul
 		name,
 		pallet_asset_registry::AssetType::<AssetId>::Token,
 		Some(deposit),
+		None,
 	)
 	.map_err(|_| ())
 }

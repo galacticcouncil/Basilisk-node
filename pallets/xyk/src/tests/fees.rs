@@ -48,7 +48,7 @@ fn fee_calculation() {
 fn get_fee_should_work() {
 	new_test_ext().execute_with(|| {
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			HDX,
 			1_000_000_000,
 			DOT,
@@ -79,14 +79,14 @@ fn discount_sell_fees_should_work() {
 	ext.execute_with(|| System::set_block_number(1));
 	ext.execute_with(|| {
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			1_000_000_000_000,
 			HDX,
 			2_000_000_000_000,
 		));
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			200_000_000_000_000,
 			asset_b,
@@ -112,7 +112,7 @@ fn discount_sell_fees_should_work() {
 		assert_eq!(Currency::free_balance(HDX, &ALICE), 998_000_000_000_000);
 
 		assert_ok!(XYK::sell(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			asset_b,
 			10_000_000,
@@ -150,14 +150,14 @@ fn discount_sell_fees_should_work() {
 	ext.execute_with(|| System::set_block_number(1));
 	ext.execute_with(|| {
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			1_000_000_000_000,
 			HDX,
 			2_000_000_000_000,
 		));
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			200_000_000_000_000,
 			asset_b,
@@ -183,7 +183,7 @@ fn discount_sell_fees_should_work() {
 		assert_eq!(Currency::free_balance(HDX, &ALICE), 998_000_000_000_000);
 
 		assert_ok!(XYK::sell(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			asset_b,
 			10_000_000,
@@ -224,14 +224,14 @@ fn discount_sell_fees_should_work() {
 		let asset_b = DOT;
 
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			1_000_000_000_000,
 			HDX,
 			2_000_000_000_000,
 		));
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			200_000_000_000_000,
 			asset_b,
@@ -250,7 +250,7 @@ fn discount_sell_fees_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &ALICE), 600_000_000_000_000);
 
 		assert_ok!(XYK::sell(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			asset_b,
 			10_000_000,
@@ -293,7 +293,7 @@ fn discount_buy_fees_should_work() {
 	ext.execute_with(|| System::set_block_number(1));
 	ext.execute_with(|| {
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			1_000_000_000_000,
 			HDX,
@@ -301,7 +301,7 @@ fn discount_buy_fees_should_work() {
 		));
 
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			200_000_000_000_000,
 			asset_b,
@@ -328,7 +328,7 @@ fn discount_buy_fees_should_work() {
 		assert_eq!(Currency::free_balance(HDX, &ALICE), 998_000_000_000_000);
 
 		assert_ok!(XYK::buy(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			asset_b,
 			10_000_000,
@@ -366,7 +366,7 @@ fn discount_buy_fees_should_work() {
 	ext.execute_with(|| System::set_block_number(1));
 	ext.execute_with(|| {
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			1_000_000_000_000,
 			HDX,
@@ -374,7 +374,7 @@ fn discount_buy_fees_should_work() {
 		));
 
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			200_000_000_000_000,
 			asset_b,
@@ -401,7 +401,7 @@ fn discount_buy_fees_should_work() {
 		assert_eq!(Currency::free_balance(HDX, &ALICE), 998_000_000_000_000);
 
 		assert_ok!(XYK::buy(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			asset_b,
 			10_000_000,
@@ -442,7 +442,7 @@ fn discount_buy_fees_should_work() {
 		let asset_b = DOT;
 
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			1_000_000_000_000,
 			HDX,
@@ -450,7 +450,7 @@ fn discount_buy_fees_should_work() {
 		));
 
 		assert_ok!(XYK::create_pool(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			200_000_000_000_000,
 			asset_b,
@@ -469,7 +469,7 @@ fn discount_buy_fees_should_work() {
 		assert_eq!(Currency::free_balance(asset_b, &ALICE), 600_000_000_000_000);
 
 		assert_ok!(XYK::buy(
-			Origin::signed(ALICE),
+			RuntimeOrigin::signed(ALICE),
 			asset_a,
 			asset_b,
 			10_000_000,

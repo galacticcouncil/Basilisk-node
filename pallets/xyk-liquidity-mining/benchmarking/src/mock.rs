@@ -104,8 +104,8 @@ impl system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();
-	type Origin = Origin;
-	type Call = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
 	type Hash = H256;
@@ -113,7 +113,7 @@ impl system::Config for Test {
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -148,8 +148,8 @@ impl pallet_liquidity_mining::Config<Instance1> for Test {
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
 	type AssetRegistry = AssetRegistry;
 	type NonDustableWhitelistHandler = Duster;
+	type RuntimeEvent = RuntimeEvent;
 	type PriceAdjustment = pallet_liquidity_mining::DefaultPriceAdjustment;
-	type Event = Event;
 }
 
 parameter_types! {
@@ -158,7 +158,7 @@ parameter_types! {
 }
 
 impl pallet_xyk_liquidity_mining::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currency;
 	type CreateOrigin = EnsureRoot<AccountId>;
 	type PalletId = LMPalletId;
@@ -171,7 +171,7 @@ impl pallet_xyk_liquidity_mining::Config for Test {
 }
 
 impl pallet_duster::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
@@ -188,7 +188,7 @@ parameter_types! {
 }
 
 impl pallet_nft::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
 	type NftCollectionId = primitives::CollectionId;
 	type NftItemId = primitives::ItemId;
@@ -205,7 +205,7 @@ parameter_types! {
 
 impl pallet_balances::Config for Test {
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = frame_system::Pallet<Test>;
@@ -226,7 +226,7 @@ parameter_types! {
 }
 
 impl pallet_uniques::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type CollectionId = primitives::CollectionId;
 	type ItemId = primitives::ItemId;
 	type Currency = Balances;
@@ -253,19 +253,17 @@ parameter_type_with_key! {
 }
 
 impl orml_tokens::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
 	type WeightInfo = ();
 	type ExistentialDeposits = ExistentialDeposits;
-	type OnDust = ();
-	type OnNewTokenAccount = ();
-	type OnKilledTokenAccount = ();
 	type MaxLocks = MaxLocks;
 	type DustRemovalWhitelist = Nothing;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
+	type CurrencyHooks = ();
 }
 
 pub struct ExtBuilder {
@@ -286,7 +284,7 @@ impl AssetPairAccountIdFor<AssetId, AccountId> for AssetPairAccountIdTest {
 }
 
 impl pallet_asset_registry::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;
 	type Balance = Balance;
@@ -306,7 +304,7 @@ parameter_types! {
 }
 
 impl pallet_xyk::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currency;
