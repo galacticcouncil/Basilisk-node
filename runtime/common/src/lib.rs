@@ -33,7 +33,7 @@ pub use primitives::{Amount, AssetId, Balance};
 use scale_info::TypeInfo;
 use sp_runtime::{
 	generic,
-	traits::{AccountIdConversion, BlakeTwo256, Bounded, IdentifyAccount, Verify},
+	traits::{AccountIdConversion, BlakeTwo256, IdentifyAccount, Verify},
 	FixedPointNumber, MultiSignature, Perbill, Percent, Permill, Perquintill,
 };
 use sp_std::vec;
@@ -133,7 +133,8 @@ parameter_types! {
 	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
 	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
-	pub MaximumMultiplier: Multiplier = Bounded::max_value();
+	/// Maximum amount of the multiplier.
+	pub MaximumMultiplier: Multiplier = Multiplier::saturating_from_integer(4);
 }
 
 // pallet proxy
