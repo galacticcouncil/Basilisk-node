@@ -49,6 +49,10 @@ use pallet_nft::weights::WeightInfo;
 
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
+//This consts are here to make `create_collection()` and `mint()` more expensive.
+const CREATE_COLLECTION_OFFSET: u64 = 180 * 2;
+const MINT_OFFSET: u64 = 140 * 2;
+
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Storage: Uniques Class (r:1 w:1)
 	// Proof: Uniques Class (max_values: None, max_size: Some(190), added: 2665, mode: MaxEncodedLen)
@@ -63,6 +67,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn create_collection() -> Weight {
 		// Minimum execution time: 19_500 nanoseconds.
 		Weight::from_ref_time(19_928_000 as u64)
+			.saturating_mul(CREATE_COLLECTION_OFFSET)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -85,6 +90,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn mint() -> Weight {
 		// Minimum execution time: 31_625 nanoseconds.
 		Weight::from_ref_time(32_251_000 as u64)
+			.saturating_mul(MINT_OFFSET)
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
