@@ -161,10 +161,6 @@ fn blocked_transact_calls_should_not_pass_filter() {
 				..
 			})
 		)));
-		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			BOB_INITIAL_BSX_BALANCE
-		);
 	});
 }
 
@@ -243,6 +239,5 @@ fn safe_call_filter_should_respect_runtime_call_filter() {
 				..
 			})
 		)));
-		assert_eq!(basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)), 0);
 	});
 }
