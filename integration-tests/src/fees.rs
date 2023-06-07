@@ -11,7 +11,10 @@ macro_rules! assert_eq_approx {
 	( $x:expr, $y:expr, $z:expr, $r:expr) => {{
 		let d = if $x >= $y { $x - $y } else { $y - $x };
 		if d > $z {
-			panic!("\n{}\nleft:  {:?}\nright: {:?}\nallowed diff: {:?}\nactual diff:  {:?}\n", $r, $x, $y, $z, d);
+			panic!(
+				"\n{}\nleft:  {:?}\nright: {:?}\nallowed diff: {:?}\nactual diff:  {:?}\n",
+				$r, $x, $y, $z, d
+			);
 		}
 	}};
 }
@@ -117,7 +120,12 @@ fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 			format_num(min_multiplier_rust_fees * 10_000 / UNITS, 4),
 		);
 
-		assert_eq_approx!(rust_encoded_fees, expected_rust_encoded_fees, DIFF, "rust fees difference too large");
+		assert_eq_approx!(
+			rust_encoded_fees,
+			expected_rust_encoded_fees,
+			DIFF,
+			"rust fees difference too large"
+		);
 		assert_eq_approx!(ui_fees, expected_ui_fees, DIFF, "ui fees difference too large");
 	});
 }
