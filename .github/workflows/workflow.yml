@@ -108,34 +108,6 @@ jobs:
         run: cargo build --release --locked
       - name: Version info
         run: ./target/release/basilisk --version
-      - name: Get basilisk-raw json
-        run: |
-          cp target/release/basilisk target/release/testing-basilisk
-          chmod +x ./target/release/testing-basilisk
-          ./target/release/testing-basilisk build-spec --chain testnet-k8s --raw > basilisk-testnet-chainspec.json
-      - name: Generate wasm binary for testnet
-        run: ./target/release/testing-basilisk export-genesis-wasm --chain basilisk-testnet-chainspec.json > para-2090-wasm
-      
-      - name: Generate genesis binary for testnet
-        run: ./target/release/testing-basilisk export-genesis-state --chain basilisk-testnet-chainspec.json > para-2090-genesis
-      
-      - name: Upload wasm binary
-        uses: actions/upload-artifact@v2
-        with:
-          name: devnet-para-2090-wasm
-          path: ./para-2090-wasm
-      
-      - name: Upload genesis binary
-        uses: actions/upload-artifact@v2
-        with:
-          name: devnet-para-2090-genesis
-          path: ./para-2090-genesis
-
-      - name: Upload config file
-        uses: actions/upload-artifact@v2
-        with:
-          name: basilisk-testnet-chainspec.json
-          path: ./basilisk-testnet-chainspec.json
       - name: Upload release binary
         uses: actions/upload-artifact@v2
         with:
@@ -146,31 +118,7 @@ jobs:
         with:
           name: basilisk_runtime.compact.compressed.wasm
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
-      - name: Upload testing-runtime wasm
-        uses: actions/upload-artifact@v2
-        with:
-          name: testing_basilisk_runtime.compact.compressed.wasm
-          path: target/release/wbuild/testing-basilisk-runtime/testing_basilisk_runtime.compact.compressed.wasm
 
-  upload-config-to-s3:
-    name: upload configuration to S3
-    if: github.ref == 'refs/heads/testnet' && github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    needs: build
-    env:
-      AWS_S3_BUCKET: ${{ secrets.AWS_S3_CONFIG_BUCKET }}/testnet/
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: 'eu-west-1'
-      FILE: './basilisk-testnet-chainspec.json'
-    steps:
-      - uses: actions/download-artifact@v2
-        name: Download config file
-        with:
-          name: basilisk-testnet-chainspec.json
-          path: .
-      - name: S3 Upload basilisk-testnet-chainspec.json
-        uses: tpaschalis/s3-sync-action@master
   destroy-runner-instance:
     name: destroy runner
     runs-on: ubuntu-latest
@@ -270,9 +218,6 @@ jobs:
   test-inclusion:
     needs: [build]
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        chain: [ main, testing ]
     steps:
       - uses: actions/checkout@v2
         with:
@@ -283,9 +228,6 @@ jobs:
         with:
           name: basilisk
           path: target/release
-      - name: Prepare basilisk testing binary
-        run: ln -f basilisk testing-basilisk
-        working-directory: target/release
       - uses: robinraju/release-downloader@v1
         name: Download relay chain binary
         with:
@@ -304,52 +246,9 @@ jobs:
         with:
           node-version: '14'
           check-latest: true
-      - run: npm install && npm run ${{ matrix.chain }}
+      - run: npm install && npm start
         name: Launch rococo local & wait for inclusion
         working-directory: scripts/wait-for-inclusion
-
-  test-upgrade-runtime:
-    needs: [build, version-check]
-    runs-on: ubuntu-latest
-    if: ${{ needs.version-check.outputs.runtime-upgraded == 'true' }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/download-artifact@v2
-        name: Download testing-runtime wasm from pipeline
-        with:
-          name: testing_basilisk_runtime.compact.compressed.wasm
-          path: scripts/upgrade-runtime
-      - uses: dawidd6/action-download-artifact@v2
-        name: Download basilisk binary from master
-        with:
-          workflow: workflow.yml
-          branch: master
-          name: basilisk
-          path: target/release
-      - uses: robinraju/release-downloader@v1
-        name: Download relay chain binary
-        with:
-          repository: paritytech/polkadot
-          tag: ${{ env.RELAY_CHAIN_VERSION }}
-          fileName: polkadot
-          out-file-path: ../polkadot/target/release
-      - run: chmod +x ./basilisk && mv ./basilisk ./testing-basilisk && ./testing-basilisk --version
-        name: Basilisk version
-        working-directory: target/release
-      - run: chmod +x ./polkadot && ./polkadot --version
-        name: Polkadot version
-        working-directory: ../polkadot/target/release
-      - uses: actions/setup-node@v2
-        name: Setup node.js
-        with:
-          node-version: '14'
-          check-latest: true
-      - run: npm install && npm run start
-        name: Test runtime upgrade
-        working-directory: scripts/upgrade-runtime
 
   version-check:
     runs-on: ubuntu-latest
