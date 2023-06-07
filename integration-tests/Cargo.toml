@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "0.9.8"
+version = "0.9.9"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -11,7 +11,6 @@ repository = "https://github.com/galacticcouncil/Basilisk-node"
 [dependencies]
 # Warehouse dependencies
 pallet-transaction-multi-payment = { workspace = true }
-pallet-price-oracle = { workspace = true }
 pallet-nft = { workspace = true }
 pallet-currencies = { workspace = true }
 pallet-route-executor = { workspace = true }
@@ -177,5 +176,4 @@ std = [
     "pallet-authorship/std",
     "basilisk-runtime/std",
     "hydradx-traits/std",
-    "pallet-price-oracle/std",
 ]

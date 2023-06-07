@@ -532,7 +532,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "9.0.1"
+version = "10.0.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -608,13 +608,12 @@ dependencies = [
  "sp-trie",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
- "testing-basilisk-runtime",
  "try-runtime-cli",
 ]
 
 [[package]]
 name = "basilisk-runtime"
-version = "100.0.0"
+version = "99.0.0"
 dependencies = [
  "common-runtime",
  "cumulus-pallet-aura-ext",
@@ -1305,7 +1304,7 @@ dependencies = [
 
 [[package]]
 name = "common-runtime"
-version = "2.3.13"
+version = "2.3.12"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-support",
@@ -6754,22 +6753,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-price-oracle"
-version = "0.3.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=091bc9d084139bfc1d7899534d311f7f2f46dbdb#091bc9d084139bfc1d7899534d311f7f2f46dbdb"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hydradx-traits",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-proxy"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.38#bcff60a227d455d95b4712b6cb356ce56b1ff672"
@@ -7296,7 +7279,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.13"
+version = "1.0.14"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7338,7 +7321,7 @@ dependencies = [
 
 [[package]]
 name = "parachain-runtime-mock"
-version = "0.2.6"
+version = "0.2.7"
 dependencies = [
  "basilisk-runtime",
  "common-runtime",
@@ -7380,7 +7363,6 @@ dependencies = [
  "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft",
- "pallet-price-oracle",
  "pallet-relaychain-info",
  "pallet-route-executor",
  "pallet-scheduler",
@@ -9796,7 +9778,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -9839,7 +9821,6 @@ dependencies = [
  "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft",
- "pallet-price-oracle",
  "pallet-relaychain-info",
  "pallet-route-executor",
  "pallet-scheduler",
@@ -12683,104 +12664,6 @@ source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=091bc9d084139b
 dependencies = [
  "frame-system",
  "pretty_assertions",
-]
-
-[[package]]
-name = "testing-basilisk-runtime"
-version = "100.0.0"
-dependencies = [
- "common-runtime",
- "cumulus-pallet-aura-ext",
- "cumulus-pallet-dmp-queue",
- "cumulus-pallet-parachain-system",
- "cumulus-pallet-xcm",
- "cumulus-pallet-xcmp-queue",
- "cumulus-primitives-core",
- "cumulus-primitives-parachain-inherent",
- "cumulus-primitives-timestamp",
- "cumulus-primitives-utility",
- "frame-benchmarking",
- "frame-executive",
- "frame-support",
- "frame-system",
- "frame-system-benchmarking",
- "frame-system-rpc-runtime-api",
- "frame-try-runtime",
- "hex-literal 0.4.1",
- "hydradx-adapters",
- "hydradx-traits",
- "orml-tokens",
- "orml-traits",
- "orml-unknown-tokens",
- "orml-vesting",
- "orml-xcm",
- "orml-xcm-support",
- "orml-xtokens",
- "pallet-asset-registry",
- "pallet-aura",
- "pallet-authorship",
- "pallet-balances",
- "pallet-collator-rewards",
- "pallet-collator-selection",
- "pallet-collective",
- "pallet-currencies",
- "pallet-democracy",
- "pallet-duster",
- "pallet-elections-phragmen",
- "pallet-ema-oracle",
- "pallet-identity",
- "pallet-lbp",
- "pallet-liquidity-mining",
- "pallet-marketplace",
- "pallet-multisig",
- "pallet-nft",
- "pallet-preimage",
- "pallet-proxy",
- "pallet-relaychain-info",
- "pallet-route-executor",
- "pallet-scheduler",
- "pallet-session",
- "pallet-sudo",
- "pallet-timestamp",
- "pallet-tips",
- "pallet-transaction-multi-payment",
- "pallet-transaction-pause",
- "pallet-transaction-payment",
- "pallet-transaction-payment-rpc-runtime-api",
- "pallet-treasury",
- "pallet-uniques",
- "pallet-utility",
- "pallet-xcm",
- "pallet-xyk",
- "pallet-xyk-liquidity-mining",
- "pallet-xyk-liquidity-mining-benchmarking",
- "parachain-info",
- "parity-scale-codec",
- "polkadot-parachain",
- "primitives",
- "scale-info",
- "serde",
- "smallvec",
- "sp-api",
- "sp-block-builder",
- "sp-consensus-aura",
- "sp-core",
- "sp-externalities",
- "sp-inherents",
- "sp-io",
- "sp-offchain",
- "sp-runtime",
- "sp-session",
- "sp-staking",
- "sp-std",
- "sp-transaction-pool",
- "sp-trie",
- "sp-version",
- "substrate-build-script-utils",
- "substrate-wasm-builder",
- "xcm",
- "xcm-builder",
- "xcm-executor",
 ]
 
 [[package]]

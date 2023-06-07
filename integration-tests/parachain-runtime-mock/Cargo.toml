@@ -1,6 +1,6 @@
 [package]
 name = "parachain-runtime-mock"
-version = "0.2.6"
+version = "0.2.7"
 description = "A mock runtime for a parachain"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -15,7 +15,6 @@ scale-info = { version = "2.3.1", default-features = false, features = ["derive"
 
 # Warehouse dependencies
 pallet-transaction-multi-payment = { workspace = true }
-pallet-price-oracle = { workspace = true }
 pallet-nft = { workspace = true }
 pallet-currencies = { workspace = true }
 pallet-route-executor = { workspace = true }
@@ -179,7 +178,6 @@ std = [
     "pallet-authorship/std",
     "basilisk-runtime/std",
     "hydradx-traits/std",
-    "pallet-price-oracle/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking",
