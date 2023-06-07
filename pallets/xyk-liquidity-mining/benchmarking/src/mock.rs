@@ -47,12 +47,6 @@ pub const UNITS: Balance = 1_000_000_000_000;
 
 pub type AccountId = u128;
 pub type BlockNumber = u64;
-pub const ALICE: AccountId = 1;
-pub const BOB: AccountId = 2;
-pub const CHARLIE: AccountId = 3;
-pub const DAVE: AccountId = 4;
-
-pub const INITIAL_BALANCE: u128 = 1_000_000_000_000;
 
 pub const BSX: AssetId = 0;
 pub const KSM: AssetId = 1;
@@ -266,6 +260,7 @@ impl orml_tokens::Config for Test {
 	type CurrencyHooks = ();
 }
 
+#[derive(Default)]
 pub struct ExtBuilder {
 	endowed_accounts: Vec<(AccountId, AssetId, Balance)>,
 }
@@ -319,20 +314,6 @@ impl pallet_xyk::Config for Test {
 	type AMMHandler = ();
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
-}
-
-impl Default for ExtBuilder {
-	fn default() -> Self {
-		Self {
-			endowed_accounts: vec![
-				(ALICE, BSX, INITIAL_BALANCE * UNITS),
-				(BOB, BSX, INITIAL_BALANCE * UNITS),
-				(BOB, KSM, INITIAL_BALANCE * UNITS),
-				(CHARLIE, BSX, INITIAL_BALANCE * UNITS),
-				(DAVE, BSX, INITIAL_BALANCE * UNITS),
-			],
-		}
-	}
 }
 
 impl ExtBuilder {
