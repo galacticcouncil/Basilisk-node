@@ -36,13 +36,13 @@ mod migrations;
 pub mod weights;
 
 mod adapter;
-mod democracy;
-mod finance;
+mod assets;
+mod governance;
 mod system;
 mod xcm;
 
-pub use democracy::*;
-pub use finance::*;
+pub use assets::*;
+pub use governance::*;
 pub use system::*;
 pub use xcm::*;
 

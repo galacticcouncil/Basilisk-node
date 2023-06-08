@@ -16,8 +16,8 @@
 // limitations under the License.
 
 use super::*;
-use crate::democracy::{MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot};
-use crate::system::{TreasuryAccount, WeightToFee};
+use crate::governance::{MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot, TreasuryAccount};
+use crate::system::WeightToFee;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::{

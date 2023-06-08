@@ -16,18 +16,15 @@
 // limitations under the License.
 
 use super::*;
-use crate::democracy::{
-	MajorityCouncilOrRoot, MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot, SuperMajorityTechCommitteeOrRoot,
-};
-use crate::finance::RegistryStrLimit;
+use crate::governance::{MajorityCouncilOrRoot, MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot};
 
 use pallet_transaction_multi_payment::{DepositAll, TransferFees};
 use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
 use primitives::{
 	constants::{
 		chain::{CORE_ASSET_ID, MAXIMUM_BLOCK_WEIGHT},
-		currency::{CENTS, DOLLARS, MILLICENTS},
-		time::{DAYS, HOURS, SLOT_DURATION},
+		currency::{deposit, CENTS, DOLLARS, MILLICENTS},
+		time::{HOURS, SLOT_DURATION},
 	},
 	AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
 };
@@ -36,15 +33,14 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
-	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Permill, Perquintill},
-	traits::{Contains, EqualPrivilegeOnly, InstanceFilter, NeverEnsureOrigin},
+	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill},
+	traits::{Contains, InstanceFilter, NeverEnsureOrigin},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_MICROS},
 		ConstantMultiplier, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId, RuntimeDebug,
 };
-use frame_system::EnsureRoot;
 use scale_info::TypeInfo;
 
 // frame system
@@ -316,40 +312,6 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
-// pallet duster
-parameter_types! {
-	pub const DustingReward: u128 = 0;
-}
-
-impl pallet_duster::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type Amount = Amount;
-	type CurrencyId = AssetId;
-	type MultiCurrency = Currencies;
-	type MinCurrencyDeposits = AssetRegistry;
-	type Reward = DustingReward;
-	type NativeCurrencyId = NativeAssetId;
-	type BlacklistUpdateOrigin = MajorityTechCommitteeOrRoot;
-	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
-}
-
-// pallet asset registry
-parameter_types! {
-	pub const SequentialIdOffset: u32 = 1_000_000;
-}
-impl pallet_asset_registry::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RegistryOrigin = SuperMajorityTechCommitteeOrRoot;
-	type AssetId = AssetId;
-	type Balance = Balance;
-	type AssetNativeLocation = AssetLocation;
-	type StringLimit = RegistryStrLimit;
-	type SequentialIdStartAt = SequentialIdOffset;
-	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
-}
-
 // cumulus pallet parachain system
 parameter_types! {
 	pub ReservedXcmpWeight: Weight = BlockWeights::get().max_block / 4;
@@ -379,18 +341,6 @@ impl pallet_aura::Config for Runtime {
 	type DisabledValidators = ();
 }
 
-// pallet treasury
-parameter_types! {
-	pub const ProposalBond: Permill = Permill::from_percent(3);
-	pub const ProposalBondMinimum: Balance = 100 * DOLLARS;
-	pub const ProposalBondMaximum: Balance = 500 * DOLLARS;
-	pub const SpendPeriod: BlockNumber = 3 * DAYS;
-	pub const Burn: Permill = Permill::from_percent(0);
-	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
-	pub const MaxApprovals: u32 =  100;
-	pub TreasuryAccount: AccountId = Treasury::account_id();
-}
-
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryPalletId;
 	type Currency = Balances;
@@ -408,25 +358,6 @@ impl pallet_treasury::Config for Runtime {
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
 	type SpendOrigin = NeverEnsureOrigin<Balance>;
-}
-
-// pallet scheduler
-parameter_types! {
-	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(10) * BlockWeights::get().max_block;
-	pub const MaxScheduledPerBlock: u32 = 50;
-}
-
-impl pallet_scheduler::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeOrigin = RuntimeOrigin;
-	type PalletsOrigin = OriginCaller;
-	type RuntimeCall = RuntimeCall;
-	type MaximumWeight = MaximumSchedulerWeight;
-	type ScheduleOrigin = EnsureRoot<AccountId>;
-	type MaxScheduledPerBlock = MaxScheduledPerBlock;
-	type WeightInfo = weights::scheduler::BasiliskWeight<Runtime>;
-	type OriginPrivilegeCmp = EqualPrivilegeOnly;
-	type Preimages = Preimage;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -526,4 +457,46 @@ impl pallet_collator_rewards::Config for Runtime {
 	// We wrap the ` SessionManager` implementation of `CollatorSelection` to get the collatrs that
 	// we hand out rewards to.
 	type SessionManager = CollatorSelection;
+}
+
+// pallet identity
+parameter_types! {
+	pub const BasicDeposit: Balance = 5 * DOLLARS;
+	pub const FieldDeposit: Balance = DOLLARS;
+	pub const SubAccountDeposit: Balance = 5 * DOLLARS;
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxAdditionalFields: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
+}
+
+impl pallet_identity::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type BasicDeposit = BasicDeposit;
+	type FieldDeposit = FieldDeposit;
+	type SubAccountDeposit = SubAccountDeposit;
+	type MaxSubAccounts = MaxSubAccounts;
+	type MaxAdditionalFields = MaxAdditionalFields;
+	type MaxRegistrars = MaxRegistrars;
+	type Slashed = Treasury;
+	type ForceOrigin = MajorityCouncilOrRoot;
+	type RegistrarOrigin = MajorityCouncilOrRoot;
+	type WeightInfo = ();
+}
+
+// pallet multisig
+parameter_types! {
+	pub DepositBase: Balance = deposit(1, 88);
+	pub DepositFactor: Balance = deposit(0, 32);
+	pub const MaxSignatories: u16 = 100;
+}
+
+impl pallet_multisig::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type DepositBase = DepositBase;
+	type DepositFactor = DepositFactor;
+	type MaxSignatories = MaxSignatories;
+	type WeightInfo = ();
 }

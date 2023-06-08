@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use crate::democracy::{SuperMajorityCouncilOrRoot, SuperMajorityTechCommitteeOrRoot, UnanimousTechCommitteeOrRoot};
+use crate::governance::{SuperMajorityCouncilOrRoot, SuperMajorityTechCommitteeOrRoot, UnanimousTechCommitteeOrRoot};
 use crate::system::NativeAssetId;
 use adapter::OrmlTokensAdapter;
 
@@ -118,6 +118,40 @@ impl pallet_currencies::Config for Runtime {
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = weights::currencies::BasiliskWeight<Runtime>;
+}
+
+// pallet asset registry
+parameter_types! {
+	pub const SequentialIdOffset: u32 = 1_000_000;
+}
+impl pallet_asset_registry::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RegistryOrigin = SuperMajorityTechCommitteeOrRoot;
+	type AssetId = AssetId;
+	type Balance = Balance;
+	type AssetNativeLocation = AssetLocation;
+	type StringLimit = RegistryStrLimit;
+	type SequentialIdStartAt = SequentialIdOffset;
+	type NativeAssetId = NativeAssetId;
+	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
+}
+
+// pallet duster
+parameter_types! {
+	pub const DustingReward: u128 = 0;
+}
+
+impl pallet_duster::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type Amount = Amount;
+	type CurrencyId = AssetId;
+	type MultiCurrency = Currencies;
+	type MinCurrencyDeposits = AssetRegistry;
+	type Reward = DustingReward;
+	type NativeCurrencyId = NativeAssetId;
+	type BlacklistUpdateOrigin = MajorityTechCommitteeOrRoot;
+	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
 }
 
 // pallet xyk

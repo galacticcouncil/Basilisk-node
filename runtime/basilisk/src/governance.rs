@@ -23,8 +23,9 @@ use primitives::constants::{
 
 use frame_support::{
 	parameter_types,
-	sp_runtime::Percent,
-	traits::{EitherOfDiverse, LockIdentifier, U128CurrencyToVote},
+	sp_runtime::{Perbill, Percent, Permill},
+	traits::{EitherOfDiverse, EqualPrivilegeOnly, LockIdentifier, U128CurrencyToVote},
+	PalletId,
 };
 use frame_system::EnsureRoot;
 use pallet_collective::EnsureProportionAtLeast;
@@ -210,44 +211,33 @@ impl pallet_preimage::Config for Runtime {
 	type ByteDeposit = PreimageByteDeposit;
 }
 
-// pallet identity
+// pallet treasury
 parameter_types! {
-	pub const BasicDeposit: Balance = 5 * DOLLARS;
-	pub const FieldDeposit: Balance = DOLLARS;
-	pub const SubAccountDeposit: Balance = 5 * DOLLARS;
-	pub const MaxSubAccounts: u32 = 100;
-	pub const MaxAdditionalFields: u32 = 100;
-	pub const MaxRegistrars: u32 = 20;
+	pub const ProposalBond: Permill = Permill::from_percent(3);
+	pub const ProposalBondMinimum: Balance = 100 * DOLLARS;
+	pub const ProposalBondMaximum: Balance = 500 * DOLLARS;
+	pub const SpendPeriod: BlockNumber = 3 * DAYS;
+	pub const Burn: Permill = Permill::from_percent(0);
+	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
+	pub const MaxApprovals: u32 =  100;
+	pub TreasuryAccount: AccountId = Treasury::account_id();
 }
 
-impl pallet_identity::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type BasicDeposit = BasicDeposit;
-	type FieldDeposit = FieldDeposit;
-	type SubAccountDeposit = SubAccountDeposit;
-	type MaxSubAccounts = MaxSubAccounts;
-	type MaxAdditionalFields = MaxAdditionalFields;
-	type MaxRegistrars = MaxRegistrars;
-	type Slashed = Treasury;
-	type ForceOrigin = MajorityCouncilOrRoot;
-	type RegistrarOrigin = MajorityCouncilOrRoot;
-	type WeightInfo = ();
-}
-
-// pallet multisig
+// pallet scheduler
 parameter_types! {
-	pub DepositBase: Balance = deposit(1, 88);
-	pub DepositFactor: Balance = deposit(0, 32);
-	pub const MaxSignatories: u16 = 100;
+	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(10) * BlockWeights::get().max_block;
+	pub const MaxScheduledPerBlock: u32 = 50;
 }
 
-impl pallet_multisig::Config for Runtime {
+impl pallet_scheduler::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	type RuntimeOrigin = RuntimeOrigin;
+	type PalletsOrigin = OriginCaller;
 	type RuntimeCall = RuntimeCall;
-	type Currency = Balances;
-	type DepositBase = DepositBase;
-	type DepositFactor = DepositFactor;
-	type MaxSignatories = MaxSignatories;
-	type WeightInfo = ();
+	type MaximumWeight = MaximumSchedulerWeight;
+	type ScheduleOrigin = EnsureRoot<AccountId>;
+	type MaxScheduledPerBlock = MaxScheduledPerBlock;
+	type WeightInfo = weights::scheduler::BasiliskWeight<Runtime>;
+	type OriginPrivilegeCmp = EqualPrivilegeOnly;
+	type Preimages = Preimage;
 }
