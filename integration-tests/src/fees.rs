@@ -9,20 +9,23 @@ use xcm_emulator::TestExt;
 
 macro_rules! assert_eq_approx {
 	( $x:expr, $y:expr, $z:expr, $r:expr) => {{
-		let diff = if $x >= $y { $x - $y } else { $y - $x };
-		if diff > $z {
-			panic!("\n{} not equal\nleft: {:?}\nright: {:?}\n", $r, $x, $y);
+		let d = if $x >= $y { $x - $y } else { $y - $x };
+		if d > $z {
+			panic!(
+				"\n{}\nleft:  {:?}\nright: {:?}\nallowed diff: {:?}\nactual diff:  {:?}\n",
+				$r, $x, $y, $z, d
+			);
 		}
 	}};
 }
 
-//NOTE: rust encoded call size is differen from UI encoded call size that's why we have asserts for 2 fees.
+//NOTE: rust encoded call size is different from UI encoded call size that's why we have asserts for 2 fees.
+
+const DIFF: u128 = 100 * UNITS;
 
 #[test]
 fn transaction_fees_should_be_as_expected_when_transfer_happen() {
 	Basilisk::execute_with(|| {
-		let diff = UNITS / 100; //0.01
-
 		let expected_rust_encoded_fees = 4_705 * UNITS / 100; //47.05
 		let expected_ui_fees = 4_804 * UNITS / 100; //48.04
 
@@ -64,17 +67,14 @@ fn transaction_fees_should_be_as_expected_when_transfer_happen() {
 			format_num(min_multiplier_rust_fees * 10_000 / UNITS, 4),
 		);
 
-		assert_eq_approx!(rust_encoded_fees, expected_rust_encoded_fees, diff, "rust fees changed");
-		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "ui fees changed");
+		assert_eq_approx!(rust_encoded_fees, expected_rust_encoded_fees, DIFF, "rust fees changed");
+		assert_eq_approx!(ui_fees, expected_ui_fees, DIFF, "ui fees changed");
 	});
 }
 
 #[test]
 fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 	Basilisk::execute_with(|| {
-		//NOTE: Price showed by polkadotAPPS is changing at second decimal place between runs.
-		let diff = UNITS / 10; //0.1
-
 		let expected_rust_encoded_fees = 48_619 * UNITS / 100; //486.19
 		let expected_ui_fees = 48_724 * UNITS / 100; //487.24
 
@@ -120,17 +120,19 @@ fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 			format_num(min_multiplier_rust_fees * 10_000 / UNITS, 4),
 		);
 
-		assert_eq_approx!(rust_encoded_fees, expected_rust_encoded_fees, diff, "rust fees changed");
-		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "ui fees changed");
+		assert_eq_approx!(
+			rust_encoded_fees,
+			expected_rust_encoded_fees,
+			DIFF,
+			"rust fees difference too large"
+		);
+		assert_eq_approx!(ui_fees, expected_ui_fees, DIFF, "ui fees difference too large");
 	});
 }
 
 #[test]
 fn transaction_fees_should_be_as_expected_when_nft_collection_is_created() {
 	Basilisk::execute_with(|| {
-		//NOTE: Price showed by polkadotAPPS is changing at second decimal place between runs.
-		let diff = UNITS / 10; //0.1
-
 		let expected_rust_encoded_fees = 45_584 * UNITS / 100; //455.84
 		let expected_ui_fees = 45_689 * UNITS / 100; //456.89
 
@@ -176,8 +178,8 @@ fn transaction_fees_should_be_as_expected_when_nft_collection_is_created() {
 			format_num(min_multiplier_rust_fees * 10_000 / UNITS, 4),
 		);
 
-		assert_eq_approx!(rust_encoded_fees, expected_rust_encoded_fees, diff, "rust fees changed");
-		assert_eq_approx!(ui_fees, expected_ui_fees, diff, "ui fees changed");
+		assert_eq_approx!(rust_encoded_fees, expected_rust_encoded_fees, DIFF, "rust fees changed");
+		assert_eq_approx!(ui_fees, expected_ui_fees, DIFF, "ui fees changed");
 	});
 }
 

@@ -92,7 +92,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 100,
+	spec_version: 102,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -110,8 +110,8 @@ pub fn native_version() -> NativeVersion {
 
 pub fn get_all_module_accounts() -> vec::Vec<AccountId> {
 	vec![
-		system::TreasuryPalletId::get().into_account_truncating(),
-		finance::VestingPalletId::get().into_account_truncating(),
+		TreasuryPalletId::get().into_account_truncating(),
+		VestingPalletId::get().into_account_truncating(),
 	]
 }
 

@@ -612,7 +612,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "100.0.0"
+version = "102.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
@@ -6707,22 +6707,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-price-oracle"
-version = "0.3.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=091bc9d084139bfc1d7899534d311f7f2f46dbdb#091bc9d084139bfc1d7899534d311f7f2f46dbdb"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hydradx-traits",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-proxy"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech//substrate?branch=polkadot-v0.9.38#bcff60a227d455d95b4712b6cb356ce56b1ff672"
@@ -7194,7 +7178,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "6.2.7"
+version = "6.2.8"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7249,7 +7233,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.13"
+version = "1.0.15"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7332,7 +7316,6 @@ dependencies = [
  "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft",
- "pallet-price-oracle",
  "pallet-relaychain-info",
  "pallet-route-executor",
  "pallet-scheduler",
@@ -9748,7 +9731,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.9.8"
+version = "0.9.11"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -9791,7 +9774,6 @@ dependencies = [
  "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft",
- "pallet-price-oracle",
  "pallet-relaychain-info",
  "pallet-route-executor",
  "pallet-scheduler",
