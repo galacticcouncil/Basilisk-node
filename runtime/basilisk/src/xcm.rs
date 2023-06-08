@@ -1,21 +1,42 @@
-use super::{AssetId, *};
+// This file is part of Basilisk-node.
+
+// Copyright (C) 2020-2023  Intergalactic, Limited (GIB).
+// SPDX-License-Identifier: Apache-2.0
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+use super::*;
+use crate::democracy::{MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot};
+use crate::system::{TreasuryAccount, WeightToFee};
 
 use cumulus_primitives_core::ParaId;
 use frame_support::{
-	traits::{Everything, Nothing},
+	parameter_types,
+	sp_runtime::traits::Convert,
+	traits::{Contains, Everything, Get, Nothing},
 	PalletId,
 };
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
+use pallet_transaction_multi_payment::DepositAll;
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
-use polkadot_xcm::v3::prelude::*;
-use polkadot_xcm::v3::Error;
-use polkadot_xcm::v3::Weight as XcmWeight;
-use primitives::Price;
-use sp_runtime::traits::Convert;
+use polkadot_xcm::v3::{prelude::*, Error, MultiLocation, Weight as XcmWeight};
+use primitives::{AssetId, Price};
 
+use codec::{Decode, Encode, MaxEncodedLen};
+use scale_info::TypeInfo;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
 	EnsureXcmOrigin, FixedWeightBounds, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
@@ -23,6 +44,14 @@ use xcm_builder::{
 	TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{traits::WeightTrader, Assets, Config, XcmExecutor};
+
+#[derive(Debug, Default, Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+pub struct AssetLocation(pub MultiLocation);
+
+pub const RELAY_CHAIN_ASSET_LOCATION: AssetLocation = AssetLocation(MultiLocation {
+	parents: 1,
+	interior: Here,
+});
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, RelayNetwork>;
 
@@ -219,7 +248,7 @@ impl pallet_xcm::Config for Runtime {
 	type TrustedLockers = ();
 	type SovereignAccountOf = ();
 	type MaxLockers = ConstU32<8>;
-	type WeightInfo = common_runtime::weights::xcm::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::xcm::BasiliskWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type ReachableDest = ReachableDest;
 }

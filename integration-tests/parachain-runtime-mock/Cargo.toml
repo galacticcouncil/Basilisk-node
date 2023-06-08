@@ -1,6 +1,6 @@
 [package]
 name = "parachain-runtime-mock"
-version = "0.2.6"
+version = "0.2.7"
 description = "A mock runtime for a parachain"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -28,7 +28,6 @@ pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 
-common-runtime = { path = "../../runtime/common", default-features = true}
 primitives = { default-features = false, path = "../../primitives" }
 
 pallet-treasury = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }

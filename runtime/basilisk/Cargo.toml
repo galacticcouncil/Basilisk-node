@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "99.0.0"
+version = "100.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -23,7 +23,6 @@ smallvec = "1.9.0"
 
 # local dependencies
 primitives = { default-features = false, path = "../../primitives" }
-common-runtime = { path = '../common', default-features = false }
 pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }

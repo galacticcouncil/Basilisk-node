@@ -22,12 +22,14 @@
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
 	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, ParachainInfoConfig, SessionConfig,
-	Signature, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, NATIVE_EXISTENTIAL_DEPOSIT, UNITS,
-	WASM_BINARY,
+	Signature, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
-use primitives::{AssetId, BlockNumber, Price};
+use primitives::{
+	constants::currency::{NATIVE_EXISTENTIAL_DEPOSIT, UNITS},
+	AssetId, BlockNumber, Price,
+};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use sc_telemetry::TelemetryEndpoints;
