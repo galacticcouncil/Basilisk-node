@@ -33,7 +33,7 @@ use codec::Decode;
 use frame_support::{
 	parameter_types,
 	sp_runtime::{app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero},
-	traits::{AsEnsureOriginWithArg, Contains, Defensive, EnsureOrigin, NeverEnsureOrigin, Get, LockIdentifier},
+	traits::{AsEnsureOriginWithArg, Contains, Defensive, EnsureOrigin, Get, LockIdentifier, NeverEnsureOrigin},
 	BoundedVec, PalletId,
 };
 use frame_system::RawOrigin;

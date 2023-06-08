@@ -9,8 +9,8 @@ use frame_support::{
 };
 use pallet_transaction_payment::Multiplier;
 use primitives::constants::{
-	currency::{DOLLARS, CENTS, MILLICENTS},
-	time::{HOURS, DAYS},
+	currency::{CENTS, DOLLARS, MILLICENTS},
+	time::{DAYS, HOURS},
 };
 
 #[test]
