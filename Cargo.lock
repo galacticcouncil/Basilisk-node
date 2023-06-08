@@ -7275,7 +7275,7 @@ dependencies = [
 
 [[package]]
 name = "parachain-runtime-mock"
-version = "0.2.7"
+version = "0.2.8"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -9731,7 +9731,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.9.11"
+version = "0.9.12"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
