@@ -20,12 +20,10 @@ use crate::governance::{MajorityCouncilOrRoot, MajorityTechCommitteeOrRoot, Supe
 
 use pallet_transaction_multi_payment::{DepositAll, TransferFees};
 use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
-use primitives::{
-	constants::{
-		chain::{CORE_ASSET_ID, MAXIMUM_BLOCK_WEIGHT},
-		currency::{deposit, CENTS, DOLLARS, MILLICENTS},
-		time::{HOURS, SLOT_DURATION},
-	},
+use primitives::constants::{
+	chain::{CORE_ASSET_ID, MAXIMUM_BLOCK_WEIGHT},
+	currency::{deposit, CENTS, DOLLARS, MILLICENTS},
+	time::{HOURS, SLOT_DURATION},
 };
 
 use codec::{Decode, Encode, MaxEncodedLen};
