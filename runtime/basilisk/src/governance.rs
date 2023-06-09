@@ -24,7 +24,7 @@ use primitives::constants::{
 use frame_support::{
 	parameter_types,
 	sp_runtime::{Perbill, Percent, Permill},
-	traits::{EitherOfDiverse, NeverEnsureOrigin, EqualPrivilegeOnly, LockIdentifier, U128CurrencyToVote},
+	traits::{EitherOfDiverse, EqualPrivilegeOnly, LockIdentifier, NeverEnsureOrigin, U128CurrencyToVote},
 	PalletId,
 };
 use frame_system::EnsureRoot;
