@@ -24,7 +24,7 @@ use primitives::constants::{
 use frame_support::{
 	parameter_types,
 	sp_runtime::{Perbill, Percent, Permill},
-	traits::{EitherOfDiverse, EqualPrivilegeOnly, LockIdentifier, U128CurrencyToVote},
+	traits::{EitherOfDiverse, NeverEnsureOrigin, EqualPrivilegeOnly, LockIdentifier, U128CurrencyToVote},
 	PalletId,
 };
 use frame_system::EnsureRoot;
@@ -228,4 +228,35 @@ impl pallet_scheduler::Config for Runtime {
 	type WeightInfo = weights::scheduler::BasiliskWeight<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type Preimages = Preimage;
+}
+
+// pallet treasury
+parameter_types! {
+	pub const ProposalBond: Permill = Permill::from_percent(3);
+	pub const ProposalBondMinimum: Balance = 100 * DOLLARS;
+	pub const ProposalBondMaximum: Balance = 500 * DOLLARS;
+	pub const SpendPeriod: BlockNumber = 3 * DAYS;
+	pub const Burn: Permill = Permill::from_percent(0);
+	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
+	pub const MaxApprovals: u32 =  100;
+	pub TreasuryAccount: AccountId = Treasury::account_id();
+}
+
+impl pallet_treasury::Config for Runtime {
+	type PalletId = TreasuryPalletId;
+	type Currency = Balances;
+	type ApproveOrigin = SuperMajorityCouncilOrRoot;
+	type RejectOrigin = MajorityCouncilOrRoot;
+	type RuntimeEvent = RuntimeEvent;
+	type OnSlash = Treasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type ProposalBondMaximum = ProposalBondMaximum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = Burn;
+	type BurnDestination = ();
+	type WeightInfo = weights::treasury::BasiliskWeight<Runtime>;
+	type SpendFunds = ();
+	type MaxApprovals = MaxApprovals;
+	type SpendOrigin = NeverEnsureOrigin<Balance>;
 }

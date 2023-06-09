@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use crate::governance::{MajorityCouncilOrRoot, MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot};
+use crate::governance::{MajorityCouncilOrRoot, MajorityTechCommitteeOrRoot};
 
 use pallet_transaction_multi_payment::{DepositAll, TransferFees};
 use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
@@ -31,7 +31,7 @@ use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
 	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill},
-	traits::{Contains, InstanceFilter, NeverEnsureOrigin},
+	traits::{Contains, InstanceFilter},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_MICROS},
 		ConstantMultiplier, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -342,37 +342,6 @@ impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
 	type MaxAuthorities = MaxAuthorities;
 	type DisabledValidators = ();
-}
-
-// pallet treasury
-parameter_types! {
-	pub const ProposalBond: Permill = Permill::from_percent(3);
-	pub const ProposalBondMinimum: Balance = 100 * DOLLARS;
-	pub const ProposalBondMaximum: Balance = 500 * DOLLARS;
-	pub const SpendPeriod: BlockNumber = 3 * DAYS;
-	pub const Burn: Permill = Permill::from_percent(0);
-	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
-	pub const MaxApprovals: u32 =  100;
-	pub TreasuryAccount: AccountId = Treasury::account_id();
-}
-
-impl pallet_treasury::Config for Runtime {
-	type PalletId = TreasuryPalletId;
-	type Currency = Balances;
-	type ApproveOrigin = SuperMajorityCouncilOrRoot;
-	type RejectOrigin = MajorityCouncilOrRoot;
-	type RuntimeEvent = RuntimeEvent;
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ProposalBondMinimum;
-	type ProposalBondMaximum = ProposalBondMaximum;
-	type SpendPeriod = SpendPeriod;
-	type Burn = Burn;
-	type BurnDestination = ();
-	type WeightInfo = weights::treasury::BasiliskWeight<Runtime>;
-	type SpendFunds = ();
-	type MaxApprovals = MaxApprovals;
-	type SpendOrigin = NeverEnsureOrigin<Balance>;
 }
 
 impl pallet_utility::Config for Runtime {
