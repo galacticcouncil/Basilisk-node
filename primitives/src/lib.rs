@@ -32,7 +32,7 @@ use frame_support::{
 	sp_runtime::{
 		generic,
 		traits::{BlakeTwo256, IdentifyAccount, Verify},
-		MultiSignature, Perbill,
+		MultiSignature,
 	},
 };
 
@@ -88,13 +88,6 @@ pub type CollectionId = u128;
 
 /// NFT Item ID
 pub type ItemId = u128;
-
-/// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
-/// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
-pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
-/// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
-/// by  Operational  extrinsics.
-pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 parameter_types! {
 	/// NFT metadata limit

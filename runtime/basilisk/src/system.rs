@@ -26,7 +26,6 @@ use primitives::{
 		currency::{deposit, CENTS, DOLLARS, MILLICENTS},
 		time::{HOURS, SLOT_DURATION},
 	},
-	AVERAGE_ON_INITIALIZE_RATIO, NORMAL_DISPATCH_RATIO,
 };
 
 use codec::{Decode, Encode, MaxEncodedLen};
@@ -44,6 +43,14 @@ use frame_support::{
 use scale_info::TypeInfo;
 
 // frame system
+
+/// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
+/// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
+pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
+/// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
+/// by  Operational  extrinsics.
+pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
 	/// Maximum length of block. Up to 5MB.
@@ -55,9 +62,7 @@ parameter_types! {
 	/// This includes weight for payment in non-native currency.
 	// Default substrate base weight is 125 * WEIGHT_PER_MICROS
 	pub const BasiliskExtrinsicBaseWeight: Weight = Weight::from_ref_time(200 * WEIGHT_REF_TIME_PER_MICROS);
-}
 
-parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
 	/// Block weights base values and limits.
 	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights::builder()
