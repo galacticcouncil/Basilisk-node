@@ -33,7 +33,7 @@ use pallet_transaction_multi_payment::DepositAll;
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::v3::{prelude::*, Error, MultiLocation, Weight as XcmWeight};
-use primitives::{AssetId, Price};
+use primitives::AssetId;
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;

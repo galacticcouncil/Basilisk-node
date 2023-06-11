@@ -46,7 +46,9 @@ pub use governance::*;
 pub use system::*;
 pub use xcm::*;
 
-pub use primitives::{AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index, ItemId, Signature};
+pub use primitives::{
+	AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index, ItemId, Price, Signature,
+};
 
 use frame_support::sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,

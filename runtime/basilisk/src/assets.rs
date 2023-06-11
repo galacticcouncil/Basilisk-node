@@ -54,7 +54,6 @@ impl Get<AssetId> for RelayChainAssetId {
 
 type KusamaCurrency = CurrencyAdapter<Runtime, RelayChainAssetId>;
 
-// pallet balances
 parameter_types! {
 	pub const NativeExistentialDeposit: u128 = NATIVE_EXISTENTIAL_DEPOSIT;
 	pub const MaxLocks: u32 = 50;
@@ -62,20 +61,19 @@ parameter_types! {
 }
 
 impl pallet_balances::Config for Runtime {
-	type MaxLocks = MaxLocks;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
-	/// The ubiquitous event type.
-	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = Treasury;
+	type RuntimeEvent = RuntimeEvent;
+	/// The ubiquitous event type.
 	type ExistentialDeposit = NativeExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = weights::balances::BasiliskWeight<Runtime>;
+	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
 }
 
-// pallet orml tokens
 pub struct CurrencyHooks;
 impl MutationHooks<AccountId, AssetId, Balance> for CurrencyHooks {
 	type OnDust = Duster;
@@ -102,11 +100,11 @@ impl orml_tokens::Config for Runtime {
 	type CurrencyId = AssetId;
 	type WeightInfo = weights::tokens::BasiliskWeight<Runtime>;
 	type ExistentialDeposits = AssetRegistry;
+	type CurrencyHooks = CurrencyHooks;
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
 	type DustRemovalWhitelist = DustRemovalWhitelist;
-	type CurrencyHooks = CurrencyHooks;
 }
 
 // The latest versions of the orml-currencies pallet don't emit events.
@@ -120,7 +118,6 @@ impl pallet_currencies::Config for Runtime {
 	type WeightInfo = weights::currencies::BasiliskWeight<Runtime>;
 }
 
-// pallet asset registry
 parameter_types! {
 	pub const SequentialIdOffset: u32 = 1_000_000;
 }
@@ -136,7 +133,6 @@ impl pallet_asset_registry::Config for Runtime {
 	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
 }
 
-// pallet duster
 parameter_types! {
 	pub const DustingReward: u128 = 0;
 }
@@ -152,17 +148,6 @@ impl pallet_duster::Config for Runtime {
 	type NativeCurrencyId = NativeAssetId;
 	type BlacklistUpdateOrigin = MajorityTechCommitteeOrRoot;
 	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
-}
-
-// pallet xyk
-parameter_types! {
-	pub ExchangeFee: (u32, u32) = (3, 1_000);
-	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
-	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
-	pub const MaxInRatio: u128 = MAX_IN_RATIO;
-	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
-	pub const RegistryStrLimit: u32 = 32;
-	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
 }
 
 pub struct AssetPairAccountId<T: frame_system::Config>(PhantomData<T>);
@@ -184,6 +169,16 @@ where
 	}
 }
 
+parameter_types! {
+	pub ExchangeFee: (u32, u32) = (3, 1_000);
+	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
+	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
+	pub const MaxInRatio: u128 = MAX_IN_RATIO;
+	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+	pub const RegistryStrLimit: u32 = 32;
+	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
+}
+
 impl pallet_xyk::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetRegistry = AssetRegistry;
@@ -200,11 +195,6 @@ impl pallet_xyk::Config for Runtime {
 	type AMMHandler = pallet_ema_oracle::OnActivityHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
-}
-
-// pallet lbp
-parameter_types! {
-	pub LBPExchangeFee: (u32, u32) = (2, 1_000);
 }
 
 pub struct MultiCurrencyLockedBalance<T>(PhantomData<T>);
@@ -237,6 +227,10 @@ where
 	}
 }
 
+parameter_types! {
+	pub LBPExchangeFee: (u32, u32) = (2, 1_000);
+}
+
 impl pallet_lbp::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currencies;
@@ -244,19 +238,12 @@ impl pallet_lbp::Config for Runtime {
 	type CreatePoolOrigin = SuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
+	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
-	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
-}
-
-// pallet vesting
-parameter_types! {
-	pub MinVestedTransfer: Balance = 100_000;
-	pub const MaxVestingSchedules: u32 = 15;
-	pub const VestingPalletId: PalletId = PalletId(*b"py/vstng");
 }
 
 pub struct RootAsVestingPallet;
@@ -278,6 +265,12 @@ impl EnsureOrigin<RuntimeOrigin> for RootAsVestingPallet {
 	}
 }
 
+parameter_types! {
+	pub MinVestedTransfer: Balance = 100_000;
+	pub const MaxVestingSchedules: u32 = 15;
+	pub const VestingPalletId: PalletId = PalletId(*b"py/vstng");
+}
+
 impl orml_vesting::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -288,7 +281,6 @@ impl orml_vesting::Config for Runtime {
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
-// pallet marketplace
 parameter_types! {
 	pub const MinimumOfferAmount: Balance = UNITS / 100;
 	pub const RoyaltyBondAmount: Balance = 0;
@@ -314,7 +306,6 @@ pub mod ksm {
 	}
 }
 
-// pallet uniques
 parameter_types! {
 	pub const CollectionDeposit: Balance = 0;
 	pub const ItemDeposit: Balance = 0;
@@ -342,12 +333,11 @@ impl pallet_uniques::Config for Runtime {
 	type StringLimit = primitives::UniquesStringLimit;
 	type KeyLimit = KeyLimit;
 	type ValueLimit = ValueLimit;
-	type WeightInfo = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type Helper = ();
+	type WeightInfo = ();
 }
 
-// pallet liquidity mining
 parameter_types! {
 	pub const LMPalletId: PalletId = PalletId(*b"LiqMinId");
 	pub const LiquidityMiningNftCollectionId: primitives::CollectionId = 1;
@@ -356,17 +346,16 @@ parameter_types! {
 impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currencies;
+	type AMM = XYK;
 	type CreateOrigin = UnanimousTechCommitteeOrRoot;
 	type PalletId = LMPalletId;
 	type NftCollectionId = LiquidityMiningNftCollectionId;
-	type AMM = XYK;
-	type WeightInfo = weights::xyk_liquidity_mining::BasiliskWeight<Runtime>;
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = XYKWarehouseLM;
 	type NonDustableWhitelistHandler = Duster;
+	type WeightInfo = weights::xyk_liquidity_mining::BasiliskWeight<Runtime>;
 }
 
-// warehouse pallet liquidity mining
 parameter_types! {
 	pub const WarehouseLMPalletId: PalletId = PalletId(*b"WhouseLm");
 	pub const MaxEntriesPerDeposit: u8 = 5; //NOTE: Rebenchmark when this change, TODO:
@@ -377,6 +366,7 @@ parameter_types! {
 
 type XYKLiquidityMiningInstance = warehouse_liquidity_mining::Instance1;
 impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type MultiCurrency = Currencies;
 	type PalletId = WarehouseLMPalletId;
@@ -388,11 +378,9 @@ impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime 
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
 	type AssetRegistry = AssetRegistry;
 	type NonDustableWhitelistHandler = Duster;
-	type RuntimeEvent = RuntimeEvent;
 	type PriceAdjustment = warehouse_liquidity_mining::DefaultPriceAdjustment;
 }
 
-// pallet route executor
 parameter_types! {
 	pub const MaxNumberOfTrades: u8 = 5;
 }
@@ -407,7 +395,6 @@ impl pallet_route_executor::Config for Runtime {
 	type WeightInfo = weights::route_executor::BasiliskWeight<Runtime>;
 }
 
-// pallet ema oracle
 parameter_types! {
 	pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<{ pallet_ema_oracle::MAX_PERIODS }>> = BoundedVec::truncate_from(
 		vec![OraclePeriod::LastBlock, OraclePeriod::Hour, OraclePeriod::Day, OraclePeriod::Week]
@@ -425,7 +412,6 @@ impl pallet_ema_oracle::Config for Runtime {
 	type MaxUniqueEntries = MaxUniqueOracleEntries;
 }
 
-// pallet nft
 parameter_types! {
 	pub ReserveCollectionIdUpTo: u128 = 999_999;
 }

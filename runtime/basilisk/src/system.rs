@@ -40,50 +40,12 @@ use frame_support::{
 };
 use scale_info::TypeInfo;
 
-// frame system
-
 /// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
 /// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
 pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
 /// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
 /// by  Operational  extrinsics.
 pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-
-parameter_types! {
-	pub const BlockHashCount: BlockNumber = 250;
-	/// Maximum length of block. Up to 5MB.
-	pub BlockLength: frame_system::limits::BlockLength =
-		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
-	pub const SS58Prefix: u16 = 10041;
-
-	/// Basilisk base weight of an extrinsic
-	/// This includes weight for payment in non-native currency.
-	// Default substrate base weight is 125 * WEIGHT_PER_MICROS
-	pub const BasiliskExtrinsicBaseWeight: Weight = Weight::from_ref_time(200 * WEIGHT_REF_TIME_PER_MICROS);
-
-	pub const Version: RuntimeVersion = VERSION;
-	/// Block weights base values and limits.
-	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights::builder()
-		.base_block(BlockExecutionWeight::get())
-		.for_class(DispatchClass::all(), |weights| {
-			weights.base_extrinsic = ExtrinsicBaseWeight::get();
-		})
-		.for_class(DispatchClass::Normal, |weights| {
-			weights.max_total = Some(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT);
-		})
-		.for_class(DispatchClass::Operational, |weights| {
-			weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
-			// Operational transactions have an extra reserved space, so that they
-			// are included even if block reachd `MAXIMUM_BLOCK_WEIGHT`.
-			weights.reserved = Some(
-				MAXIMUM_BLOCK_WEIGHT - NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT,
-			);
-		})
-		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
-		.build_or_panic();
-
-	pub ExtrinsicBaseWeight: Weight = BasiliskExtrinsicBaseWeight::get();
-}
 
 pub struct BaseFilter;
 impl Contains<RuntimeCall> for BaseFilter {
@@ -109,6 +71,39 @@ impl Contains<RuntimeCall> for BaseFilter {
 			_ => true,
 		}
 	}
+}
+
+parameter_types! {
+	pub const BlockHashCount: BlockNumber = 250;
+	/// Maximum length of block. Up to 5MB.
+	pub BlockLength: frame_system::limits::BlockLength =
+		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+	pub const SS58Prefix: u16 = 10041;
+	/// Basilisk base weight of an extrinsic
+	/// This includes weight for payment in non-native currency.
+	// Default substrate base weight is 125 * WEIGHT_PER_MICROS
+	pub const BasiliskExtrinsicBaseWeight: Weight = Weight::from_ref_time(200 * WEIGHT_REF_TIME_PER_MICROS);
+	pub const Version: RuntimeVersion = VERSION;
+	/// Block weights base values and limits.
+	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights::builder()
+		.base_block(BlockExecutionWeight::get())
+		.for_class(DispatchClass::all(), |weights| {
+			weights.base_extrinsic = ExtrinsicBaseWeight::get();
+		})
+		.for_class(DispatchClass::Normal, |weights| {
+			weights.max_total = Some(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT);
+		})
+		.for_class(DispatchClass::Operational, |weights| {
+			weights.max_total = Some(MAXIMUM_BLOCK_WEIGHT);
+			// Operational transactions have an extra reserved space, so that they
+			// are included even if block reachd `MAXIMUM_BLOCK_WEIGHT`.
+			weights.reserved = Some(
+				MAXIMUM_BLOCK_WEIGHT - NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT,
+			);
+		})
+		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
+		.build_or_panic();
+	pub ExtrinsicBaseWeight: Weight = BasiliskExtrinsicBaseWeight::get();
 }
 
 impl frame_system::Config for Runtime {
@@ -161,7 +156,6 @@ impl frame_system::Config for Runtime {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
-// pallet timestamp
 parameter_types! {
 	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
 	pub const NativeAssetId : AssetId = CORE_ASSET_ID;
@@ -173,22 +167,6 @@ impl pallet_timestamp::Config for Runtime {
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = weights::timestamp::BasiliskWeight<Runtime>;
-}
-
-// pallet transaction payment
-parameter_types! {
-	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
-	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
-	/// than this will decrease the weight and more will increase.
-	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
-	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
-	/// change the fees more rapidly.
-	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(6, 100_000);
-	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
-	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
-	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
-	/// Maximum amount of the multiplier.
-	pub MaximumMultiplier: Multiplier = Multiplier::saturating_from_integer(4);
 }
 
 pub struct WeightToFee;
@@ -222,6 +200,21 @@ impl WeightToFeePolynomial for WeightToFee {
 pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier, MaximumMultiplier>;
 
+parameter_types! {
+	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
+	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
+	/// than this will decrease the weight and more will increase.
+	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
+	/// The adjustment variable of the runtime. Higher values will cause `TargetBlockFullness` to
+	/// change the fees more rapidly.
+	pub AdjustmentVariable: Multiplier = Multiplier::saturating_from_rational(6, 100_000);
+	/// Minimum amount of the multiplier. This value cannot be too low. A test case should ensure
+	/// that combined with `AdjustmentVariable`, we can recover from the minimum.
+	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
+	/// Maximum amount of the multiplier.
+	pub MaximumMultiplier: Multiplier = Multiplier::saturating_from_integer(4);
+}
+
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnChargeTransaction = TransferFees<Currencies, DepositAll<Runtime>, TreasuryAccount>;
@@ -231,7 +224,6 @@ impl pallet_transaction_payment::Config for Runtime {
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 }
 
-// pallet transaction multi payment
 impl pallet_transaction_multi_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AcceptedCurrencyOrigin = MajorityTechCommitteeOrRoot;
@@ -242,7 +234,6 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type NativeAssetId = NativeAssetId;
 }
 
-// pallet proxy
 /// The type used to represent the kinds of proxying allowed.
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, RuntimeDebug, MaxEncodedLen, TypeInfo)]
 pub enum ProxyType {
@@ -315,7 +306,6 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
-// cumulus pallet parachain system
 parameter_types! {
 	pub ReservedXcmpWeight: Weight = BlockWeights::get().max_block / 4;
 	pub ReservedDmpWeight: Weight = BlockWeights::get().max_block / 4;
@@ -333,7 +323,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 
-// pallet aura
 parameter_types! {
 	pub const MaxAuthorities: u32 = 50;
 }
@@ -347,11 +336,10 @@ impl pallet_aura::Config for Runtime {
 impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
-	type WeightInfo = weights::utility::BasiliskWeight<Runtime>;
 	type PalletsOrigin = OriginCaller;
+	type WeightInfo = weights::utility::BasiliskWeight<Runtime>;
 }
 
-// pallet authorship
 parameter_types! {
 	pub const UncleGenerations: u32 = 0;
 }
@@ -361,7 +349,6 @@ impl pallet_authorship::Config for Runtime {
 	type EventHandler = (CollatorSelection,);
 }
 
-// pallet collator selection
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
 	pub const MaxCandidates: u32 = 20;
@@ -385,7 +372,6 @@ impl pallet_collator_selection::Config for Runtime {
 	type WeightInfo = weights::collator_selection::BasiliskWeight<Runtime>;
 }
 
-// pallet session
 parameter_types! {
 	pub const Period: u32 = 4 * HOURS;
 	pub const Offset: u32 = 0;
@@ -420,7 +406,6 @@ impl pallet_transaction_pause::Config for Runtime {
 	type WeightInfo = weights::transaction_pause::BasiliskWeight<Runtime>;
 }
 
-// pallet collator rewards
 parameter_types! {
 	pub const RewardPerCollator: Balance = 15_216_000_000_000_000; // 12.68[BSX/block] * 1200[block]
 	//GalacticCouncil collators
@@ -436,14 +421,13 @@ impl pallet_collator_rewards::Config for Runtime {
 	type CurrencyId = AssetId;
 	type Currency = Currencies;
 	type RewardPerCollator = RewardPerCollator;
-	type ExcludedCollators = ExcludedCollators;
 	type RewardCurrencyId = NativeAssetId;
+	type ExcludedCollators = ExcludedCollators;
 	// We wrap the ` SessionManager` implementation of `CollatorSelection` to get the collatrs that
 	// we hand out rewards to.
 	type SessionManager = CollatorSelection;
 }
 
-// pallet identity
 parameter_types! {
 	pub const BasicDeposit: Balance = 5 * DOLLARS;
 	pub const FieldDeposit: Balance = DOLLARS;
@@ -468,7 +452,6 @@ impl pallet_identity::Config for Runtime {
 	type WeightInfo = ();
 }
 
-// pallet multisig
 parameter_types! {
 	pub DepositBase: Balance = deposit(1, 88);
 	pub DepositFactor: Balance = deposit(0, 32);
