@@ -6150,7 +6150,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-rewards"
 version = "1.0.4"
-source = "git+https://github.com/galacticcouncil/warehouse?rev=f64f50255965a1177d28bbc969a371013584bbdd#f64f50255965a1177d28bbc969a371013584bbdd"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=091bc9d084139bfc1d7899534d311f7f2f46dbdb#091bc9d084139bfc1d7899534d311f7f2f46dbdb"
 dependencies = [
  "frame-support",
  "frame-system",
