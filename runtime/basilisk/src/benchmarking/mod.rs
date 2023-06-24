@@ -16,8 +16,7 @@ use crate::Currencies;
 use frame_support::assert_ok;
 use frame_system::RawOrigin;
 
-use common_runtime::AccountId;
-use primitives::{AssetId, Balance};
+use primitives::{AccountId, AssetId, Balance};
 use sp_std::vec;
 use sp_std::vec::Vec;
 

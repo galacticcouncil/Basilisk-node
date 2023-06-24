@@ -1,25 +1,17 @@
-use crate::{AccountId, AssetId, Balance, NativeAssetId, Runtime};
-use crate::{BlockNumber, Currencies, MaxVestingSchedules, System, Vesting};
-
 use super::BSX;
-
-use common_runtime::VestingPalletId;
-
-use sp_std::prelude::*;
+use crate::{Currencies, MaxVestingSchedules, NativeAssetId, Runtime, System, Vesting, VestingPalletId};
+use primitives::{constants::currency::NATIVE_EXISTENTIAL_DEPOSIT, AccountId, AssetId, Balance, BlockNumber};
 
 use frame_benchmarking::{account, whitelisted_caller};
-use frame_support::assert_ok;
+use frame_support::{
+	assert_ok,
+	sp_runtime::traits::{AccountIdConversion, SaturatedConversion, StaticLookup},
+};
 use frame_system::RawOrigin;
-use sp_runtime::traits::AccountIdConversion;
-
 use orml_benchmarking::runtime_benchmarks;
-use orml_traits::MultiCurrency;
-use orml_traits::MultiCurrencyExtended;
+use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use orml_vesting::VestingSchedule;
-
-use primitives::constants::currency::NATIVE_EXISTENTIAL_DEPOSIT;
-
-use sp_runtime::traits::{SaturatedConversion, StaticLookup};
+use sp_std::prelude::*;
 
 pub type Schedule = VestingSchedule<BlockNumber, Balance>;
 

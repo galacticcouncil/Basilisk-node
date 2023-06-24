@@ -1,21 +1,19 @@
-use crate::{AccountId, Amount, AssetId, Balance, Currencies, NativeAssetId, Runtime, NATIVE_EXISTENTIAL_DEPOSIT};
-
-use sp_std::prelude::*;
+use super::*;
+use crate::{Currencies, NativeAssetId, Runtime};
+use primitives::{constants::currency::NATIVE_EXISTENTIAL_DEPOSIT, AccountId, Amount, AssetId, Balance};
 
 use frame_benchmarking::{account, whitelisted_caller};
 use frame_system::RawOrigin;
-use sp_runtime::traits::UniqueSaturatedInto;
+use sp_std::prelude::*;
 
 use frame_benchmarking::BenchmarkError;
-use frame_support::assert_ok;
+use frame_support::{
+	assert_ok,
+	sp_runtime::traits::{SaturatedConversion, StaticLookup, UniqueSaturatedInto},
+};
 
 use orml_benchmarking::runtime_benchmarks;
-use orml_traits::MultiCurrency;
-use orml_traits::MultiCurrencyExtended;
-
-use super::*;
-
-use sp_runtime::traits::{SaturatedConversion, StaticLookup};
+use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 
 const SEED: u32 = 0;
 

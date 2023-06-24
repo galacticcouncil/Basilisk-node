@@ -4,10 +4,14 @@ use crate::*;
 use codec::Encode;
 use frame_support::{
 	dispatch::{DispatchClass, GetDispatchInfo},
+	sp_runtime::{traits::Convert, FixedPointNumber},
 	weights::WeightToFee,
 };
-use sp_runtime::traits::Convert;
-use sp_runtime::FixedPointNumber;
+use pallet_transaction_payment::Multiplier;
+use primitives::constants::{
+	currency::{CENTS, DOLLARS, MILLICENTS},
+	time::{DAYS, HOURS},
+};
 
 #[test]
 #[ignore]
