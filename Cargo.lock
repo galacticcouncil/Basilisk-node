@@ -612,17 +612,17 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "103.0.0"
+version = "104.0.0"
 dependencies = [
-    "cumulus-pallet-aura-ext",
-    "cumulus-pallet-dmp-queue",
-    "cumulus-pallet-parachain-system",
-    "cumulus-pallet-xcm",
-    "cumulus-pallet-xcmp-queue",
-    "cumulus-primitives-core",
-    "cumulus-primitives-parachain-inherent",
-    "cumulus-primitives-timestamp",
-    "cumulus-primitives-utility",
+ "cumulus-pallet-aura-ext",
+ "cumulus-pallet-dmp-queue",
+ "cumulus-pallet-parachain-system",
+ "cumulus-pallet-xcm",
+ "cumulus-pallet-xcmp-queue",
+ "cumulus-primitives-core",
+ "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-timestamp",
+ "cumulus-primitives-utility",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -9731,7 +9731,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.9.12"
+version = "0.9.13"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
