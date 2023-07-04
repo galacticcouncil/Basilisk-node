@@ -614,15 +614,15 @@ dependencies = [
 name = "basilisk-runtime"
 version = "103.0.0"
 dependencies = [
-    "cumulus-pallet-aura-ext",
-    "cumulus-pallet-dmp-queue",
-    "cumulus-pallet-parachain-system",
-    "cumulus-pallet-xcm",
-    "cumulus-pallet-xcmp-queue",
-    "cumulus-primitives-core",
-    "cumulus-primitives-parachain-inherent",
-    "cumulus-primitives-timestamp",
-    "cumulus-primitives-utility",
+ "cumulus-pallet-aura-ext",
+ "cumulus-pallet-dmp-queue",
+ "cumulus-pallet-parachain-system",
+ "cumulus-pallet-xcm",
+ "cumulus-pallet-xcmp-queue",
+ "cumulus-primitives-core",
+ "cumulus-primitives-parachain-inherent",
+ "cumulus-primitives-timestamp",
+ "cumulus-primitives-utility",
  "frame-benchmarking",
  "frame-executive",
  "frame-support",
@@ -6453,7 +6453,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.6.12"
+version = "4.6.13"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
