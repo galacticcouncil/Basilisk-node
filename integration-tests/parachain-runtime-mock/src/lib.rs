@@ -15,7 +15,7 @@ use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdap
 use sp_runtime::traits::Convert;
 use sp_runtime::Perbill;
 
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 use orml_traits::parameter_type_with_key;
@@ -313,7 +313,7 @@ impl pallet_asset_registry::Config for ParachainRuntime {
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<ParachainRuntime>;
 type Block = frame_system::mocking::MockBlock<ParachainRuntime>;
 
-#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct AssetLocation(pub MultiLocation);
 
 impl Default for AssetLocation {
