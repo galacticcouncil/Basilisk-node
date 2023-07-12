@@ -2,8 +2,8 @@
 
 use crate::kusama_test_net::*;
 
-use frame_support::weights::Weight;
 use frame_support::assert_ok;
+use frame_support::weights::Weight;
 use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use polkadot_xcm::prelude::*;
@@ -205,7 +205,6 @@ fn deferred_messages_should_be_executable_by_root() {
 			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
 		));
 
-		
 		// Assert
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),

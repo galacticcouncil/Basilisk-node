@@ -8,8 +8,8 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	PalletId,
 };
-use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 use hydradx_adapters::RelayChainBlockNumberProvider;
+use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 
 use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use sp_runtime::traits::Convert;

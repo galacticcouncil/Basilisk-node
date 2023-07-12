@@ -67,6 +67,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 
-	fn service_deferred() -> Weight { Weight::default() }
-	fn discard_deferred() -> Weight { Weight::default() }
+	fn service_deferred() -> Weight {
+		Weight::default()
+	}
+	fn discard_deferred() -> Weight {
+		Weight::default()
+	}
 }
