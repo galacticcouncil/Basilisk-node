@@ -329,7 +329,7 @@ pub fn other_parachain_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::RuntimeEvent> {
+pub fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::RuntimeEvent> {
 	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
 		.into_iter()
 		.rev()
@@ -341,6 +341,16 @@ fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::RuntimeEvent> {
 
 pub fn expect_basilisk_events(e: Vec<basilisk_runtime::RuntimeEvent>) {
 	assert_eq!(last_basilisk_events(e.len()), e);
+}
+
+pub fn last_parachain_events(n: usize) -> Vec<parachain_runtime_mock::RuntimeEvent> {
+	frame_system::Pallet::<parachain_runtime_mock::ParachainRuntime>::events()
+		.into_iter()
+		.rev()
+		.take(n)
+		.rev()
+		.map(|e| e.event)
+		.collect()
 }
 
 pub fn vesting_account() -> AccountId {

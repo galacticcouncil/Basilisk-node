@@ -211,6 +211,7 @@ construct_runtime!(
 		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
 		CollatorRewards: pallet_collator_rewards = 114,
+		XcmRateLimiter: pallet_xcm_rate_limiter = 115,
 
 		EmaOracle: pallet_ema_oracle = 120,
 

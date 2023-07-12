@@ -9,6 +9,7 @@ use frame_support::{
 	PalletId,
 };
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
+use hydradx_adapters::RelayChainBlockNumberProvider;
 
 use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use sp_runtime::traits::Convert;
@@ -228,6 +229,10 @@ impl cumulus_pallet_xcmp_queue::Config for ParachainRuntime {
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 	type PriceForSiblingDelivery = ();
 	type WeightInfo = ();
+	type ExecuteDeferredOrigin = EnsureRoot<AccountId>;
+	type MaxDeferredMessages = ConstU32<100>;
+	type RelayChainBlockNumberProvider = RelayChainBlockNumberProvider<ParachainRuntime>;
+	type XcmDeferFilter = ();
 }
 
 impl pallet_xcm::Config for ParachainRuntime {
