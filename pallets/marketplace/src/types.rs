@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use scale_info::TypeInfo;
 
-#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo)]
+#[derive(Encode, Decode, Eq, Copy, PartialEq, Clone, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct Offer<AccountId, Balance, BlockNumber> {
 	/// User who made the offer
@@ -16,7 +16,7 @@ pub struct Offer<AccountId, Balance, BlockNumber> {
 	pub(super) expires: BlockNumber,
 }
 
-#[derive(Encode, Decode, Eq, PartialEq, Clone, RuntimeDebug, TypeInfo)]
+#[derive(Encode, Decode, Eq, PartialEq, Clone, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct Royalty<AccountId> {
 	/// The user account which receives the royalty
