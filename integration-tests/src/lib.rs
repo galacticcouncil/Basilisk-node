@@ -1,5 +1,6 @@
 mod call_filter;
 mod cross_chain_transfer;
+mod exchange_asset;
 mod fees;
 mod kusama_test_net;
 mod nft;
@@ -11,4 +12,3 @@ mod transact_call_filter;
 mod vesting;
 mod xcm_rate_limiter;
 mod xyk;
-mod exchange_asset;
