@@ -86,7 +86,7 @@ fn xcm_rate_limiter_should_limit_aca_when_limit_is_exceeded() {
 			cumulus_pallet_xcmp_queue::Event::XcmDeferred {
 				sender: OTHER_PARA_ID.into(),
 				sent_at: 3,
-				deferred_to: 604, // received at 4 plus 600 blocks of deferral
+				deferred_to: basilisk_runtime::DeferDuration::get() + 4,
 				message_hash,
 			}
 			.into(),
@@ -224,7 +224,7 @@ fn deferred_messages_should_be_executable_by_root() {
 			cumulus_pallet_xcmp_queue::Event::XcmDeferred {
 				sender: OTHER_PARA_ID.into(),
 				sent_at: 3,
-				deferred_to: 604, // received at 4 plus 600 blocks of deferral
+				deferred_to: basilisk_runtime::DeferDuration::get() + 4,
 				message_hash,
 			}
 			.into(),
@@ -236,7 +236,7 @@ fn deferred_messages_should_be_executable_by_root() {
 		]);
 		assert_eq!(basilisk_runtime::Tokens::free_balance(AUSD, &AccountId::from(EVE)), 0);
 
-		set_relaychain_block_number(604);
+		set_relaychain_block_number(basilisk_runtime::DeferDuration::get() + 4);
 
 		assert_eq!(basilisk_runtime::Tokens::free_balance(AUSD, &AccountId::from(EVE)), 0);
 		assert_ok!(basilisk_runtime::XcmpQueue::service_deferred(
