@@ -94,7 +94,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 103,
+	spec_version: 104,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -211,6 +211,7 @@ construct_runtime!(
 		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
 		CollatorRewards: pallet_collator_rewards = 114,
+		XcmRateLimiter: pallet_xcm_rate_limiter = 115,
 
 		EmaOracle: pallet_ema_oracle = 120,
 
