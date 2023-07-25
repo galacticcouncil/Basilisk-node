@@ -57,19 +57,6 @@ jobs:
           name: basilisk_runtime.compact.compressed.wasm
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
 
-  run-external-deployment:
-    needs: build-and-publish-docker-image
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/testnet' && github.event_name != 'pull_request'
-    steps:
-      - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v1
-        with:
-          token: ${{ secrets.DISPATCH_DEPLOYMENT_TOKEN }}
-          repository: galacticcouncil/testnet-deployment
-          event-type: run-k8s-deployment
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
-
   test-inclusion:
     needs: build
     runs-on: ubuntu-latest
