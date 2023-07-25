@@ -272,7 +272,7 @@ impl pallet_xcm::Config for Runtime {
 }
 
 parameter_types! {
-	pub DeferDuration: RelayChainBlockNumber = 600; // 1 hour
+	pub DeferDuration: RelayChainBlockNumber = 100; // 10 min
 	pub MaxDeferDuration: RelayChainBlockNumber = 600 * 24 * 10; // 10 days
 }
 
