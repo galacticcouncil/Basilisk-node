@@ -8,13 +8,14 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	PalletId,
 };
+use hydradx_adapters::RelayChainBlockNumberProvider;
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 
 use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use sp_runtime::traits::Convert;
 use sp_runtime::Perbill;
 
-use codec::{Decode, Encode};
+use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 use orml_traits::parameter_type_with_key;
@@ -228,6 +229,10 @@ impl cumulus_pallet_xcmp_queue::Config for ParachainRuntime {
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 	type PriceForSiblingDelivery = ();
 	type WeightInfo = ();
+	type ExecuteDeferredOrigin = EnsureRoot<AccountId>;
+	type MaxDeferredMessages = ConstU32<100>;
+	type RelayChainBlockNumberProvider = RelayChainBlockNumberProvider<ParachainRuntime>;
+	type XcmDeferFilter = ();
 }
 
 impl pallet_xcm::Config for ParachainRuntime {
@@ -308,7 +313,7 @@ impl pallet_asset_registry::Config for ParachainRuntime {
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<ParachainRuntime>;
 type Block = frame_system::mocking::MockBlock<ParachainRuntime>;
 
-#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo)]
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct AssetLocation(pub MultiLocation);
 
 impl Default for AssetLocation {

@@ -50,6 +50,7 @@ warehouse-liquidity-mining = { workspace = true }
 pallet-ema-oracle = { workspace = true }
 pallet-duster = { workspace = true }
 pallet-collator-rewards = { workspace = true }
+pallet-xcm-rate-limiter = { workspace = true }
 
 # collator support
 pallet-collator-selection = { git = "https://github.com/paritytech/cumulus", branch = "polkadot-v0.9.38", default-features = false }
@@ -158,6 +159,7 @@ runtime-benchmarks = [
     "pallet-transaction-pause/runtime-benchmarks",
     "pallet-ema-oracle/runtime-benchmarks",
     "cumulus-pallet-xcmp-queue/runtime-benchmarks",
+    "pallet-xcm-rate-limiter/runtime-benchmarks",
 ]
 std = [
     "codec/std",
@@ -233,6 +235,7 @@ std = [
     "pallet-preimage/std",
     "pallet-identity/std",
     "pallet-ema-oracle/std",
+    "pallet-xcm-rate-limiter/std",
 ]
 try-runtime= [
     "frame-try-runtime",
@@ -284,4 +287,5 @@ try-runtime= [
     "warehouse-liquidity-mining/try-runtime",
     "pallet-ema-oracle/try-runtime",
     "pallet-collator-rewards/try-runtime",
+    "pallet-xcm-rate-limiter/try-runtime",
 ]
