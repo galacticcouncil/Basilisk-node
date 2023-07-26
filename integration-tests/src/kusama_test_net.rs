@@ -18,6 +18,7 @@ pub const AUSD: AssetId = 1;
 pub const MOVR: AssetId = 2;
 pub const KSM: AssetId = 3;
 pub const NEW_BOOTSTRAPPED_TOKEN: AssetId = 4;
+pub const KAR: AssetId = 5;
 
 pub const ALICE_INITIAL_BSX_BALANCE: u128 = 1_000 * UNITS;
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
@@ -277,7 +278,7 @@ pub fn other_parachain_ext() -> sp_io::TestExternalities {
 
 	pallet_asset_registry::GenesisConfig::<ParachainRuntime> {
 		registered_assets: vec![(b"AUSD".to_vec(), 1_000_000u128, Some(AUSD))],
-		native_asset_name: b"BSX".to_vec(),
+		native_asset_name: b"KAR".to_vec(),
 		native_existential_deposit: existential_deposit,
 	}
 	.assimilate_storage(&mut t)
