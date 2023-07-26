@@ -19,6 +19,7 @@ use super::*;
 use crate::governance::{MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot, TreasuryAccount};
 use crate::system::WeightToFee;
 
+use codec::{Decode, Encode, MaxEncodedLen};
 use cumulus_primitives_core::ParaId;
 use frame_support::{
 	parameter_types,
@@ -27,7 +28,10 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::EnsureRoot;
+use hydradx_adapters::xcm_exchange::XcmAssetExchanger;
+use hydradx_adapters::xcm_execute_filter::AllowTransferAndSwap;
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
+use hydradx_traits::router::PoolType;
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_transaction_multi_payment::DepositAll;
@@ -36,8 +40,6 @@ use polkadot_parachain::primitives::RelayChainBlockNumber;
 use polkadot_parachain::primitives::Sibling;
 use polkadot_xcm::v3::{prelude::*, Error, MultiLocation, Weight as XcmWeight};
 use primitives::AssetId;
-
-use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
@@ -160,7 +162,7 @@ impl Config for XcmConfig {
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetLocker = ();
-	type AssetExchanger = ();
+	type AssetExchanger = XcmAssetExchanger<Runtime, TempAccount, CurrencyIdConvert, Currencies, DefaultPoolType>;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type PalletInstancesInfo = AllPalletsWithSystem;
@@ -236,6 +238,16 @@ parameter_types! {
 	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
 }
 
+parameter_types! {
+	//Xcm asset exchange
+	pub DefaultPoolType: PoolType<AssetId>  = PoolType::XYK;
+	pub TempAccount: AccountId = [42; 32].into();
+
+	//Xcm executor filter
+	pub const MaxXcmDepth: u16 = 5;
+	pub const MaxNumberOfInstructions: u16 = 100;
+}
+
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -243,7 +255,7 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
-	type XcmExecuteFilter = Nothing;
+	type XcmExecuteFilter = AllowTransferAndSwap<MaxXcmDepth, MaxNumberOfInstructions, RuntimeCall>;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
