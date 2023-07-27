@@ -68,9 +68,6 @@ pub type Barrier = (
 			AllowTopLevelPaidExecutionFrom<Everything>,
 			// Subscriptions for version tracking are OK.
 			AllowSubscriptionsFrom<Everything>,
-			// Tinkernet Multisigs require DescendOrigin, this barrier makes sure it's followed by payment.
-			// The barrier will only pass when the origin is a Tinkernet multisig.
-			AllowTopLevelPaidExecutionFrom<invarch_xcm_builder::TinkernetMultisigMultiLocation>,
 		),
 		UniversalLocation,
 		ConstU32<8>,
