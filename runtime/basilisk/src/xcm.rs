@@ -73,7 +73,7 @@ pub type Barrier = (
 			AllowTopLevelPaidExecutionFrom<invarch_xcm_builder::TinkernetMultisigMultiLocation>,
 		),
 		UniversalLocation,
-		ConstU32<1>,
+		ConstU32<8>,
 	>,
 );
 
