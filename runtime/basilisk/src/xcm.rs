@@ -61,17 +61,16 @@ pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, R
 
 pub type Barrier = (
 	TakeWeightCredit,
-	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<PolkadotXcm>,
-	// Subscriptions for version tracking are OK.
-	AllowSubscriptionsFrom<Everything>,
-	// Tinkernet Multisigs require DescendOrigin, this barrier makes sure it's followed by payment.
-	// The barrier will only pass when the origin is a Tinkernet multisig.
 	WithComputedOrigin<
-		AllowTopLevelPaidExecutionFrom<invarch_xcm_builder::TinkernetMultisigMultiLocation>,
+		(
+			AllowTopLevelPaidExecutionFrom<Everything>,
+			// Subscriptions for version tracking are OK.
+			AllowSubscriptionsFrom<Everything>,
+		),
 		UniversalLocation,
-		ConstU32<1>,
+		ConstU32<8>,
 	>,
 );
 

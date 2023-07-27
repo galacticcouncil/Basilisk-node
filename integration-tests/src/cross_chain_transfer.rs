@@ -572,3 +572,27 @@ fn claim_asset(asset: MultiAsset, recipient: [u8; 32]) {
 		));
 	});
 }
+
+#[test]
+fn polkadot_xcm_execute_extrinsic_should_not_be_allowed() {
+	TestNet::reset();
+
+	Basilisk::execute_with(|| {
+		let message = VersionedXcm::V3(Xcm(vec![
+			WithdrawAsset((Here, 410000000000u128).into()),
+			BuyExecution {
+				fees: (Here, 400000000000u128).into(),
+				weight_limit: Unlimited,
+			},
+		]));
+
+		assert_noop!(
+			basilisk_runtime::PolkadotXcm::execute(
+				basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
+				Box::new(message),
+				Weight::from_ref_time(400_000_000_000)
+			),
+			pallet_xcm::Error::<basilisk_runtime::Runtime>::Filtered
+		);
+	});
+}
