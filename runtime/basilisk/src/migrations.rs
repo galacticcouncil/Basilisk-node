@@ -1,23 +1,21 @@
 use super::*;
 
 use frame_support::{
-	log, migration::storage_key_iter, pallet_prelude::*, traits::OnRuntimeUpgrade, weights::Weight, StoragePrefixedMap,
+	traits::OnRuntimeUpgrade, weights::Weight,
 };
-use pallet_asset_registry::{AssetLocations, LocationAssets};
-use polkadot_xcm::v3::MultiLocation;
 
 pub struct OnRuntimeUpgradeMigration;
 impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+		// TODO: include migrations for transaction pause and collator rewards pallets in the next release
+		// (not in the 106 release, because we don't use the latest pallet versions there).
 
 		Ok(vec![])
 	}
 
 	fn on_runtime_upgrade() -> Weight {
-		let mut weight: Weight = Weight::zero();
-
-		weight
+		Weight::zero()
 	}
 
 	#[cfg(feature = "try-runtime")]
