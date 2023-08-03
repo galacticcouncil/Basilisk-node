@@ -1,8 +1,6 @@
 use super::*;
 
-use frame_support::{
-	traits::OnRuntimeUpgrade, weights::Weight,
-};
+use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
 
 pub struct OnRuntimeUpgradeMigration;
 impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
