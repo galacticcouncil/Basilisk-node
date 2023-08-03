@@ -612,7 +612,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "106.0.0"
+version = "107.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
