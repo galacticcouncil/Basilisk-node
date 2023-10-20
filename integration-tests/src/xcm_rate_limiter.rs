@@ -88,6 +88,8 @@ fn xcm_rate_limiter_should_limit_aca_when_limit_is_exceeded() {
 				sent_at: 3,
 				deferred_to: basilisk_runtime::DeferDuration::get() + 4,
 				message_hash,
+				index: (basilisk_runtime::DeferDuration::get() + 4, 0),
+				position: 0,
 			}
 			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {
@@ -226,6 +228,8 @@ fn deferred_messages_should_be_executable_by_root() {
 				sent_at: 3,
 				deferred_to: basilisk_runtime::DeferDuration::get() + 4,
 				message_hash,
+				index: (basilisk_runtime::DeferDuration::get() + 4, 0),
+				position: 0,
 			}
 			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {
