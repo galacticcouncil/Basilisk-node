@@ -62,7 +62,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	fn transfer_non_native_currency() -> Weight {
 		// Minimum execution time: 53_811 nanoseconds.
-		Weight::from_ref_time(54_318_000 as u64)
+		Weight::from_parts(54_318_000, 0)
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -70,7 +70,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn transfer_native_currency() -> Weight {
 		// Minimum execution time: 29_935 nanoseconds.
-		Weight::from_ref_time(30_990_000 as u64)
+		Weight::from_parts(30_990_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -88,7 +88,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	fn update_balance_non_native_currency() -> Weight {
 		// Minimum execution time: 41_846 nanoseconds.
-		Weight::from_ref_time(42_748_000 as u64)
+		Weight::from_parts(42_748_000, 0)
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -96,7 +96,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn update_balance_native_currency_creating() -> Weight {
 		// Minimum execution time: 27_369 nanoseconds.
-		Weight::from_ref_time(27_966_000 as u64)
+		Weight::from_parts(27_966_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -104,7 +104,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn update_balance_native_currency_killing() -> Weight {
 		// Minimum execution time: 27_014 nanoseconds.
-		Weight::from_ref_time(27_487_000 as u64)
+		Weight::from_parts(27_487_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}

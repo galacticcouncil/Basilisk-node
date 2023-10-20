@@ -54,12 +54,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Timestamp Now (max_values: Some(1), max_size: Some(8), added: 503, mode: MaxEncodedLen)
 	fn set() -> Weight {
 		// Minimum execution time: 5_445 nanoseconds.
-		Weight::from_ref_time(5_666_000 as u64)
+		Weight::from_parts(5_666_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn on_finalize() -> Weight {
 		// Minimum execution time: 4_437 nanoseconds.
-		Weight::from_ref_time(4_691_000 as u64)
+		Weight::from_parts(4_691_000, 0)
 	}
 }

@@ -27,7 +27,6 @@ use frame_support::{
 	traits::{Contains, Everything, Get, Nothing},
 	PalletId,
 };
-use frame_system::EnsureRoot;
 use hydradx_adapters::xcm_exchange::XcmAssetExchanger;
 use hydradx_adapters::xcm_execute_filter::AllowTransferAndSwap;
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
@@ -111,7 +110,7 @@ pub type XcmOriginToCallOrigin = (
 
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is a safe overestimate.
-	pub const BaseXcmWeight: XcmWeight = XcmWeight::from_ref_time(100_000_000);
+	pub const BaseXcmWeight: XcmWeight = XcmWeight::from_parts(100_000_000, 0);
 	pub const MaxInstructions: u32 = 100;
 	pub const MaxAssetsForTransfer: usize = 2;
 	pub UniversalLocation: InteriorMultiLocation = X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into()));
@@ -123,9 +122,13 @@ impl WeightTrader for TradePassthrough {
 		Self()
 	}
 
-	fn buy_weight(&mut self, _weight: Weight, payment: Assets) -> Result<Assets, Error> {
+	fn buy_weight(&mut self, _weight: Weight, payment: Assets, _context: &XcmContext) -> Result<Assets, Error> {
 		// Just let it through for now
 		Ok(payment)
+	}
+
+	fn refund_weight(&mut self, _weight: Weight, _context: &XcmContext) -> Option<MultiAsset> {
+		todo!()
 	}
 }
 
@@ -169,6 +172,7 @@ impl Config for XcmConfig {
 	type UniversalAliases = Nothing;
 	type CallDispatcher = RuntimeCall;
 	type SafeCallFilter = SafeCallFilter;
+	type Aliasers = Nothing;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -186,10 +190,6 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 	type PriceForSiblingDelivery = ();
 	type WeightInfo = weights::xcmp_queue::BasiliskWeight<Runtime>;
-	type ExecuteDeferredOrigin = EnsureRoot<AccountId>;
-	type MaxDeferredMessages = ConstU32<100>;
-	type RelayChainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
-	type XcmDeferFilter = XcmRateLimiter;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
@@ -268,6 +268,9 @@ impl pallet_xcm::Config for Runtime {
 	type WeightInfo = weights::xcm::BasiliskWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type ReachableDest = ReachableDest;
+	type AdminOrigin = SuperMajorityCouncilOrRoot;
+	type MaxRemoteLockConsumers = ConstU32<0>;
+	type RemoteLockConsumerIdentifier = ();
 }
 
 parameter_types! {

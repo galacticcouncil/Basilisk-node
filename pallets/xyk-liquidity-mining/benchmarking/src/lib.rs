@@ -25,7 +25,7 @@ use pallet_liquidity_mining::{GlobalFarmId, LoyaltyCurve, YieldFarmId};
 use pallet_xyk_liquidity_mining::Pallet as XYKLiquidityMining;
 
 use frame_benchmarking::{account, benchmarks};
-use frame_system::{Pallet as System, RawOrigin};
+use frame_system::{pallet_prelude::BlockNumberFor, Pallet as System, RawOrigin};
 
 use frame_support::dispatch;
 use orml_traits::arithmetic::One;
@@ -108,8 +108,8 @@ fn lm_create_global_farm<T: Config>(
 	XYKLiquidityMining::<T>::create_global_farm(
 		RawOrigin::Root.into(),
 		total_rewards,
-		T::BlockNumber::from(1_000_000_u32),
-		T::BlockNumber::from(1_u32),
+		BlockNumberFor::<T>::from(1_000_000_u32),
+		BlockNumberFor::<T>::from(1_u32),
 		BSX,
 		BSX,
 		owner,
@@ -153,9 +153,9 @@ benchmarks! {
 	create_global_farm {
 		let total_rewards = 1_000_000 * ONE;
 		let caller = create_funded_account::<T>("caller", 0);
-		let planned_yielding_periods = T::BlockNumber::from(1_000_000_u32);
+		let planned_yielding_periods = BlockNumberFor::<T>::from(1_000_000_u32);
 		let yield_per_period = Perquintill::from_percent(20);
-		let blocks_per_period = T::BlockNumber::from(1_u32);
+		let blocks_per_period = BlockNumberFor::<T>::from(1_u32);
 	}: {
 		XYKLiquidityMining::<T>::create_global_farm(RawOrigin::Root.into(), total_rewards, planned_yielding_periods, blocks_per_period, BSX, BSX, caller.clone(), yield_per_period, 1_000, One::one())?
 	}

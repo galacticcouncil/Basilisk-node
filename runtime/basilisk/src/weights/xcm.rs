@@ -62,7 +62,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
 	fn send() -> Weight {
 		// Minimum execution time: 17_707 nanoseconds.
-		Weight::from_ref_time(18_429_000 as u64)
+		Weight::from_parts(18_429_000, 0)
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -70,29 +70,29 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: Benchmark Override (max_values: None, max_size: None, mode: Measured)
 	fn teleport_assets() -> Weight {
 		// Minimum execution time: 18_446_744_073_709_551 nanoseconds.
-		Weight::from_ref_time(18_446_744_073_709_551_000 as u64)
+		Weight::from_parts(18_446_744_073_709_551_000, 0)
 	}
 	// Storage: ParachainInfo ParachainId (r:1 w:0)
 	// Proof: ParachainInfo ParachainId (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
 	fn reserve_transfer_assets() -> Weight {
 		// Minimum execution time: 12_747 nanoseconds.
-		Weight::from_ref_time(13_188_000 as u64).saturating_add(T::DbWeight::get().reads(1 as u64))
+		Weight::from_parts(13_188_000, 0).saturating_add(T::DbWeight::get().reads(1 as u64))
 	}
 	fn execute() -> Weight {
 		// Minimum execution time: 5_205 nanoseconds.
-		Weight::from_ref_time(5_338_000 as u64)
+		Weight::from_parts(5_338_000, 0)
 	}
 	// Storage: PolkadotXcm SupportedVersion (r:0 w:1)
 	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	fn force_xcm_version() -> Weight {
 		// Minimum execution time: 5_677 nanoseconds.
-		Weight::from_ref_time(5_857_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
+		Weight::from_parts(5_857_000, 0).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: PolkadotXcm SafeXcmVersion (r:0 w:1)
 	// Proof Skipped: PolkadotXcm SafeXcmVersion (max_values: Some(1), max_size: None, mode: Measured)
 	fn force_default_xcm_version() -> Weight {
 		// Minimum execution time: 1_786 nanoseconds.
-		Weight::from_ref_time(1_915_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
+		Weight::from_parts(1_915_000, 0).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: PolkadotXcm VersionNotifiers (r:1 w:1)
 	// Proof Skipped: PolkadotXcm VersionNotifiers (max_values: None, max_size: None, mode: Measured)
@@ -112,7 +112,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: PolkadotXcm Queries (max_values: None, max_size: None, mode: Measured)
 	fn force_subscribe_version_notify() -> Weight {
 		// Minimum execution time: 22_986 nanoseconds.
-		Weight::from_ref_time(23_583_000 as u64)
+		Weight::from_parts(23_583_000, 0)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
@@ -132,7 +132,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: PolkadotXcm Queries (max_values: None, max_size: None, mode: Measured)
 	fn force_unsubscribe_version_notify() -> Weight {
 		// Minimum execution time: 27_669 nanoseconds.
-		Weight::from_ref_time(28_290_000 as u64)
+		Weight::from_parts(28_290_000, 0)
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -140,7 +140,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: PolkadotXcm SupportedVersion (max_values: None, max_size: None, mode: Measured)
 	fn migrate_supported_version() -> Weight {
 		// Minimum execution time: 16_265 nanoseconds.
-		Weight::from_ref_time(17_001_000 as u64)
+		Weight::from_parts(17_001_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -148,7 +148,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: PolkadotXcm VersionNotifiers (max_values: None, max_size: None, mode: Measured)
 	fn migrate_version_notifiers() -> Weight {
 		// Minimum execution time: 16_608 nanoseconds.
-		Weight::from_ref_time(17_024_000 as u64)
+		Weight::from_parts(17_024_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -156,7 +156,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: PolkadotXcm VersionNotifyTargets (max_values: None, max_size: None, mode: Measured)
 	fn already_notified_target() -> Weight {
 		// Minimum execution time: 19_984 nanoseconds.
-		Weight::from_ref_time(20_480_000 as u64).saturating_add(T::DbWeight::get().reads(5 as u64))
+		Weight::from_parts(20_480_000, 0).saturating_add(T::DbWeight::get().reads(5 as u64))
 	}
 	// Storage: PolkadotXcm VersionNotifyTargets (r:2 w:1)
 	// Proof Skipped: PolkadotXcm VersionNotifyTargets (max_values: None, max_size: None, mode: Measured)
@@ -172,7 +172,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
 	fn notify_current_targets() -> Weight {
 		// Minimum execution time: 25_037 nanoseconds.
-		Weight::from_ref_time(25_651_000 as u64)
+		Weight::from_parts(25_651_000, 0)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -180,13 +180,13 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: PolkadotXcm VersionNotifyTargets (max_values: None, max_size: None, mode: Measured)
 	fn notify_target_migration_fail() -> Weight {
 		// Minimum execution time: 8_072 nanoseconds.
-		Weight::from_ref_time(8_298_000 as u64).saturating_add(T::DbWeight::get().reads(3 as u64))
+		Weight::from_parts(8_298_000, 0).saturating_add(T::DbWeight::get().reads(3 as u64))
 	}
 	// Storage: PolkadotXcm VersionNotifyTargets (r:4 w:2)
 	// Proof Skipped: PolkadotXcm VersionNotifyTargets (max_values: None, max_size: None, mode: Measured)
 	fn migrate_version_notify_targets() -> Weight {
 		// Minimum execution time: 17_316 nanoseconds.
-		Weight::from_ref_time(17_739_000 as u64)
+		Weight::from_parts(17_739_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -204,8 +204,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: ParachainSystem PendingUpwardMessages (max_values: Some(1), max_size: None, mode: Measured)
 	fn migrate_and_notify_old_targets() -> Weight {
 		// Minimum execution time: 28_326 nanoseconds.
-		Weight::from_ref_time(28_905_000 as u64)
+		Weight::from_parts(28_905_000, 0)
 			.saturating_add(T::DbWeight::get().reads(9 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
+	}
+	fn force_suspension() -> Weight {
+		Weight::zero()
 	}
 }

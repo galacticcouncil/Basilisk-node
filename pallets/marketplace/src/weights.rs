@@ -59,32 +59,32 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn buy() -> Weight {
-		Weight::from_ref_time(54_000_000 as u64)
+		Weight::from_parts(54_000_000, 0)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
 	fn set_price() -> Weight {
-		Weight::from_ref_time(15_000_000 as u64)
+		Weight::from_parts(15_000_000, 0)
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn make_offer() -> Weight {
-		Weight::from_ref_time(25_000_000 as u64)
+		Weight::from_parts(25_000_000, 0)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn withdraw_offer() -> Weight {
-		Weight::from_ref_time(29_000_000 as u64)
+		Weight::from_parts(29_000_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn accept_offer() -> Weight {
-		Weight::from_ref_time(73_000_000 as u64)
+		Weight::from_parts(73_000_000, 0)
 			.saturating_add(T::DbWeight::get().reads(9 as u64))
 			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
 	fn add_royalty() -> Weight {
-		Weight::from_ref_time(27_000_000 as u64)
+		Weight::from_parts(27_000_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}

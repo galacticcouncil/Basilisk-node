@@ -23,7 +23,7 @@ use crate::Config;
 use frame_support::weights::RuntimeDbWeight;
 use frame_support::{
 	parameter_types,
-	traits::{Everything, GenesisBuild, Nothing},
+	traits::{Everything, Nothing},
 	PalletId,
 };
 
@@ -35,8 +35,8 @@ use pallet_nft::CollectionType;
 use primitives::{asset::AssetPair, Amount, AssetId, Balance};
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
+	BuildStorage,
 };
 use sp_std::convert::TryFrom;
 use std::{cell::RefCell, collections::HashMap};
@@ -85,19 +85,15 @@ pub const BSX_DOT_ASSET_PAIR: AssetPair = AssetPair {
 	asset_out: DOT,
 };
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 frame_support::construct_runtime!(
-	pub enum Test where
-	Block = Block,
-	NodeBlock = Block,
-	UncheckedExtrinsic = UncheckedExtrinsic,
+	pub enum Test
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		LiquidityMining: liq_mining::{Pallet, Call, Storage, Event<T>},
-		Tokens: orml_tokens::{Pallet, Call, Storage, Event<T>},
-		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		System: frame_system,
+		LiquidityMining: liq_mining,
+		Tokens: orml_tokens,
+		Balances: pallet_balances,
 	}
 );
 
@@ -124,13 +120,12 @@ impl system::Config for Test {
 	type DbWeight = DbWeight;
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-	type Index = u64;
-	type BlockNumber = BlockNumber;
+	type Nonce = u64;
+	type Block = Block;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -677,7 +672,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 	{
 		let deposit = DEPOSITS.with(|v| {
 			let mut p = v.borrow_mut();
-			let mut deposit = p.get_mut(&deposit_id).unwrap();
+			let deposit = p.get_mut(&deposit_id).unwrap();
 
 			deposit.entries += 1;
 
@@ -734,7 +729,7 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 
 		let deposit = DEPOSITS.with(|v| {
 			let mut p = v.borrow_mut();
-			let mut deposit = p.get_mut(&deposit_id).unwrap();
+			let deposit = p.get_mut(&deposit_id).unwrap();
 
 			deposit.entries -= 1;
 
@@ -804,6 +799,10 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxFreezes = ();
+	type MaxHolds = ();
+	type RuntimeHoldReason = ();
 }
 
 parameter_type_with_key! {
@@ -966,7 +965,7 @@ impl ExtBuilder {
 	}
 
 	pub fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+		let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 
 		orml_tokens::GenesisConfig::<Test> {
 			balances: self

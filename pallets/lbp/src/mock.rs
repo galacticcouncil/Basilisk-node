@@ -4,7 +4,7 @@ use super::*;
 use crate as lbp;
 use crate::{AssetPairAccountIdFor, Config};
 use frame_support::parameter_types;
-use frame_support::traits::{Everything, GenesisBuild, LockIdentifier, Nothing};
+use frame_support::traits::{Everything, LockIdentifier, Nothing};
 use hydradx_traits::LockedBalance;
 use orml_traits::parameter_type_with_key;
 use primitives::constants::chain::{
@@ -12,15 +12,14 @@ use primitives::constants::chain::{
 };
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
+	BuildStorage,
 };
 use std::collections::BTreeMap;
 
 pub type Amount = i128;
 pub type AccountId = u64;
 pub type BlockNumber = u64;
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 pub const INITIAL_BALANCE: Balance = 1_000_000_000_000_000u128;
@@ -70,10 +69,7 @@ pub const SAMPLE_AMM_TRANSFER: AMMTransfer<AccountId, AssetId, AssetPair, Balanc
 };
 
 frame_support::construct_runtime!(
-	pub enum Test where
-	 Block = Block,
-	 NodeBlock = Block,
-	 UncheckedExtrinsic = UncheckedExtrinsic,
+	pub enum Test
 	 {
 		 System: frame_system,
 		 LBPPallet: lbp,
@@ -93,13 +89,12 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-	type Index = u64;
-	type BlockNumber = BlockNumber;
+	type Nonce = u64;
+	type Block = Block;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = ();
@@ -221,7 +216,7 @@ impl Default for ExtBuilder {
 
 impl ExtBuilder {
 	pub fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+		let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 
 		orml_tokens::GenesisConfig::<Test> {
 			balances: self.endowed_accounts,
@@ -233,16 +228,16 @@ impl ExtBuilder {
 	}
 }
 
-pub fn set_block_number<T: frame_system::Config<BlockNumber = u64>>(n: u64) {
-	frame_system::Pallet::<T>::set_block_number(n);
+pub fn set_block_number(n: u64) {
+	frame_system::Pallet::<Test>::set_block_number(n);
 }
 
 pub fn run_to_sale_start() {
-	set_block_number::<Test>(SALE_START.unwrap());
+	set_block_number(SALE_START.unwrap());
 }
 
 pub fn run_to_sale_end() {
-	set_block_number::<Test>(SALE_END.unwrap() + 1);
+	set_block_number(SALE_END.unwrap() + 1);
 }
 
 pub fn generate_trades(

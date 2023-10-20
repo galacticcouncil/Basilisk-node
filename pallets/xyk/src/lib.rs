@@ -31,6 +31,7 @@
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
 use frame_system::ensure_signed;
+use hydra_dx_math::ratio::Ratio;
 use hydradx_traits::{
 	AMMPosition, AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnLiquidityChangedHandler,
 	OnTradeHandler, Source, AMM,
@@ -64,14 +65,14 @@ pub use pallet::*;
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
-	use frame_system::pallet_prelude::OriginFor;
+	use frame_system::pallet_prelude::{BlockNumberFor, OriginFor};
 	use hydradx_traits::{pools::DustRemovalAccountWhitelist, registry::ShareTokenRegistry};
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
 	#[pallet::hooks]
-	impl<T: Config> Hooks<T::BlockNumber> for Pallet<T> {}
+	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
@@ -118,8 +119,8 @@ pub mod pallet {
 
 		/// AMM handlers
 		type AMMHandler: OnCreatePoolHandler<AssetId>
-			+ OnTradeHandler<AssetId, Balance>
-			+ OnLiquidityChangedHandler<AssetId, Balance>;
+			+ OnTradeHandler<AssetId, Balance, Ratio>
+			+ OnLiquidityChangedHandler<AssetId, Balance, Ratio>;
 
 		/// Discounted fee
 		type DiscountedFee: Get<(u32, u32)>;
@@ -459,8 +460,17 @@ pub mod pallet {
 
 			let liquidity_a = T::Currency::total_balance(asset_a, &pair_account);
 			let liquidity_b = T::Currency::total_balance(asset_b, &pair_account);
-			T::AMMHandler::on_liquidity_changed(SOURCE, asset_a, asset_b, amount_a, amount_b, liquidity_a, liquidity_b)
-				.map_err(|(_w, e)| e)?;
+			T::AMMHandler::on_liquidity_changed(
+				SOURCE,
+				asset_a,
+				asset_b,
+				amount_a,
+				amount_b,
+				liquidity_a,
+				liquidity_b,
+				Ratio::new(liquidity_a, liquidity_b),
+			)
+			.map_err(|(_w, e)| e)?;
 
 			Self::deposit_event(Event::LiquidityAdded {
 				who,
@@ -564,6 +574,7 @@ pub mod pallet {
 				remove_amount_b,
 				liquidity_a,
 				liquidity_b,
+				Ratio::new(liquidity_a, liquidity_b),
 			)
 			.map_err(|(_w, e)| e)?;
 
@@ -866,6 +877,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.amount_b,
 			liquidity_in,
 			liquidity_out,
+			Ratio::new(liquidity_in, liquidity_out),
 		)
 		.map_err(|(_w, e)| e)?;
 
@@ -1027,6 +1039,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			transfer.amount_b,
 			liquidity_in,
 			liquidity_out,
+			Ratio::new(liquidity_in, liquidity_out),
 		)
 		.map_err(|(_w, e)| e)?;
 

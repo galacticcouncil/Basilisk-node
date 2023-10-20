@@ -53,27 +53,27 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `c` is `[0, 1000]`.
 	fn batch(c: u32) -> Weight {
 		// Minimum execution time: 4_082 nanoseconds.
-		Weight::from_ref_time(25_336_600 as u64) // Standard Error: 10_544
-			.saturating_add(Weight::from_ref_time(1_904_658 as u64).saturating_mul(c as u64))
+		Weight::from_parts(25_336_600, 0) // Standard Error: 10_544
+			.saturating_add(Weight::from_parts(1_904_658, 0).saturating_mul(c as u64))
 	}
 	fn as_derivative() -> Weight {
 		// Minimum execution time: 3_059 nanoseconds.
-		Weight::from_ref_time(3_239_000 as u64)
+		Weight::from_parts(3_239_000, 0)
 	}
 	/// The range of component `c` is `[0, 1000]`.
 	fn batch_all(c: u32) -> Weight {
 		// Minimum execution time: 4_104 nanoseconds.
-		Weight::from_ref_time(5_430_080 as u64) // Standard Error: 3_514
-			.saturating_add(Weight::from_ref_time(1_960_391 as u64).saturating_mul(c as u64))
+		Weight::from_parts(5_430_080, 0) // Standard Error: 3_514
+			.saturating_add(Weight::from_parts(1_960_391, 0).saturating_mul(c as u64))
 	}
 	fn dispatch_as() -> Weight {
 		// Minimum execution time: 5_083 nanoseconds.
-		Weight::from_ref_time(5_299_000 as u64)
+		Weight::from_parts(5_299_000, 0)
 	}
 	/// The range of component `c` is `[0, 1000]`.
 	fn force_batch(c: u32) -> Weight {
 		// Minimum execution time: 3_953 nanoseconds.
-		Weight::from_ref_time(596_620 as u64) // Standard Error: 3_802
-			.saturating_add(Weight::from_ref_time(1_932_954 as u64).saturating_mul(c as u64))
+		Weight::from_parts(596_620, 0) // Standard Error: 3_802
+			.saturating_add(Weight::from_parts(1_932_954, 0).saturating_mul(c as u64))
 	}
 }

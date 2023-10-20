@@ -8,7 +8,6 @@ use frame_support::{
 	weights::{constants::WEIGHT_REF_TIME_PER_SECOND, Weight},
 	PalletId,
 };
-use hydradx_adapters::RelayChainBlockNumberProvider;
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 
 use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
@@ -29,10 +28,7 @@ use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
 use primitives::{constants::currency::*, AssetId};
 use sp_core::H256;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
-};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use xcm_builder::{
 	AccountId32Aliases, AllowUnpaidExecutionFrom, EnsureXcmOrigin, FixedWeightBounds, ParentIsPreset,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
@@ -40,7 +36,6 @@ use xcm_builder::{
 };
 use xcm_executor::{Config, XcmExecutor};
 pub type Amount = i128;
-pub type BlockNumber = u64;
 
 use cumulus_primitives_core::ParaId;
 use frame_support::weights::ConstantMultiplier;
@@ -76,15 +71,15 @@ parameter_types! {
 	pub const MaxInstructions: u32 = 100;
 	pub BlockLength: frame_system::limits::BlockLength =
 		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
-	pub const ReservedXcmpWeight: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND / 4);
-	pub const ReservedDmpWeight: Weight =Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND / 4);
+	pub const ReservedXcmpWeight: Weight = Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND / 4, 0);
+	pub const ReservedDmpWeight: Weight =Weight::from_parts(WEIGHT_REF_TIME_PER_SECOND / 4, 0);
 	pub RegistryStringLimit: u32 = 100;
 	pub const TreasuryPalletId: PalletId = PalletId(*b"aca/trsy");
 	pub ParachainTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
 	pub KsmPerSecond: (AssetId, u128) = (0, 10);
 	pub BaseRate: u128 = 100;
 	pub SelfLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(ParachainInfo::parachain_id().into())));
-	pub const BaseXcmWeight: XcmWeight = XcmWeight::from_ref_time(100_000_000);
+	pub const BaseXcmWeight: XcmWeight = XcmWeight::from_parts(100_000_000, 0);
 	pub const MaxAssetsForTransfer: usize = 2;
 	pub const SequentialIdOffset: u32 = 1_000_000;
 	pub UniversalLocation: InteriorMultiLocation = X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into()));
@@ -95,20 +90,19 @@ parameter_type_with_key! {
 	};
 }
 
-impl frame_system::Config for ParachainRuntime {
+impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = BlockLength;
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-	type Index = u64;
-	type BlockNumber = BlockNumber;
+	type Nonce = u64;
+	type Block = Block;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -188,7 +182,7 @@ impl Config for XcmConfig {
 			Balance,
 			Price,
 			CurrencyIdConvert,
-			DepositAll<ParachainRuntime>,
+			DepositAll<Runtime>,
 			ParachainTreasuryAccount,
 		>,
 	>;
@@ -205,9 +199,10 @@ impl Config for XcmConfig {
 	type UniversalAliases = Nothing;
 	type CallDispatcher = RuntimeCall;
 	type SafeCallFilter = Everything;
+	type Aliasers = Nothing;
 }
 
-impl cumulus_pallet_parachain_system::Config for ParachainRuntime {
+impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
 	type SelfParaId = ParachainInfo;
@@ -219,7 +214,7 @@ impl cumulus_pallet_parachain_system::Config for ParachainRuntime {
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 
-impl cumulus_pallet_xcmp_queue::Config for ParachainRuntime {
+impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ChannelInfo = ParachainSystem;
@@ -229,13 +224,9 @@ impl cumulus_pallet_xcmp_queue::Config for ParachainRuntime {
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 	type PriceForSiblingDelivery = ();
 	type WeightInfo = ();
-	type ExecuteDeferredOrigin = EnsureRoot<AccountId>;
-	type MaxDeferredMessages = ConstU32<100>;
-	type RelayChainBlockNumberProvider = RelayChainBlockNumberProvider<ParachainRuntime>;
-	type XcmDeferFilter = ();
 }
 
-impl pallet_xcm::Config for ParachainRuntime {
+impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type CurrencyMatcher = ();
@@ -255,20 +246,23 @@ impl pallet_xcm::Config for ParachainRuntime {
 	type TrustedLockers = ();
 	type SovereignAccountOf = ();
 	type MaxLockers = ConstU32<8>;
-	type WeightInfo = basilisk_runtime::weights::xcm::BasiliskWeight<ParachainRuntime>;
+	type WeightInfo = basilisk_runtime::weights::xcm::BasiliskWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type ReachableDest = ();
+	type AdminOrigin = EnsureRoot<AccountId>;
+	type MaxRemoteLockConsumers = ConstU32<0>;
+	type RemoteLockConsumerIdentifier = ();
 }
 
-impl cumulus_pallet_dmp_queue::Config for ParachainRuntime {
+impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
 
-impl parachain_info::Config for ParachainRuntime {}
+impl parachain_info::Config for Runtime {}
 
-impl orml_tokens::Config for ParachainRuntime {
+impl orml_tokens::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Amount = Amount;
@@ -282,23 +276,27 @@ impl orml_tokens::Config for ParachainRuntime {
 	type CurrencyHooks = ();
 }
 
-impl pallet_balances::Config for ParachainRuntime {
+impl pallet_balances::Config for Runtime {
 	type Balance = Balance;
 	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
-	type AccountStore = frame_system::Pallet<ParachainRuntime>;
+	type AccountStore = frame_system::Pallet<Runtime>;
 	type MaxLocks = ();
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxFreezes = ();
+	type MaxHolds = ();
+	type RuntimeHoldReason = ();
 }
-impl cumulus_pallet_xcm::Config for ParachainRuntime {
+impl cumulus_pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
-impl pallet_asset_registry::Config for ParachainRuntime {
+impl pallet_asset_registry::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type RegistryOrigin = EnsureRoot<AccountId>;
@@ -310,8 +308,7 @@ impl pallet_asset_registry::Config for ParachainRuntime {
 	type WeightInfo = ();
 }
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<ParachainRuntime>;
-type Block = frame_system::mocking::MockBlock<ParachainRuntime>;
+type Block = frame_system::mocking::MockBlockU32<Runtime>;
 
 #[derive(Debug, Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct AssetLocation(pub MultiLocation);
@@ -390,7 +387,7 @@ parameter_type_with_key! {
 	};
 }
 
-impl orml_xtokens::Config for ParachainRuntime {
+impl orml_xtokens::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type CurrencyId = AssetId;
@@ -407,23 +404,23 @@ impl orml_xtokens::Config for ParachainRuntime {
 	type ReserveProvider = AbsoluteReserveProvider;
 }
 
-impl pallet_currencies::Config for ParachainRuntime {
+impl pallet_currencies::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Tokens;
-	type NativeCurrency = BasicCurrencyAdapter<ParachainRuntime, Balances, Amount, u32>;
+	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, u32>;
 	type GetNativeCurrencyId = ParachainNativeCurrencyId;
 	type WeightInfo = ();
 }
 
-impl orml_unknown_tokens::Config for ParachainRuntime {
+impl orml_unknown_tokens::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 }
 pub type SlowAdjustingFeeUpdate<R> =
 	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier, MaximumMultiplier>;
 
-impl pallet_transaction_payment::Config for ParachainRuntime {
+impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = TransferFees<Currencies, DepositAll<ParachainRuntime>, ParachainTreasuryAccount>;
+	type OnChargeTransaction = TransferFees<Currencies, DepositAll<Runtime>, ParachainTreasuryAccount>;
 	type OperationalFeeMultiplier = ();
 	type WeightToFee = WeightToFee;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
@@ -444,7 +441,7 @@ impl SpotPriceProvider<AssetId> for ParachainSpotPriceProviderStub {
 	}
 }
 
-impl pallet_transaction_multi_payment::Config for ParachainRuntime {
+impl pallet_transaction_multi_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AcceptedCurrencyOrigin = EnsureRoot<AccountId>;
 	type Currencies = Currencies;
@@ -455,10 +452,7 @@ impl pallet_transaction_multi_payment::Config for ParachainRuntime {
 }
 
 construct_runtime!(
-	pub enum ParachainRuntime where
-		Block = Block,
-		NodeBlock = Block,
-		UncheckedExtrinsic = UncheckedExtrinsic,
+	pub enum Runtime
 		{
 			System: frame_system,
 			Tokens: orml_tokens,

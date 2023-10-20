@@ -39,7 +39,7 @@ mod adapter;
 mod assets;
 mod governance;
 mod system;
-mod xcm;
+pub mod xcm;
 
 pub use assets::*;
 pub use governance::*;
@@ -73,6 +73,10 @@ use frame_support::{construct_runtime, weights::Weight};
 /// to even the core data structures.
 pub mod opaque {
 	use super::*;
+	use sp_runtime::{
+		generic,
+		traits::{BlakeTwo256, Hash as HashT},
+	};
 
 	pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
 
@@ -82,6 +86,8 @@ pub mod opaque {
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 	/// Opaque block identifier type.
 	pub type BlockId = generic::BlockId<Block>;
+	/// Opaque block hash type.
+	pub type Hash = <BlakeTwo256 as HashT>::Output;
 	impl_opaque_keys! {
 		pub struct SessionKeys {
 			pub aura: Aura,
@@ -153,10 +159,7 @@ impl<T: frame_system::Config> BlockNumberProvider for RelayChainBlockNumberProvi
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = opaque::Block,
-		UncheckedExtrinsic = UncheckedExtrinsic
+	pub enum Runtime
 	{
 		// Substrate
 		System: frame_system exclude_parts { Origin } = 0,
@@ -257,18 +260,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsReversedWithSystemFirst,
-	(
-		pallet_preimage::migration::v1::Migration<Runtime>,
-		pallet_democracy::migrations::v1::Migration<Runtime>,
-		pallet_multisig::migrations::v1::MigrateToV1<Runtime>,
-		pallet_xcm::migration::v1::MigrateToV1<Runtime>,
-		DmpQueue,
-		XcmpQueue,
-		ParachainSystem,
-		migrations::OnRuntimeUpgradeMigration,
-		migrations::MigrateRegistryLocationToV3<Runtime>,
-		migrations::XcmRateLimitMigration,
-	),
+	(migrations::OnRuntimeUpgradeMigration,),
 >;
 
 impl_runtime_apis! {
@@ -289,6 +281,14 @@ impl_runtime_apis! {
 	impl sp_api::Metadata<Block> for Runtime {
 		fn metadata() -> OpaqueMetadata {
 			OpaqueMetadata::new(Runtime::metadata().into())
+		}
+
+		fn metadata_at_version(version: u32) -> Option<OpaqueMetadata> {
+			Runtime::metadata_at_version(version)
+		}
+
+		fn metadata_versions() -> sp_std::vec::Vec<u32> {
+			Runtime::metadata_versions()
 		}
 	}
 

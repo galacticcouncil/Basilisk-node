@@ -51,29 +51,29 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn on_finalize_no_entry() -> Weight {
-		Weight::from_ref_time(4_740_000).saturating_add(T::DbWeight::get().reads(1 as u64))
+		Weight::from_parts(4_740_000, 0).saturating_add(T::DbWeight::get().reads(1 as u64))
 	}
 	fn on_finalize_multiple_tokens(b: u32) -> Weight {
-		Weight::from_ref_time(19_041_000) // Standard Error: 53_000
-			.saturating_add(Weight::from_ref_time(43_566_000).saturating_mul(b as u64))
+		Weight::from_parts(19_041_000, 0) // Standard Error: 53_000
+			.saturating_add(Weight::from_parts(43_566_000, 0).saturating_mul(b as u64))
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().reads((4 as u64).saturating_mul(b as u64)))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 			.saturating_add(T::DbWeight::get().writes((4 as u64).saturating_mul(b as u64)))
 	}
 	fn on_trade_multiple_tokens(b: u32) -> Weight {
-		Weight::from_ref_time(17_201_000) // Standard Error: 6_000
-			.saturating_add(Weight::from_ref_time(712_000).saturating_mul(b as u64))
+		Weight::from_parts(17_201_000, 0) // Standard Error: 6_000
+			.saturating_add(Weight::from_parts(712_000, 0).saturating_mul(b as u64))
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn on_liquidity_changed_multiple_tokens(b: u32) -> Weight {
-		Weight::from_ref_time(17_238_000) // Standard Error: 6_000
-			.saturating_add(Weight::from_ref_time(704_000).saturating_mul(b as u64))
+		Weight::from_parts(17_238_000, 0) // Standard Error: 6_000
+			.saturating_add(Weight::from_parts(704_000, 0).saturating_mul(b as u64))
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	fn get_entry() -> Weight {
-		Weight::from_ref_time(24_093_000).saturating_add(T::DbWeight::get().reads(2 as u64))
+		Weight::from_parts(24_093_000, 0).saturating_add(T::DbWeight::get().reads(2 as u64))
 	}
 }

@@ -64,62 +64,62 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn create_global_farm() -> Weight {
-		Weight::from_ref_time(86_072_000 as u64)
+		Weight::from_parts(86_072_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
 	fn update_global_farm() -> Weight {
-		Weight::from_ref_time(91_993_000 as u64)
+		Weight::from_parts(91_993_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn terminate_global_farm() -> Weight {
-		Weight::from_ref_time(78_247_000 as u64)
+		Weight::from_parts(78_247_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn create_yield_farm() -> Weight {
-		Weight::from_ref_time(116_579_000 as u64)
+		Weight::from_parts(116_579_000, 0)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
 	fn update_yield_farm() -> Weight {
-		Weight::from_ref_time(120_727_000 as u64)
+		Weight::from_parts(120_727_000, 0)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn stop_yield_farm() -> Weight {
-		Weight::from_ref_time(112_341_000 as u64)
+		Weight::from_parts(112_341_000, 0)
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
 	fn terminate_yield_farm() -> Weight {
-		Weight::from_ref_time(81_232_000 as u64)
+		Weight::from_parts(81_232_000, 0)
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn deposit_shares() -> Weight {
-		Weight::from_ref_time(238_648_000 as u64)
+		Weight::from_parts(238_648_000, 0)
 			.saturating_add(T::DbWeight::get().reads(22 as u64))
 			.saturating_add(T::DbWeight::get().writes(13 as u64))
 	}
 	fn redeposit_shares() -> Weight {
-		Weight::from_ref_time(89_879_000 as u64)
+		Weight::from_parts(89_879_000, 0)
 			.saturating_add(T::DbWeight::get().reads(9 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	fn claim_rewards() -> Weight {
-		Weight::from_ref_time(148_960_000 as u64)
+		Weight::from_parts(148_960_000, 0)
 			.saturating_add(T::DbWeight::get().reads(8 as u64))
 			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
 	fn withdraw_shares() -> Weight {
-		Weight::from_ref_time(316_765_000 as u64)
+		Weight::from_parts(316_765_000, 0)
 			.saturating_add(T::DbWeight::get().reads(19 as u64))
 			.saturating_add(T::DbWeight::get().writes(15 as u64))
 	}
 	fn resume_yield_farm() -> Weight {
-		Weight::from_ref_time(115_577_000 as u64)
+		Weight::from_parts(115_577_000, 0)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
@@ -128,62 +128,62 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	fn create_global_farm() -> Weight {
-		Weight::from_ref_time(86_072_000 as u64)
+		Weight::from_parts(86_072_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(4 as u64))
 			.saturating_add(RocksDbWeight::get().writes(5 as u64))
 	}
 	fn update_global_farm() -> Weight {
-		Weight::from_ref_time(91_993_000 as u64)
+		Weight::from_parts(91_993_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(4 as u64))
 			.saturating_add(RocksDbWeight::get().writes(3 as u64))
 	}
 	fn terminate_global_farm() -> Weight {
-		Weight::from_ref_time(78_247_000 as u64)
+		Weight::from_parts(78_247_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(4 as u64))
 			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 	fn create_yield_farm() -> Weight {
-		Weight::from_ref_time(116_579_000 as u64)
+		Weight::from_parts(116_579_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(7 as u64))
 			.saturating_add(RocksDbWeight::get().writes(6 as u64))
 	}
 	fn update_yield_farm() -> Weight {
-		Weight::from_ref_time(120_727_000 as u64)
+		Weight::from_parts(120_727_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(7 as u64))
 			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 	fn stop_yield_farm() -> Weight {
-		Weight::from_ref_time(112_341_000 as u64)
+		Weight::from_parts(112_341_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(6 as u64))
 			.saturating_add(RocksDbWeight::get().writes(5 as u64))
 	}
 	fn terminate_yield_farm() -> Weight {
-		Weight::from_ref_time(81_232_000 as u64)
+		Weight::from_parts(81_232_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(5 as u64))
 			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 	fn deposit_shares() -> Weight {
-		Weight::from_ref_time(238_648_000 as u64)
+		Weight::from_parts(238_648_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(22 as u64))
 			.saturating_add(RocksDbWeight::get().writes(13 as u64))
 	}
 	fn redeposit_shares() -> Weight {
-		Weight::from_ref_time(89_879_000 as u64)
+		Weight::from_parts(89_879_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(9 as u64))
 			.saturating_add(RocksDbWeight::get().writes(3 as u64))
 	}
 	fn claim_rewards() -> Weight {
-		Weight::from_ref_time(148_960_000 as u64)
+		Weight::from_parts(148_960_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(8 as u64))
 			.saturating_add(RocksDbWeight::get().writes(6 as u64))
 	}
 	fn withdraw_shares() -> Weight {
-		Weight::from_ref_time(316_765_000 as u64)
+		Weight::from_parts(316_765_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(19 as u64))
 			.saturating_add(RocksDbWeight::get().writes(15 as u64))
 	}
 	fn resume_yield_farm() -> Weight {
-		Weight::from_ref_time(115_577_000 as u64)
+		Weight::from_parts(115_577_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(7 as u64))
 			.saturating_add(RocksDbWeight::get().writes(5 as u64))
 	}

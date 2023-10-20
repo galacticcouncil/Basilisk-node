@@ -53,14 +53,14 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `b` is `[0, 3932160]`.
 	fn remark(b: u32) -> Weight {
 		// Minimum execution time: 1_243 nanoseconds.
-		Weight::from_ref_time(1_305_000 as u64) // Standard Error: 2
-			.saturating_add(Weight::from_ref_time(305 as u64).saturating_mul(b as u64))
+		Weight::from_parts(1_305_000, 0) // Standard Error: 2
+			.saturating_add(Weight::from_parts(305, 0).saturating_mul(b as u64))
 	}
 	/// The range of component `b` is `[0, 3932160]`.
 	fn remark_with_event(b: u32) -> Weight {
 		// Minimum execution time: 4_434 nanoseconds.
-		Weight::from_ref_time(4_615_000 as u64) // Standard Error: 2
-			.saturating_add(Weight::from_ref_time(1_280 as u64).saturating_mul(b as u64))
+		Weight::from_parts(4_615_000, 0) // Standard Error: 2
+			.saturating_add(Weight::from_parts(1_280, 0).saturating_mul(b as u64))
 	}
 	// Storage: System Digest (r:1 w:1)
 	// Proof Skipped: System Digest (max_values: Some(1), max_size: None, mode: Measured)
@@ -68,7 +68,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: unknown `0x3a686561707061676573` (r:0 w:1)
 	fn set_heap_pages() -> Weight {
 		// Minimum execution time: 2_790 nanoseconds.
-		Weight::from_ref_time(2_938_000 as u64)
+		Weight::from_parts(2_938_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -77,8 +77,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `i` is `[0, 1000]`.
 	fn set_storage(i: u32) -> Weight {
 		// Minimum execution time: 1_278 nanoseconds.
-		Weight::from_ref_time(1_324_000 as u64) // Standard Error: 4_118
-			.saturating_add(Weight::from_ref_time(490_036 as u64).saturating_mul(i as u64))
+		Weight::from_parts(1_324_000, 0) // Standard Error: 4_118
+			.saturating_add(Weight::from_parts(490_036, 0).saturating_mul(i as u64))
 			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(i as u64)))
 	}
 	// Storage: Skipped Metadata (r:0 w:0)
@@ -86,8 +86,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `i` is `[0, 1000]`.
 	fn kill_storage(i: u32) -> Weight {
 		// Minimum execution time: 1_317 nanoseconds.
-		Weight::from_ref_time(1_380_000 as u64) // Standard Error: 2_773
-			.saturating_add(Weight::from_ref_time(408_846 as u64).saturating_mul(i as u64))
+		Weight::from_parts(1_380_000, 0) // Standard Error: 2_773
+			.saturating_add(Weight::from_parts(408_846, 0).saturating_mul(i as u64))
 			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(i as u64)))
 	}
 	// Storage: Skipped Metadata (r:0 w:0)
@@ -95,8 +95,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `p` is `[0, 1000]`.
 	fn kill_prefix(p: u32) -> Weight {
 		// Minimum execution time: 3_084 nanoseconds.
-		Weight::from_ref_time(3_135_000 as u64) // Standard Error: 3_312
-			.saturating_add(Weight::from_ref_time(1_028_885 as u64).saturating_mul(p as u64))
+		Weight::from_parts(3_135_000, 0) // Standard Error: 3_312
+			.saturating_add(Weight::from_parts(1_028_885, 0).saturating_mul(p as u64))
 			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(p as u64)))
+	}
+	fn set_code() -> Weight {
+		Weight::zero()
 	}
 }

@@ -6,19 +6,20 @@ use basilisk_runtime::{Balances, Currencies, MultiTransactionPayment, RuntimeOri
 
 use frame_support::{
 	assert_err, assert_ok,
-	dispatch::{DispatchInfo, Weight},
+	dispatch::DispatchInfo,
 	sp_runtime::{
 		traits::SignedExtension,
 		transaction_validity::{InvalidTransaction, TransactionValidityError},
 	},
 	traits::{OnFinalize, OnInitialize},
+	weights::Weight,
 };
 use hydradx_traits::{pools::SpotPriceProvider, NativePriceOracle, AMM};
 use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;
 use pallet_xyk::XYKSpotPrice;
-use polkadot_primitives::v2::BlockNumber;
+use polkadot_primitives::v5::BlockNumber;
 use primitives::{asset::AssetPair, AssetId};
 use xcm_emulator::TestExt;
 
@@ -46,7 +47,7 @@ fn non_native_fee_payment_works_with_configured_price() {
 		);
 
 		let info = DispatchInfo {
-			weight: Weight::from_ref_time(106_957_000),
+			weight: Weight::from_parts(106_957_000, 0),
 			..Default::default()
 		};
 		let len: usize = 10;
@@ -76,7 +77,7 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 			currency: NEW_TOKEN,
 		});
 	let info = DispatchInfo {
-		weight: Weight::from_ref_time(106_957_000),
+		weight: Weight::from_parts(106_957_000, 0),
 		..Default::default()
 	};
 	let len: usize = 10;
@@ -94,11 +95,10 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 			None,
 		));
 
-		assert_ok!(basilisk_runtime::Balances::set_balance(
+		assert_ok!(basilisk_runtime::Balances::force_set_balance(
 			basilisk_runtime::RuntimeOrigin::root(),
 			ALICE.into(),
 			2_000_000_000_000 * UNITS,
-			0,
 		));
 
 		assert_ok!(basilisk_runtime::Tokens::set_balance(
@@ -229,11 +229,10 @@ fn fee_currency_on_account_lifecycle() {
 fn fee_currency_should_not_change_when_account_holds_native_currency_already() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
-		assert_ok!(Balances::set_balance(
+		assert_ok!(Balances::force_set_balance(
 			RuntimeOrigin::root(),
 			HITCHHIKER.into(),
 			UNITS,
-			0,
 		));
 
 		assert_ok!(Currencies::transfer(

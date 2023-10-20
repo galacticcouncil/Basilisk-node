@@ -60,7 +60,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Democracy DepositOf (max_values: None, max_size: Some(3230), added: 5705, mode: MaxEncodedLen)
 	fn propose() -> Weight {
 		// Minimum execution time: 25_155 nanoseconds.
-		Weight::from_ref_time(25_699_000 as u64)
+		Weight::from_parts(25_699_000, 0)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -68,7 +68,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Democracy DepositOf (max_values: None, max_size: Some(3230), added: 5705, mode: MaxEncodedLen)
 	fn second() -> Weight {
 		// Minimum execution time: 21_621 nanoseconds.
-		Weight::from_ref_time(21_991_000 as u64)
+		Weight::from_parts(21_991_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -80,7 +80,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Balances Locks (max_values: None, max_size: Some(1299), added: 3774, mode: MaxEncodedLen)
 	fn vote_new() -> Weight {
 		// Minimum execution time: 34_158 nanoseconds.
-		Weight::from_ref_time(34_868_000 as u64)
+		Weight::from_parts(34_868_000, 0)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -92,7 +92,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Balances Locks (max_values: None, max_size: Some(1299), added: 3774, mode: MaxEncodedLen)
 	fn vote_existing() -> Weight {
 		// Minimum execution time: 34_316 nanoseconds.
-		Weight::from_ref_time(34_932_000 as u64)
+		Weight::from_parts(34_932_000, 0)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -102,7 +102,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Democracy Cancellations (max_values: None, max_size: Some(33), added: 2508, mode: MaxEncodedLen)
 	fn emergency_cancel() -> Weight {
 		// Minimum execution time: 12_260 nanoseconds.
-		Weight::from_ref_time(12_554_000 as u64)
+		Weight::from_parts(12_554_000, 0)
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -120,7 +120,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Democracy Blacklist (max_values: None, max_size: Some(3238), added: 5713, mode: MaxEncodedLen)
 	fn blacklist() -> Weight {
 		// Minimum execution time: 57_938 nanoseconds.
-		Weight::from_ref_time(59_242_000 as u64)
+		Weight::from_parts(59_242_000, 0)
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
@@ -130,7 +130,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Democracy Blacklist (max_values: None, max_size: Some(3238), added: 5713, mode: MaxEncodedLen)
 	fn external_propose() -> Weight {
 		// Minimum execution time: 9_468 nanoseconds.
-		Weight::from_ref_time(10_062_000 as u64)
+		Weight::from_parts(10_062_000, 0)
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -138,13 +138,13 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Democracy NextExternal (max_values: Some(1), max_size: Some(132), added: 627, mode: MaxEncodedLen)
 	fn external_propose_majority() -> Weight {
 		// Minimum execution time: 2_299 nanoseconds.
-		Weight::from_ref_time(2_359_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
+		Weight::from_parts(2_359_000, 0).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: Democracy NextExternal (r:0 w:1)
 	// Proof: Democracy NextExternal (max_values: Some(1), max_size: Some(132), added: 627, mode: MaxEncodedLen)
 	fn external_propose_default() -> Weight {
 		// Minimum execution time: 2_253 nanoseconds.
-		Weight::from_ref_time(2_335_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
+		Weight::from_parts(2_335_000, 0).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: Democracy NextExternal (r:1 w:1)
 	// Proof: Democracy NextExternal (max_values: Some(1), max_size: Some(132), added: 627, mode: MaxEncodedLen)
@@ -154,7 +154,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Democracy ReferendumInfoOf (max_values: None, max_size: Some(201), added: 2676, mode: MaxEncodedLen)
 	fn fast_track() -> Weight {
 		// Minimum execution time: 11_484 nanoseconds.
-		Weight::from_ref_time(11_886_000 as u64)
+		Weight::from_parts(11_886_000, 0)
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -164,7 +164,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Democracy Blacklist (max_values: None, max_size: Some(3238), added: 5713, mode: MaxEncodedLen)
 	fn veto_external() -> Weight {
 		// Minimum execution time: 14_789 nanoseconds.
-		Weight::from_ref_time(15_026_000 as u64)
+		Weight::from_parts(15_026_000, 0)
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -176,7 +176,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn cancel_proposal() -> Weight {
 		// Minimum execution time: 43_257 nanoseconds.
-		Weight::from_ref_time(45_515_000 as u64)
+		Weight::from_parts(45_515_000, 0)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -184,7 +184,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Democracy ReferendumInfoOf (max_values: None, max_size: Some(201), added: 2676, mode: MaxEncodedLen)
 	fn cancel_referendum() -> Weight {
 		// Minimum execution time: 5_045 nanoseconds.
-		Weight::from_ref_time(5_272_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
+		Weight::from_parts(5_272_000, 0).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: Democracy LowestUnbaked (r:1 w:1)
 	// Proof: Democracy LowestUnbaked (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
@@ -195,8 +195,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `r` is `[0, 99]`.
 	fn on_initialize_base(r: u32) -> Weight {
 		// Minimum execution time: 4_594 nanoseconds.
-		Weight::from_ref_time(5_698_230 as u64) // Standard Error: 10_821
-			.saturating_add(Weight::from_ref_time(2_177_776 as u64).saturating_mul(r as u64))
+		Weight::from_parts(5_698_230, 0) // Standard Error: 10_821
+			.saturating_add(Weight::from_parts(2_177_776, 0).saturating_mul(r as u64))
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(r as u64)))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
@@ -216,8 +216,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `r` is `[0, 99]`.
 	fn on_initialize_base_with_launch_period(r: u32) -> Weight {
 		// Minimum execution time: 6_297 nanoseconds.
-		Weight::from_ref_time(7_002_136 as u64) // Standard Error: 15_373
-			.saturating_add(Weight::from_ref_time(2_199_111 as u64).saturating_mul(r as u64))
+		Weight::from_parts(7_002_136, 0) // Standard Error: 15_373
+			.saturating_add(Weight::from_parts(2_199_111, 0).saturating_mul(r as u64))
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(r as u64)))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
@@ -231,8 +231,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `r` is `[0, 99]`.
 	fn delegate(r: u32) -> Weight {
 		// Minimum execution time: 26_422 nanoseconds.
-		Weight::from_ref_time(29_168_428 as u64) // Standard Error: 15_118
-			.saturating_add(Weight::from_ref_time(3_097_186 as u64).saturating_mul(r as u64))
+		Weight::from_parts(29_168_428, 0) // Standard Error: 15_118
+			.saturating_add(Weight::from_parts(3_097_186, 0).saturating_mul(r as u64))
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(r as u64)))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
@@ -245,8 +245,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `r` is `[0, 99]`.
 	fn undelegate(r: u32) -> Weight {
 		// Minimum execution time: 15_248 nanoseconds.
-		Weight::from_ref_time(16_741_637 as u64) // Standard Error: 10_525
-			.saturating_add(Weight::from_ref_time(3_036_592 as u64).saturating_mul(r as u64))
+		Weight::from_parts(16_741_637, 0) // Standard Error: 10_525
+			.saturating_add(Weight::from_parts(3_036_592, 0).saturating_mul(r as u64))
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(r as u64)))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
@@ -256,7 +256,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Democracy PublicProps (max_values: Some(1), max_size: Some(16702), added: 17197, mode: MaxEncodedLen)
 	fn clear_public_proposals() -> Weight {
 		// Minimum execution time: 2_312 nanoseconds.
-		Weight::from_ref_time(2_386_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
+		Weight::from_parts(2_386_000, 0).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: Democracy VotingOf (r:1 w:1)
 	// Proof: Democracy VotingOf (max_values: None, max_size: Some(3795), added: 6270, mode: MaxEncodedLen)
@@ -267,8 +267,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `r` is `[0, 99]`.
 	fn unlock_remove(r: u32) -> Weight {
 		// Minimum execution time: 13_724 nanoseconds.
-		Weight::from_ref_time(16_623_981 as u64) // Standard Error: 7_491
-			.saturating_add(Weight::from_ref_time(62_092 as u64).saturating_mul(r as u64))
+		Weight::from_parts(16_623_981, 0) // Standard Error: 7_491
+			.saturating_add(Weight::from_parts(62_092, 0).saturating_mul(r as u64))
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -281,8 +281,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `r` is `[0, 99]`.
 	fn unlock_set(r: u32) -> Weight {
 		// Minimum execution time: 19_194 nanoseconds.
-		Weight::from_ref_time(19_765_470 as u64) // Standard Error: 1_275
-			.saturating_add(Weight::from_ref_time(62_842 as u64).saturating_mul(r as u64))
+		Weight::from_parts(19_765_470, 0) // Standard Error: 1_275
+			.saturating_add(Weight::from_parts(62_842, 0).saturating_mul(r as u64))
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -293,8 +293,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `r` is `[1, 100]`.
 	fn remove_vote(r: u32) -> Weight {
 		// Minimum execution time: 11_895 nanoseconds.
-		Weight::from_ref_time(12_859_725 as u64) // Standard Error: 3_774
-			.saturating_add(Weight::from_ref_time(87_756 as u64).saturating_mul(r as u64))
+		Weight::from_parts(12_859_725, 0) // Standard Error: 3_774
+			.saturating_add(Weight::from_parts(87_756, 0).saturating_mul(r as u64))
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -305,9 +305,27 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `r` is `[1, 100]`.
 	fn remove_other_vote(r: u32) -> Weight {
 		// Minimum execution time: 11_704 nanoseconds.
-		Weight::from_ref_time(12_797_491 as u64) // Standard Error: 3_861
-			.saturating_add(Weight::from_ref_time(88_052 as u64).saturating_mul(r as u64))
+		Weight::from_parts(12_797_491, 0) // Standard Error: 3_861
+			.saturating_add(Weight::from_parts(88_052, 0).saturating_mul(r as u64))
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
+	}
+	fn set_external_metadata() -> Weight {
+		Weight::zero()
+	}
+	fn clear_external_metadata() -> Weight {
+		Weight::zero()
+	}
+	fn set_proposal_metadata() -> Weight {
+		Weight::zero()
+	}
+	fn clear_proposal_metadata() -> Weight {
+		Weight::zero()
+	}
+	fn set_referendum_metadata() -> Weight {
+		Weight::zero()
+	}
+	fn clear_referendum_metadata() -> Weight {
+		Weight::zero()
 	}
 }

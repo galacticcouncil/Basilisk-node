@@ -57,8 +57,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `r` is `[0, 1024]`.
 	fn report_awesome(r: u32) -> Weight {
 		// Minimum execution time: 14_024 nanoseconds.
-		Weight::from_ref_time(14_342_560 as u64) // Standard Error: 46
-			.saturating_add(Weight::from_ref_time(1_192 as u64).saturating_mul(r as u64))
+		Weight::from_parts(14_342_560, 0) // Standard Error: 46
+			.saturating_add(Weight::from_parts(1_192, 0).saturating_mul(r as u64))
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -68,7 +68,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: Tips Reasons (max_values: None, max_size: None, mode: Measured)
 	fn retract_tip() -> Weight {
 		// Minimum execution time: 14_579 nanoseconds.
-		Weight::from_ref_time(15_025_000 as u64)
+		Weight::from_parts(15_025_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -82,10 +82,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `t` is `[1, 7]`.
 	fn tip_new(r: u32, t: u32) -> Weight {
 		// Minimum execution time: 13_921 nanoseconds.
-		Weight::from_ref_time(13_642_289 as u64) // Standard Error: 63
-			.saturating_add(Weight::from_ref_time(1_261 as u64).saturating_mul(r as u64))
+		Weight::from_parts(13_642_289, 0) // Standard Error: 63
+			.saturating_add(Weight::from_parts(1_261, 0).saturating_mul(r as u64))
 			// Standard Error: 10_466
-			.saturating_add(Weight::from_ref_time(83_217 as u64).saturating_mul(t as u64))
+			.saturating_add(Weight::from_parts(83_217, 0).saturating_mul(t as u64))
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -96,8 +96,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `t` is `[1, 7]`.
 	fn tip(t: u32) -> Weight {
 		// Minimum execution time: 12_086 nanoseconds.
-		Weight::from_ref_time(12_250_866 as u64) // Standard Error: 9_625
-			.saturating_add(Weight::from_ref_time(138_045 as u64).saturating_mul(t as u64))
+		Weight::from_parts(12_250_866, 0) // Standard Error: 9_625
+			.saturating_add(Weight::from_parts(138_045, 0).saturating_mul(t as u64))
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -112,8 +112,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `t` is `[1, 7]`.
 	fn close_tip(t: u32) -> Weight {
 		// Minimum execution time: 27_246 nanoseconds.
-		Weight::from_ref_time(28_197_616 as u64) // Standard Error: 28_807
-			.saturating_add(Weight::from_ref_time(9_248 as u64).saturating_mul(t as u64))
+		Weight::from_parts(28_197_616, 0) // Standard Error: 28_807
+			.saturating_add(Weight::from_parts(9_248, 0).saturating_mul(t as u64))
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -124,7 +124,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `t` is `[1, 7]`.
 	fn slash_tip(_t: u32) -> Weight {
 		// Minimum execution time: 10_657 nanoseconds.
-		Weight::from_ref_time(11_189_816 as u64)
+		Weight::from_parts(11_189_816, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}

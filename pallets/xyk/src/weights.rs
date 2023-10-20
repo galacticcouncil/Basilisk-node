@@ -59,27 +59,27 @@ pub struct HydraWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 	fn create_pool() -> Weight {
-		Weight::from_ref_time(189_645_000 as u64)
+		Weight::from_parts(189_645_000, 0)
 			.saturating_add(T::DbWeight::get().reads(11 as u64))
 			.saturating_add(T::DbWeight::get().writes(13 as u64))
 	}
 	fn add_liquidity() -> Weight {
-		Weight::from_ref_time(171_602_000 as u64)
+		Weight::from_parts(171_602_000, 0)
 			.saturating_add(T::DbWeight::get().reads(9 as u64))
 			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
 	fn remove_liquidity() -> Weight {
-		Weight::from_ref_time(170_846_000 as u64)
+		Weight::from_parts(170_846_000, 0)
 			.saturating_add(T::DbWeight::get().reads(8 as u64))
 			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
 	fn sell() -> Weight {
-		Weight::from_ref_time(122_125_000 as u64)
+		Weight::from_parts(122_125_000, 0)
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
 	fn buy() -> Weight {
-		Weight::from_ref_time(121_289_000 as u64)
+		Weight::from_parts(121_289_000, 0)
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -88,27 +88,27 @@ impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
 // For backwards compatibility and tests
 impl WeightInfo for () {
 	fn create_pool() -> Weight {
-		Weight::from_ref_time(189_645_000 as u64)
+		Weight::from_parts(189_645_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(11 as u64))
 			.saturating_add(RocksDbWeight::get().writes(13 as u64))
 	}
 	fn add_liquidity() -> Weight {
-		Weight::from_ref_time(171_602_000 as u64)
+		Weight::from_parts(171_602_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(9 as u64))
 			.saturating_add(RocksDbWeight::get().writes(8 as u64))
 	}
 	fn remove_liquidity() -> Weight {
-		Weight::from_ref_time(170_846_000 as u64)
+		Weight::from_parts(170_846_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(8 as u64))
 			.saturating_add(RocksDbWeight::get().writes(7 as u64))
 	}
 	fn sell() -> Weight {
-		Weight::from_ref_time(122_125_000 as u64)
+		Weight::from_parts(122_125_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(5 as u64))
 			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}
 	fn buy() -> Weight {
-		Weight::from_ref_time(121_289_000 as u64)
+		Weight::from_parts(121_289_000, 0)
 			.saturating_add(RocksDbWeight::get().reads(5 as u64))
 			.saturating_add(RocksDbWeight::get().writes(4 as u64))
 	}

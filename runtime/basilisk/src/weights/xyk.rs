@@ -78,7 +78,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: XYK PoolAssets (max_values: None, max_size: Some(56), added: 2531, mode: MaxEncodedLen)
 	fn create_pool() -> Weight {
 		// Minimum execution time: 95_546 nanoseconds.
-		Weight::from_ref_time(96_295_000 as u64)
+		Weight::from_parts(96_295_000, 0)
 			.saturating_add(T::DbWeight::get().reads(17 as u64))
 			.saturating_add(T::DbWeight::get().writes(16 as u64))
 	}
@@ -98,7 +98,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
 	fn add_liquidity() -> Weight {
 		// Minimum execution time: 85_059 nanoseconds.
-		Weight::from_ref_time(86_161_000 as u64)
+		Weight::from_parts(86_161_000, 0)
 			.saturating_add(T::DbWeight::get().reads(13 as u64))
 			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
@@ -116,7 +116,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Tokens TotalIssuance (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	fn remove_liquidity() -> Weight {
 		// Minimum execution time: 78_848 nanoseconds.
-		Weight::from_ref_time(79_720_000 as u64)
+		Weight::from_parts(79_720_000, 0)
 			.saturating_add(T::DbWeight::get().reads(12 as u64))
 			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
@@ -130,7 +130,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn sell() -> Weight {
 		// Minimum execution time: 62_381 nanoseconds.
-		Weight::from_ref_time(62_961_000 as u64)
+		Weight::from_parts(62_961_000, 0)
 			.saturating_add(T::DbWeight::get().reads(9 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -144,7 +144,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn buy() -> Weight {
 		// Minimum execution time: 61_990 nanoseconds.
-		Weight::from_ref_time(63_177_000 as u64)
+		Weight::from_parts(63_177_000, 0)
 			.saturating_add(T::DbWeight::get().reads(9 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}

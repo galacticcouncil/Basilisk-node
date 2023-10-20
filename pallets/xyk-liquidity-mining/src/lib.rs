@@ -46,6 +46,7 @@ pub use pallet::*;
 
 use frame_support::traits::tokens::nonfungibles::{Inspect, Mutate};
 use frame_support::{ensure, sp_runtime::traits::Zero, PalletId};
+use frame_system::pallet_prelude::BlockNumberFor;
 use hydradx_traits::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMutate, YieldFarmId};
 use pallet_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 
@@ -65,7 +66,7 @@ use sp_std::{
 	vec,
 };
 
-type PeriodOf<T> = <T as frame_system::Config>::BlockNumber;
+type PeriodOf<T> = BlockNumberFor<T>;
 
 #[frame_support::pallet]
 #[allow(clippy::too_many_arguments)]
@@ -92,11 +93,14 @@ pub mod pallet {
 	}
 
 	#[pallet::genesis_config]
-	#[cfg_attr(feature = "std", derive(Default))]
-	pub struct GenesisConfig {}
+	#[derive(frame_support::DefaultNoBound)]
+	pub struct GenesisConfig<T: Config> {
+		#[serde(skip)]
+		pub _marker: PhantomData<T>,
+	}
 
 	#[pallet::genesis_build]
-	impl<T: Config> GenesisBuild<T> for GenesisConfig {
+	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
 			let pallet_account = <Pallet<T>>::account_id();
 

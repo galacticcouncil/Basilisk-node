@@ -57,8 +57,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `b` is `[1, 50]`.
 	fn set_invulnerables(b: u32) -> Weight {
 		// Minimum execution time: 11_228 nanoseconds.
-		Weight::from_ref_time(11_238_329 as u64) // Standard Error: 11_359
-			.saturating_add(Weight::from_ref_time(2_113_074 as u64).saturating_mul(b as u64))
+		Weight::from_parts(11_238_329, 0) // Standard Error: 11_359
+			.saturating_add(Weight::from_parts(2_113_074, 0).saturating_mul(b as u64))
 			.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(b as u64)))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -66,13 +66,13 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: CollatorSelection DesiredCandidates (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
 	fn set_desired_candidates() -> Weight {
 		// Minimum execution time: 7_420 nanoseconds.
-		Weight::from_ref_time(7_737_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
+		Weight::from_parts(7_737_000, 0).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: CollatorSelection CandidacyBond (r:0 w:1)
 	// Proof: CollatorSelection CandidacyBond (max_values: Some(1), max_size: Some(16), added: 511, mode: MaxEncodedLen)
 	fn set_candidacy_bond() -> Weight {
 		// Minimum execution time: 4_411 nanoseconds.
-		Weight::from_ref_time(4_621_000 as u64).saturating_add(T::DbWeight::get().writes(1 as u64))
+		Weight::from_parts(4_621_000, 0).saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: CollatorSelection Candidates (r:1 w:1)
 	// Proof: CollatorSelection Candidates (max_values: Some(1), max_size: Some(961), added: 1456, mode: MaxEncodedLen)
@@ -89,8 +89,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `c` is `[1, 19]`.
 	fn register_as_candidate(c: u32) -> Weight {
 		// Minimum execution time: 29_387 nanoseconds.
-		Weight::from_ref_time(30_345_989 as u64) // Standard Error: 11_263
-			.saturating_add(Weight::from_ref_time(168_107 as u64).saturating_mul(c as u64))
+		Weight::from_parts(30_345_989, 0) // Standard Error: 11_263
+			.saturating_add(Weight::from_parts(168_107, 0).saturating_mul(c as u64))
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -101,8 +101,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `c` is `[5, 20]`.
 	fn leave_intent(c: u32) -> Weight {
 		// Minimum execution time: 19_534 nanoseconds.
-		Weight::from_ref_time(20_126_884 as u64) // Standard Error: 8_702
-			.saturating_add(Weight::from_ref_time(56_416 as u64).saturating_mul(c as u64))
+		Weight::from_parts(20_126_884, 0) // Standard Error: 8_702
+			.saturating_add(Weight::from_parts(56_416, 0).saturating_mul(c as u64))
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -114,7 +114,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: CollatorSelection LastAuthoredBlock (max_values: None, max_size: Some(44), added: 2519, mode: MaxEncodedLen)
 	fn note_author() -> Weight {
 		// Minimum execution time: 16_634 nanoseconds.
-		Weight::from_ref_time(17_028_000 as u64)
+		Weight::from_parts(17_028_000, 0)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -132,11 +132,17 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `c` is `[1, 20]`.
 	fn new_session(_r: u32, c: u32) -> Weight {
 		// Minimum execution time: 15_048 nanoseconds.
-		Weight::from_ref_time(27_699_841 as u64) // Standard Error: 743_006
-			.saturating_add(Weight::from_ref_time(4_765_854 as u64).saturating_mul(c as u64))
+		Weight::from_parts(27_699_841, 0) // Standard Error: 743_006
+			.saturating_add(Weight::from_parts(4_765_854, 0).saturating_mul(c as u64))
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(c as u64)))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(c as u64)))
+	}
+	fn add_invulnerable(_b: u32, _c: u32) -> Weight {
+		Weight::zero()
+	}
+	fn remove_invulnerable(_b: u32) -> Weight {
+		Weight::zero()
 	}
 }

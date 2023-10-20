@@ -15,9 +15,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::chain_spec;
 use crate::cli::{Cli, RelayChainCli, Subcommand};
-use crate::service::{new_partial, BasiliskExecutorDispatch};
-use crate::{chain_spec, service};
+use crate::service::{new_partial, BasiliskNativeExecutor};
 
 use basilisk_runtime::Block;
 use codec::Encode;
@@ -29,11 +29,12 @@ use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams, NetworkParams, Result,
 	RuntimeVersion, SharedParams, SubstrateCli,
 };
+use sc_executor::{sp_wasm_interface::ExtendedHostFunctions, NativeExecutionDispatch};
 use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::AccountIdConversion;
 use sp_runtime::traits::Block as BlockT;
-use std::{io::Write, net::SocketAddr};
+use std::io::Write;
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
@@ -89,10 +90,6 @@ impl SubstrateCli for Cli {
 			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
 	}
-
-	fn native_runtime_version(_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		&basilisk_runtime::VERSION
-	}
 }
 
 impl SubstrateCli for RelayChainCli {
@@ -123,10 +120,6 @@ impl SubstrateCli for RelayChainCli {
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter()).load_spec(id)
 	}
-
-	fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		polkadot_cli::Cli::native_runtime_version(chain_spec)
-	}
 }
 
 #[allow(clippy::borrowed_box)]
@@ -151,28 +144,28 @@ pub fn run() -> sc_cli::Result<()> {
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
-				let partials = new_partial::<basilisk_runtime::RuntimeApi, BasiliskExecutorDispatch>(&config)?;
+				let partials = new_partial(&config)?;
 				Ok((cmd.run(partials.client, partials.import_queue), partials.task_manager))
 			})
 		}
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
-				let partials = new_partial::<basilisk_runtime::RuntimeApi, BasiliskExecutorDispatch>(&config)?;
+				let partials = new_partial(&config)?;
 				Ok((cmd.run(partials.client, config.database), partials.task_manager))
 			})
 		}
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
-				let partials = new_partial::<basilisk_runtime::RuntimeApi, BasiliskExecutorDispatch>(&config)?;
+				let partials = new_partial(&config)?;
 				Ok((cmd.run(partials.client, config.chain_spec), partials.task_manager))
 			})
 		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
-				let partials = new_partial::<basilisk_runtime::RuntimeApi, BasiliskExecutorDispatch>(&config)?;
+				let partials = new_partial(&config)?;
 				Ok((cmd.run(partials.client, partials.import_queue), partials.task_manager))
 			})
 		}
@@ -196,7 +189,7 @@ pub fn run() -> sc_cli::Result<()> {
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.async_run(|config| {
-				let partials = new_partial::<basilisk_runtime::RuntimeApi, BasiliskExecutorDispatch>(&config)?;
+				let partials = new_partial(&config)?;
 				Ok((cmd.run(partials.client, partials.backend, None), partials.task_manager))
 			})
 		}
@@ -206,7 +199,12 @@ pub fn run() -> sc_cli::Result<()> {
 			match cmd {
 				BenchmarkCmd::Pallet(cmd) => {
 					if cfg!(feature = "runtime-benchmarks") {
-						runner.sync_run(|config| cmd.run::<Block, service::BasiliskExecutorDispatch>(config))
+						runner.sync_run(|config| {
+							cmd.run::<Block, ExtendedHostFunctions<
+								sp_io::SubstrateHostFunctions,
+								<BasiliskNativeExecutor as NativeExecutionDispatch>::ExtendHostFunctions,
+							>>(config)
+						})
 					} else {
 						Err("Benchmarking wasn't enabled when building the node. \
 			   You can enable it with `--features runtime-benchmarks`."
@@ -214,14 +212,14 @@ pub fn run() -> sc_cli::Result<()> {
 					}
 				}
 				BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
-					let partials = new_partial::<basilisk_runtime::RuntimeApi, BasiliskExecutorDispatch>(&config)?;
+					let partials = new_partial(&config)?;
 					cmd.run(partials.client)
 				}),
 				#[cfg(not(feature = "runtime-benchmarks"))]
 				BenchmarkCmd::Storage(_) => Err("Storage benchmarking can be enabled with `--features runtime-benchmarks`.".into()),
 				#[cfg(feature = "runtime-benchmarks")]
 				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
-					let partials = new_partial::<basilisk_runtime::RuntimeApi, BasiliskExecutorDispatch>(&config)?;
+					let partials = new_partial(&config)?;
 					let db = partials.backend.expose_db();
 					let storage = partials.backend.expose_storage();
 
@@ -240,7 +238,7 @@ pub fn run() -> sc_cli::Result<()> {
 			let _ = builder.init();
 
 			let spec = load_spec(&params.shared_params.chain.clone().unwrap_or_default())?;
-			let state_version = Cli::native_runtime_version(&spec).state_version();
+			let state_version = Cli::runtime_version().state_version();
 
 			let block: Block = generate_genesis_block(&*spec, state_version)?;
 			let raw_header = block.header().encode();
@@ -293,7 +291,7 @@ pub fn run() -> sc_cli::Result<()> {
 				Ok((
 					cmd.run::<Block, ExtendedHostFunctions<
 						sp_io::SubstrateHostFunctions,
-						<service::BasiliskExecutorDispatch as NativeExecutionDispatch>::ExtendHostFunctions,
+						<service::BasiliskNativeExecutor as NativeExecutionDispatch>::ExtendHostFunctions,
 					>>(),
 					task_manager,
 				))
@@ -311,6 +309,13 @@ pub fn run() -> sc_cli::Result<()> {
 					return Err("It is not allowed to run a collator node with the benchmarking runtime.".into());
 				};
 
+				let hwbench = (!cli.no_hardware_benchmarks)
+					.then_some(config.database.path().map(|database_path| {
+						let _ = std::fs::create_dir_all(database_path);
+						sc_sysinfo::gather_hwbench(Some(database_path))
+					}))
+					.flatten();
+
 				let para_id = chain_spec::Extensions::try_get(&*config.chain_spec)
 					.map(|e| e.para_id)
 					.expect("Could not find parachain ID in chain-spec.");
@@ -325,9 +330,9 @@ pub fn run() -> sc_cli::Result<()> {
 				let id = ParaId::from(para_id);
 
 				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::v2::AccountId>::into_account_truncating(&id);
+					AccountIdConversion::<polkadot_primitives::v5::AccountId>::into_account_truncating(&id);
 
-				let state_version = Cli::native_runtime_version(&config.chain_spec).state_version();
+				let state_version = Cli::runtime_version().state_version();
 
 				let block: Block =
 					generate_genesis_block(&*config.chain_spec, state_version).map_err(|e| format!("{e:?}"))?;
@@ -347,9 +352,9 @@ pub fn run() -> sc_cli::Result<()> {
 					if config.role.is_authority() { "yes" } else { "no" }
 				);
 
-				crate::service::start_node(config, polkadot_config, collator_options, id)
+				crate::service::start_node(config, polkadot_config, collator_options, id, hwbench)
 					.await
-					.map(|r| r.1)
+					.map(|r| r.0)
 					.map_err(Into::into)
 			})
 		}
@@ -361,12 +366,8 @@ impl DefaultConfigurationValues for RelayChainCli {
 		30334
 	}
 
-	fn rpc_ws_listen_port() -> u16 {
+	fn rpc_listen_port() -> u16 {
 		9945
-	}
-
-	fn rpc_http_listen_port() -> u16 {
-		9934
 	}
 
 	fn prometheus_listen_port() -> u16 {
@@ -396,18 +397,6 @@ impl CliConfiguration<Self> for RelayChainCli {
 			.shared_params()
 			.base_path()?
 			.or_else(|| self.base_path.clone().map(Into::into)))
-	}
-
-	fn rpc_http(&self, default_listen_port: u16) -> Result<Option<SocketAddr>> {
-		self.base.base.rpc_http(default_listen_port)
-	}
-
-	fn rpc_ipc(&self) -> Result<Option<String>> {
-		self.base.base.rpc_ipc()
-	}
-
-	fn rpc_ws(&self, default_listen_port: u16) -> Result<Option<SocketAddr>> {
-		self.base.base.rpc_ws(default_listen_port)
 	}
 
 	fn prometheus_config(
@@ -453,10 +442,6 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.rpc_methods()
 	}
 
-	fn rpc_ws_max_connections(&self) -> Result<Option<usize>> {
-		self.base.base.rpc_ws_max_connections()
-	}
-
 	fn rpc_cors(&self, is_dev: bool) -> Result<Option<Vec<String>>> {
 		self.base.base.rpc_cors(is_dev)
 	}
@@ -483,5 +468,11 @@ impl CliConfiguration<Self> for RelayChainCli {
 
 	fn telemetry_endpoints(&self, chain_spec: &Box<dyn ChainSpec>) -> Result<Option<sc_telemetry::TelemetryEndpoints>> {
 		self.base.base.telemetry_endpoints(chain_spec)
+	}
+}
+
+impl Cli {
+	fn runtime_version() -> &'static RuntimeVersion {
+		&basilisk_runtime::VERSION
 	}
 }

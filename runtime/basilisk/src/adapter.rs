@@ -1,11 +1,12 @@
-use frame_support::dispatch::DispatchError;
 use frame_support::sp_runtime::DispatchResult;
 use frame_support::traits::BalanceStatus;
+use frame_system::pallet_prelude::BlockNumberFor;
 use orml_traits::currency::TransferAll;
 use orml_traits::{
 	LockIdentifier, MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency, MultiReservableCurrency,
 	NamedMultiReservableCurrency,
 };
+use sp_runtime::DispatchError;
 
 pub struct OrmlTokensAdapter<T>(sp_std::marker::PhantomData<T>);
 
@@ -120,7 +121,7 @@ impl<T: orml_tokens::Config + frame_system::Config> MultiReservableCurrency<T::A
 }
 
 impl<T: orml_tokens::Config + frame_system::Config> MultiLockableCurrency<T::AccountId> for OrmlTokensAdapter<T> {
-	type Moment = T::BlockNumber;
+	type Moment = BlockNumberFor<T>;
 
 	fn set_lock(
 		lock_id: LockIdentifier,

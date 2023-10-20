@@ -54,7 +54,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	fn add_currency() -> Weight {
 		// Minimum execution time: 17_576 nanoseconds.
-		Weight::from_ref_time(18_000_000 as u64)
+		Weight::from_parts(18_000_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -62,7 +62,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: MultiTransactionPayment AcceptedCurrencies (max_values: None, max_size: Some(28), added: 2503, mode: MaxEncodedLen)
 	fn remove_currency() -> Weight {
 		// Minimum execution time: 18_399 nanoseconds.
-		Weight::from_ref_time(18_777_000 as u64)
+		Weight::from_parts(18_777_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -72,7 +72,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: MultiTransactionPayment AccountCurrencyMap (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
 	fn set_currency() -> Weight {
 		// Minimum execution time: 21_494 nanoseconds.
-		Weight::from_ref_time(22_029_000 as u64)
+		Weight::from_parts(22_029_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -84,6 +84,6 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
 	fn get_spot_price() -> Weight {
 		// Minimum execution time: 21_535 nanoseconds.
-		Weight::from_ref_time(21_794_000 as u64).saturating_add(T::DbWeight::get().reads(3 as u64))
+		Weight::from_parts(21_794_000, 0).saturating_add(T::DbWeight::get().reads(3 as u64))
 	}
 }

@@ -20,7 +20,7 @@
 use frame_support::{
 	instances::Instance1,
 	parameter_types,
-	traits::{AsEnsureOriginWithArg, Everything, GenesisBuild, Nothing},
+	traits::{AsEnsureOriginWithArg, BuildGenesisConfig, Everything, Nothing},
 	PalletId,
 };
 
@@ -39,8 +39,8 @@ use primitives::{
 use pallet_nft::{CollectionType, NftPermissions};
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
+	BuildStorage,
 };
 
 pub const UNITS: Balance = 1_000_000_000_000;
@@ -58,10 +58,7 @@ type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 frame_support::construct_runtime!(
-	pub enum Test where
-	Block = Block,
-	NodeBlock = Block,
-	UncheckedExtrinsic = UncheckedExtrinsic,
+	pub enum Test
 	{
 		System: frame_system,
 		Duster: pallet_duster,
@@ -100,13 +97,12 @@ impl system::Config for Test {
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-	type Index = u64;
-	type BlockNumber = BlockNumber;
+	type Nonce = u64;
+	type Block = Block;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -207,6 +203,10 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxFreezes = ();
+	type MaxHolds = ();
+	type RuntimeHoldReason = ();
 }
 
 parameter_types! {
@@ -318,7 +318,7 @@ impl pallet_xyk::Config for Test {
 
 impl ExtBuilder {
 	pub fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+		let mut t = frame_system::GenesisConfig::<Test>::default().build_storage.unwrap();
 
 		orml_tokens::GenesisConfig::<Test> {
 			balances: self.endowed_accounts,
@@ -334,7 +334,7 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		<pallet_xyk_liquidity_mining::GenesisConfig as GenesisBuild<Test>>::assimilate_storage(
+		<pallet_xyk_liquidity_mining::GenesisConfig as BuildStorage>::assimilate_storage(
 			&pallet_xyk_liquidity_mining::GenesisConfig::default(),
 			&mut t,
 		)

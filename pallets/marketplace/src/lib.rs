@@ -24,7 +24,7 @@ use frame_support::{
 	ensure,
 	traits::{tokens::nonfungibles::Inspect, Currency, ExistenceRequirement, ReservableCurrency},
 };
-use frame_system::{ensure_signed, RawOrigin};
+use frame_system::{ensure_signed, pallet_prelude::BlockNumberFor, RawOrigin};
 use sp_runtime::{
 	traits::{CheckedDiv, CheckedMul, Saturating, StaticLookup},
 	ArithmeticError, DispatchError,
@@ -44,7 +44,7 @@ mod mock;
 mod tests;
 
 type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, <T as frame_system::Config>::BlockNumber>;
+type OfferOf<T> = Offer<<T as frame_system::Config>::AccountId, BalanceOf<T>, BlockNumberFor<T>>;
 type RoyaltyOf<T> = Royalty<<T as frame_system::Config>::AccountId>;
 
 pub const MAX_ROYALTY: u16 = 10_000; // 100% in basis points
@@ -174,7 +174,7 @@ pub mod pallet {
 			collection_id: T::NftCollectionId,
 			item_id: T::NftItemId,
 			amount: BalanceOf<T>,
-			expires: T::BlockNumber,
+			expires: BlockNumberFor<T>,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -370,7 +370,7 @@ pub mod pallet {
 			collection: T::NftCollectionId,
 			item: T::NftItemId,
 			amount: BalanceOf<T>,
-			expires: T::BlockNumber,
+			expires: BlockNumberFor<T>,
 		},
 		/// Offer was withdrawn
 		OfferWithdrawn {

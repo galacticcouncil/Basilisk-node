@@ -74,7 +74,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Uniques ItemPriceOf (max_values: None, max_size: Some(113), added: 2588, mode: MaxEncodedLen)
 	fn buy() -> Weight {
 		// Minimum execution time: 78_475 nanoseconds.
-		Weight::from_ref_time(79_790_000 as u64)
+		Weight::from_parts(79_790_000, 0)
 			.saturating_add(T::DbWeight::get().reads(10 as u64))
 			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
@@ -84,7 +84,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: Marketplace Prices (max_values: None, max_size: None, mode: Measured)
 	fn set_price() -> Weight {
 		// Minimum execution time: 25_612 nanoseconds.
-		Weight::from_ref_time(26_033_000 as u64)
+		Weight::from_parts(26_033_000, 0)
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -100,7 +100,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
 	fn make_offer() -> Weight {
 		// Minimum execution time: 42_274 nanoseconds.
-		Weight::from_ref_time(42_869_000 as u64)
+		Weight::from_parts(42_869_000, 0)
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -118,7 +118,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: AssetRegistry Assets (max_values: None, max_size: None, mode: Measured)
 	fn withdraw_offer() -> Weight {
 		// Minimum execution time: 45_565 nanoseconds.
-		Weight::from_ref_time(47_083_000 as u64)
+		Weight::from_parts(47_083_000, 0)
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -148,7 +148,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Uniques ItemPriceOf (max_values: None, max_size: Some(113), added: 2588, mode: MaxEncodedLen)
 	fn accept_offer() -> Weight {
 		// Minimum execution time: 86_739 nanoseconds.
-		Weight::from_ref_time(87_641_000 as u64)
+		Weight::from_parts(87_641_000, 0)
 			.saturating_add(T::DbWeight::get().reads(11 as u64))
 			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
@@ -162,7 +162,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: AssetRegistry LocationAssets (max_values: None, max_size: None, mode: Measured)
 	fn add_royalty() -> Weight {
 		// Minimum execution time: 33_170 nanoseconds.
-		Weight::from_ref_time(33_774_000 as u64)
+		Weight::from_parts(33_774_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}

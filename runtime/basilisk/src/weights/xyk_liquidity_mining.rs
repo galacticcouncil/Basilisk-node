@@ -62,7 +62,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: XYKWarehouseLM GlobalFarm (max_values: None, max_size: Some(205), added: 2680, mode: MaxEncodedLen)
 	fn create_global_farm() -> Weight {
 		// Minimum execution time: 33_689 nanoseconds.
-		Weight::from_ref_time(34_154_000 as u64)
+		Weight::from_parts(34_154_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
@@ -74,7 +74,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn update_global_farm() -> Weight {
 		// Minimum execution time: 39_585 nanoseconds.
-		Weight::from_ref_time(40_429_000 as u64)
+		Weight::from_parts(40_429_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -86,7 +86,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: Duster AccountBlacklist (max_values: None, max_size: None, mode: Measured)
 	fn terminate_global_farm() -> Weight {
 		// Minimum execution time: 37_575 nanoseconds.
-		Weight::from_ref_time(38_117_000 as u64)
+		Weight::from_parts(38_117_000, 0)
 			.saturating_add(T::DbWeight::get().reads(4 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -106,7 +106,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: XYKWarehouseLM YieldFarm (max_values: None, max_size: Some(226), added: 2701, mode: MaxEncodedLen)
 	fn create_yield_farm() -> Weight {
 		// Minimum execution time: 54_800 nanoseconds.
-		Weight::from_ref_time(55_273_000 as u64)
+		Weight::from_parts(55_273_000, 0)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
@@ -124,7 +124,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn update_yield_farm() -> Weight {
 		// Minimum execution time: 58_041 nanoseconds.
-		Weight::from_ref_time(58_900_000 as u64)
+		Weight::from_parts(58_900_000, 0)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -140,7 +140,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn stop_yield_farm() -> Weight {
 		// Minimum execution time: 54_077 nanoseconds.
-		Weight::from_ref_time(54_763_000 as u64)
+		Weight::from_parts(54_763_000, 0)
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
@@ -154,7 +154,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn terminate_yield_farm() -> Weight {
 		// Minimum execution time: 38_375 nanoseconds.
-		Weight::from_ref_time(39_596_000 as u64)
+		Weight::from_parts(39_596_000, 0)
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -198,7 +198,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: XYKWarehouseLM Deposit (max_values: None, max_size: Some(413), added: 2888, mode: MaxEncodedLen)
 	fn deposit_shares() -> Weight {
 		// Minimum execution time: 128_864 nanoseconds.
-		Weight::from_ref_time(130_192_000 as u64)
+		Weight::from_parts(130_192_000, 0)
 			.saturating_add(T::DbWeight::get().reads(22 as u64))
 			.saturating_add(T::DbWeight::get().writes(13 as u64))
 	}
@@ -222,7 +222,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
 	fn redeposit_shares() -> Weight {
 		// Minimum execution time: 54_376 nanoseconds.
-		Weight::from_ref_time(55_063_000 as u64)
+		Weight::from_parts(55_063_000, 0)
 			.saturating_add(T::DbWeight::get().reads(9 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
@@ -240,7 +240,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn claim_rewards() -> Weight {
 		// Minimum execution time: 69_588 nanoseconds.
-		Weight::from_ref_time(70_392_000 as u64)
+		Weight::from_parts(70_392_000, 0)
 			.saturating_add(T::DbWeight::get().reads(8 as u64))
 			.saturating_add(T::DbWeight::get().writes(6 as u64))
 	}
@@ -280,7 +280,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: NFT Items (max_values: None, max_size: Some(122), added: 2597, mode: MaxEncodedLen)
 	fn withdraw_shares() -> Weight {
 		// Minimum execution time: 149_927 nanoseconds.
-		Weight::from_ref_time(150_907_000 as u64)
+		Weight::from_parts(150_907_000, 0)
 			.saturating_add(T::DbWeight::get().reads(19 as u64))
 			.saturating_add(T::DbWeight::get().writes(15 as u64))
 	}
@@ -298,7 +298,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn resume_yield_farm() -> Weight {
 		// Minimum execution time: 56_874 nanoseconds.
-		Weight::from_ref_time(57_658_000 as u64)
+		Weight::from_parts(57_658_000, 0)
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}

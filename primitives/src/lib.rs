@@ -99,16 +99,11 @@ pub type HighPrecisionBalance = U256;
 pub type LowPrecisionBalance = u128;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Debug, Encode, Decode, Clone, Copy, PartialEq, Eq, TypeInfo)]
+#[derive(Default, Debug, Encode, Decode, Clone, Copy, PartialEq, Eq, TypeInfo)]
 pub enum IntentionType {
+	#[default]
 	SELL,
 	BUY,
-}
-
-impl Default for IntentionType {
-	fn default() -> IntentionType {
-		IntentionType::SELL
-	}
 }
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]

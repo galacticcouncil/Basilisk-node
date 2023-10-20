@@ -39,7 +39,7 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_sell() {
 		let res = parachain_runtime_mock::PolkadotXcm::execute(
 			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
 			Box::new(xcm),
-			Weight::from_ref_time(399_600_000_000),
+			Weight::from_parts(399_600_000_000, 0),
 		);
 		assert_ok!(res);
 
@@ -106,7 +106,7 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 		let res = parachain_runtime_mock::PolkadotXcm::execute(
 			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
 			Box::new(xcm),
-			Weight::from_ref_time(399_600_000_000),
+			Weight::from_parts(399_600_000_000, 0),
 		);
 		assert_ok!(res);
 
@@ -241,7 +241,7 @@ fn craft_exchange_asset_xcm<M: Into<MultiAssets>, RC: Decode + GetDispatchInfo>(
 }
 
 pub fn last_other_para_events(n: usize) -> Vec<parachain_runtime_mock::RuntimeEvent> {
-	frame_system::Pallet::<parachain_runtime_mock::ParachainRuntime>::events()
+	frame_system::Pallet::<parachain_runtime_mock::Runtime>::events()
 		.into_iter()
 		.rev()
 		.take(n)

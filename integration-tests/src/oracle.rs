@@ -9,7 +9,7 @@ use frame_support::{
 };
 use hydradx_traits::{AggregatedPriceOracle, OraclePeriod::*};
 use pallet_ema_oracle::OracleError;
-use polkadot_primitives::v2::BlockNumber;
+use polkadot_primitives::v5::BlockNumber;
 use xcm_emulator::TestExt;
 
 pub fn basilisk_run_to_block(to: BlockNumber) {

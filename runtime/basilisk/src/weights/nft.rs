@@ -66,7 +66,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: NFT Collections (max_values: None, max_size: Some(99), added: 2574, mode: MaxEncodedLen)
 	fn create_collection() -> Weight {
 		// Minimum execution time: 19_500 nanoseconds.
-		Weight::from_ref_time(19_928_000 as u64)
+		Weight::from_parts(19_928_000, 0)
 			.saturating_mul(CREATE_COLLECTION_OFFSET)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
@@ -89,7 +89,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: NFT Items (max_values: None, max_size: Some(122), added: 2597, mode: MaxEncodedLen)
 	fn mint() -> Weight {
 		// Minimum execution time: 31_625 nanoseconds.
-		Weight::from_ref_time(32_251_000 as u64)
+		Weight::from_parts(32_251_000, 0)
 			.saturating_mul(MINT_OFFSET)
 			.saturating_add(T::DbWeight::get().reads(6 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
@@ -106,7 +106,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Uniques ItemPriceOf (max_values: None, max_size: Some(113), added: 2588, mode: MaxEncodedLen)
 	fn transfer() -> Weight {
 		// Minimum execution time: 28_903 nanoseconds.
-		Weight::from_ref_time(29_233_000 as u64)
+		Weight::from_parts(29_233_000, 0)
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().writes(4 as u64))
 	}
@@ -128,7 +128,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Uniques CollectionMaxSupply (max_values: None, max_size: Some(36), added: 2511, mode: MaxEncodedLen)
 	fn destroy_collection() -> Weight {
 		// Minimum execution time: 38_674 nanoseconds.
-		Weight::from_ref_time(39_564_000 as u64)
+		Weight::from_parts(39_564_000, 0)
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}
@@ -150,7 +150,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: NFT Items (max_values: None, max_size: Some(122), added: 2597, mode: MaxEncodedLen)
 	fn burn() -> Weight {
 		// Minimum execution time: 32_790 nanoseconds.
-		Weight::from_ref_time(33_331_000 as u64)
+		Weight::from_parts(33_331_000, 0)
 			.saturating_add(T::DbWeight::get().reads(5 as u64))
 			.saturating_add(T::DbWeight::get().writes(5 as u64))
 	}

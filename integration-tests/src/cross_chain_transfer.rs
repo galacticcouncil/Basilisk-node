@@ -1,4 +1,5 @@
 #![cfg(test)]
+use crate::kusama_test_net::Kusama;
 use crate::kusama_test_net::*;
 
 use frame_support::{assert_noop, assert_ok};
@@ -31,7 +32,7 @@ fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 			basilisk_runtime::AssetLocation(MultiLocation::parent())
 		));
 	});
-	KusamaRelay::execute_with(|| {
+	Kusama::execute_with(|| {
 		assert_ok!(kusama_runtime::XcmPallet::reserve_transfer_assets(
 			kusama_runtime::RuntimeOrigin::signed(ALICE.into()),
 			Box::new(Parachain(BASILISK_PARA_ID).into_versioned()),
@@ -72,7 +73,7 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 			1,
 			3 * UNITS,
 			Box::new(MultiLocation::new(1, X1(Junction::AccountId32 { id: BOB, network: None })).into()),
-			WeightLimit::Limited(Weight::from_ref_time(4_600_000_000))
+			WeightLimit::Limited(Weight::from_parts(4_600_000_000, 0))
 		));
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(ALICE)),
@@ -80,7 +81,7 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 		);
 	});
 
-	KusamaRelay::execute_with(|| {
+	Kusama::execute_with(|| {
 		assert_eq!(
 			kusama_runtime::Balances::free_balance(&AccountId::from(BOB)),
 			2999909712564 // 3 * BSX - fee
@@ -117,7 +118,7 @@ fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 				)
 				.into()
 			),
-			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
+			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
@@ -175,7 +176,7 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 				)
 				.into()
 			),
-			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
+			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
@@ -226,7 +227,7 @@ fn transfer_from_other_parachain_and_back() {
 				)
 				.into()
 			),
-			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
+			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
@@ -268,7 +269,7 @@ fn transfer_from_other_parachain_and_back() {
 				)
 				.into()
 			),
-			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
+			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
@@ -322,7 +323,7 @@ fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amoun
 					)
 					.into()
 				),
-				WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
+				WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 			),
 			orml_xtokens::Error::<basilisk_runtime::Runtime>::XcmExecutionFailed
 		);
@@ -382,7 +383,7 @@ fn fee_currency_set_on_xcm_transfer() {
 				)
 				.into()
 			),
-			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
+			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
@@ -427,7 +428,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 				)
 				.into()
 			),
-			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
+			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
@@ -438,9 +439,10 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
 			cumulus_pallet_xcmp_queue::Event::Fail {
-				message_hash: Some(hex!["30291d1dfb68ae6f66d4c841facb78f44e7611ab2a25c84f4fb7347f448d2944"]),
+				message_hash: hex!["30291d1dfb68ae6f66d4c841facb78f44e7611ab2a25c84f4fb7347f448d2944"],
+				message_id: hex!["30291d1dfb68ae6f66d4c841facb78f44e7611ab2a25c84f4fb7347f448d2944"],
 				error: XcmError::AssetNotFound,
-				weight: Weight::from_ref_time(300_000_000),
+				weight: Weight::from_parts(300_000_000, 0),
 			}
 			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {
@@ -507,7 +509,7 @@ fn trap_asset() -> MultiAsset {
 				)
 				.into()
 			),
-			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
+			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
@@ -521,9 +523,10 @@ fn trap_asset() -> MultiAsset {
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
 			cumulus_pallet_xcmp_queue::Event::Fail {
-				message_hash: Some(hex!["30291d1dfb68ae6f66d4c841facb78f44e7611ab2a25c84f4fb7347f448d2944"]),
+				message_hash: hex!["30291d1dfb68ae6f66d4c841facb78f44e7611ab2a25c84f4fb7347f448d2944"],
+				message_id: hex!["30291d1dfb68ae6f66d4c841facb78f44e7611ab2a25c84f4fb7347f448d2944"],
 				error: XcmError::AssetNotFound,
-				weight: Weight::from_ref_time(300_000_000),
+				weight: Weight::from_parts(300_000_000, 0),
 			}
 			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {
@@ -590,7 +593,7 @@ fn polkadot_xcm_execute_extrinsic_should_not_be_allowed() {
 			basilisk_runtime::PolkadotXcm::execute(
 				basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 				Box::new(message),
-				Weight::from_ref_time(400_000_000_000)
+				Weight::from_parts(400_000_000_000, 0)
 			),
 			pallet_xcm::Error::<basilisk_runtime::Runtime>::Filtered
 		);

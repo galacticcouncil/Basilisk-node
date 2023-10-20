@@ -52,7 +52,7 @@ pub struct BasiliskWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn spend() -> Weight {
 		// Minimum execution time: 57 nanoseconds.
-		Weight::from_ref_time(70_000 as u64)
+		Weight::from_parts(70_000, 0)
 	}
 	// Storage: Treasury ProposalCount (r:1 w:1)
 	// Proof: Treasury ProposalCount (max_values: Some(1), max_size: Some(4), added: 499, mode: MaxEncodedLen)
@@ -60,7 +60,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Treasury Proposals (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
 	fn propose_spend() -> Weight {
 		// Minimum execution time: 16_004 nanoseconds.
-		Weight::from_ref_time(16_358_000 as u64)
+		Weight::from_parts(16_358_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -70,7 +70,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
 	fn reject_proposal() -> Weight {
 		// Minimum execution time: 21_853 nanoseconds.
-		Weight::from_ref_time(22_820_000 as u64)
+		Weight::from_parts(22_820_000, 0)
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
@@ -81,8 +81,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `p` is `[0, 99]`.
 	fn approve_proposal(p: u32) -> Weight {
 		// Minimum execution time: 8_428 nanoseconds.
-		Weight::from_ref_time(10_215_802 as u64) // Standard Error: 5_445
-			.saturating_add(Weight::from_ref_time(40_062 as u64).saturating_mul(p as u64))
+		Weight::from_parts(10_215_802, 0) // Standard Error: 5_445
+			.saturating_add(Weight::from_parts(40_062, 0).saturating_mul(p as u64))
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -90,7 +90,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof: Treasury Approvals (max_values: Some(1), max_size: Some(402), added: 897, mode: MaxEncodedLen)
 	fn remove_approval() -> Weight {
 		// Minimum execution time: 6_749 nanoseconds.
-		Weight::from_ref_time(6_979_000 as u64)
+		Weight::from_parts(6_979_000, 0)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -107,8 +107,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// The range of component `p` is `[0, 100]`.
 	fn on_initialize_proposals(p: u32) -> Weight {
 		// Minimum execution time: 15_011 nanoseconds.
-		Weight::from_ref_time(17_185_760 as u64) // Standard Error: 18_518
-			.saturating_add(Weight::from_ref_time(17_277_918 as u64).saturating_mul(p as u64))
+		Weight::from_parts(17_185_760, 0) // Standard Error: 18_518
+			.saturating_add(Weight::from_parts(17_277_918, 0).saturating_mul(p as u64))
 			.saturating_add(T::DbWeight::get().reads(3 as u64))
 			.saturating_add(T::DbWeight::get().reads((3 as u64).saturating_mul(p as u64)))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))

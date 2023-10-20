@@ -18,7 +18,7 @@ scale-info = { version = "2.3.1", default-features = false, features = ["derive"
 log = { version = "0.4.17", default-features = false }
 
 # ORML dependencies
-orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v0.9.38", default-features = false }
+orml-traits = { workspace = true }
 
 # Local dependencies
 primitives = { path = "../../primitives", default-features = false }
@@ -29,18 +29,18 @@ hydradx-traits = { workspace = true }
 pallet-nft = { workspace = true }
 
 # Substrate dependencies
-sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
-frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
-frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
-sp-arithmetic = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
+sp-std = { workspace = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+sp-arithmetic = { workspace = true }
+sp-runtime = { workspace = true }
 
 [dev-dependencies]
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38" }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38" }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38" }
-orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch="polkadot-v0.9.38" }
-orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch="polkadot-v0.9.38"}
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38"}
+sp-io = { workspace = true }
+sp-core = { workspace = true }
+orml-currencies = { workspace = true }
+orml-tokens = { workspace = true }
+pallet-balances = { workspace = true }
 pretty_assertions = "1.2.1"
 lazy_static = "1.4.0"
 

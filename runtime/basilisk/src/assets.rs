@@ -21,7 +21,10 @@ use crate::system::NativeAssetId;
 use adapter::OrmlTokensAdapter;
 
 use hydradx_adapters::inspect::MultiInspectAdapter;
-use hydradx_traits::{AssetPairAccountIdFor, LockedBalance, OraclePeriod};
+use hydradx_traits::{
+	router::{AmmTradeWeights, Trade},
+	AssetPairAccountIdFor, LockedBalance, OraclePeriod,
+};
 use pallet_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, RemoveTxAssetOnKilled};
 use primitives::constants::{
@@ -29,11 +32,13 @@ use primitives::constants::{
 	currency::{NATIVE_EXISTENTIAL_DEPOSIT, UNITS},
 };
 
-use codec::Decode;
 use frame_support::{
 	parameter_types,
 	sp_runtime::{app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero},
-	traits::{AsEnsureOriginWithArg, Contains, Defensive, EnsureOrigin, Get, LockIdentifier, NeverEnsureOrigin},
+	traits::{
+		AsEnsureOriginWithArg, Contains, Currency, Defensive, EnsureOrigin, Get, Imbalance, LockIdentifier,
+		NeverEnsureOrigin, OnUnbalanced,
+	},
 	BoundedVec, PalletId,
 };
 use frame_system::RawOrigin;
@@ -60,10 +65,21 @@ parameter_types! {
 	pub const MaxReserves: u32 = 50;
 }
 
+// pallet-treasury did not impl OnUnbalanced<Credit>, need an adapter to handle dust.
+type CreditOf = frame_support::traits::fungible::Credit<<Runtime as frame_system::Config>::AccountId, Balances>;
+type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
+pub struct DustRemovalAdapter;
+impl OnUnbalanced<CreditOf> for DustRemovalAdapter {
+	fn on_nonzero_unbalanced(amount: CreditOf) {
+		let new_amount = NegativeImbalance::new(amount.peek());
+		Treasury::on_nonzero_unbalanced(new_amount);
+	}
+}
+
 impl pallet_balances::Config for Runtime {
 	/// The type for recording an account's balance.
 	type Balance = Balance;
-	type DustRemoval = Treasury;
+	type DustRemoval = DustRemovalAdapter;
 	type RuntimeEvent = RuntimeEvent;
 	/// The ubiquitous event type.
 	type ExistentialDeposit = NativeExistentialDeposit;
@@ -72,6 +88,10 @@ impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxFreezes = ();
+	type MaxHolds = ();
+	type RuntimeHoldReason = ();
 }
 
 pub struct CurrencyHooks;
@@ -381,6 +401,40 @@ impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime 
 	type PriceAdjustment = warehouse_liquidity_mining::DefaultPriceAdjustment;
 }
 
+// TODO
+pub struct RouterWeightInfo;
+impl RouterWeightInfo {
+	pub fn sell_and_calculate_sell_trade_amounts_overhead_weight(
+		_num_of_calc_sell: u32,
+		_num_of_execute_sell: u32,
+	) -> Weight {
+		Weight::zero()
+	}
+	pub fn buy_and_calculate_buy_trade_amounts_overhead_weight(
+		_num_of_calc_buy: u32,
+		_num_of_execute_buy: u32,
+	) -> Weight {
+		Weight::zero()
+	}
+}
+impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
+	fn sell_weight(_route: &[Trade<AssetId>]) -> Weight {
+		Weight::zero()
+	}
+	fn buy_weight(_route: &[Trade<AssetId>]) -> Weight {
+		Weight::zero()
+	}
+	fn calculate_buy_trade_amounts_weight(_route: &[Trade<AssetId>]) -> Weight {
+		Weight::zero()
+	}
+	fn sell_and_calculate_sell_trade_amounts_weight(_route: &[Trade<AssetId>]) -> Weight {
+		Weight::zero()
+	}
+	fn buy_and_calculate_buy_trade_amounts_weight(_route: &[Trade<AssetId>]) -> Weight {
+		Weight::zero()
+	}
+}
+
 parameter_types! {
 	pub const MaxNumberOfTrades: u8 = 5;
 }
@@ -392,7 +446,7 @@ impl pallet_route_executor::Config for Runtime {
 	type MaxNumberOfTrades = MaxNumberOfTrades;
 	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
 	type AMM = (XYK, LBP);
-	type WeightInfo = weights::route_executor::BasiliskWeight<Runtime>;
+	type WeightInfo = RouterWeightInfo;
 }
 
 parameter_types! {
