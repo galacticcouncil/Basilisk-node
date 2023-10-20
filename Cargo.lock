@@ -612,7 +612,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "106.0.0"
+version = "107.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
@@ -7399,7 +7399,7 @@ dependencies = [
 
 [[package]]
 name = "parachain-runtime-mock"
-version = "0.2.9"
+version = "0.2.10"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -9869,7 +9869,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "0.9.15"
+version = "0.9.16"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
