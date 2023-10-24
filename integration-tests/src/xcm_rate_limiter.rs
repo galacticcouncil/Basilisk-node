@@ -8,6 +8,7 @@ use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use polkadot_xcm::prelude::*;
 use xcm_emulator::TestExt;
+use hydradx_traits::registry::Mutate;
 
 pub const EVE: [u8; 32] = [8u8; 32];
 
@@ -32,7 +33,6 @@ fn xcm_rate_limiter_should_limit_aca_when_limit_is_exceeded() {
 
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::RuntimeOrigin::root(),
 			AUSD,
 			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
@@ -41,10 +41,14 @@ fn xcm_rate_limiter_should_limit_aca_when_limit_is_exceeded() {
 		assert_ok!(basilisk_runtime::AssetRegistry::update(
 			basilisk_runtime::RuntimeOrigin::root(),
 			AUSD,
-			b"AUSD".to_vec(),
-			AssetType::Token,
+			Some(b"AUSD".to_vec()),
+			Some(AssetType::Token),
 			None,
 			Some(50 * UNITS),
+            None,
+            None,
+            None,
+            None
 		));
 
 		assert_eq!(basilisk_runtime::Tokens::free_balance(AUSD, &AccountId::from(EVE)), 0);
@@ -108,7 +112,6 @@ fn xcm_rate_limiter_should_not_limit_aca_when_limit_is_not_exceeded() {
 
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::RuntimeOrigin::root(),
 			AUSD,
 			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
@@ -117,10 +120,14 @@ fn xcm_rate_limiter_should_not_limit_aca_when_limit_is_not_exceeded() {
 		assert_ok!(basilisk_runtime::AssetRegistry::update(
 			basilisk_runtime::RuntimeOrigin::root(),
 			AUSD,
-			b"AUSD".to_vec(),
-			AssetType::Token,
+			Some(b"AUSD".to_vec()),
+			Some(AssetType::Token),
 			None,
 			Some(101 * UNITS),
+            None,
+            None,
+            None,
+            None
 		));
 	});
 
@@ -168,7 +175,6 @@ fn deferred_messages_should_be_executable_by_root() {
 
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::RuntimeOrigin::root(),
 			AUSD,
 			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
@@ -177,10 +183,14 @@ fn deferred_messages_should_be_executable_by_root() {
 		assert_ok!(basilisk_runtime::AssetRegistry::update(
 			basilisk_runtime::RuntimeOrigin::root(),
 			AUSD,
-			b"AUSD".to_vec(),
-			AssetType::Token,
+			Some(b"AUSD".to_vec()),
+			Some(AssetType::Token),
 			None,
 			Some(50 * UNITS),
+            None,
+            None,
+            None,
+            None
 		));
 
 		assert_eq!(basilisk_runtime::Tokens::free_balance(AUSD, &AccountId::from(EVE)), 0);

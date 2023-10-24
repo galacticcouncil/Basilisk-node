@@ -266,7 +266,6 @@ pub type Executive = frame_executive::Executive<
 		XcmpQueue,
 		ParachainSystem,
 		migrations::OnRuntimeUpgradeMigration,
-		migrations::MigrateRegistryLocationToV3<Runtime>,
 		migrations::XcmRateLimitMigration,
 	),
 >;

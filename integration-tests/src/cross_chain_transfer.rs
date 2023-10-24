@@ -12,6 +12,7 @@ use orml_traits::currency::MultiCurrency;
 use sp_core::H256;
 use sp_runtime::traits::{AccountIdConversion, BlakeTwo256, Hash};
 use xcm_emulator::TestExt;
+use hydradx_traits::registry::Mutate;
 
 // Determine the hash for assets expected to be have been trapped.
 fn determine_hash<M>(origin: &MultiLocation, assets: M) -> H256
@@ -26,7 +27,6 @@ where
 fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::RuntimeOrigin::root(),
 			1,
 			basilisk_runtime::AssetLocation(MultiLocation::parent())
 		));
@@ -62,7 +62,6 @@ fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::RuntimeOrigin::root(),
 			1,
 			basilisk_runtime::AssetLocation(MultiLocation::parent())
 		));
@@ -96,7 +95,6 @@ fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::RuntimeOrigin::root(),
 			1,
 			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
@@ -146,7 +144,6 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 
 	OtherParachain::execute_with(|| {
 		assert_ok!(parachain_runtime_mock::AssetRegistry::set_location(
-			parachain_runtime_mock::RuntimeOrigin::root(),
 			1,
 			parachain_runtime_mock::AssetLocation(MultiLocation::new(
 				1,
@@ -205,7 +202,6 @@ fn transfer_from_other_parachain_and_back() {
 
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::RuntimeOrigin::root(),
 			1,
 			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
@@ -294,7 +290,6 @@ fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amoun
 
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::RuntimeOrigin::root(),
 			1,
 			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
@@ -352,7 +347,6 @@ fn fee_currency_set_on_xcm_transfer() {
 
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::RuntimeOrigin::root(),
 			1,
 			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));
@@ -467,7 +461,6 @@ fn claim_trapped_asset_should_work() {
 	// register the asset
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
-			basilisk_runtime::RuntimeOrigin::root(),
 			1,
 			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
 		));

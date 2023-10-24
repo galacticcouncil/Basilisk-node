@@ -227,8 +227,8 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
 				vec![],
 				vec![
-					(b"KSM".to_vec(), 1_000u128, Some(1u32)),
-					(b"KUSD".to_vec(), 1_000u128, Some(2u32)),
+					(Some(1), Some(b"KSM".to_vec()), 1_000u128, None, None, None, false),
+					(Some(2), Some(b"KUSD".to_vec()), 1_000u128, None, None, None, false),
 				],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 				vec![hex!["30035c21ba9eda780130f2029a80c3e962f56588bc04c36be95a225cb536fb55"].into()],
@@ -314,8 +314,8 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 				],
 				get_vesting_config_for_test(),
 				vec![
-					(b"KSM".to_vec(), 1_000u128, Some(1u32)),
-					(b"KUSD".to_vec(), 1_000u128, Some(2u32)),
+					(Some(1), Some(b"KSM".to_vec()), 1_000u128, None, None, None, false),
+					(Some(2), Some(b"KUSD".to_vec()), 1_000u128, None, None, None, false),
 				],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
@@ -611,8 +611,8 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 				],
 				get_vesting_config_for_test(),
 				vec![
-					(b"KSM".to_vec(), 1_000u128, Some(1u32)),
-					(b"KUSD".to_vec(), 1_000u128, Some(2u32)),
+					(Some(1), Some(b"KSM".to_vec()), 1_000u128, None, None, None, false),
+					(Some(2), Some(b"KUSD".to_vec()), 1_000u128, None, None, None, false),
 				],
 				vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 				vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
@@ -690,6 +690,8 @@ fn parachain_genesis(
 			registered_assets: vec![],
 			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
 			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
+			native_symbol: TOKEN_SYMBOL.as_bytes().to_vec(),
+			native_decimals: TOKEN_DECIMALS,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: vec![],
@@ -745,7 +747,15 @@ fn testnet_parachain_genesis(
 	council_members: Vec<AccountId>,
 	tech_committee_members: Vec<AccountId>,
 	vesting_list: Vec<(AccountId, BlockNumber, BlockNumber, u32, Balance)>,
-	registered_assets: Vec<(Vec<u8>, Balance, Option<AssetId>)>, // (Asset name, Existential deposit, Chosen asset id)
+	registered_assets: Vec<(
+		Option<AssetId>,
+		Option<Vec<u8>>,
+		Balance,
+		Option<Vec<u8>>,
+		Option<u8>,
+		Option<Balance>,
+		bool,
+	)>, // (asset_id, name, existential deposit, symbol, decimals, xcm_rate_limit, is_sufficient)
 	accepted_assets: Vec<(AssetId, Price)>, // (Asset id, Fallback price) - asset which fee can be paid with
 	elections: Vec<AccountId>,
 ) -> GenesisConfig {
@@ -788,6 +798,8 @@ fn testnet_parachain_genesis(
 			registered_assets: registered_assets.clone(),
 			native_asset_name: TOKEN_SYMBOL.as_bytes().to_vec(),
 			native_existential_deposit: NATIVE_EXISTENTIAL_DEPOSIT,
+			native_symbol: TOKEN_SYMBOL.as_bytes().to_vec(),
+			native_decimals: TOKEN_DECIMALS,
 		},
 		multi_transaction_payment: MultiTransactionPaymentConfig {
 			currencies: accepted_assets,

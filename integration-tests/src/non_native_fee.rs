@@ -19,7 +19,7 @@ use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;
 use pallet_xyk::XYKSpotPrice;
 use polkadot_primitives::v2::BlockNumber;
-use primitives::{asset::AssetPair, AssetId};
+use pallet_xyk::types::{AssetPair, AssetId};
 use xcm_emulator::TestExt;
 
 pub fn basilisk_run_to_block(to: BlockNumber) {
@@ -85,13 +85,15 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 		// register the new token
 		assert_ok!(basilisk_runtime::AssetRegistry::register(
 			basilisk_runtime::RuntimeOrigin::root(),
-			b"NEW_TOKEN".to_vec(),
-			AssetType::Token,
-			1_000,
 			Some(NEW_TOKEN),
+			Some(b"NEW_TOKEN".to_vec()),
+			AssetType::Token,
+			Some(1_000),
 			None,
 			None,
 			None,
+            None,
+            true
 		));
 
 		assert_ok!(basilisk_runtime::Balances::set_balance(

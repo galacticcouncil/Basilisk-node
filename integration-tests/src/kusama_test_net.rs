@@ -191,17 +191,19 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 
 	pallet_asset_registry::GenesisConfig::<Runtime> {
 		registered_assets: vec![
-			(b"aUSD".to_vec(), 1_000_000u128, Some(AUSD)),
-			(b"MOVR".to_vec(), 1_000u128, Some(MOVR)),
-			(b"KSMN".to_vec(), 1_000u128, Some(KSM)),
+			(Some(AUSD), Some(b"aUSD".to_vec()), 1_000_000u128, None, None, None, true),
+			(Some(MOVR), Some(b"MOVR".to_vec()), 1_000u128, None, None, None, true),
+			( Some(KSM), Some(b"KSMN".to_vec()), 1_000u128, None, None, None, true),
 			(
-				b"NEW_BOOTSRAPPED_TOKEN".to_vec(),
-				1_000u128,
 				Some(NEW_BOOTSTRAPPED_TOKEN),
+				Some(b"NEW_BOOTSRAPPED_TOKEN".to_vec()),
+				1_000u128, None, None, None, true,
 			),
 		],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
+		native_symbol: b"BSX".to_vec(),
+		native_decimals: 12,
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();
@@ -277,9 +279,11 @@ pub fn other_parachain_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_asset_registry::GenesisConfig::<ParachainRuntime> {
-		registered_assets: vec![(b"AUSD".to_vec(), 1_000_000u128, Some(AUSD))],
+		registered_assets: vec![(Some(AUSD), Some(b"AUSD".to_vec()), 1_000_000u128, None, None, None, true)],
 		native_asset_name: b"KAR".to_vec(),
 		native_existential_deposit: existential_deposit,
+		native_symbol: b"KAR".to_vec(),
+		native_decimals: 12,
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();

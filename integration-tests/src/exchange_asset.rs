@@ -147,16 +147,18 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 fn register_kar() {
 	assert_ok!(basilisk_runtime::AssetRegistry::register(
 		basilisk_runtime::RuntimeOrigin::root(),
-		b"KAR".to_vec(),
-		pallet_asset_registry::AssetType::Token,
-		1_000_000,
 		Some(KAR),
+		Some(b"KAR".to_vec()),
+		pallet_asset_registry::AssetType::Token,
+		Some(1_000_000),
 		None,
+        None,
 		Some(basilisk_runtime::AssetLocation(MultiLocation::new(
 			1,
 			X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))
 		))),
-		None
+		None,
+        true
 	));
 }
 

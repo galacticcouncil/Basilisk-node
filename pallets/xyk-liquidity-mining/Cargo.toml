@@ -27,6 +27,7 @@ primitives = { path = "../../primitives", default-features = false }
 pallet-liquidity-mining = { workspace = true }
 hydradx-traits = { workspace = true }
 pallet-nft = { workspace = true }
+pallet-xyk = { workspace = true }
 
 # Substrate dependencies
 sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.38", default-features = false }
@@ -58,5 +59,6 @@ std = [
     "pallet-balances/std",
     "pallet-liquidity-mining/std",
     "log/std",
+    "pallet-xyk/std"
 ]
 try-runtime = ["frame-support/try-runtime"]

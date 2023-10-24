@@ -426,6 +426,7 @@ impl pallet_collator_rewards::Config for Runtime {
 	// We wrap the ` SessionManager` implementation of `CollatorSelection` to get the collatrs that
 	// we hand out rewards to.
 	type SessionManager = CollatorSelection;
+	type MaxCandidates = MaxInvulnerables;
 }
 
 parameter_types! {

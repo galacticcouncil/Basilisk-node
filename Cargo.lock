@@ -650,7 +650,7 @@ dependencies = [
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",
- "pallet-democracy",
+ "pallet-democracy 4.0.0-dev",
  "pallet-duster",
  "pallet-elections-phragmen",
  "pallet-ema-oracle",
@@ -809,21 +809,6 @@ dependencies = [
  "shlex",
  "syn 1.0.109",
 ]
-
-[[package]]
-name = "bit-set"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0700ddab506f33b20a03b13996eccd309a48e5ff77d0d95926aa0210fb4e95f1"
-dependencies = [
- "bit-vec",
-]
-
-[[package]]
-name = "bit-vec"
-version = "0.6.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
 
 [[package]]
 name = "bitflags"
@@ -3742,8 +3727,7 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "7.4.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "7.6.2"
 dependencies = [
  "fixed",
  "num-traits",
@@ -3757,8 +3741,7 @@ dependencies = [
 
 [[package]]
 name = "hydradx-adapters"
-version = "0.4.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "0.6.3"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -3770,6 +3753,7 @@ dependencies = [
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
+ "orml-vesting",
  "orml-xcm-support",
  "pallet-balances",
  "pallet-circuit-breaker",
@@ -3780,11 +3764,14 @@ dependencies = [
  "pallet-omnipool",
  "pallet-omnipool-liquidity-mining",
  "pallet-route-executor",
+ "pallet-stableswap",
+ "pallet-staking 2.0.0",
  "pallet-transaction-multi-payment",
+ "pallet-uniques",
  "parity-scale-codec",
  "polkadot-parachain",
  "primitive-types 0.12.1",
- "primitives 5.8.2",
+ "primitives 5.8.5",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -3797,8 +3784,7 @@ dependencies = [
 
 [[package]]
 name = "hydradx-traits"
-version = "2.4.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "2.7.0"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -4290,7 +4276,7 @@ dependencies = [
  "pallet-child-bounties",
  "pallet-collective",
  "pallet-conviction-voting",
- "pallet-democracy",
+ "pallet-democracy 4.0.0-dev",
  "pallet-election-provider-multi-phase",
  "pallet-election-provider-support-benchmarking 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.38)",
  "pallet-elections-phragmen",
@@ -4316,7 +4302,7 @@ dependencies = [
  "pallet-session",
  "pallet-session-benchmarking",
  "pallet-society",
- "pallet-staking",
+ "pallet-staking 4.0.0-dev",
  "pallet-timestamp",
  "pallet-tips",
  "pallet-transaction-payment",
@@ -5971,8 +5957,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "2.2.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "3.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6174,8 +6159,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-circuit-breaker"
-version = "1.1.14"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "1.1.16"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6190,8 +6174,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-collator-rewards"
-version = "1.0.4"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "1.0.5"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6263,7 +6246,6 @@ dependencies = [
 [[package]]
 name = "pallet-currencies"
 version = "1.2.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6296,9 +6278,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-democracy"
+version = "4.0.1-dev"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-duster"
 version = "3.2.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6315,7 +6311,6 @@ dependencies = [
 [[package]]
 name = "pallet-dynamic-fees"
 version = "1.0.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6398,8 +6393,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-ema-oracle"
-version = "1.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "1.1.2"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6536,8 +6530,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "4.2.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "4.2.4"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6627,7 +6620,6 @@ dependencies = [
 [[package]]
 name = "pallet-nft"
 version = "7.1.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6687,7 +6679,7 @@ dependencies = [
  "frame-system",
  "pallet-bags-list",
  "pallet-nomination-pools",
- "pallet-staking",
+ "pallet-staking 4.0.0-dev",
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
@@ -6739,7 +6731,7 @@ dependencies = [
  "pallet-im-online",
  "pallet-offences",
  "pallet-session",
- "pallet-staking",
+ "pallet-staking 4.0.0-dev",
  "parity-scale-codec",
  "scale-info",
  "sp-runtime",
@@ -6749,8 +6741,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-omnipool"
-version = "3.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "3.2.3"
 dependencies = [
  "bitflags",
  "frame-support",
@@ -6769,8 +6760,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-omnipool-liquidity-mining"
-version = "2.0.10"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "2.0.11"
 dependencies = [
  "bitflags",
  "frame-support",
@@ -6783,7 +6773,7 @@ dependencies = [
  "pallet-omnipool",
  "parity-scale-codec",
  "primitive-types 0.12.1",
- "primitives 5.8.2",
+ "primitives 5.8.5",
  "scale-info",
  "sp-runtime",
  "sp-std",
@@ -6876,7 +6866,6 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.3.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -6890,13 +6879,13 @@ dependencies = [
 
 [[package]]
 name = "pallet-route-executor"
-version = "1.0.5"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "1.2.0"
 dependencies = [
  "frame-support",
  "frame-system",
  "hydradx-traits",
  "orml-traits",
+ "pallet-balances",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
@@ -6951,7 +6940,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "pallet-session",
- "pallet-staking",
+ "pallet-staking 4.0.0-dev",
  "rand 0.8.5",
  "sp-runtime",
  "sp-session",
@@ -6968,6 +6957,42 @@ dependencies = [
  "parity-scale-codec",
  "rand_chacha 0.2.2",
  "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-stableswap"
+version = "3.3.1"
+dependencies = [
+ "bitflags",
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math",
+ "hydradx-traits",
+ "orml-traits",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-staking"
+version = "2.0.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math",
+ "log",
+ "orml-traits",
+ "pallet-democracy 4.0.1-dev",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -7086,7 +7111,6 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "9.0.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7103,8 +7127,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-pause"
-version = "0.1.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "1.0.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7278,8 +7301,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xcm-rate-limiter"
-version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "0.1.1"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-benchmarking",
@@ -7302,28 +7324,23 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "6.2.8"
+version = "6.3.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "frame-system-benchmarking",
  "hydra-dx-math",
  "hydradx-traits",
  "log",
  "orml-tokens",
  "orml-traits",
  "orml-utilities",
- "pallet-asset-registry",
  "parity-scale-codec",
  "primitive-types 0.12.1",
- "primitives 6.5.0",
- "proptest",
+ "primitives 5.8.5",
  "scale-info",
  "serde",
- "sp-api",
  "sp-core",
- "sp-io",
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
@@ -7344,6 +7361,7 @@ dependencies = [
  "pallet-balances",
  "pallet-liquidity-mining",
  "pallet-nft",
+ "pallet-xyk",
  "parity-scale-codec",
  "pretty_assertions",
  "primitives 6.5.0",
@@ -7434,7 +7452,7 @@ dependencies = [
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",
- "pallet-democracy",
+ "pallet-democracy 4.0.0-dev",
  "pallet-duster",
  "pallet-elections-phragmen",
  "pallet-lbp",
@@ -8663,7 +8681,7 @@ dependencies = [
  "pallet-bounties",
  "pallet-child-bounties",
  "pallet-collective",
- "pallet-democracy",
+ "pallet-democracy 4.0.0-dev",
  "pallet-election-provider-multi-phase",
  "pallet-election-provider-support-benchmarking 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.38)",
  "pallet-elections-phragmen",
@@ -8684,7 +8702,7 @@ dependencies = [
  "pallet-scheduler",
  "pallet-session",
  "pallet-session-benchmarking",
- "pallet-staking",
+ "pallet-staking 4.0.0-dev",
  "pallet-staking-reward-curve",
  "pallet-timestamp",
  "pallet-tips",
@@ -8749,7 +8767,7 @@ dependencies = [
  "pallet-election-provider-multi-phase",
  "pallet-fast-unstake",
  "pallet-session",
- "pallet-staking",
+ "pallet-staking 4.0.0-dev",
  "pallet-staking-reward-fn",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -8820,7 +8838,7 @@ dependencies = [
  "pallet-babe",
  "pallet-balances",
  "pallet-session",
- "pallet-staking",
+ "pallet-staking 4.0.0-dev",
  "pallet-timestamp",
  "pallet-vesting",
  "parity-scale-codec",
@@ -8866,7 +8884,7 @@ dependencies = [
  "mmr-gadget",
  "pallet-babe",
  "pallet-im-online",
- "pallet-staking",
+ "pallet-staking 4.0.0-dev",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-db",
  "polkadot-approval-distribution",
@@ -9120,15 +9138,16 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "5.8.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
+version = "5.8.5"
 dependencies = [
  "frame-support",
  "hex-literal 0.3.4",
  "parity-scale-codec",
  "polkadot-primitives",
  "scale-info",
+ "serde",
  "sp-core",
+ "sp-std",
  "static_assertions",
 ]
 
@@ -9245,26 +9264,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "proptest"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e35c06b98bf36aba164cc17cb25f7e232f5c4aeea73baa14b8a9f0d92dbfa65"
-dependencies = [
- "bit-set",
- "bitflags",
- "byteorder",
- "lazy_static",
- "num-traits",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
- "rand_xorshift",
- "regex-syntax 0.6.29",
- "rusty-fork",
- "tempfile",
- "unarray",
 ]
 
 [[package]]
@@ -9488,15 +9487,6 @@ name = "rand_pcg"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59cad018caf63deb318e5a4586d99a24424a364f40f1e5778c29aca23f4fc73e"
-dependencies = [
- "rand_core 0.6.4",
-]
-
-[[package]]
-name = "rand_xorshift"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d25bf25ec5ae4a3f1b92f929810509a2f53d7dca2f50b794ff57e3face536c8f"
 dependencies = [
  "rand_core 0.6.4",
 ]
@@ -9730,7 +9720,7 @@ dependencies = [
  "pallet-bounties",
  "pallet-child-bounties",
  "pallet-collective",
- "pallet-democracy",
+ "pallet-democracy 4.0.0-dev",
  "pallet-elections-phragmen",
  "pallet-grandpa",
  "pallet-identity",
@@ -9747,7 +9737,7 @@ dependencies = [
  "pallet-scheduler",
  "pallet-session",
  "pallet-society",
- "pallet-staking",
+ "pallet-staking 4.0.0-dev",
  "pallet-state-trie-migration",
  "pallet-sudo",
  "pallet-timestamp",
@@ -9905,7 +9895,7 @@ dependencies = [
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",
- "pallet-democracy",
+ "pallet-democracy 4.0.0-dev",
  "pallet-duster",
  "pallet-elections-phragmen",
  "pallet-ema-oracle",
@@ -10071,18 +10061,6 @@ name = "rustversion"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4f3208ce4d8448b3f3e7d168a73f5e0c43a61e32930de3bceeccedb388b6bf06"
-
-[[package]]
-name = "rusty-fork"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb3dcc6e454c328bb824492db107ab7c0ae8fcffe4ad210136ef014458c1bc4f"
-dependencies = [
- "fnv",
- "quick-error",
- "tempfile",
- "wait-timeout",
-]
 
 [[package]]
 name = "rw-stream-sink"
@@ -12762,7 +12740,6 @@ dependencies = [
 [[package]]
 name = "test-utils"
 version = "1.1.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=b59c0379b312e9b3df365f407aa48b43bc4ca833#b59c0379b312e9b3df365f407aa48b43bc4ca833"
 dependencies = [
  "frame-system",
  "pretty_assertions",
@@ -13365,12 +13342,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "unarray"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eaea85b334db583fe3274d12b4cd1880032beab409c0d774be044d4480ab9a94"
-
-[[package]]
 name = "unicode-bidi"
 version = "0.3.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13490,15 +13461,6 @@ name = "void"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"
-
-[[package]]
-name = "wait-timeout"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f200f5b12eb75f8c1ed65abd4b2db8a6e1b138a20de009dacee265a2498f3f6"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "waitgroup"
@@ -14166,7 +14128,7 @@ dependencies = [
  "pallet-bags-list",
  "pallet-balances",
  "pallet-collective",
- "pallet-democracy",
+ "pallet-democracy 4.0.0-dev",
  "pallet-election-provider-multi-phase",
  "pallet-election-provider-support-benchmarking 4.0.0-dev (git+https://github.com/paritytech/substrate?branch=polkadot-v0.9.38)",
  "pallet-elections-phragmen",
@@ -14189,7 +14151,7 @@ dependencies = [
  "pallet-session",
  "pallet-session-benchmarking",
  "pallet-society",
- "pallet-staking",
+ "pallet-staking 4.0.0-dev",
  "pallet-staking-reward-curve",
  "pallet-state-trie-migration",
  "pallet-sudo",

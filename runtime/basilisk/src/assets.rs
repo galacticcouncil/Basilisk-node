@@ -21,7 +21,7 @@ use crate::system::NativeAssetId;
 use adapter::OrmlTokensAdapter;
 
 use hydradx_adapters::inspect::MultiInspectAdapter;
-use hydradx_traits::{AssetPairAccountIdFor, LockedBalance, OraclePeriod};
+use hydradx_traits::{AssetPairAccountIdFor, LockedBalance, OraclePeriod, Source};
 use pallet_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, RemoveTxAssetOnKilled};
 use primitives::constants::{
@@ -29,14 +29,13 @@ use primitives::constants::{
 	currency::{NATIVE_EXISTENTIAL_DEPOSIT, UNITS},
 };
 
-use codec::Decode;
 use frame_support::{
 	parameter_types,
 	sp_runtime::{app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero},
 	traits::{AsEnsureOriginWithArg, Contains, Defensive, EnsureOrigin, Get, LockIdentifier, NeverEnsureOrigin},
 	BoundedVec, PalletId,
 };
-use frame_system::RawOrigin;
+use frame_system::{EnsureRoot, RawOrigin};
 use orml_tokens::CurrencyAdapter;
 use orml_traits::currency::MutationHooks;
 
@@ -120,17 +119,22 @@ impl pallet_currencies::Config for Runtime {
 
 parameter_types! {
 	pub const SequentialIdOffset: u32 = 1_000_000;
+	pub const StoreFees: Balance = 100 * UNITS; //TODO:
 }
 impl pallet_asset_registry::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type RegistryOrigin = SuperMajorityTechCommitteeOrRoot;
+	type RegistryOrigin = EnsureRoot<AccountId>;
+	type UpdateOrigin = SuperMajorityTechCommitteeOrRoot;
+	type Currency = Currencies;
 	type AssetId = AssetId;
-	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStrLimit;
 	type SequentialIdStartAt = SequentialIdOffset;
-	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
+	type StorageFeesAssetId = NativeAssetId;
+	type StorageFees = StoreFees;
+	type StorageFeesBeneficiary = TreasuryAccount;
+	//TODO:
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -175,8 +179,10 @@ parameter_types! {
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+	#[derive(Debug, PartialEq)]
 	pub const RegistryStrLimit: u32 = 32;
 	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
+	pub const XYKOracleSourceIdentifier: Source = *b"snek/xyk";
 }
 
 impl pallet_xyk::Config for Runtime {
@@ -185,7 +191,6 @@ impl pallet_xyk::Config for Runtime {
 	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
@@ -195,6 +200,9 @@ impl pallet_xyk::Config for Runtime {
 	type AMMHandler = pallet_ema_oracle::OnActivityHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
+	//TODO:
+	type WeightInfo = ();
+	type OracleSource = XYKOracleSourceIdentifier;
 }
 
 pub struct MultiCurrencyLockedBalance<T>(PhantomData<T>);
@@ -392,7 +400,8 @@ impl pallet_route_executor::Config for Runtime {
 	type MaxNumberOfTrades = MaxNumberOfTrades;
 	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
 	type AMM = (XYK, LBP);
-	type WeightInfo = weights::route_executor::BasiliskWeight<Runtime>;
+	//TODO:
+	type WeightInfo = ();
 }
 
 parameter_types! {
