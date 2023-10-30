@@ -11,7 +11,7 @@ pub mod vesting;
 use crate::AssetRegistry;
 use crate::XYK;
 
-use crate::Currencies;
+use crate::{AssetLocation, Currencies};
 
 use frame_support::assert_ok;
 use frame_system::RawOrigin;
@@ -20,19 +20,27 @@ use primitives::{AccountId, AssetId, Balance};
 use sp_std::vec;
 use sp_std::vec::Vec;
 
+use frame_support::storage::with_transaction;
+use hydradx_traits::{registry::Create, AssetKind};
 use orml_traits::MultiCurrencyExtended;
 use sp_runtime::traits::SaturatedConversion;
+use sp_runtime::TransactionOutcome;
 
 pub const BSX: Balance = primitives::constants::currency::UNITS;
 
-pub fn register_asset(name: Vec<u8>, deposit: Balance) -> Result<AssetId, ()> {
-	AssetRegistry::register_asset(
-		AssetRegistry::to_bounded_name(name).map_err(|_| ())?,
-		pallet_asset_registry::AssetType::<AssetId>::Token,
-		deposit,
-		None,
-		None,
-	)
+pub fn register_asset(name: Vec<u8>, deposit: Balance, location: Option<AssetLocation>) -> Result<AssetId, ()> {
+	with_transaction(|| {
+		TransactionOutcome::Commit(AssetRegistry::register_sufficient_asset(
+			None,
+			Some(&name),
+			AssetKind::Token,
+			Some(deposit),
+			None,
+			None,
+			location,
+			None,
+		))
+	})
 	.map_err(|_| ())
 }
 
@@ -44,15 +52,21 @@ pub fn update_balance(currency_id: AssetId, who: &AccountId, balance: Balance) {
 	));
 }
 
-pub fn update_asset(asset_id: AssetId, name: Vec<u8>, deposit: Balance) -> Result<(), ()> {
-	AssetRegistry::update(
-		RawOrigin::Root.into(),
-		asset_id,
-		name,
-		pallet_asset_registry::AssetType::<AssetId>::Token,
-		Some(deposit),
-		None,
-	)
+pub fn update_asset(asset_id: AssetId, name: Option<Vec<u8>>, deposit: Balance) -> Result<(), ()> {
+	with_transaction(|| {
+		TransactionOutcome::Commit(AssetRegistry::update(
+			RawOrigin::Root.into(),
+			asset_id,
+			name,
+			None,
+			Some(deposit),
+			None,
+			None,
+			None,
+			None,
+			None,
+		))
+	})
 	.map_err(|_| ())
 }
 

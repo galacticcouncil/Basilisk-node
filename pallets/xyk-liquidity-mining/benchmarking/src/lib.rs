@@ -30,7 +30,7 @@ use frame_system::{Pallet as System, RawOrigin};
 use frame_support::dispatch;
 use orml_traits::arithmetic::One;
 use orml_traits::MultiCurrency;
-use primitives::{asset::AssetPair, AssetId, Balance};
+use pallet_xyk::types::{AssetId, AssetPair, Balance};
 use sp_arithmetic::FixedU128;
 use sp_arithmetic::Perquintill;
 use sp_std::convert::From;

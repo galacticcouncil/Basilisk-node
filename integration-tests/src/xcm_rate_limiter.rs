@@ -4,11 +4,11 @@ use crate::kusama_test_net::*;
 
 use frame_support::assert_ok;
 use frame_support::weights::Weight;
+use hydradx_traits::registry::Mutate;
 use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use polkadot_xcm::prelude::*;
 use xcm_emulator::TestExt;
-use hydradx_traits::registry::Mutate;
 
 pub const EVE: [u8; 32] = [8u8; 32];
 
@@ -45,10 +45,10 @@ fn xcm_rate_limiter_should_limit_aca_when_limit_is_exceeded() {
 			Some(AssetType::Token),
 			None,
 			Some(50 * UNITS),
-            None,
-            None,
-            None,
-            None
+			None,
+			None,
+			None,
+			None
 		));
 
 		assert_eq!(basilisk_runtime::Tokens::free_balance(AUSD, &AccountId::from(EVE)), 0);
@@ -124,10 +124,10 @@ fn xcm_rate_limiter_should_not_limit_aca_when_limit_is_not_exceeded() {
 			Some(AssetType::Token),
 			None,
 			Some(101 * UNITS),
-            None,
-            None,
-            None,
-            None
+			None,
+			None,
+			None,
+			None
 		));
 	});
 
@@ -187,10 +187,10 @@ fn deferred_messages_should_be_executable_by_root() {
 			Some(AssetType::Token),
 			None,
 			Some(50 * UNITS),
-            None,
-            None,
-            None,
-            None
+			None,
+			None,
+			None,
+			None
 		));
 
 		assert_eq!(basilisk_runtime::Tokens::free_balance(AUSD, &AccountId::from(EVE)), 0);

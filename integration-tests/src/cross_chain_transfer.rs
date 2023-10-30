@@ -8,11 +8,11 @@ use polkadot_xcm::{latest::prelude::*, VersionedMultiAssets, VersionedXcm};
 use cumulus_primitives_core::ParaId;
 use frame_support::weights::Weight;
 use hex_literal::hex;
+use hydradx_traits::registry::Mutate;
 use orml_traits::currency::MultiCurrency;
 use sp_core::H256;
 use sp_runtime::traits::{AccountIdConversion, BlakeTwo256, Hash};
 use xcm_emulator::TestExt;
-use hydradx_traits::registry::Mutate;
 
 // Determine the hash for assets expected to be have been trapped.
 fn determine_hash<M>(origin: &MultiLocation, assets: M) -> H256

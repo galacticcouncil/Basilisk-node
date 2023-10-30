@@ -1,7 +1,5 @@
 use super::*;
-use crate::{
-	AccountId, AssetRegistry, Marketplace, RelayChainAssetId, Runtime, Uniques, NFT, RELAY_CHAIN_ASSET_LOCATION,
-};
+use crate::{AccountId, Marketplace, RelayChainAssetId, Runtime, Uniques, NFT, RELAY_CHAIN_ASSET_LOCATION};
 use frame_benchmarking::{account, vec};
 use frame_support::{
 	sp_runtime::{traits::StaticLookup, SaturatedConversion},
@@ -9,7 +7,6 @@ use frame_support::{
 	BoundedVec,
 };
 use frame_system::RawOrigin;
-use hydradx_traits::registry::Registry;
 use orml_benchmarking::runtime_benchmarks;
 use pallet_nft::BoundedVecOfUnq;
 use primitives::{constants::currency::UNITS, CollectionId, ItemId};
@@ -35,22 +32,7 @@ fn create_collection_and_mint(
 	BoundedVecOfUnq<Runtime>,
 ) {
 	let name = vec![1; <Runtime as pallet_asset_registry::Config>::StringLimit::get() as usize];
-	assert_ok!(AssetRegistry::register(
-		RawOrigin::Root.into(),
-		name.clone(),
-		pallet_asset_registry::AssetType::Token,
-		1_000u32.into(),
-		None,
-		None,
-		None,
-		None,
-	));
-	let asset_id = AssetRegistry::retrieve_asset(&name).unwrap();
-	assert_ok!(AssetRegistry::set_location(
-		RawOrigin::Root.into(),
-		asset_id,
-		RELAY_CHAIN_ASSET_LOCATION
-	));
+	assert!(register_asset(name, 1_000_u128, Some(RELAY_CHAIN_ASSET_LOCATION)).is_ok());
 
 	let caller = create_account("caller");
 	let caller2 = create_account("caller2");

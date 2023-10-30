@@ -738,6 +738,7 @@ fn parachain_genesis(
 	}
 }
 
+#[allow(clippy::type_complexity)]
 fn testnet_parachain_genesis(
 	wasm_binary: &[u8],
 	initial_authorities: Vec<(AccountId, AuraId)>,

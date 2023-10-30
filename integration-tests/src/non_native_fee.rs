@@ -17,9 +17,9 @@ use hydradx_traits::{pools::SpotPriceProvider, NativePriceOracle, AMM};
 use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;
+use pallet_xyk::types::{AssetId, AssetPair};
 use pallet_xyk::XYKSpotPrice;
 use polkadot_primitives::v2::BlockNumber;
-use pallet_xyk::types::{AssetPair, AssetId};
 use xcm_emulator::TestExt;
 
 pub fn basilisk_run_to_block(to: BlockNumber) {
@@ -92,8 +92,8 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 			None,
 			None,
 			None,
-            None,
-            true
+			None,
+			true
 		));
 
 		assert_ok!(basilisk_runtime::Balances::set_balance(

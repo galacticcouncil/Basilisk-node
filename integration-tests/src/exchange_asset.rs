@@ -152,13 +152,13 @@ fn register_kar() {
 		pallet_asset_registry::AssetType::Token,
 		Some(1_000_000),
 		None,
-        None,
+		None,
 		Some(basilisk_runtime::AssetLocation(MultiLocation::new(
 			1,
 			X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))
 		))),
 		None,
-        true
+		true
 	));
 }
 

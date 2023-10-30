@@ -3728,6 +3728,7 @@ dependencies = [
 [[package]]
 name = "hydra-dx-math"
 version = "7.6.2"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "fixed",
  "num-traits",
@@ -3742,6 +3743,7 @@ dependencies = [
 [[package]]
 name = "hydradx-adapters"
 version = "0.6.3"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -3785,6 +3787,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "2.7.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -5958,6 +5961,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "3.0.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6160,6 +6164,7 @@ dependencies = [
 [[package]]
 name = "pallet-circuit-breaker"
 version = "1.1.16"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6175,6 +6180,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-rewards"
 version = "1.0.5"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6246,6 +6252,7 @@ dependencies = [
 [[package]]
 name = "pallet-currencies"
 version = "1.2.1"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6280,6 +6287,7 @@ dependencies = [
 [[package]]
 name = "pallet-democracy"
 version = "4.0.1-dev"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6295,6 +6303,7 @@ dependencies = [
 [[package]]
 name = "pallet-duster"
 version = "3.2.3"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6311,6 +6320,7 @@ dependencies = [
 [[package]]
 name = "pallet-dynamic-fees"
 version = "1.0.1"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6394,6 +6404,7 @@ dependencies = [
 [[package]]
 name = "pallet-ema-oracle"
 version = "1.1.2"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6531,6 +6542,7 @@ dependencies = [
 [[package]]
 name = "pallet-liquidity-mining"
 version = "4.2.4"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6620,6 +6632,7 @@ dependencies = [
 [[package]]
 name = "pallet-nft"
 version = "7.1.1"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6742,6 +6755,7 @@ dependencies = [
 [[package]]
 name = "pallet-omnipool"
 version = "3.2.3"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "bitflags",
  "frame-support",
@@ -6761,6 +6775,7 @@ dependencies = [
 [[package]]
 name = "pallet-omnipool-liquidity-mining"
 version = "2.0.11"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "bitflags",
  "frame-support",
@@ -6866,6 +6881,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.3.3"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -6880,6 +6896,7 @@ dependencies = [
 [[package]]
 name = "pallet-route-executor"
 version = "1.2.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6964,6 +6981,7 @@ dependencies = [
 [[package]]
 name = "pallet-stableswap"
 version = "3.3.1"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "bitflags",
  "frame-support",
@@ -6982,6 +7000,7 @@ dependencies = [
 [[package]]
 name = "pallet-staking"
 version = "2.0.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7111,6 +7130,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "9.0.1"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7128,6 +7148,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-pause"
 version = "1.0.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7302,6 +7323,7 @@ dependencies = [
 [[package]]
 name = "pallet-xcm-rate-limiter"
 version = "0.1.1"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-benchmarking",
@@ -7325,6 +7347,7 @@ dependencies = [
 [[package]]
 name = "pallet-xyk"
 version = "6.3.0"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9139,6 +9162,7 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "5.8.5"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-support",
  "hex-literal 0.3.4",
@@ -12740,6 +12764,7 @@ dependencies = [
 [[package]]
 name = "test-utils"
 version = "1.1.1"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?rev=297316146b7a1bf6284b98e1bcdd662e7a70ec13#297316146b7a1bf6284b98e1bcdd662e7a70ec13"
 dependencies = [
  "frame-system",
  "pretty_assertions",

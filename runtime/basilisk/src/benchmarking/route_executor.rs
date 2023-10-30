@@ -39,7 +39,8 @@ pub const UNITS: Balance = 100_000_000_000;
 const MAX_NUMBER_OF_TRADES: u32 = 5;
 
 pub fn register_asset_with_name(name_as_bye_string: &[u8]) -> Result<AssetId, BenchmarkError> {
-	register_asset(name_as_bye_string.to_vec(), 0u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))
+	register_asset(name_as_bye_string.to_vec(), 0u128, None)
+		.map_err(|_| BenchmarkError::Stop("Failed to register asset"))
 }
 
 pub fn create_account(name: &'static str) -> AccountId {

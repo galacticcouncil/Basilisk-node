@@ -29,6 +29,7 @@ use primitives::constants::{
 	currency::{NATIVE_EXISTENTIAL_DEPOSIT, UNITS},
 };
 
+use codec::Decode;
 use frame_support::{
 	parameter_types,
 	sp_runtime::{app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero},
