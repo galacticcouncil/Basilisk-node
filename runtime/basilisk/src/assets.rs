@@ -21,7 +21,9 @@ use crate::system::NativeAssetId;
 use adapter::OrmlTokensAdapter;
 
 use hydradx_adapters::inspect::MultiInspectAdapter;
-use hydradx_traits::{AssetPairAccountIdFor, LockedBalance, OraclePeriod, Source};
+use hydradx_traits::{
+	registry::Inspect, AssetPairAccountIdFor, LockedBalance, NativePriceOracle, OraclePeriod, Source,
+};
 use pallet_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, RemoveTxAssetOnKilled};
 use primitives::constants::{
@@ -31,14 +33,19 @@ use primitives::constants::{
 
 use codec::Decode;
 use frame_support::{
-	parameter_types,
-	sp_runtime::{app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero},
+	ensure, parameter_types,
+	sp_runtime::{
+		app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero, DispatchResult, FixedPointNumber, FixedU128,
+	},
 	traits::{AsEnsureOriginWithArg, Contains, Defensive, EnsureOrigin, Get, LockIdentifier, NeverEnsureOrigin},
 	BoundedVec, PalletId,
 };
 use frame_system::{EnsureRoot, RawOrigin};
 use orml_tokens::CurrencyAdapter;
-use orml_traits::currency::MutationHooks;
+use orml_traits::{
+	currency::{MutationHooks, OnDeposit, OnTransfer},
+	Happened, MultiCurrency, MultiLockableCurrency,
+};
 
 pub struct RelayChainAssetId;
 impl Get<AssetId> for RelayChainAssetId {
@@ -78,12 +85,179 @@ pub struct CurrencyHooks;
 impl MutationHooks<AccountId, AssetId, Balance> for CurrencyHooks {
 	type OnDust = Duster;
 	type OnSlash = ();
-	type PreDeposit = ();
+	type PreDeposit = SufficiencyCheck;
 	type PostDeposit = ();
-	type PreTransfer = ();
+	type PreTransfer = SufficiencyCheck;
 	type PostTransfer = ();
 	type OnNewTokenAccount = AddTxAssetOnAccount<Runtime>;
-	type OnKilledTokenAccount = RemoveTxAssetOnKilled<Runtime>;
+	type OnKilledTokenAccount = (RemoveTxAssetOnKilled<Runtime>, OnKilledTokenAccount);
+}
+
+pub const SUFFICIENCY_LOCK: LockIdentifier = *b"insuffED";
+
+parameter_types! {
+	pub InsufficientEDinBSX: Balance = FixedU128::from_rational(11, 10)
+		.saturating_mul_int(<Runtime as pallet_balances::Config>::ExistentialDeposit::get());
+}
+
+pub struct SufficiencyCheck;
+impl SufficiencyCheck {
+	/// This function is used by `orml-toknes` `MutationHooks` before a transaction is executed.
+	/// It is called from `PreDeposit` and `PreTransfer`.
+	/// If transferred asset is not sufficient asset, it calculates ED amount in user's fee asset
+	/// and transfers it from user to treasury account.
+	/// Function also locks corresponding HDX amount in the treasury because returned ED to the users
+	/// when the account is killed is in the HDX.
+	///
+	/// We assume account already paid ED if it holds transferred insufficient asset so additional
+	/// ED payment is not necessary.
+	///
+	/// NOTE: `OnNewTokenAccount` mutation hooks is not used because it can't fail so we would not
+	/// be able to fail transactions e.g. if the user doesn't have enough funds to pay ED.
+	///
+	/// ED payment - transfer:
+	/// - if both sender and dest. accounts are regular accounts, sender pays ED for dest. account.
+	/// - if sender is whitelisted account, dest. accounts pays its own ED.
+	///
+	/// ED payment - deposit:
+	/// - dest. accounts always pays its own ED no matter if it's whitelisted or not.
+	///
+	/// ED release:
+	/// ED is always released on account kill to killed account, whitelisting doesn't matter.
+	/// Released ED amount is calculated from locked HDX divided by number of accounts that paid
+	/// ED.
+	///
+	/// WARN:
+	/// `set_balance` - bypass `MutationHooks` so no one pays ED for these account but ED is still released
+	/// when account is killed.
+	///
+	/// Emits `pallet_asset_registry::Event::ExistentialDepositPaid` when ED was paid.
+	fn on_funds(asset: AssetId, paying_account: &AccountId, to: &AccountId) -> DispatchResult {
+		//NOTE: To prevent duplicate ED collection we assume account already paid ED
+		//if it has any amount of `asset`(exists in the storage).
+		if orml_tokens::Accounts::<Runtime>::try_get(to, asset).is_err() && !AssetRegistry::is_sufficient(asset) {
+			let fee_payment_asset = MultiTransactionPayment::account_currency(paying_account);
+
+			let ed_in_fee_asset = MultiTransactionPayment::price(fee_payment_asset)
+				.ok_or(pallet_transaction_multi_payment::Error::<Runtime>::UnsupportedCurrency)?
+				.saturating_mul_int(InsufficientEDinBSX::get());
+
+			//NOTE: Not tested, this should never happen.
+			ensure!(
+				!ed_in_fee_asset.is_zero(),
+				pallet_asset_registry::Error::<Runtime>::ZeroExistentialDeposit
+			);
+
+			//NOTE: Account doesn't have enough funds to pay ED if this fail.
+			<Currencies as MultiCurrency<AccountId>>::transfer(
+				fee_payment_asset,
+				paying_account,
+				&TreasuryAccount::get(),
+				ed_in_fee_asset,
+			)
+			.map_err(|_| orml_tokens::Error::<Runtime>::ExistentialDeposit)?;
+
+			let to_lock = pallet_balances::Locks::<Runtime>::get(TreasuryAccount::get())
+				.iter()
+				.find(|x| x.id == SUFFICIENCY_LOCK)
+				.map(|p| p.amount)
+				.unwrap_or_default()
+				.saturating_add(InsufficientEDinBSX::get());
+
+			<Currencies as MultiLockableCurrency<AccountId>>::set_lock(
+				SUFFICIENCY_LOCK,
+				NativeAssetId::get(),
+				&TreasuryAccount::get(),
+				to_lock,
+			)?;
+
+			frame_system::Pallet::<Runtime>::inc_sufficients(paying_account);
+
+			pallet_asset_registry::ExistentialDepositCounter::<Runtime>::mutate(|v| *v = v.saturating_add(1));
+
+			pallet_asset_registry::Pallet::<Runtime>::deposit_event(
+				pallet_asset_registry::Event::<Runtime>::ExistentialDepositPaid {
+					who: paying_account.clone(),
+					fee_asset: fee_payment_asset,
+					amount: ed_in_fee_asset,
+				},
+			);
+		}
+
+		Ok(())
+	}
+}
+
+impl OnTransfer<AccountId, AssetId, Balance> for SufficiencyCheck {
+	fn on_transfer(asset: AssetId, from: &AccountId, to: &AccountId, _amount: Balance) -> DispatchResult {
+		//NOTE: `to` is paying ED if `from` is whitelisted.
+		//This can happen if pallet's account transfers insufficient tokens to another account.
+		if <Runtime as orml_tokens::Config>::DustRemovalWhitelist::contains(from) {
+			Self::on_funds(asset, to, to)
+		} else {
+			Self::on_funds(asset, from, to)
+		}
+	}
+}
+
+impl OnDeposit<AccountId, AssetId, Balance> for SufficiencyCheck {
+	fn on_deposit(asset: AssetId, to: &AccountId, _amount: Balance) -> DispatchResult {
+		Self::on_funds(asset, to, to)
+	}
+}
+
+pub struct OnKilledTokenAccount;
+impl Happened<(AccountId, AssetId)> for OnKilledTokenAccount {
+	fn happened((who, asset): &(AccountId, AssetId)) {
+		if AssetRegistry::is_sufficient(*asset) {
+			return;
+		}
+
+		let locked_ed = pallet_balances::Locks::<Runtime>::get(TreasuryAccount::get())
+			.iter()
+			.find(|x| x.id == SUFFICIENCY_LOCK)
+			.map(|p| p.amount)
+			.unwrap_or_default();
+
+		let paid_accounts = pallet_asset_registry::ExistentialDepositCounter::<Runtime>::get();
+		let ed_to_refund = if paid_accounts != 0 {
+			locked_ed.saturating_div(paid_accounts)
+		} else {
+			0
+		};
+		let to_lock = locked_ed.saturating_sub(ed_to_refund);
+
+		if to_lock.is_zero() {
+			let _ = <Currencies as MultiLockableCurrency<AccountId>>::remove_lock(
+				SUFFICIENCY_LOCK,
+				NativeAssetId::get(),
+				&TreasuryAccount::get(),
+			);
+		} else {
+			let _ = <Currencies as MultiLockableCurrency<AccountId>>::set_lock(
+				SUFFICIENCY_LOCK,
+				NativeAssetId::get(),
+				&TreasuryAccount::get(),
+				to_lock,
+			);
+		}
+
+		let _ = <Currencies as MultiCurrency<AccountId>>::transfer(
+			NativeAssetId::get(),
+			&TreasuryAccount::get(),
+			who,
+			ed_to_refund,
+		);
+
+		//NOTE: This is necessary because grandfathered accounts doesn't have incremented
+		//sufficients by `SufficiencyCheck` so without check it can overflow.
+		//`set_balance` also bypass `MutationHooks`
+		if frame_system::Pallet::<Runtime>::account(who).sufficients > 0 {
+			frame_system::Pallet::<Runtime>::dec_sufficients(who);
+		}
+
+		pallet_asset_registry::ExistentialDepositCounter::<Runtime>::set(paid_accounts.saturating_sub(1));
+	}
 }
 
 pub struct DustRemovalWhitelist;

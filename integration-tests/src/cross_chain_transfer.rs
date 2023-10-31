@@ -96,11 +96,11 @@ fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(SECOND_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		assert_ok!(parachain_runtime_mock::XTokens::transfer(
 			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
 			0,
@@ -142,7 +142,7 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 
 	let amount_to_send = 30 * UNITS;
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		assert_ok!(parachain_runtime_mock::AssetRegistry::set_location(
 			1,
 			parachain_runtime_mock::AssetLocation(MultiLocation::new(
@@ -166,7 +166,7 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(OTHER_PARA_ID),
+						Junction::Parachain(SECOND_PARA_ID),
 						Junction::AccountId32 { id: BOB, network: None }
 					)
 				)
@@ -180,7 +180,7 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 		);
 	});
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		let fee = 10175000000;
 		assert_eq!(
 			parachain_runtime_mock::Tokens::free_balance(1, &AccountId::from(BOB)),
@@ -203,11 +203,11 @@ fn transfer_from_other_parachain_and_back() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(SECOND_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		assert_ok!(parachain_runtime_mock::XTokens::transfer(
 			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
 			0,
@@ -255,7 +255,7 @@ fn transfer_from_other_parachain_and_back() {
 				MultiLocation::new(
 					1,
 					X2(
-						Junction::Parachain(OTHER_PARA_ID),
+						Junction::Parachain(SECOND_PARA_ID),
 						Junction::AccountId32 {
 							id: ALICE,
 							network: None,
@@ -276,7 +276,7 @@ fn transfer_from_other_parachain_and_back() {
 		);
 	});
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		assert_eq!(
 			parachain_runtime_mock::Tokens::free_balance(1, &AccountId::from(ALICE)),
 			ALICE_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN
@@ -291,11 +291,11 @@ fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amoun
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(SECOND_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		let insufficient_amount = 55;
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
@@ -348,7 +348,7 @@ fn fee_currency_set_on_xcm_transfer() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(SECOND_PARA_ID), GeneralIndex(0))))
 		));
 
 		// fee currency is not set before XCM transfer
@@ -358,7 +358,7 @@ fn fee_currency_set_on_xcm_transfer() {
 		);
 	});
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		assert_ok!(parachain_runtime_mock::XTokens::transfer(
 			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
 			0,
@@ -406,7 +406,7 @@ fn fee_currency_set_on_xcm_transfer() {
 fn assets_should_be_trapped_when_assets_are_unknown() {
 	TestNet::reset();
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		assert_ok!(parachain_runtime_mock::XTokens::transfer(
 			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
 			0,
@@ -443,8 +443,8 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			}
 			.into(),
 		]);
-		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
-		let loc = MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0)));
+		let origin = MultiLocation::new(1, X1(Parachain(SECOND_PARA_ID)));
+		let loc = MultiLocation::new(1, X2(Parachain(SECOND_PARA_ID), GeneralIndex(0)));
 		let asset: MultiAsset = (loc, 30 * UNITS).into();
 		let hash = determine_hash(&origin, vec![asset]);
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 1);
@@ -462,7 +462,7 @@ fn claim_trapped_asset_should_work() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(SECOND_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
@@ -474,14 +474,14 @@ fn claim_trapped_asset_should_work() {
 			1000 * UNITS + 29_999_992_361_112u128
 		);
 
-		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
+		let origin = MultiLocation::new(1, X1(Parachain(SECOND_PARA_ID)));
 		let hash = determine_hash(&origin, vec![asset]);
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 0);
 	});
 }
 
 fn trap_asset() -> MultiAsset {
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		assert_eq!(
 			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN
@@ -508,7 +508,7 @@ fn trap_asset() -> MultiAsset {
 		);
 	});
 
-	let loc = MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0)));
+	let loc = MultiLocation::new(1, X2(Parachain(SECOND_PARA_ID), GeneralIndex(0)));
 	let asset: MultiAsset = (loc, 30 * UNITS).into();
 
 	Basilisk::execute_with(|| {
@@ -525,8 +525,8 @@ fn trap_asset() -> MultiAsset {
 			}
 			.into(),
 		]);
-		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
-		let loc = MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0)));
+		let origin = MultiLocation::new(1, X1(Parachain(SECOND_PARA_ID)));
+		let loc = MultiLocation::new(1, X2(Parachain(SECOND_PARA_ID), GeneralIndex(0)));
 		let asset: MultiAsset = (loc, 30 * UNITS).into();
 		let hash = determine_hash(&origin, vec![asset]);
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 1);
@@ -536,7 +536,7 @@ fn trap_asset() -> MultiAsset {
 }
 
 fn claim_asset(asset: MultiAsset, recipient: [u8; 32]) {
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		let recipient = MultiLocation::new(
 			0,
 			X1(Junction::AccountId32 {

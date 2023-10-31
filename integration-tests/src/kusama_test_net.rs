@@ -1,16 +1,18 @@
 #![cfg(test)]
 pub use basilisk_runtime::{AccountId, VestingPalletId};
 use pallet_transaction_multi_payment::Price;
-use primitives::{AssetId, Balance};
+pub use primitives::{AssetId, Balance};
 
 pub const ALICE: [u8; 32] = [4u8; 32];
 pub const BOB: [u8; 32] = [5u8; 32];
 pub const CHARLIE: [u8; 32] = [6u8; 32];
-pub const DAVE: [u8; 32] = [7u8; 32];
+pub const DAVE: [u8; 32] = [7u8; 32]; //This account received insufficient asset before sufficiency check.
+pub const GRANDFATHERED_UNPAID_ED: [u8; 32] = [8u8; 32];
 
 pub const UNITS: Balance = 1_000_000_000_000;
 
-pub const OTHER_PARA_ID: u32 = 2000;
+pub const SECOND_PARA_ID: u32 = 2000;
+pub const THIRD_PARA_ID: u32 = 2001;
 pub const BASILISK_PARA_ID: u32 = 2090;
 
 pub const BSX: AssetId = CORE_ASSET_ID;
@@ -19,6 +21,8 @@ pub const MOVR: AssetId = 2;
 pub const KSM: AssetId = 3;
 pub const NEW_BOOTSTRAPPED_TOKEN: AssetId = 4;
 pub const KAR: AssetId = 5;
+pub const BTC: AssetId = 6;
+pub const DAI: AssetId = 7;
 
 pub const ALICE_INITIAL_BSX_BALANCE: u128 = 1_000 * UNITS;
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
@@ -28,11 +32,13 @@ pub const VESTING_ACCOUNT_INITIAL_BSX_BALANCE: u128 = 1_000_000 * UNITS;
 
 pub const BOB_INITIAL_AUSD_BALANCE: u128 = 1000 * UNITS;
 pub const BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE: u128 = 1000 * UNITS;
+pub const BOB_INITIAL_DAI_BALANCE: Balance = 1_000_000_000 * UNITS;
 pub const CHARLIE_INITIAL_AUSD_BALANCE: u128 = 1000 * UNITS;
 pub const DAVE_INITIAL_AUSD_BALANCE: u128 = 1000 * UNITS;
 pub const ALICE_INITIAL_AUSD_BALANCE: u128 = 400 * UNITS;
 pub const ALICE_INITIAL_MOVR_BALANCE: u128 = 200 * UNITS;
 pub const ALICE_INITIAL_KSM_BALANCE: u128 = 400 * UNITS;
+pub const ALICE_INITIAL_DAI_BALANCE: u128 = 2_000 * UNITS;
 pub const ALICE_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE: u128 = 400 * UNITS;
 
 pub const ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN: u128 = 200 * UNITS;
@@ -40,7 +46,7 @@ pub const ALICE_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN: u128 = 200 * UNITS;
 pub const BOB_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN: u128 = 1000 * UNITS;
 
 pub fn parachain_reserve_account() -> AccountId {
-	polkadot_parachain::primitives::Sibling::from(OTHER_PARA_ID).into_account_truncating()
+	polkadot_parachain::primitives::Sibling::from(SECOND_PARA_ID).into_account_truncating()
 }
 
 use cumulus_primitives_core::ParaId;
@@ -75,12 +81,22 @@ decl_test_parachain! {
 }
 
 decl_test_parachain! {
-	pub struct OtherParachain{
+	pub struct SecondParachain{
 		Runtime = parachain_runtime_mock::ParachainRuntime,
 		RuntimeOrigin = parachain_runtime_mock::RuntimeOrigin,
 		XcmpMessageHandler = parachain_runtime_mock::XcmpQueue,
 		DmpMessageHandler = parachain_runtime_mock::DmpQueue,
-		new_ext = other_parachain_ext(),
+		new_ext = other_parachain_ext(SECOND_PARA_ID),
+	}
+}
+
+decl_test_parachain! {
+	pub struct ThirdParachain{
+		Runtime = parachain_runtime_mock::ParachainRuntime,
+		RuntimeOrigin = parachain_runtime_mock::RuntimeOrigin,
+		XcmpMessageHandler = parachain_runtime_mock::XcmpQueue,
+		DmpMessageHandler = parachain_runtime_mock::DmpQueue,
+		new_ext = other_parachain_ext(THIRD_PARA_ID),
 	}
 }
 
@@ -88,7 +104,7 @@ decl_test_network! {
 	pub struct TestNet {
 		relay_chain = KusamaRelay,
 		parachains = vec![
-			(2000, OtherParachain),
+			(2000, SecondParachain),
 			(2090, Basilisk),
 		],
 	}
@@ -211,6 +227,9 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 				None,
 				true,
 			),
+			(Some(DAI), Some(b"DAI".to_vec()), 1_000u128, None, None, None, true),
+			(None, Some(b"INSUFF".to_vec()), 1_000u128, None, None, None, false),
+			(Some(BTC), Some(b"BTC".to_vec()), 1_000u128, None, None, None, true),
 		],
 		native_asset_name: b"BSX".to_vec(),
 		native_existential_deposit: existential_deposit,
@@ -232,6 +251,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 			(AccountId::from(ALICE), AUSD, ALICE_INITIAL_AUSD_BALANCE),
 			(AccountId::from(ALICE), MOVR, ALICE_INITIAL_MOVR_BALANCE),
 			(AccountId::from(ALICE), KSM, ALICE_INITIAL_KSM_BALANCE),
+			(AccountId::from(ALICE), DAI, ALICE_INITIAL_DAI_BALANCE),
 			(
 				AccountId::from(ALICE),
 				NEW_BOOTSTRAPPED_TOKEN,
@@ -243,8 +263,11 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 				NEW_BOOTSTRAPPED_TOKEN,
 				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE,
 			),
+			(AccountId::from(BOB), DAI, BOB_INITIAL_DAI_BALANCE),
 			(AccountId::from(CHARLIE), AUSD, CHARLIE_INITIAL_AUSD_BALANCE),
 			(AccountId::from(DAVE), AUSD, DAVE_INITIAL_AUSD_BALANCE),
+			//Special account for insufficient assets ED tests
+			(AccountId::from(GRANDFATHERED_UNPAID_ED), 1_000_001, 1_000 * UNITS),
 		],
 	}
 	.assimilate_storage(&mut t)
@@ -259,7 +282,10 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	.unwrap();
 
 	pallet_transaction_multi_payment::GenesisConfig::<Runtime> {
-		currencies: vec![(AUSD, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
+		currencies: vec![
+			(AUSD, Price::from_inner(462_962_963_000_u128)), //0.000_000_462_962_963
+			(BTC, Price::from_inner(134_000_000)),
+		],
 		account_currencies: vec![],
 	}
 	.assimilate_storage(&mut t)
@@ -274,7 +300,7 @@ pub fn basilisk_ext() -> sp_io::TestExternalities {
 	ext
 }
 
-pub fn other_parachain_ext() -> sp_io::TestExternalities {
+pub fn other_parachain_ext(para_id: u32) -> sp_io::TestExternalities {
 	use frame_support::traits::OnInitialize;
 	use parachain_runtime_mock::{MultiTransactionPayment, NativeExistentialDeposit, ParachainRuntime, System};
 
@@ -310,7 +336,7 @@ pub fn other_parachain_ext() -> sp_io::TestExternalities {
 
 	<parachain_info::GenesisConfig as GenesisBuild<ParachainRuntime>>::assimilate_storage(
 		&parachain_info::GenesisConfig {
-			parachain_id: OTHER_PARA_ID.into(),
+			parachain_id: para_id.into(),
 		},
 		&mut t,
 	)
@@ -414,7 +440,10 @@ pub fn kusama_run_to_block(to: BlockNumber) {
 	while kusama_runtime::System::block_number() < to {
 		let b = kusama_runtime::System::block_number();
 		kusama_runtime::System::on_finalize(b);
+		basilisk_runtime::MultiTransactionPayment::on_finalize(b);
+
 		kusama_runtime::System::on_initialize(b + 1);
+		basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
 		kusama_runtime::System::set_block_number(b + 1);
 	}
 }

@@ -29,7 +29,7 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_sell() {
 		create_xyk_pool(KAR, BSX);
 	});
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		let xcm = craft_exchange_asset_xcm::<_, parachain_runtime_mock::RuntimeCall>(
 			MultiAsset::from((GeneralIndex(0), 5 * UNITS)),
 			MultiAsset::from((GeneralIndex(CORE_ASSET_ID.into()), 2 * UNITS)),
@@ -96,7 +96,7 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 	});
 
 	let amount_out = 20 * UNITS;
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		let xcm = craft_exchange_asset_xcm::<_, parachain_runtime_mock::RuntimeCall>(
 			MultiAsset::from((GeneralIndex(0), 70 * UNITS)),
 			MultiAsset::from((GeneralIndex(CORE_ASSET_ID.into()), amount_out)),
@@ -155,7 +155,7 @@ fn register_kar() {
 		None,
 		Some(basilisk_runtime::AssetLocation(MultiLocation::new(
 			1,
-			X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))
+			X2(Parachain(SECOND_PARA_ID), GeneralIndex(0))
 		))),
 		None,
 		true
@@ -188,7 +188,7 @@ fn craft_exchange_asset_xcm<M: Into<MultiAssets>, RC: Decode + GetDispatchInfo>(
 	let beneficiary = Junction::AccountId32 { id: BOB, network: None }.into();
 	let assets: MultiAssets = MultiAsset::from((GeneralIndex(0), 100 * UNITS)).into(); // hardcoded
 	let max_assets = assets.len() as u32 + 1;
-	let context = X2(GlobalConsensus(NetworkId::Polkadot), Parachain(OTHER_PARA_ID));
+	let context = X2(GlobalConsensus(NetworkId::Polkadot), Parachain(SECOND_PARA_ID));
 	let fees = assets
 		.get(0)
 		.expect("should have at least 1 asset")

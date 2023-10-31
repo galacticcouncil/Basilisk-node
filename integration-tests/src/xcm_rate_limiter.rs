@@ -34,7 +34,7 @@ fn xcm_rate_limiter_should_limit_aca_when_limit_is_exceeded() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			AUSD,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(SECOND_PARA_ID), GeneralIndex(0))))
 		));
 
 		// set an xcm rate limit
@@ -56,7 +56,7 @@ fn xcm_rate_limiter_should_limit_aca_when_limit_is_exceeded() {
 
 	let amount = 100 * UNITS;
 	let mut message_hash = None;
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		assert!(parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)) >= amount);
 		// Act
 		assert_ok!(parachain_runtime_mock::XTokens::transfer(
@@ -88,7 +88,7 @@ fn xcm_rate_limiter_should_limit_aca_when_limit_is_exceeded() {
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
 			cumulus_pallet_xcmp_queue::Event::XcmDeferred {
-				sender: OTHER_PARA_ID.into(),
+				sender: SECOND_PARA_ID.into(),
 				sent_at: 3,
 				deferred_to: basilisk_runtime::DeferDuration::get() + 4,
 				message_hash,
@@ -113,7 +113,7 @@ fn xcm_rate_limiter_should_not_limit_aca_when_limit_is_not_exceeded() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			AUSD,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(SECOND_PARA_ID), GeneralIndex(0))))
 		));
 
 		// set an xcm rate limit
@@ -132,7 +132,7 @@ fn xcm_rate_limiter_should_not_limit_aca_when_limit_is_not_exceeded() {
 	});
 
 	let amount = 100 * UNITS;
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		// Act
 		assert_ok!(parachain_runtime_mock::XTokens::transfer(
 			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
@@ -176,7 +176,7 @@ fn deferred_messages_should_be_executable_by_root() {
 	Basilisk::execute_with(|| {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			AUSD,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(SECOND_PARA_ID), GeneralIndex(0))))
 		));
 
 		// set an xcm rate limit
@@ -200,7 +200,7 @@ fn deferred_messages_should_be_executable_by_root() {
 	let mut message_hash = None;
 	let max_weight = Weight::from_ref_time(399_600_000_000);
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		assert!(parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)) >= amount);
 		// Act
 		assert_ok!(parachain_runtime_mock::XTokens::transfer(
@@ -232,7 +232,7 @@ fn deferred_messages_should_be_executable_by_root() {
 	Basilisk::execute_with(|| {
 		expect_basilisk_events(vec![
 			cumulus_pallet_xcmp_queue::Event::XcmDeferred {
-				sender: OTHER_PARA_ID.into(),
+				sender: SECOND_PARA_ID.into(),
 				sent_at: 3,
 				deferred_to: basilisk_runtime::DeferDuration::get() + 4,
 				message_hash,
@@ -252,7 +252,7 @@ fn deferred_messages_should_be_executable_by_root() {
 		assert_ok!(basilisk_runtime::XcmpQueue::service_deferred(
 			basilisk_runtime::RuntimeOrigin::root(),
 			max_weight,
-			OTHER_PARA_ID.into(),
+			SECOND_PARA_ID.into(),
 		));
 
 		let fee = basilisk_runtime::Tokens::free_balance(AUSD, &basilisk_runtime::Treasury::account_id());

@@ -1,7 +1,9 @@
+mod asset_registry;
 mod call_filter;
 mod cross_chain_transfer;
 mod exchange_asset;
 mod fees;
+mod insufficient_assets_ed;
 mod kusama_test_net;
 mod nft;
 mod nft_marketplace;
