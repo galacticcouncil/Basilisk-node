@@ -42,7 +42,9 @@ fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 		));
 
 		assert_eq!(
-			kusama_runtime::Balances::free_balance(&ParaId::from(BASILISK_PARA_ID).into_account_truncating()),
+			kusama_runtime::Balances::free_balance(AccountIdConversion::<AccountId>::into_account_truncating(
+				&ParaId::from(BASILISK_PARA_ID)
+			)),
 			310 * UNITS
 		);
 	});
@@ -50,11 +52,11 @@ fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
-			1_299_999_989_814_815
+			1_299_999_987_268_519
 		);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::Treasury::account_id()),
-			10_185_185
+			12_731_481
 		);
 	});
 }
@@ -73,7 +75,7 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 			1,
 			3 * UNITS,
 			Box::new(MultiLocation::new(1, X1(Junction::AccountId32 { id: BOB, network: None })).into()),
-			WeightLimit::Limited(Weight::from_parts(4_600_000_000, 0))
+			WeightLimit::Limited(Weight::from_parts(4_600_000_000, 10_000))
 		));
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(ALICE)),
@@ -83,8 +85,8 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 
 	Kusama::execute_with(|| {
 		assert_eq!(
-			kusama_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			2999909712564 // 3 * BSX - fee
+			kusama_runtime::Balances::free_balance(AccountId::from(BOB)),
+			2999918220455 // 3 * BSX - fee
 		);
 	});
 }
@@ -104,8 +106,8 @@ fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 	});
 
 	OtherParachain::execute_with(|| {
-		assert_ok!(parachain_runtime_mock::XTokens::transfer(
-			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			0,
 			amount_to_send,
 			Box::new(
@@ -121,7 +123,7 @@ fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - amount_to_send
 		);
 	});
@@ -146,13 +148,10 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 	let amount_to_send = 30 * UNITS;
 
 	OtherParachain::execute_with(|| {
-		assert_ok!(parachain_runtime_mock::AssetRegistry::set_location(
-			parachain_runtime_mock::RuntimeOrigin::root(),
+		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
+			basilisk_runtime::RuntimeOrigin::root(),
 			1,
-			parachain_runtime_mock::AssetLocation(MultiLocation::new(
-				1,
-				X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))
-			))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))))
 		));
 	});
 
@@ -179,21 +178,21 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_BSX_BALANCE - amount_to_send
 		);
 	});
 
 	OtherParachain::execute_with(|| {
-		let fee = 10175000000;
+		let fee = 10185185;
 		assert_eq!(
-			parachain_runtime_mock::Tokens::free_balance(1, &AccountId::from(BOB)),
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(BOB)),
 			BOB_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN + amount_to_send - fee
 		);
 
 		assert_eq!(
-			parachain_runtime_mock::Tokens::free_balance(1, &parachain_runtime_mock::ParachainTreasuryAccount::get()),
-			10175000000
+			basilisk_runtime::Tokens::free_balance(1, &basilisk_runtime::TreasuryAccount::get()),
+			fee
 		);
 	});
 }
@@ -213,8 +212,8 @@ fn transfer_from_other_parachain_and_back() {
 	});
 
 	OtherParachain::execute_with(|| {
-		assert_ok!(parachain_runtime_mock::XTokens::transfer(
-			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			0,
 			amount_to_send,
 			Box::new(
@@ -230,7 +229,7 @@ fn transfer_from_other_parachain_and_back() {
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - amount_to_send
 		);
 	});
@@ -272,7 +271,7 @@ fn transfer_from_other_parachain_and_back() {
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(BOB)),
 			1000 * UNITS - amount_to_send
 		);
 		assert_eq!(
@@ -283,7 +282,7 @@ fn transfer_from_other_parachain_and_back() {
 
 	OtherParachain::execute_with(|| {
 		assert_eq!(
-			parachain_runtime_mock::Tokens::free_balance(1, &AccountId::from(ALICE)),
+			basilisk_runtime::Tokens::free_balance(1, &AccountId::from(ALICE)),
 			ALICE_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN
 		);
 	});
@@ -304,13 +303,13 @@ fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amoun
 	OtherParachain::execute_with(|| {
 		let insufficient_amount = 55;
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN
 		);
 
 		assert_noop!(
-			parachain_runtime_mock::XTokens::transfer(
-				parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
+			basilisk_runtime::XTokens::transfer(
+				basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 				0,
 				insufficient_amount,
 				Box::new(
@@ -329,7 +328,7 @@ fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amoun
 		);
 
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN
 		);
 	});
@@ -360,14 +359,14 @@ fn fee_currency_set_on_xcm_transfer() {
 
 		// fee currency is not set before XCM transfer
 		assert_eq!(
-			basilisk_runtime::MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			basilisk_runtime::MultiTransactionPayment::get_currency(AccountId::from(HITCHHIKER)),
 			None
 		);
 	});
 
 	OtherParachain::execute_with(|| {
-		assert_ok!(parachain_runtime_mock::XTokens::transfer(
-			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			0,
 			transfer_amount,
 			Box::new(
@@ -386,7 +385,7 @@ fn fee_currency_set_on_xcm_transfer() {
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - transfer_amount
 		);
 	});
@@ -403,7 +402,7 @@ fn fee_currency_set_on_xcm_transfer() {
 		);
 		// fee currency is set after XCM transfer
 		assert_eq!(
-			basilisk_runtime::MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			basilisk_runtime::MultiTransactionPayment::get_currency(AccountId::from(HITCHHIKER)),
 			Some(1)
 		);
 	});
@@ -414,8 +413,8 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 	TestNet::reset();
 
 	OtherParachain::execute_with(|| {
-		assert_ok!(parachain_runtime_mock::XTokens::transfer(
-			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			0,
 			30 * UNITS,
 			Box::new(
@@ -431,7 +430,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - 30 * UNITS
 		);
 	});
@@ -446,8 +445,8 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 			}
 			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {
-				parachain_block_number: 1,
-				relaychain_block_number: 4,
+				parachain_block_number: 3,
+				relaychain_block_number: 5,
 			}
 			.into(),
 		]);
@@ -492,11 +491,11 @@ fn claim_trapped_asset_should_work() {
 fn trap_asset() -> MultiAsset {
 	OtherParachain::execute_with(|| {
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN
 		);
-		assert_ok!(parachain_runtime_mock::XTokens::transfer(
-			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			0,
 			30 * UNITS,
 			Box::new(
@@ -512,7 +511,7 @@ fn trap_asset() -> MultiAsset {
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			200 * UNITS - 30 * UNITS
 		);
 	});
@@ -530,8 +529,8 @@ fn trap_asset() -> MultiAsset {
 			}
 			.into(),
 			pallet_relaychain_info::Event::CurrentBlockNumbers {
-				parachain_block_number: 1,
-				relaychain_block_number: 4,
+				parachain_block_number: 3,
+				relaychain_block_number: 5,
 			}
 			.into(),
 		]);
@@ -568,8 +567,8 @@ fn claim_asset(asset: MultiAsset, recipient: [u8; 32]) {
 				beneficiary: recipient,
 			},
 		]);
-		assert_ok!(parachain_runtime_mock::PolkadotXcm::send(
-			parachain_runtime_mock::RuntimeOrigin::root(),
+		assert_ok!(basilisk_runtime::PolkadotXcm::send(
+			basilisk_runtime::RuntimeOrigin::root(),
 			Box::new(MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))).into()),
 			Box::new(VersionedXcm::from(xcm_msg))
 		));
@@ -587,6 +586,7 @@ fn polkadot_xcm_execute_extrinsic_should_not_be_allowed() {
 				fees: (Here, 400000000000u128).into(),
 				weight_limit: Unlimited,
 			},
+			ClearError,
 		]));
 
 		assert_noop!(

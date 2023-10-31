@@ -20,7 +20,7 @@
 use frame_support::{
 	instances::Instance1,
 	parameter_types,
-	traits::{AsEnsureOriginWithArg, BuildGenesisConfig, Everything, Nothing},
+	traits::{AsEnsureOriginWithArg, Everything, Nothing},
 	PalletId,
 };
 
@@ -54,7 +54,6 @@ pub const DOT: AssetId = 2;
 
 pub const LIQ_MINING_NFT_COLLECTION: primitives::CollectionId = 1;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 frame_support::construct_runtime!(
@@ -318,7 +317,7 @@ impl pallet_xyk::Config for Test {
 
 impl ExtBuilder {
 	pub fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::<Test>::default().build_storage.unwrap();
+		let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 
 		orml_tokens::GenesisConfig::<Test> {
 			balances: self.endowed_accounts,
@@ -334,8 +333,8 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		<pallet_xyk_liquidity_mining::GenesisConfig as BuildStorage>::assimilate_storage(
-			&pallet_xyk_liquidity_mining::GenesisConfig::default(),
+		<pallet_xyk_liquidity_mining::GenesisConfig<Test> as BuildStorage>::assimilate_storage(
+			&pallet_xyk_liquidity_mining::GenesisConfig::<Test>::default(),
 			&mut t,
 		)
 		.unwrap();

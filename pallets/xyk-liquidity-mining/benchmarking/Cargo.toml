@@ -40,7 +40,7 @@ pallet-uniques = { workspace = true }
 pallet-balances = { workspace = true }
 
 frame-system-benchmarking = { workspace = true, optional = true }
-frame-benchmarking = { workspace = true, optional = true }
+frame-benchmarking = { workspace = true }
 
 [dev-dependencies]
 sp-io = { workspace = true }

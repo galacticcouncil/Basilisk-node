@@ -23,6 +23,7 @@
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::from_over_into)]
 #![allow(clippy::match_like_matches_macro)]
+#![allow(clippy::items_after_test_module)]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -56,6 +57,7 @@ use frame_support::sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 use sp_api::impl_runtime_apis;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{ConstU32, OpaqueMetadata};
@@ -135,13 +137,13 @@ pub struct RelayChainBlockNumberProvider<T>(PhantomData<T>);
 impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumberProvider
 	for RelayChainBlockNumberProvider<T>
 {
-	type BlockNumber = BlockNumber;
+	type BlockNumber = BlockNumberFor<T>;
 
 	fn current_block_number() -> Self::BlockNumber {
 		let maybe_data = cumulus_pallet_parachain_system::Pallet::<T>::validation_data();
 
 		if let Some(data) = maybe_data {
-			data.relay_parent_number
+			data.relay_parent_number.into()
 		} else {
 			Self::BlockNumber::default()
 		}
@@ -150,7 +152,7 @@ impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumb
 
 #[cfg(feature = "runtime-benchmarks")]
 impl<T: frame_system::Config> BlockNumberProvider for RelayChainBlockNumberProvider<T> {
-	type BlockNumber = <T as frame_system::Config>::BlockNumber;
+	type BlockNumber = BlockNumberFor<T>;
 
 	fn current_block_number() -> Self::BlockNumber {
 		frame_system::Pallet::<T>::current_block_number()
@@ -457,7 +459,8 @@ impl_runtime_apis! {
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-			use frame_benchmarking::{Benchmarking, BenchmarkBatch, add_benchmark, TrackedStorageKey};
+			use frame_benchmarking::{Benchmarking, BenchmarkBatch, add_benchmark};
+			use frame_support::traits::TrackedStorageKey;
 
 			use orml_benchmarking::add_benchmark as orml_add_benchmark;
 

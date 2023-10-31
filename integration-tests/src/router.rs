@@ -75,7 +75,7 @@ mod router_different_pools_tests {
 			));
 
 			//Assert
-			let amount_out = 1208552472394;
+			let amount_out = 1208552547698;
 
 			assert_trader_non_native_balance!(BOB_INITIAL_AUSD_BALANCE - amount_to_sell, AUSD);
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE);
@@ -135,7 +135,7 @@ mod router_different_pools_tests {
 			));
 
 			//Assert
-			let amount_in = 8049720201692;
+			let amount_in = 8049719643050;
 
 			assert_trader_non_native_balance!(BOB_INITIAL_AUSD_BALANCE - amount_in, AUSD);
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE);
@@ -832,7 +832,7 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			let amount_out = 5304848460209;
+			let amount_out = 5304848794461;
 
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 			assert_trader_non_native_balance!(
@@ -879,7 +879,7 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			let amount_out = 15853065839194;
+			let amount_out = 15853064919440;
 
 			assert_trader_non_native_balance!(
 				BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE - amount_to_sell,
@@ -934,7 +934,7 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			let amount_out = 2894653262401;
+			let amount_out = 2894653623153;
 
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 			assert_trader_non_native_balance!(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
@@ -987,7 +987,7 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			let amount_out = 23648946648916;
+			let amount_out = 23648944192390;
 
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 			assert_trader_non_native_balance!(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
@@ -1009,7 +1009,7 @@ mod lbp_router_tests {
 
 		let amount_to_sell = 10 * UNITS;
 		let limit = 0;
-		let received_amount_out = 5304848460209;
+		let received_amount_out = 5304848794461;
 
 		Basilisk::execute_with(|| {
 			//Arrange
@@ -1104,7 +1104,7 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			let amount_in = 19944392706756;
+			let amount_in = 19944391321918;
 
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE - amount_in);
 			assert_trader_non_native_balance!(
@@ -1151,7 +1151,7 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			let amount_in = 6045520606503;
+			let amount_in = 6045520997664;
 
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE + amount_to_buy);
 			assert_trader_non_native_balance!(
@@ -1206,7 +1206,7 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			let amount_in = 3244461635777;
+			let amount_in = 3244461218396;
 
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE - amount_in);
 			assert_trader_non_native_balance!(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
@@ -1259,7 +1259,7 @@ mod lbp_router_tests {
 			));
 
 			//Assert
-			let amount_in = 322733714720;
+			let amount_in = 322733757240;
 
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE - amount_in);
 			assert_trader_non_native_balance!(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
@@ -1281,7 +1281,7 @@ mod lbp_router_tests {
 
 		let amount_to_buy = 10 * UNITS;
 		let limit = 100 * UNITS;
-		let spent_amount_in = 19944392706756;
+		let spent_amount_in = 19944391321918;
 
 		Basilisk::execute_with(|| {
 			//Arrange

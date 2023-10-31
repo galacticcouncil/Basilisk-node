@@ -30,14 +30,14 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_sell() {
 	});
 
 	OtherParachain::execute_with(|| {
-		let xcm = craft_exchange_asset_xcm::<_, parachain_runtime_mock::RuntimeCall>(
+		let xcm = craft_exchange_asset_xcm::<_, basilisk_runtime::RuntimeCall>(
 			MultiAsset::from((GeneralIndex(0), 5 * UNITS)),
 			MultiAsset::from((GeneralIndex(CORE_ASSET_ID.into()), 2 * UNITS)),
 			SELL,
 		);
 		//Act
-		let res = parachain_runtime_mock::PolkadotXcm::execute(
-			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
+		let res = basilisk_runtime::PolkadotXcm::execute(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			Box::new(xcm),
 			Weight::from_parts(399_600_000_000, 0),
 		);
@@ -45,13 +45,13 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_sell() {
 
 		//Assert
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - 100 * UNITS
 		);
 
 		assert!(matches!(
 			last_other_para_events(2).first(),
-			Some(parachain_runtime_mock::RuntimeEvent::XcmpQueue(
+			Some(basilisk_runtime::RuntimeEvent::XcmpQueue(
 				cumulus_pallet_xcmp_queue::Event::XcmpMessageSent { .. }
 			))
 		));
@@ -64,10 +64,7 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_sell() {
 			95000000000000 - fees
 		);
 		let received = BOB_INITIAL_BSX_BALANCE + 2373809523812;
-		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
-			received
-		);
+		assert_eq!(basilisk_runtime::Balances::free_balance(AccountId::from(BOB)), received);
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(KAR, &basilisk_runtime::Treasury::account_id()),
 			fees
@@ -97,14 +94,14 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 
 	let amount_out = 20 * UNITS;
 	OtherParachain::execute_with(|| {
-		let xcm = craft_exchange_asset_xcm::<_, parachain_runtime_mock::RuntimeCall>(
+		let xcm = craft_exchange_asset_xcm::<_, basilisk_runtime::RuntimeCall>(
 			MultiAsset::from((GeneralIndex(0), 70 * UNITS)),
 			MultiAsset::from((GeneralIndex(CORE_ASSET_ID.into()), amount_out)),
 			BUY,
 		);
 		//Act
-		let res = parachain_runtime_mock::PolkadotXcm::execute(
-			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
+		let res = basilisk_runtime::PolkadotXcm::execute(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			Box::new(xcm),
 			Weight::from_parts(399_600_000_000, 0),
 		);
@@ -112,13 +109,13 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 
 		//Assert
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - 100 * UNITS
 		);
 
 		assert!(matches!(
 			last_other_para_events(2).first(),
-			Some(parachain_runtime_mock::RuntimeEvent::XcmpQueue(
+			Some(basilisk_runtime::RuntimeEvent::XcmpQueue(
 				cumulus_pallet_xcmp_queue::Event::XcmpMessageSent { .. }
 			))
 		));
@@ -134,7 +131,7 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 		);
 
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(BOB)),
 			BOB_INITIAL_BSX_BALANCE + amount_out
 		);
 		assert_eq!(
@@ -240,8 +237,8 @@ fn craft_exchange_asset_xcm<M: Into<MultiAssets>, RC: Decode + GetDispatchInfo>(
 	VersionedXcm::V3(message)
 }
 
-pub fn last_other_para_events(n: usize) -> Vec<parachain_runtime_mock::RuntimeEvent> {
-	frame_system::Pallet::<parachain_runtime_mock::Runtime>::events()
+pub fn last_other_para_events(n: usize) -> Vec<basilisk_runtime::RuntimeEvent> {
+	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
 		.into_iter()
 		.rev()
 		.take(n)

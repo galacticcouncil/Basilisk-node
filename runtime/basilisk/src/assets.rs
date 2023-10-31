@@ -266,6 +266,9 @@ impl pallet_lbp::Config for Runtime {
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+use codec::Decode;
+
 pub struct RootAsVestingPallet;
 impl EnsureOrigin<RuntimeOrigin> for RootAsVestingPallet {
 	type Success = AccountId;

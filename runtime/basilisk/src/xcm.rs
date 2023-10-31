@@ -27,6 +27,7 @@ use frame_support::{
 	traits::{Contains, Everything, Get, Nothing},
 	PalletId,
 };
+use frame_system::EnsureRoot;
 use hydradx_adapters::xcm_exchange::XcmAssetExchanger;
 use hydradx_adapters::xcm_execute_filter::AllowTransferAndSwap;
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
@@ -35,8 +36,7 @@ use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_transaction_multi_payment::DepositAll;
 use pallet_xcm::XcmPassthrough;
-use polkadot_parachain::primitives::RelayChainBlockNumber;
-use polkadot_parachain::primitives::Sibling;
+use polkadot_parachain::primitives::{RelayChainBlockNumber, Sibling};
 use polkadot_xcm::v3::{prelude::*, Error, MultiLocation, Weight as XcmWeight};
 use primitives::AssetId;
 use scale_info::TypeInfo;
@@ -190,6 +190,11 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 	type PriceForSiblingDelivery = ();
 	type WeightInfo = weights::xcmp_queue::BasiliskWeight<Runtime>;
+	type ExecuteDeferredOrigin = EnsureRoot<AccountId>;
+	type MaxDeferredMessages = ConstU32<100>;
+	type MaxDeferredBuckets = ConstU32<1_000>;
+	type RelayChainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type XcmDeferFilter = XcmRateLimiter;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {

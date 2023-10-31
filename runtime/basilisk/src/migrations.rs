@@ -1,10 +1,11 @@
-use super::*;
-use frame_support::traits::OnRuntimeUpgrade;
+use frame_support::{traits::OnRuntimeUpgrade, weights::Weight};
+#[cfg(feature = "try-runtime")]
+use sp_std::prelude::*;
 
 pub struct OnRuntimeUpgradeMigration;
 impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::DispatchError> {
 		Ok(vec![])
 	}
 
@@ -13,7 +14,7 @@ impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(_state: Vec<u8>) -> Result<(), &'static str> {
+	fn post_upgrade(_state: Vec<u8>) -> Result<(), sp_runtime::DispatchError> {
 		Ok(())
 	}
 }

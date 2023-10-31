@@ -2,7 +2,7 @@ use super::*;
 use crate::{
 	AccountId, AssetRegistry, Marketplace, RelayChainAssetId, Runtime, Uniques, NFT, RELAY_CHAIN_ASSET_LOCATION,
 };
-use frame_benchmarking::{account, vec};
+use frame_benchmarking::account;
 use frame_support::{
 	sp_runtime::{traits::StaticLookup, SaturatedConversion},
 	traits::Get,
@@ -14,6 +14,7 @@ use orml_benchmarking::runtime_benchmarks;
 use pallet_nft::BoundedVecOfUnq;
 use primitives::{constants::currency::UNITS, CollectionId, ItemId};
 use sp_std::convert::TryInto;
+use sp_std::vec;
 
 const ENDOWMENT: u32 = 1_000_000;
 const COLLECTION_ID_0: u32 = 1_000_000;
@@ -140,10 +141,11 @@ runtime_benchmarks! {
 mod tests {
 	use super::*;
 	use orml_benchmarking::impl_benchmark_test_suite;
+	use sp_runtime::BuildStorage;
 
 	fn new_test_ext() -> sp_io::TestExternalities {
-		frame_system::GenesisConfig::default()
-			.build_storage::<crate::Runtime>()
+		frame_system::GenesisConfig::<crate::Runtime>::default()
+			.build_storage()
 			.unwrap()
 			.into()
 	}

@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity)]
 #![cfg(test)]
 
 pub const ALICE: [u8; 32] = [4u8; 32];
@@ -99,21 +100,21 @@ decl_test_parachains! {
 	pub struct OtherParachain {
 		genesis = other_parachain::genesis(),
 		on_init = {
-			parachain_runtime_mock::System::set_block_number(1);
+			basilisk_runtime::System::set_block_number(1);
 			// Make sure the prices are up-to-date.
-			parachain_runtime_mock::MultiTransactionPayment::on_initialize(1);
+			basilisk_runtime::MultiTransactionPayment::on_initialize(1);
 		},
-		runtime = parachain_runtime_mock,
+		runtime = basilisk_runtime,
 		core = {
-			XcmpMessageHandler: parachain_runtime_mock::XcmpQueue,
-			DmpMessageHandler: parachain_runtime_mock::DmpQueue,
-			LocationToAccountId: parachain_runtime_mock::LocationToAccountId,
-			ParachainInfo: parachain_runtime_mock::ParachainInfo,
+			XcmpMessageHandler: basilisk_runtime::XcmpQueue,
+			DmpMessageHandler: basilisk_runtime::DmpQueue,
+			LocationToAccountId: basilisk_runtime::LocationToAccountId,
+			ParachainInfo: basilisk_runtime::ParachainInfo,
 		},
 		pallets = {
-			PolkadotXcm: parachain_runtime_mock::PolkadotXcm,
-			// Assets: parachain_runtime_mock::Assets,
-			Balances: parachain_runtime_mock::Balances,
+			PolkadotXcm: basilisk_runtime::PolkadotXcm,
+			// Assets: basilisk_runtime::Assets,
+			Balances: basilisk_runtime::Balances,
 		}
 	}
 }
@@ -168,6 +169,56 @@ pub mod kusama {
 		}
 	}
 
+	use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
+	use polkadot_primitives::{AssignmentId, ValidatorId};
+	use polkadot_service::chain_spec::get_authority_keys_from_seed_no_beefy;
+	use sc_consensus_grandpa::AuthorityId as GrandpaId;
+	use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
+	use sp_consensus_babe::AuthorityId as BabeId;
+	use sp_consensus_beefy::ecdsa_crypto::AuthorityId as BeefyId;
+
+	use sp_core::{Pair, Public};
+
+	/// Helper function to generate a crypto pair from seed
+	fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
+		TPublic::Pair::from_string(&format!("//{}", seed), None)
+			.expect("static values are valid; qed")
+			.public()
+	}
+
+	fn session_keys(
+		babe: BabeId,
+		grandpa: GrandpaId,
+		im_online: ImOnlineId,
+		para_validator: ValidatorId,
+		para_assignment: AssignmentId,
+		authority_discovery: AuthorityDiscoveryId,
+		beefy: BeefyId,
+	) -> kusama_runtime::SessionKeys {
+		kusama_runtime::SessionKeys {
+			babe,
+			grandpa,
+			im_online,
+			para_validator,
+			para_assignment,
+			authority_discovery,
+			beefy,
+		}
+	}
+
+	pub fn initial_authorities() -> Vec<(
+		AccountId,
+		AccountId,
+		BabeId,
+		GrandpaId,
+		ImOnlineId,
+		ValidatorId,
+		AssignmentId,
+		AuthorityDiscoveryId,
+	)> {
+		vec![get_authority_keys_from_seed_no_beefy("Alice")]
+	}
+
 	pub fn genesis() -> Storage {
 		let genesis_config = kusama_runtime::RuntimeGenesisConfig {
 			balances: kusama_runtime::BalancesConfig {
@@ -176,7 +227,31 @@ pub mod kusama {
 					(ParaId::from(BASILISK_PARA_ID).into_account_truncating(), 10 * UNITS),
 				],
 			},
-
+			session: kusama_runtime::SessionConfig {
+				keys: initial_authorities()
+					.iter()
+					.map(|x| {
+						(
+							x.0.clone(),
+							x.0.clone(),
+							session_keys(
+								x.2.clone(),
+								x.3.clone(),
+								x.4.clone(),
+								x.5.clone(),
+								x.6.clone(),
+								x.7.clone(),
+								get_from_seed::<BeefyId>("Alice"),
+							),
+						)
+					})
+					.collect::<Vec<_>>(),
+			},
+			babe: kusama_runtime::BabeConfig {
+				authorities: Default::default(),
+				epoch_config: Some(kusama_runtime::BABE_GENESIS_EPOCH_CONFIG),
+				..Default::default()
+			},
 			configuration: kusama_runtime::ConfigurationConfig {
 				config: get_host_configuration(),
 			},
@@ -194,6 +269,42 @@ pub mod kusama {
 
 pub mod basilisk {
 	use super::*;
+	use sp_core::{sr25519, Pair, Public};
+	use sp_runtime::{
+		traits::{IdentifyAccount, Verify},
+		MultiSignature,
+	};
+	type AccountPublic = <MultiSignature as Verify>::Signer;
+
+	/// Helper function to generate a crypto pair from seed
+	fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
+		TPublic::Pair::from_string(&format!("//{}", seed), None)
+			.expect("static values are valid; qed")
+			.public()
+	}
+
+	/// Helper function to generate an account ID from seed.
+	fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
+	where
+		AccountPublic: From<<TPublic::Pair as Pair>::Public>,
+	{
+		AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
+	}
+
+	pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+
+	pub fn invulnerables() -> Vec<(AccountId, AuraId)> {
+		vec![
+			(
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				get_from_seed::<AuraId>("Alice"),
+			),
+			(
+				get_account_id_from_seed::<sr25519::Public>("Bob"),
+				get_from_seed::<AuraId>("Bob"),
+			),
+		]
+	}
 
 	pub fn genesis() -> Storage {
 		use basilisk_runtime::NativeExistentialDeposit;
@@ -210,6 +321,23 @@ pub mod basilisk {
 					(vesting_account(), VESTING_ACCOUNT_INITIAL_BSX_BALANCE),
 				],
 			},
+			collator_selection: basilisk_runtime::CollatorSelectionConfig {
+				invulnerables: invulnerables().iter().cloned().map(|(acc, _)| acc).collect(),
+				candidacy_bond: 2 * UNITS,
+				..Default::default()
+			},
+			session: basilisk_runtime::SessionConfig {
+				keys: invulnerables()
+					.into_iter()
+					.map(|(acc, aura)| {
+						(
+							acc.clone(),                                    // account id
+							acc,                                            // validator id
+							basilisk_runtime::opaque::SessionKeys { aura }, // session keys
+						)
+					})
+					.collect(),
+			},
 			asset_registry: basilisk_runtime::AssetRegistryConfig {
 				registered_assets: vec![
 					(b"aUSD".to_vec(), 1_000_000u128, Some(AUSD)),
@@ -224,7 +352,6 @@ pub mod basilisk {
 				native_asset_name: b"BSX".to_vec(),
 				native_existential_deposit: existential_deposit,
 			},
-
 			parachain_info: basilisk_runtime::ParachainInfoConfig {
 				parachain_id: BASILISK_PARA_ID.into(),
 				..Default::default()
@@ -249,15 +376,18 @@ pub mod basilisk {
 					(AccountId::from(DAVE), AUSD, DAVE_INITIAL_AUSD_BALANCE),
 				],
 			},
-
 			polkadot_xcm: basilisk_runtime::PolkadotXcmConfig {
 				safe_xcm_version: Some(3),
 				..Default::default()
 			},
-
 			multi_transaction_payment: basilisk_runtime::MultiTransactionPaymentConfig {
 				currencies: vec![(AUSD, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
 				account_currencies: vec![],
+			},
+			duster: basilisk_runtime::DusterConfig {
+				account_blacklist: vec![basilisk_runtime::Treasury::account_id()],
+				reward_account: Some(basilisk_runtime::Treasury::account_id()),
+				dust_account: Some(basilisk_runtime::Treasury::account_id()),
 			},
 			..Default::default()
 		};
@@ -270,7 +400,7 @@ pub mod other_parachain {
 	use super::*;
 
 	pub fn genesis() -> Storage {
-		use parachain_runtime_mock::NativeExistentialDeposit;
+		use basilisk_runtime::NativeExistentialDeposit;
 
 		let existential_deposit = NativeExistentialDeposit::get();
 
@@ -278,18 +408,32 @@ pub mod other_parachain {
 			balances: basilisk_runtime::BalancesConfig {
 				balances: vec![(AccountId::from(ALICE), ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN)],
 			},
-
+			collator_selection: basilisk_runtime::CollatorSelectionConfig {
+				invulnerables: basilisk::invulnerables().iter().cloned().map(|(acc, _)| acc).collect(),
+				candidacy_bond: 2 * UNITS,
+				..Default::default()
+			},
+			session: basilisk_runtime::SessionConfig {
+				keys: basilisk::invulnerables()
+					.into_iter()
+					.map(|(acc, aura)| {
+						(
+							acc.clone(),                                    // account id
+							acc,                                            // validator id
+							basilisk_runtime::opaque::SessionKeys { aura }, // session keys
+						)
+					})
+					.collect(),
+			},
 			asset_registry: basilisk_runtime::AssetRegistryConfig {
 				registered_assets: vec![(b"AUSD".to_vec(), 1_000_000u128, Some(AUSD))],
 				native_asset_name: b"KAR".to_vec(),
 				native_existential_deposit: existential_deposit,
 			},
-
 			parachain_info: basilisk_runtime::ParachainInfoConfig {
 				parachain_id: OTHER_PARA_ID.into(),
 				..Default::default()
 			},
-
 			tokens: basilisk_runtime::TokensConfig {
 				balances: vec![
 					(
@@ -300,15 +444,18 @@ pub mod other_parachain {
 					(AccountId::from(BOB), AUSD, BOB_INITIAL_AUSD_BALANCE_ON_OTHER_PARACHAIN),
 				],
 			},
-
 			polkadot_xcm: basilisk_runtime::PolkadotXcmConfig {
 				safe_xcm_version: Some(3),
 				..Default::default()
 			},
-
 			multi_transaction_payment: basilisk_runtime::MultiTransactionPaymentConfig {
-				currencies: vec![(1, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
+				currencies: vec![(AUSD, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
 				account_currencies: vec![],
+			},
+			duster: basilisk_runtime::DusterConfig {
+				account_blacklist: vec![basilisk_runtime::Treasury::account_id()],
+				reward_account: Some(basilisk_runtime::Treasury::account_id()),
+				dust_account: Some(basilisk_runtime::Treasury::account_id()),
 			},
 			..Default::default()
 		};
@@ -330,8 +477,8 @@ pub fn expect_basilisk_events(e: Vec<basilisk_runtime::RuntimeEvent>) {
 	assert_eq!(last_basilisk_events(e.len()), e);
 }
 
-pub fn last_parachain_events(n: usize) -> Vec<parachain_runtime_mock::RuntimeEvent> {
-	frame_system::Pallet::<parachain_runtime_mock::Runtime>::events()
+pub fn last_parachain_events(n: usize) -> Vec<basilisk_runtime::RuntimeEvent> {
+	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
 		.into_iter()
 		.rev()
 		.take(n)

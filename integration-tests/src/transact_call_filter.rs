@@ -66,7 +66,7 @@ fn allowed_transact_call_should_pass_filter() {
 		]);
 
 		// Act
-		assert_ok!(parachain_runtime_mock::PolkadotXcm::send_xcm(
+		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(
 			Here,
 			MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))),
 			message
@@ -80,7 +80,7 @@ fn allowed_transact_call_should_pass_filter() {
 			basilisk_runtime::RuntimeEvent::XcmpQueue(cumulus_pallet_xcmp_queue::Event::Success { .. })
 		)));
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(BOB)),
 			BOB_INITIAL_BSX_BALANCE + UNITS
 		);
 	});
@@ -145,7 +145,7 @@ fn blocked_transact_calls_should_not_pass_filter() {
 		]);
 
 		// Act
-		assert_ok!(parachain_runtime_mock::PolkadotXcm::send_xcm(
+		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(
 			Here,
 			MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))),
 			message
@@ -223,7 +223,7 @@ fn safe_call_filter_should_respect_runtime_call_filter() {
 		]);
 
 		// Act
-		assert_ok!(parachain_runtime_mock::PolkadotXcm::send_xcm(
+		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(
 			Here,
 			MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))),
 			message

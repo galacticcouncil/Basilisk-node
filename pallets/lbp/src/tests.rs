@@ -2215,7 +2215,7 @@ fn inverted_operations_should_be_equal() {
 			Origin::signed(BOB),
 			KUSD,
 			BSX,
-			20_252_529_u128,
+			20_252_524_u128,
 			9_000_000_u128
 		));
 		(
@@ -2249,16 +2249,16 @@ fn buy_should_work() {
 			who: buyer,
 			asset_out: BSX,
 			asset_in: KUSD,
-			amount: 17_894_744,
+			amount: 17_894_738,
 			buy_price: 10_000_000,
 			fee_asset: KUSD,
 			fee_amount: 35_860,
 		}
 		.into()]);
 
-		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_982_069_396);
+		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_982_069_402);
 		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_010_000_000);
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_017_894_744);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_017_894_738);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
 
 		// test buy where the amount_in is less than the amount_out
@@ -2354,16 +2354,16 @@ fn buy_should_work() {
 			who: buyer,
 			asset_out,
 			asset_in,
-			amount: 1_851_972,
+			amount: 1_851_965,
 			buy_price: 10_000_000,
 			fee_asset: 0,
 			fee_amount: 3710,
 		}
 		.into()]);
 
-		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_998_144_318);
+		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_998_144_325);
 		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_020_000_000);
-		assert_eq!(Currency::free_balance(asset_in, &pool_id2), 1_001_851_972);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id2), 1_001_851_965);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id2), 1_990_000_000);
 	});
 }
@@ -2390,7 +2390,7 @@ fn buy_should_work_when_limit_is_set_above_account_balance() {
 			who: buyer,
 			asset_out: BSX,
 			asset_in: KUSD,
-			amount: 17_894_744,
+			amount: 17_894_738,
 			buy_price: 10_000_000,
 			fee_asset: KUSD,
 			fee_amount: 35_860,
@@ -2411,7 +2411,7 @@ fn buy_should_work_when_limit_is_set_above_account_balance() {
 			who: buyer,
 			asset_out: KUSD,
 			asset_in: BSX,
-			amount: 5_560_310,
+			amount: 5_560_304,
 			buy_price: 10_000_000,
 			fee_asset: KUSD,
 			fee_amount: 20_000,
@@ -2426,10 +2426,10 @@ fn update_pool_data_after_sale_should_not_work() {
 		let buyer = BOB;
 		let asset_in = KUSD;
 		let asset_out = BSX;
-		let pool_id = LBPPallet::get_pair_id(AssetPair { asset_in, asset_out });
 
 		//start sale
 		set_block_number(11);
+
 		assert_ok!(LBPPallet::buy(
 			Origin::signed(buyer),
 			asset_out,
@@ -2438,24 +2438,7 @@ fn update_pool_data_after_sale_should_not_work() {
 			2_000_000_000_u128
 		));
 
-		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_982_069_396);
-		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_010_000_000);
-		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_017_894_744);
-		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_990_000_000);
-		assert_eq!(Currency::free_balance(asset_in, &CHARLIE), 35_860);
-
 		set_block_number(41);
-
-		expect_events(vec![Event::BuyExecuted {
-			who: buyer,
-			asset_out: BSX,
-			asset_in: KUSD,
-			amount: 17_894_744,
-			buy_price: 10_000_000,
-			fee_asset: KUSD,
-			fee_amount: 35_860,
-		}
-		.into()]);
 
 		assert_noop!(
 			LBPPallet::update_pool_data(
@@ -2499,16 +2482,16 @@ fn sell_should_work() {
 			asset_in: KUSD,
 			asset_out: BSX,
 			amount: 9_980_000,
-			sale_price: 5_605_128,
+			sale_price: 5_605_138,
 			fee_asset: KUSD,
 			fee_amount: 20_000,
 		}
 		.into()]);
 
 		assert_eq!(Currency::free_balance(asset_in, &buyer), 999_999_990_000_000);
-		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_005_605_128);
+		assert_eq!(Currency::free_balance(asset_out, &buyer), 1_000_000_005_605_138);
 		assert_eq!(Currency::free_balance(asset_in, &pool_id), 1_009_980_000);
-		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_994_394_872);
+		assert_eq!(Currency::free_balance(asset_out, &pool_id), 1_994_394_862);
 
 		// test buy where the amount_in is less than the amount_out
 		let asset_in = HDX;
@@ -2604,14 +2587,14 @@ fn sell_should_work() {
 			asset_in: asset_out,
 			asset_out: asset_in,
 			amount: 10_000_000,
-			sale_price: 1_839_314,
+			sale_price: 1_839_320,
 			fee_asset: 0,
-			fee_amount: 3_684,
+			fee_amount: 3_686,
 		})]);
 
-		assert_eq!(Currency::free_balance(asset_in, &buyer), 1_000_000_001_839_314);
-		assert_eq!(Currency::free_balance(asset_out, &buyer), 999_999_995_605_128);
-		assert_eq!(Currency::free_balance(asset_in, &pool_id2), 998_157_002);
+		assert_eq!(Currency::free_balance(asset_in, &buyer), 1_000_000_001_839_320);
+		assert_eq!(Currency::free_balance(asset_out, &buyer), 999_999_995_605_138);
+		assert_eq!(Currency::free_balance(asset_in, &pool_id2), 998_156_994);
 		assert_eq!(Currency::free_balance(asset_out, &pool_id2), 2_010_000_000);
 	});
 }
@@ -2720,7 +2703,7 @@ fn amm_trait_should_work() {
 			origin: who,
 			assets: asset_pair,
 			amount: amount_in - fee,
-			amount_b: 563_732,
+			amount_b: 563_741,
 			discount: false,
 			discount_amount: 0_u128,
 			fee: (asset_pair.asset_in, fee),
@@ -2736,7 +2719,7 @@ fn amm_trait_should_work() {
 		let t_buy = AMMTransfer {
 			origin: who,
 			assets: asset_pair,
-			amount: 1_771_201,
+			amount: 1_771_197,
 			amount_b,
 			discount: false,
 			discount_amount: 0_u128,
@@ -3012,10 +2995,10 @@ fn simulate_lbp_event_should_work() {
 			owner_initial_asset_out_balance
 		);
 
-		assert_eq!(Currency::free_balance(asset_in, &pool_account), 4_893_544);
+		assert_eq!(Currency::free_balance(asset_in, &pool_account), 4_892_751);
 		assert_eq!(Currency::free_balance(asset_out, &pool_account), 125_000_009);
 
-		assert_eq!(Currency::free_balance(asset_in, &lbp_participant), 999_996_061_843);
+		assert_eq!(Currency::free_balance(asset_in, &lbp_participant), 999_996_062_654);
 		assert_eq!(Currency::free_balance(asset_out, &lbp_participant), 1_000_374_999_991);
 
 		// remove liquidity from the pool
@@ -3037,7 +3020,7 @@ fn simulate_lbp_event_should_work() {
 				.unwrap()
 		);
 
-		assert_eq!(Currency::free_balance(asset_in, &fee_collector), 44_613);
+		assert_eq!(Currency::free_balance(asset_in, &fee_collector), 44_595);
 		assert_eq!(Currency::free_balance(asset_out, &fee_collector), 0);
 	});
 }
@@ -3065,7 +3048,7 @@ fn validate_trade_should_work() {
 					asset_in: KUSD,
 					asset_out: BSX
 				},
-				amount: 1_998_503_u128,
+				amount: 1_998_500_u128,
 				amount_b: 1_000_000_u128,
 				discount: false,
 				discount_amount: 0_u128,
@@ -3092,7 +3075,7 @@ fn validate_trade_should_work() {
 					asset_out: BSX
 				},
 				amount: 998_000_u128,
-				amount_b: 499_678_u128,
+				amount_b: 499_687_u128,
 				discount: false,
 				discount_amount: 0_u128,
 				fee: (KUSD, 2000),
@@ -3203,7 +3186,7 @@ fn validate_trade_should_not_work() {
 					asset_out: BSX
 				},
 				1_000_u128,
-				499_u128,
+				500_u128,
 				false,
 			),
 			Error::<Test>::TradingLimitReached

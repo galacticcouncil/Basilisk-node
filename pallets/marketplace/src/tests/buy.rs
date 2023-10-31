@@ -119,7 +119,7 @@ fn buy_should_fail_when_buyer_has_insufficient_balance() {
 			//Act and assert
 			assert_noop!(
 				Market::buy(Origin::signed(CHARLIE), COLLECTION_ID_0, ITEM_ID_0),
-				pallet_balances::Error::<Test, _>::InsufficientBalance
+				sp_runtime::TokenError::FundsUnavailable
 			);
 		});
 }
