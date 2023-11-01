@@ -105,7 +105,7 @@ pub type XcmOriginToCallOrigin = (
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	XcmPassthrough<RuntimeOrigin>,
 	// Derives signed AccountId32 origins for Tinkernet multisigs.
-	invarch_xcm_builder::DeriveOriginFromTinkernetMultisig<RuntimeOrigin>,
+	orml_xcm_builder_kusama::TinkernetMultisigAsNativeOrigin<RuntimeOrigin>,
 );
 
 parameter_types! {
@@ -373,7 +373,7 @@ pub type LocationToAccountId = (
 	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
 	AccountId32Aliases<RelayNetwork, AccountId>,
 	// Mapping Tinkernet multisig to the correctly derived AccountId32.
-	invarch_xcm_builder::TinkernetMultisigAsAccountId<AccountId>,
+	orml_xcm_builder_kusama::TinkernetMultisigAsAccountId<AccountId>,
 );
 
 parameter_types! {

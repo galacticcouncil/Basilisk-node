@@ -862,7 +862,6 @@ dependencies = [
  "cumulus-client-consensus-aura",
  "cumulus-client-consensus-common",
  "cumulus-client-consensus-proposer",
- "cumulus-client-consensus-relay-chain",
  "cumulus-client-network",
  "cumulus-client-service",
  "cumulus-primitives-core",
@@ -955,7 +954,6 @@ dependencies = [
  "hex-literal 0.4.1",
  "hydradx-adapters",
  "hydradx-traits",
- "invarch-xcm-builder",
  "log",
  "orml-benchmarking",
  "orml-tokens",
@@ -963,6 +961,7 @@ dependencies = [
  "orml-unknown-tokens",
  "orml-vesting",
  "orml-xcm",
+ "orml-xcm-builder-kusama",
  "orml-xcm-support",
  "orml-xtokens",
  "pallet-asset-registry",
@@ -2154,29 +2153,6 @@ dependencies = [
  "sp-runtime",
  "sp-state-machine",
  "thiserror",
-]
-
-[[package]]
-name = "cumulus-client-consensus-relay-chain"
-version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=hydradx-fork-v1.1.0#317971823bc341b5726b9009232534a5169129bc"
-dependencies = [
- "async-trait",
- "cumulus-client-consensus-common",
- "cumulus-primitives-core",
- "cumulus-relay-chain-interface",
- "futures",
- "parking_lot 0.12.1",
- "sc-consensus",
- "sp-api",
- "sp-block-builder",
- "sp-blockchain",
- "sp-consensus",
- "sp-core",
- "sp-inherents",
- "sp-runtime",
- "substrate-prometheus-endpoint",
- "tracing",
 ]
 
 [[package]]
@@ -4759,20 +4735,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "invarch-xcm-builder"
-version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/InvArch-XCM-Builder?branch=polkadot-v1.1.0#68a77c5b95f5bd7b514027dee11257417df2424d"
-dependencies = [
- "frame-support",
- "log",
- "parity-scale-codec",
- "sp-core",
- "sp-io",
- "staging-xcm",
- "staging-xcm-executor",
-]
-
-[[package]]
 name = "io-lifetimes"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6571,6 +6533,26 @@ dependencies = [
  "scale-info",
  "sp-std",
  "staging-xcm",
+]
+
+[[package]]
+name = "orml-xcm-builder-kusama"
+version = "1.0.0"
+source = "git+https://github.com/open-web3-stack/orml-xcm-builder?branch=polkadot-v1.1.0#32f0b3f1cbe77d4d330e07c7d4fcc3ebd669db77"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "sp-weights",
+ "staging-xcm",
+ "staging-xcm-executor",
 ]
 
 [[package]]

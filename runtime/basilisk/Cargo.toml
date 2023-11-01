@@ -125,7 +125,7 @@ sp-trie = { workspace = true }
 sp-io = { workspace = true }
 
 # InvArch Tinkernet Multisig dependencies
-invarch-xcm-builder = { workspace = true }
+orml-xcm-builder-kusama = { workspace = true }
 
 [features]
 default = ["std"]
