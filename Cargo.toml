@@ -157,7 +157,6 @@ substrate-build-script-utils = { git = "https://github.com/paritytech/polkadot-s
 substrate-frame-rpc-system = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
 substrate-prometheus-endpoint = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
 substrate-wasm-builder = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
-try-runtime-cli = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
 pallet-mmr = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
 sp-mmr-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
 
@@ -191,7 +190,6 @@ cumulus-client-cli = { git = "https://github.com/paritytech/polkadot-sdk", branc
 cumulus-client-consensus-aura = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
 cumulus-client-consensus-common = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
 cumulus-client-consensus-proposer = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
 cumulus-client-network = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
 cumulus-client-service = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
 cumulus-client-collator = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.1.0", default-features = false }
@@ -212,7 +210,6 @@ cumulus-relay-chain-inprocess-interface = { git = "https://github.com/paritytech
 
 # ORML dependencies
 orml-benchmarking = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v1.1.0", default-features = false }
-orml-currencies = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v1.1.0", default-features = false }
 orml-tokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v1.1.0", default-features = false }
 orml-traits = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v1.1.0", default-features = false }
 orml-utilities = { git = "https://github.com/open-web3-stack/open-runtime-module-library", branch = "polkadot-v1.1.0", default-features = false }
@@ -355,7 +352,6 @@ substrate-build-script-utils = { git = "https://github.com/galacticcouncil/polka
 substrate-frame-rpc-system = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
 substrate-prometheus-endpoint = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
 substrate-wasm-builder = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
-try-runtime-cli = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
 pallet-mmr = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
 sp-mmr-primitives = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
 
@@ -389,7 +385,6 @@ cumulus-client-cli = { git = "https://github.com/galacticcouncil/polkadot-sdk", 
 cumulus-client-consensus-aura = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
 cumulus-client-consensus-common = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
 cumulus-client-consensus-proposer = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
-cumulus-client-consensus-relay-chain = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
 cumulus-client-network = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
 cumulus-client-service = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
 cumulus-client-collator = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "hydradx-fork-v1.1.0" }
