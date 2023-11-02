@@ -16,7 +16,7 @@
 // limitations under the License.
 #![allow(clippy::result_large_err)]
 
-use crate::{AccountId, AssetId, Balance, Currencies, Runtime};
+use crate::{AccountId, AssetId, Balance, Currencies, NativeAssetId, Runtime};
 
 use super::*;
 
@@ -35,7 +35,7 @@ use pallet_route_executor::Trade;
 use sp_std::vec;
 
 const SEED: u32 = 1;
-pub const UNITS: Balance = 100_000_000_000;
+pub const UNITS: Balance = 1_000_000_000_000;
 const MAX_NUMBER_OF_TRADES: u32 = 5;
 
 pub fn register_asset_with_name(name_as_bye_string: &[u8]) -> Result<AssetId, BenchmarkError> {
@@ -49,6 +49,7 @@ pub fn create_account(name: &'static str) -> AccountId {
 
 pub fn generate_trades(number_of_trades: u32) -> Result<(AssetId, AssetId, Vec<Trade<AssetId>>), BenchmarkError> {
 	let pool_maker: AccountId = create_account("pool_maker");
+	update_balance(NativeAssetId::get(), &pool_maker, 1_000 * UNITS);
 
 	let balance = 2000 * UNITS;
 	let main_asset_in = register_asset_with_name(b"TST")?;

@@ -31,7 +31,6 @@ use primitives::constants::{
 	currency::{NATIVE_EXISTENTIAL_DEPOSIT, UNITS},
 };
 
-use codec::Decode;
 use frame_support::{
 	ensure, parameter_types,
 	sp_runtime::{
@@ -428,6 +427,9 @@ impl pallet_lbp::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
+
+#[cfg(feature = "runtime-benchmarks")]
+use codec::Decode;
 
 pub struct RootAsVestingPallet;
 impl EnsureOrigin<RuntimeOrigin> for RootAsVestingPallet {

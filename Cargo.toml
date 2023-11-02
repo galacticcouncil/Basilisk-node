@@ -11,24 +11,24 @@ members = [
 ]
 
 [workspace.dependencies]
-hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-hydradx-adapters = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-asset-registry = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-nft = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-currencies = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-transaction-pause = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-route-executor = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-ema-oracle = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-duster = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-collator-rewards = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-test-utils = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-xcm-rate-limiter = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
-pallet-xyk = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "297316146b7a1bf6284b98e1bcdd662e7a70ec13", default-features = false }
+hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+hydradx-adapters = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-asset-registry = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-currencies = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-transaction-pause = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-route-executor = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-ema-oracle = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-duster = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-collator-rewards = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+test-utils = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-xcm-rate-limiter = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
+pallet-xyk = { git = "https://github.com/galacticcouncil/HydraDX-node", rev = "91d0fb758ed95577c973b7ac8172d77a9544139f", default-features = false }
 
 [patch."https://github.com/paritytech/substrate"]
 frame-benchmarking = { git = "https://github.com/paritytech//substrate", branch = "polkadot-v0.9.38" }
