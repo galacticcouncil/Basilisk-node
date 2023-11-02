@@ -16,136 +16,187 @@
 // limitations under the License.
 #![allow(clippy::result_large_err)]
 
-use crate::{AccountId, AssetId, Balance, Currencies, NativeAssetId, Runtime};
+use crate::{AccountId, AssetId, Balance, Currencies, Router, Runtime, System, LBP};
 
-use super::*;
-
+use crate::InsufficientEDinBSX;
 use frame_benchmarking::account;
-use frame_benchmarking::BenchmarkError;
+use frame_support::dispatch::DispatchResult;
+use frame_support::{assert_ok, ensure};
 use frame_system::RawOrigin;
+use hydradx_traits::router::{PoolType, RouterT, Trade};
 use orml_benchmarking::runtime_benchmarks;
-
-use orml_traits::MultiCurrency;
-
-type RouteExecutor<T> = pallet_route_executor::Pallet<T>;
-
-use codec::alloc::string::ToString;
-use hydradx_traits::router::PoolType;
-use pallet_route_executor::Trade;
+use orml_traits::{MultiCurrency, MultiCurrencyExtended};
+use primitives::constants::currency::UNITS;
 use sp_std::vec;
 
-const SEED: u32 = 1;
-pub const UNITS: Balance = 1_000_000_000_000;
-const MAX_NUMBER_OF_TRADES: u32 = 5;
+pub const INITIAL_BALANCE: Balance = 10_000_000 * UNITS;
 
-pub fn register_asset_with_name(name_as_bye_string: &[u8]) -> Result<AssetId, BenchmarkError> {
-	register_asset(name_as_bye_string.to_vec(), 0u128, None)
-		.map_err(|_| BenchmarkError::Stop("Failed to register asset"))
+fn funded_account(name: &'static str, index: u32, assets: &[AssetId]) -> AccountId {
+	let account: AccountId = account(name, index, 0);
+	for asset in assets {
+		assert_ok!(<Currencies as MultiCurrencyExtended<_>>::update_balance(
+			*asset,
+			&account,
+			INITIAL_BALANCE.try_into().unwrap(),
+		));
+	}
+	account
 }
 
-pub fn create_account(name: &'static str) -> AccountId {
-	account(name, 0, SEED)
-}
+fn setup_lbp(caller: AccountId, asset_in: AssetId, asset_out: AssetId) -> DispatchResult {
+	let asset_in_amount = 1_000_000 * UNITS;
+	let asset_out_amount = 2_000_000 * UNITS;
+	let initial_weight = 20_000_000;
+	let final_weight = 80_000_000;
+	let fee = (2, 1_000);
+	let fee_collector = caller.clone();
+	let repay_target = 0;
 
-pub fn generate_trades(number_of_trades: u32) -> Result<(AssetId, AssetId, Vec<Trade<AssetId>>), BenchmarkError> {
-	let pool_maker: AccountId = create_account("pool_maker");
-	update_balance(NativeAssetId::get(), &pool_maker, 1_000 * UNITS);
+	let pool_id = LBP::pair_account_from_assets(asset_in, asset_out);
 
-	let balance = 2000 * UNITS;
-	let main_asset_in = register_asset_with_name(b"TST")?;
-	let main_asset_out = register_asset_with_name(b"TST2")?;
-	update_balance(main_asset_in, &pool_maker, balance);
-	update_balance(main_asset_out, &pool_maker, balance);
-
-	let number_of_intermediate_assets = number_of_trades - 1;
-
-	//Create intermediate assets
-	let mut intermediate_assets: Vec<AssetId> = vec![];
-	for n in 0..number_of_intermediate_assets {
-		let intermediate_asset = register_asset_with_name(n.to_string().as_bytes())?;
-		update_balance(intermediate_asset, &pool_maker, balance);
-		intermediate_assets.push(intermediate_asset);
-	}
-
-	//Create pools and generate trades for intermediate assets
-	let mut trades: Vec<Trade<AssetId>> = vec![];
-	let mut asset_in = main_asset_in;
-	for _ in 0..number_of_intermediate_assets {
-		let asset_out = intermediate_assets.pop().unwrap();
-		create_pool(pool_maker.clone(), asset_in, 1_000 * UNITS, asset_out, 500 * UNITS);
-		let trade = Trade {
-			pool: PoolType::XYK,
-			asset_in,
-			asset_out,
-		};
-		trades.push(trade);
-		asset_in = asset_out;
-	}
-
-	//Create pool and trade for the last trade
-	create_pool(pool_maker, asset_in, 1_000 * UNITS, main_asset_out, 500 * UNITS);
-	let last_trade = Trade {
-		pool: PoolType::XYK,
+	LBP::create_pool(
+		RawOrigin::Root.into(),
+		caller.clone(),
 		asset_in,
-		asset_out: main_asset_out,
-	};
-	trades.push(last_trade);
+		asset_in_amount,
+		asset_out,
+		asset_out_amount,
+		initial_weight,
+		final_weight,
+		pallet_lbp::WeightCurveType::Linear,
+		fee,
+		fee_collector,
+		repay_target,
+	)?;
+	ensure!(
+		pallet_lbp::PoolData::<Runtime>::contains_key(&pool_id),
+		"Pool does not exist."
+	);
 
-	Ok((main_asset_in, main_asset_out, trades))
+	let start = 1u32;
+	let end = 11u32;
+
+	LBP::update_pool_data(
+		RawOrigin::Signed(caller).into(),
+		pool_id,
+		None,
+		Some(start),
+		Some(end),
+		None,
+		None,
+		None,
+		None,
+		None,
+	)?;
+
+	System::set_block_number(2u32);
+	Ok(())
 }
 
 runtime_benchmarks! {
-	{ Runtime, pallet_route_executor}
+	{Runtime, pallet_route_executor}
 
-	sell {
-		let n in 1..MAX_NUMBER_OF_TRADES;
-		let (asset_in, asset_out, trades) = generate_trades(n).unwrap();
+	// Calculates the weight of LBP trade. Used in the calculation to determine the weight of the overhead.
+	calculate_and_execute_sell_in_lbp {
+		let c in 0..1;	// if c == 1, calculate_sell_trade_amounts is executed
+		let s in 0..1;	// if e == 1, sell is executed
 
-		let caller: AccountId = create_account("caller");
+		let asset_in = 0u32;
+		let asset_out = 1u32;
+		let caller: AccountId = funded_account("caller", 7, &[asset_in, asset_out]);
+		let seller: AccountId = funded_account("seller", 8, &[asset_in, asset_out]);
 
-		let amount_to_sell = 10 * UNITS;
-		let caller_asset_in_balance = 2000 * UNITS;
-		let caller_asset_out_balance = 2000 * UNITS;
+		setup_lbp(caller, asset_in, asset_out)?;
 
-		update_balance(asset_in, &caller, caller_asset_in_balance);
+		let trades = vec![Trade {
+			pool: PoolType::LBP,
+			asset_in,
+			asset_out
+		}];
+
+		let amount_to_sell: Balance = UNITS;
+
 	}: {
-		RouteExecutor::<Runtime>::sell(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_sell, 0u128, trades)?
+		if c != 0 {
+			Router::calculate_sell_trade_amounts(trades.as_slice(), amount_to_sell)?;
+		}
+		if s != 0 {
+			Router::sell(RawOrigin::Signed(seller.clone()).into(), asset_in, asset_out, amount_to_sell, 0u128, trades.clone())?;
+		}
 	}
-	verify{
-		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_in, &caller), caller_asset_in_balance -  amount_to_sell);
-		assert!(<Currencies as MultiCurrency<_>>::total_balance(asset_out, &caller) > 0);
+	verify {
+		if s != 0 {
+			assert_eq!(<Currencies as MultiCurrency<_>>::free_balance(
+			asset_in,
+			&seller,
+			), INITIAL_BALANCE - amount_to_sell - InsufficientEDinBSX::get());
+		}
 	}
 
-	buy {
-		let n in 1..MAX_NUMBER_OF_TRADES;
-		let (asset_in, asset_out, trades) = generate_trades(n).unwrap();
+	// Calculates the weight of LBP trade. Used in the calculation to determine the weight of the overhead.
+	calculate_and_execute_buy_in_lbp {
+		let c in 1..2;	// number of times `calculate_buy_trade_amounts` is executed
+		let b in 0..1;	// if e == 1, buy is executed
 
-		let caller: AccountId = create_account("caller");
+		let asset_in = 0u32;
+		let asset_out = 1u32;
+		let caller: AccountId = funded_account("caller", 0, &[asset_in, asset_out]);
+		let buyer: AccountId = funded_account("buyer", 1, &[asset_in, asset_out]);
+
+		setup_lbp(caller, asset_in, asset_out)?;
+
+		let trades = vec![Trade {
+			pool: PoolType::LBP,
+			asset_in,
+			asset_out
+		}];
 
 		let amount_to_buy = UNITS;
-		let caller_asset_in_balance = 2000 * UNITS;
 
-		update_balance(asset_in, &caller, caller_asset_in_balance);
 	}: {
-		RouteExecutor::<Runtime>::buy(RawOrigin::Signed(caller.clone()).into(), asset_in, asset_out, amount_to_buy, 10000u128 * UNITS, trades)?
+		for _ in 1..c {
+			Router::calculate_buy_trade_amounts(trades.as_slice(), amount_to_buy)?;
+		}
+		if b != 0 {
+			Router::buy(RawOrigin::Signed(buyer.clone()).into(), asset_in, asset_out, amount_to_buy, u128::MAX, trades)?
+		}
 	}
-	verify{
-		assert!(<Currencies as MultiCurrency<_>>::total_balance(asset_in, &caller) < caller_asset_in_balance);
-		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_out, &caller), amount_to_buy);
+	verify {
+		if b != 0 {
+			assert!(<Currencies as MultiCurrency<_>>::free_balance(
+			asset_in,
+			&buyer,
+			) < INITIAL_BALANCE);
+		}
 	}
-
 }
 
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::NativeExistentialDeposit;
+	use frame_support::traits::GenesisBuild;
 	use orml_benchmarking::impl_benchmark_test_suite;
 
 	fn new_test_ext() -> sp_io::TestExternalities {
-		frame_system::GenesisConfig::default()
-			.build_storage::<crate::Runtime>()
-			.unwrap()
-			.into()
+		let mut t = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap();
+
+		pallet_asset_registry::GenesisConfig::<crate::Runtime> {
+			registered_assets: vec![
+				(Some(1), Some(b"KSM".to_vec()), 1_000u128, None, None, None, true),
+				(None, Some(b"DAI".to_vec()), 1_000u128, None, None, None, true),
+			],
+			native_asset_name: b"BSX".to_vec(),
+			native_existential_deposit: NativeExistentialDeposit::get(),
+			native_symbol: b"BSX".to_vec(),
+			native_decimals: 12,
+		}
+		.assimilate_storage(&mut t)
+		.unwrap();
+
+		sp_io::TestExternalities::new(t)
 	}
 
 	impl_benchmark_test_suite!(new_test_ext(),);

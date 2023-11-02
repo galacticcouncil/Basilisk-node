@@ -1,5 +1,5 @@
 //TODO:
-//pub mod asset_registry;
+pub mod asset_registry;
 pub mod balances;
 pub mod collator_selection;
 pub mod currencies;
@@ -10,8 +10,7 @@ pub mod lbp;
 pub mod marketplace;
 pub mod nft;
 pub mod payment;
-//TODO:
-//pub mod route_executor;
+pub mod route_executor;
 pub mod scheduler;
 pub mod system;
 pub mod timestamp;
@@ -23,6 +22,5 @@ pub mod utility;
 pub mod vesting;
 pub mod xcm;
 pub mod xcmp_queue;
-//TODO:
-//pub mod xyk;
+pub mod xyk;
 pub mod xyk_liquidity_mining;
