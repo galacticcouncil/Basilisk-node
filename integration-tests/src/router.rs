@@ -13,7 +13,7 @@ use pallet_lbp::WeightCurveType;
 use frame_support::assert_ok;
 
 use orml_traits::MultiCurrency;
-use primitives::asset::AssetPair;
+use pallet_lbp::AssetPair;
 
 const TRADER: [u8; 32] = BOB;
 

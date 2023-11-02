@@ -23,7 +23,7 @@ use adapter::OrmlTokensAdapter;
 use hydradx_adapters::inspect::MultiInspectAdapter;
 use hydradx_traits::{
 	router::{AmmTradeWeights, Trade},
-	AssetPairAccountIdFor, LockedBalance, OraclePeriod,
+	AssetPairAccountIdFor, LockedBalance, OraclePeriod, Source,
 };
 use pallet_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, RemoveTxAssetOnKilled};
@@ -197,6 +197,7 @@ parameter_types! {
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 	pub const RegistryStrLimit: u32 = 32;
 	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
+	pub const XYKOracleSourceIdentifier: Source = *b"snek/xyk";
 }
 
 impl pallet_xyk::Config for Runtime {
@@ -211,6 +212,7 @@ impl pallet_xyk::Config for Runtime {
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
+	type OracleSource = XYKOracleSourceIdentifier;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
 	type AMMHandler = pallet_ema_oracle::OnActivityHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;

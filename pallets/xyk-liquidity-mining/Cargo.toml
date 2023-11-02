@@ -27,6 +27,7 @@ primitives = { path = "../../primitives", default-features = false }
 pallet-liquidity-mining = { workspace = true }
 hydradx-traits = { workspace = true }
 pallet-nft = { workspace = true }
+pallet-xyk = { workspace = true }
 
 # Substrate dependencies
 sp-std = { workspace = true }

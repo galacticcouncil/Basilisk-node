@@ -6,7 +6,6 @@ members = [
   'node',
   'runtime/basilisk',
   'pallets/marketplace',
-  'pallets/xyk',
   'integration-tests',
 ]
 
@@ -28,6 +27,8 @@ pallet-duster = { git = "https://github.com/galacticcouncil/HydraDX-node", branc
 pallet-collator-rewards = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "polkadot-v1.1.0", default-features = false }
 test-utils = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "polkadot-v1.1.0", default-features = false }
 pallet-xcm-rate-limiter = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "polkadot-v1.1.0", default-features = false }
+pallet-xyk = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "polkadot-v1.1.0", default-features = false }
+pallet-lbp = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "polkadot-v1.1.0", default-features = false }
 primitive-types = { version = "0.12.0", default-features = false }
 log = "0.4.20"
 

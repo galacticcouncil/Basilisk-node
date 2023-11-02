@@ -9,7 +9,7 @@ license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [dependencies]
-# Warehouse dependencies
+# HydraDX dependencies
 pallet-transaction-multi-payment = { workspace = true }
 pallet-nft = { workspace = true }
 pallet-currencies = { workspace = true }
@@ -18,9 +18,9 @@ pallet-asset-registry = { workspace = true }
 pallet-ema-oracle = { workspace = true }
 hydradx-traits = { workspace = true }
 pallet-duster = { workspace = true }
+pallet-xyk = { workspace = true }
+pallet-lbp = { workspace = true }
 
-pallet-xyk = { path = "../pallets/xyk",default-features = false}
-pallet-lbp = { path = "../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../pallets/marketplace', default-features = false }
 
 primitives = { default-features = false, path = "../primitives" }

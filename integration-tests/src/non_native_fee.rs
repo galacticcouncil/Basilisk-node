@@ -19,7 +19,7 @@ use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;
 use pallet_xyk::XYKSpotPrice;
-use primitives::{asset::AssetPair, AssetId};
+use primitives::AssetId;
 use xcm_emulator::TestExt;
 
 pub fn basilisk_run_to_next_block() {

@@ -26,7 +26,7 @@ use frame_support::{
 
 use frame_system as system;
 use frame_system::{EnsureRoot, EnsureSigned};
-use hydradx_traits::AssetPairAccountIdFor;
+use hydradx_traits::{AssetPairAccountIdFor, Source};
 use orml_traits::parameter_type_with_key;
 use primitives::{
 	constants::{
@@ -295,6 +295,7 @@ parameter_types! {
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
+	pub const XYKOracleSourceIdentifier: Source = *b"snek/xyk";
 }
 
 impl pallet_xyk::Config for Test {
@@ -309,6 +310,7 @@ impl pallet_xyk::Config for Test {
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
+	type OracleSource = XYKOracleSourceIdentifier;
 	type CanCreatePool = pallet_xyk::AllowAllPools;
 	type AMMHandler = ();
 	type DiscountedFee = DiscountedFee;

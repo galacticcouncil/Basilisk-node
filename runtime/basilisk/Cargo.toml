@@ -23,8 +23,6 @@ log = { workspace = true }
 
 # local dependencies
 primitives = { default-features = false, path = "../../primitives" }
-pallet-xyk = { path = "../../pallets/xyk",default-features = false}
-pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 pallet-xyk-liquidity-mining = { path = "../../pallets/xyk-liquidity-mining", default-features=false}
 pallet-xyk-liquidity-mining-benchmarking = { path = "../../pallets/xyk-liquidity-mining/benchmarking", optional = true, default-features = false}
@@ -36,7 +34,7 @@ pallet-elections-phragmen = { workspace = true }
 pallet-tips = { workspace = true }
 pallet-identity = { workspace = true }
 
-# Warehouse dependencies
+# HydraDX dependencies
 hydradx-traits = { workspace = true }
 pallet-transaction-multi-payment = { workspace = true }
 pallet-relaychain-info = { workspace = true }
@@ -51,6 +49,8 @@ pallet-ema-oracle = { workspace = true }
 pallet-duster = { workspace = true }
 pallet-collator-rewards = { workspace = true }
 pallet-xcm-rate-limiter = { workspace = true }
+pallet-xyk = { workspace = true }
+pallet-lbp = { workspace = true }
 
 # collator support
 pallet-collator-selection = { workspace = true }

@@ -42,6 +42,7 @@ pub fn parachain_reserve_account() -> AccountId {
 }
 
 pub use basilisk_runtime::{AccountId, VestingPalletId};
+pub use pallet_xyk::types::AssetPair;
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use frame_support::assert_ok;

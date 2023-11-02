@@ -146,4 +146,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(12 as u64))
 			.saturating_add(T::DbWeight::get().writes(7 as u64))
 	}
+	fn router_execution_sell(_c: u32, _e: u32) -> Weight {
+		Weight::zero()
+	}
+	fn router_execution_buy(_c: u32, _e: u32) -> Weight {
+		Weight::zero()
+	}
 }

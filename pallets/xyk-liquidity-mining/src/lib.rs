@@ -49,6 +49,7 @@ use frame_support::{ensure, sp_runtime::traits::Zero, PalletId};
 use frame_system::pallet_prelude::BlockNumberFor;
 use hydradx_traits::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMutate, YieldFarmId};
 use pallet_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
+use pallet_xyk::types::{AssetId, AssetPair, Balance};
 
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::{ensure_signed, pallet_prelude::OriginFor};
@@ -58,7 +59,7 @@ use hydradx_traits::{
 };
 use orml_traits::MultiCurrency;
 use pallet_nft::CollectionType;
-use primitives::{asset::AssetPair, AssetId, Balance, CollectionId as DepositId};
+use primitives::{CollectionId as DepositId};
 use scale_info::TypeInfo;
 use sp_arithmetic::{FixedU128, Perquintill};
 use sp_std::{
