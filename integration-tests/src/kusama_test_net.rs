@@ -42,12 +42,12 @@ pub fn parachain_reserve_account() -> AccountId {
 }
 
 pub use basilisk_runtime::{AccountId, VestingPalletId};
-pub use pallet_xyk::types::AssetPair;
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use frame_support::assert_ok;
 use frame_support::traits::OnInitialize;
 use pallet_transaction_multi_payment::Price;
+pub use pallet_xyk::types::AssetPair;
 use polkadot_primitives::v5::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;

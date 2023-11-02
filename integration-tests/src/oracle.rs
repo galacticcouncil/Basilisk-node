@@ -2,7 +2,7 @@
 
 use crate::kusama_test_net::*;
 
-use basilisk_runtime::{EmaOracle, RuntimeOrigin, XYK, XYKOracleSourceIdentifier};
+use basilisk_runtime::{EmaOracle, RuntimeOrigin, XYKOracleSourceIdentifier, XYK};
 use frame_support::{
 	assert_ok,
 	traits::{OnFinalize, OnInitialize},
@@ -56,14 +56,26 @@ fn xyk_trades_are_ingested_into_oracle() {
 
 		// assert
 		let expected = ((105000000000000, 190504761904760).into(), 0);
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, LastBlock, XYKOracleSourceIdentifier::get()), Ok(expected));
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, LastBlock, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
 		// ten minutes oracle not configured/supported
 		assert_eq!(
 			EmaOracle::get_price(asset_a, asset_b, TenMinutes, XYKOracleSourceIdentifier::get()),
 			Err(OracleError::NotPresent)
 		);
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Hour, XYKOracleSourceIdentifier::get()), Ok(expected));
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Day, XYKOracleSourceIdentifier::get()), Ok(expected));
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Week, XYKOracleSourceIdentifier::get()), Ok(expected));
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, Hour, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, Day, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, Week, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
 	});
 }

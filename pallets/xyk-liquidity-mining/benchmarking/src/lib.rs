@@ -22,8 +22,8 @@
 mod mock;
 
 use pallet_liquidity_mining::{GlobalFarmId, LoyaltyCurve, YieldFarmId};
+use pallet_xyk::types::{AssetId, AssetPair, Balance};
 use pallet_xyk_liquidity_mining::Pallet as XYKLiquidityMining;
-use pallet_xyk::types::{AssetPair, AssetId, Balance};
 
 use frame_benchmarking::{account, benchmarks};
 use frame_system::{pallet_prelude::BlockNumberFor, Pallet as System, RawOrigin};
