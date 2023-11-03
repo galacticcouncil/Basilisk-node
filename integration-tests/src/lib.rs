@@ -1,3 +1,6 @@
+// Runtimes with enabled `runtime-benchmarks` feature behave differently.
+// Disable the integration tests when this feature is enabled.
+#![cfg(not(feature = "runtime-benchmarks"))]
 mod call_filter;
 mod cross_chain_transfer;
 mod exchange_asset;
