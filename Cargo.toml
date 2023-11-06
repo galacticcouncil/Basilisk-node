@@ -29,6 +29,8 @@ test-utils = { git = "https://github.com/galacticcouncil/HydraDX-node", branch =
 pallet-xcm-rate-limiter = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "polkadot-v1.1.0", default-features = false }
 pallet-xyk = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "polkadot-v1.1.0", default-features = false }
 pallet-lbp = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "polkadot-v1.1.0", default-features = false }
+hydra-dx-build-script-utils = { git = "https://github.com/galacticcouncil/HydraDX-node", branch = "polkadot-v1.1.0" }
+
 primitive-types = { version = "0.12.0", default-features = false }
 log = "0.4.20"
 
