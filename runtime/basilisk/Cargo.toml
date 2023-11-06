@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "106.0.0"
+version = "107.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -24,8 +24,8 @@ log = { workspace = true }
 # local dependencies
 primitives = { default-features = false, path = "../../primitives" }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
-pallet-xyk-liquidity-mining = { path = "../../pallets/xyk-liquidity-mining", default-features=false}
-pallet-xyk-liquidity-mining-benchmarking = { path = "../../pallets/xyk-liquidity-mining/benchmarking", optional = true, default-features = false}
+pallet-xyk-liquidity-mining = { path = "../../pallets/xyk-liquidity-mining", default-features = false }
+pallet-xyk-liquidity-mining-benchmarking = { path = "../../pallets/xyk-liquidity-mining/benchmarking", optional = true, default-features = false }
 
 pallet-treasury = { workspace = true }
 pallet-democracy = { workspace = true }
