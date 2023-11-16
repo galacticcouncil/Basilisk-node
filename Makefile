@@ -1,7 +1,6 @@
 .PHONY: build
 build:
 	cargo build --release
-	ln -f $(CURDIR)/target/release/basilisk $(CURDIR)/target/release/testing-basilisk
 
 .PHONY: check
 check:
@@ -33,7 +32,7 @@ format:
 
 .PHONY: try-runtime
 try-runtime:
-	cargo run --release --features=try-runtime --bin basilisk try-runtime --runtime ./target/release/wbuild/basilisk-runtime/basilisk_runtime.wasm on-runtime-upgrade --checks live --uri wss://rpc.basilisk.cloud:443
+	try-runtime --runtime ./target/release/wbuild/basilisk-runtime/basilisk_runtime.wasm on-runtime-upgrade --checks all live --uri wss://rpc.basilisk.cloud:443
 
 .PHONY: build-docs
 build-docs:
