@@ -152,4 +152,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn router_execution_buy(_c: u32, _e: u32) -> Weight {
 		Weight::zero()
 	}
+	fn calculate_buy() -> Weight {
+		Weight::zero()
+	}
 }
