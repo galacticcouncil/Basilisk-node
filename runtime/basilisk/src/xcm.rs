@@ -116,22 +116,6 @@ parameter_types! {
 	pub UniversalLocation: InteriorMultiLocation = X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into()));
 }
 
-pub struct TradePassthrough();
-impl WeightTrader for TradePassthrough {
-	fn new() -> Self {
-		Self()
-	}
-
-	fn buy_weight(&mut self, _weight: Weight, payment: Assets, _context: &XcmContext) -> Result<Assets, Error> {
-		// Just let it through for now
-		Ok(payment)
-	}
-
-	fn refund_weight(&mut self, _weight: Weight, _context: &XcmContext) -> Option<MultiAsset> {
-		todo!()
-	}
-}
-
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
