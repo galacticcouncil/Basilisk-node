@@ -75,51 +75,6 @@ type ParachainBackend = TFullBackend<Block>;
 
 type ParachainBlockImport = TParachainBlockImport<Block, Arc<ParachainClient>, ParachainBackend>;
 
-// /// Build the import queue for the parachain runtime.
-// pub fn parachain_build_import_queue<RuntimeApi, Executor>(
-// 	client: Arc<FullClient<RuntimeApi, Executor>>,
-// 	backend: Arc<FullBackend>,
-// 	config: &Configuration,
-// 	telemetry: Option<TelemetryHandle>,
-// 	task_manager: &TaskManager,
-// ) -> Result<sc_consensus::DefaultImportQueue<Block>, sc_service::Error>
-// where
-// 	RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
-// 	RuntimeApi::RuntimeApi: sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block>
-// 		+ sp_api::ApiExt<Block>
-// 		+ sp_block_builder::BlockBuilder<Block>
-// 		+ frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Index>
-// 		+ pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
-// 		+ sp_api::Metadata<Block>
-// 		+ sp_offchain::OffchainWorkerApi<Block>
-// 		+ sp_session::SessionKeys<Block>
-// 		+ sp_consensus_aura::AuraApi<Block, sp_consensus_aura::sr25519::AuthorityId>,
-// 	Executor: NativeExecutionDispatch + 'static,
-// {
-// 	let slot_duration = cumulus_client_consensus_aura::slot_duration(&*client)?;
-//
-// 	cumulus_client_consensus_aura::import_queue::<sp_consensus_aura::sr25519::AuthorityPair, _, _, _, _, _>(
-// 		cumulus_client_consensus_aura::ImportQueueParams {
-// 			block_import: ParachainBlockImport::new(client.clone(), backend.clone()),
-// 			client: client.clone(),
-// 			create_inherent_data_providers: move |_, _| async move {
-// 				let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-//
-// 				let slot = sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
-// 					*timestamp,
-// 					slot_duration,
-// 				);
-//
-// 				Ok((slot, timestamp))
-// 			},
-// 			registry: config.prometheus_registry().clone(),
-// 			spawner: &task_manager.spawn_essential_handle(),
-// 			telemetry,
-// 		},
-// 	)
-// 	.map_err(Into::into)
-// }
-
 /// Starts a `ServiceBuilder` for a full service.
 ///
 /// Use this macro if you don't actually need the full service, but just the builder in order to
@@ -207,29 +162,6 @@ pub fn new_partial(
 		other: (block_import, telemetry, telemetry_worker_handle),
 	})
 }
-
-// /// Build a relay chain interface.
-// /// Will return a minimal relay chain node with RPC
-// /// client or an inprocess node, based on the [`CollatorOptions`] passed in.
-// async fn build_relay_chain_interface(
-// 	polkadot_config: Configuration,
-// 	parachain_config: &Configuration,
-// 	telemetry_worker_handle: Option<TelemetryWorkerHandle>,
-// 	task_manager: &mut TaskManager,
-// 	collator_options: CollatorOptions,
-// ) -> RelayChainResult<(Arc<(dyn RelayChainInterface + 'static)>, Option<CollatorPair>)> {
-// 	if let cumulus_client_cli::RelayChainMode::ExternalRpc(rpc_target_urls) = collator_options.relay_chain_mode {
-// 		build_minimal_relay_chain_node_with_rpc(polkadot_config, task_manager, rpc_target_urls).await
-// 	} else {
-// 		build_inprocess_relay_chain(
-// 			polkadot_config,
-// 			parachain_config,
-// 			telemetry_worker_handle,
-// 			task_manager,
-// 			None,
-// 		)
-// 	}
-// }
 
 /// Start a node with the given parachain `Configuration` and relay chain `Configuration`.
 ///

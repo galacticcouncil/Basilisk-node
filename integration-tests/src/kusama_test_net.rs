@@ -94,7 +94,6 @@ decl_test_parachains! {
 		},
 		pallets = {
 			PolkadotXcm: basilisk_runtime::PolkadotXcm,
-			// Assets: basilisk_runtime::Assets,
 			Balances: basilisk_runtime::Balances,
 		}
 	},
@@ -114,7 +113,6 @@ decl_test_parachains! {
 		},
 		pallets = {
 			PolkadotXcm: basilisk_runtime::PolkadotXcm,
-			// Assets: basilisk_runtime::Assets,
 			Balances: basilisk_runtime::Balances,
 		}
 	}
@@ -127,8 +125,6 @@ decl_test_networks! {
 			OtherParachain,
 			Basilisk,
 		],
-		// TODO: uncomment when https://github.com/paritytech/cumulus/pull/2528 is merged
-		// bridge = KusamaPolkadotMockBridge
 		bridge = ()
 	},
 }
