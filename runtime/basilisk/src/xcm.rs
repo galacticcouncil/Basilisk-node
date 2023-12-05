@@ -37,7 +37,7 @@ pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrency
 use pallet_transaction_multi_payment::DepositAll;
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::{RelayChainBlockNumber, Sibling};
-use polkadot_xcm::v3::{prelude::*, Error, MultiLocation, Weight as XcmWeight};
+use polkadot_xcm::v3::{prelude::*, MultiLocation, Weight as XcmWeight};
 use primitives::AssetId;
 use scale_info::TypeInfo;
 use xcm_builder::{
@@ -46,7 +46,7 @@ use xcm_builder::{
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
 	TakeWeightCredit, WithComputedOrigin,
 };
-use xcm_executor::{traits::WeightTrader, Assets, Config, XcmExecutor};
+use xcm_executor::{Config, XcmExecutor};
 
 #[derive(Debug, Default, Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct AssetLocation(pub MultiLocation);
