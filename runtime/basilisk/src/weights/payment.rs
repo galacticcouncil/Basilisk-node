@@ -76,14 +76,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
-	// Storage: XYK ShareToken (r:1 w:0)
-	// Proof: XYK ShareToken (max_values: None, max_size: Some(52), added: 2527, mode: MaxEncodedLen)
-	// Storage: System Account (r:1 w:0)
-	// Proof: System Account (max_values: None, max_size: Some(128), added: 2603, mode: MaxEncodedLen)
-	// Storage: Tokens Accounts (r:1 w:0)
-	// Proof: Tokens Accounts (max_values: None, max_size: Some(108), added: 2583, mode: MaxEncodedLen)
-	fn get_spot_price() -> Weight {
-		// Minimum execution time: 21_535 nanoseconds.
-		Weight::from_parts(21_794_000, 0).saturating_add(T::DbWeight::get().reads(3 as u64))
+	fn get_oracle_price() -> Weight {
+		// TODO update weights
+		Weight::from_parts(22_029_000, 0)
 	}
 }

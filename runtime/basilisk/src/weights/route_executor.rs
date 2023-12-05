@@ -56,4 +56,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn calculate_and_execute_buy_in_lbp(_c: u32, _b: u32) -> Weight {
 		Weight::zero()
 	}
+	fn set_route_for_xyk() -> Weight {
+		Weight::zero()
+	}
 }

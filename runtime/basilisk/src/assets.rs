@@ -438,17 +438,15 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 	fn buy_and_calculate_buy_trade_amounts_weight(_route: &[Trade<AssetId>]) -> Weight {
 		Weight::zero()
 	}
-}
-
-parameter_types! {
-	pub const MaxNumberOfTrades: u8 = 5;
+	fn set_route_weight(_: &[Trade<AssetId>]) -> Weight {
+		Weight::zero()
+	}
 }
 
 impl pallet_route_executor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type Balance = Balance;
-	type MaxNumberOfTrades = MaxNumberOfTrades;
 	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
 	type AMM = (XYK, LBP);
 	type WeightInfo = RouterWeightInfo;

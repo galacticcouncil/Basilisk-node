@@ -226,10 +226,11 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AcceptedCurrencyOrigin = MajorityTechCommitteeOrRoot;
 	type Currencies = Currencies;
-	type SpotPriceProvider = pallet_xyk::XYKSpotPrice<Runtime>;
 	type WeightInfo = weights::payment::BasiliskWeight<Runtime>;
 	type WeightToFee = WeightToFee;
 	type NativeAssetId = NativeAssetId;
+	type RouteProvider = Router;
+	type OraclePriceProvider = OraclePriceProvider<AssetId, EmaOracle, BSX>;
 }
 
 /// The type used to represent the kinds of proxying allowed.
