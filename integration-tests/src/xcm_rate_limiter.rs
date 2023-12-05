@@ -247,6 +247,7 @@ fn deferred_messages_should_be_executable_by_root() {
 			basilisk_runtime::RuntimeOrigin::root(),
 			max_weight,
 			OTHER_PARA_ID.into(),
+			basilisk_runtime::MaxBucketsProcessed::get(),
 		));
 
 		let fee = basilisk_runtime::Tokens::free_balance(AUSD, &basilisk_runtime::Treasury::account_id());
