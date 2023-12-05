@@ -180,6 +180,12 @@ impl cumulus_pallet_xcm::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
+parameter_types! {
+	pub const MaxDeferredMessages: u32 = 20;
+	pub const MaxDeferredBuckets: u32 = 1_000;
+	pub const MaxBucketsProcessed: u32 = 3;
+}
+
 impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
@@ -191,8 +197,9 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type PriceForSiblingDelivery = ();
 	type WeightInfo = weights::xcmp_queue::BasiliskWeight<Runtime>;
 	type ExecuteDeferredOrigin = EnsureRoot<AccountId>;
-	type MaxDeferredMessages = ConstU32<100>;
-	type MaxDeferredBuckets = ConstU32<1_000>;
+	type MaxDeferredMessages = MaxDeferredMessages;
+	type MaxDeferredBuckets = MaxDeferredBuckets;
+	type MaxBucketsProcessed = MaxBucketsProcessed;
 	type RelayChainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type XcmDeferFilter = XcmRateLimiter;
 }
