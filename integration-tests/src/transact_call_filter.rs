@@ -1,7 +1,7 @@
 #![cfg(test)]
 use crate::kusama_test_net::*;
 
-use frame_support::{assert_ok, weights::Weight};
+use frame_support::{assert_ok, weights::Weight, dispatch::GetDispatchInfo};
 use sp_runtime::codec::Encode;
 
 use polkadot_xcm::latest::prelude::*;
@@ -49,7 +49,7 @@ fn allowed_transact_call_should_pass_filter() {
 				weight_limit: Unlimited,
 			},
 			Transact {
-				require_weight_at_most: Weight::from_parts(10_000_000_000, 0u64),
+				require_weight_at_most: call.get_dispatch_info().weight,
 				origin_kind: OriginKind::SovereignAccount,
 				call: basilisk_runtime::RuntimeCall::Balances(call).encode().into(),
 			},

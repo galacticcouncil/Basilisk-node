@@ -204,12 +204,14 @@ runtime_benchmarks! {
 		let asset_1 = 1u32;
 		let asset_2 = AssetRegistry::create_asset(&b"FCA".to_vec(), Balance::one())?;
 		let asset_3 = AssetRegistry::create_asset(&b"FCB".to_vec(), Balance::one())?;
+		let asset_4 = AssetRegistry::create_asset(&b"FCC".to_vec(), Balance::one())?;
 
-		let caller: AccountId = funded_account("caller", 0, &[asset_1, asset_2,asset_3]);
-		let buyer: AccountId = funded_account("buyer", 1, &[asset_1, asset_2,asset_3]);
+		let caller: AccountId = funded_account("caller", 0, &[asset_1, asset_2, asset_3, asset_4]);
+		let buyer: AccountId = funded_account("buyer", 1, &[asset_1, asset_2, asset_3, asset_4]);
 		create_xyk_pool(asset_1, asset_2);
-		create_xyk_pool(asset_1, asset_3);
 		create_xyk_pool(asset_2, asset_3);
+		create_xyk_pool(asset_3, asset_4);
+		create_xyk_pool(asset_1, asset_3);
 
 		let route = vec![Trade {
 			pool: PoolType::XYK,
@@ -219,11 +221,15 @@ runtime_benchmarks! {
 			pool: PoolType::XYK,
 			asset_in: asset_2,
 			asset_out: asset_3
+		},Trade {
+			pool: PoolType::XYK,
+			asset_in: asset_3,
+			asset_out: asset_4
 		}];
 
 		Router::set_route(
 			RawOrigin::Signed(caller.clone()).into(),
-			AssetPair::new(asset_1, asset_3),
+			AssetPair::new(asset_1, asset_4),
 			route,
 		)?;
 
@@ -231,17 +237,21 @@ runtime_benchmarks! {
 			pool: PoolType::XYK,
 			asset_in: asset_1,
 			asset_out: asset_3
+		},Trade {
+			pool: PoolType::XYK,
+			asset_in: asset_3,
+			asset_out: asset_4
 		}];
 
 	}: {
 		Router::set_route(
 			RawOrigin::Signed(caller.clone()).into(),
-			AssetPair::new(asset_1, asset_3),
+			AssetPair::new(asset_1, asset_4),
 			better_route.clone(),
 		)?;
 	}
 	verify {
-		let stored_route = Router::route(AssetPair::new(asset_1, asset_3)).unwrap();
+		let stored_route = Router::route(AssetPair::new(asset_1, asset_4)).unwrap();
 		assert_eq!(stored_route, better_route);
 	}
 }
@@ -263,7 +273,7 @@ mod tests {
 				(b"LRNA".to_vec(), 1_000u128, Some(1)),
 				(b"DAI".to_vec(), 1_000u128, Some(2)),
 			],
-			native_asset_name: b"HDX".to_vec(),
+			native_asset_name: b"BSX".to_vec(),
 			native_existential_deposit: NativeExistentialDeposit::get(),
 		}
 		.assimilate_storage(&mut t)
