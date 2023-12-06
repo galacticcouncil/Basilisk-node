@@ -72,6 +72,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		//  Estimated: `4087`
 		// Minimum execution time: 36_542_000 picoseconds.
 		Weight::from_parts(36_999_000, 4087)
+			.saturating_mul(CREATE_COLLECTION_OFFSET)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -97,6 +98,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		//  Estimated: `4087`
 		// Minimum execution time: 58_112_000 picoseconds.
 		Weight::from_parts(58_800_000, 4087)
+			.saturating_mul(MINT_OFFSET)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
