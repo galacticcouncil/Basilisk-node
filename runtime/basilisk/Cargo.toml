@@ -163,6 +163,7 @@ runtime-benchmarks = [
     "cumulus-pallet-xcmp-queue/runtime-benchmarks",
     "cumulus-pallet-parachain-system/runtime-benchmarks",
     "pallet-xcm-rate-limiter/runtime-benchmarks",
+    "pallet-elections-phragmen/runtime-benchmarks",
 ]
 std = [
     "codec/std",
