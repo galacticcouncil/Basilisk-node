@@ -34,8 +34,8 @@
 // --heap-pages=4096
 // --template=.maintain/pallet-weight-template-no-back.hbs
 // --pallet=pallet-asset-registry
-// --output=asset_registry.rs
-// --extrinsic=*s
+// --output=weights-1.1.0/asset_registry.rs
+// --extrinsic=*
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -68,8 +68,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `305`
 		//  Estimated: `4087`
-		// Minimum execution time: 45_625_000 picoseconds.
-		Weight::from_parts(46_100_000, 4087)
+		// Minimum execution time: 46_391_000 picoseconds.
+		Weight::from_parts(47_096_000, 4087)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(6_u64))
 	}
@@ -81,8 +81,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `372`
 		//  Estimated: `3552`
-		// Minimum execution time: 28_171_000 picoseconds.
-		Weight::from_parts(28_550_000, 3552)
+		// Minimum execution time: 28_884_000 picoseconds.
+		Weight::from_parts(29_304_000, 3552)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -94,8 +94,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `300`
 		//  Estimated: `3552`
-		// Minimum execution time: 21_215_000 picoseconds.
-		Weight::from_parts(21_570_000, 3552)
+		// Minimum execution time: 21_653_000 picoseconds.
+		Weight::from_parts(21_923_000, 3552)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -109,8 +109,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `274`
 		//  Estimated: `4087`
-		// Minimum execution time: 25_687_000 picoseconds.
-		Weight::from_parts(26_165_000, 4087)
+		// Minimum execution time: 26_980_000 picoseconds.
+		Weight::from_parts(27_406_000, 4087)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}

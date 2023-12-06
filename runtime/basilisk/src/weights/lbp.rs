@@ -34,7 +34,7 @@
 // --heap-pages=4096
 // --template=.maintain/pallet-weight-template-no-back.hbs
 // --pallet=pallet-lbp
-// --output=lbp.rs
+// --output=weights-1.1.0/lbp.rs
 // --extrinsic=*
 
 #![allow(unused_parens)]
@@ -70,8 +70,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `930`
 		//  Estimated: `11322`
-		// Minimum execution time: 147_782_000 picoseconds.
-		Weight::from_parts(148_843_000, 11322)
+		// Minimum execution time: 144_594_000 picoseconds.
+		Weight::from_parts(145_577_000, 11322)
 			.saturating_add(T::DbWeight::get().reads(12_u64))
 			.saturating_add(T::DbWeight::get().writes(8_u64))
 	}
@@ -83,8 +83,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `351`
 		//  Estimated: `3628`
-		// Minimum execution time: 30_786_000 picoseconds.
-		Weight::from_parts(31_252_000, 3628)
+		// Minimum execution time: 30_652_000 picoseconds.
+		Weight::from_parts(31_114_000, 3628)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -100,8 +100,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `1170`
 		//  Estimated: `11322`
-		// Minimum execution time: 102_560_000 picoseconds.
-		Weight::from_parts(103_781_000, 11322)
+		// Minimum execution time: 100_856_000 picoseconds.
+		Weight::from_parts(101_975_000, 11322)
 			.saturating_add(T::DbWeight::get().reads(8_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
@@ -123,8 +123,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `1359`
 		//  Estimated: `11322`
-		// Minimum execution time: 135_938_000 picoseconds.
-		Weight::from_parts(136_846_000, 11322)
+		// Minimum execution time: 133_431_000 picoseconds.
+		Weight::from_parts(134_355_000, 11322)
 			.saturating_add(T::DbWeight::get().reads(10_u64))
 			.saturating_add(T::DbWeight::get().writes(8_u64))
 	}
@@ -142,8 +142,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `1538`
 		//  Estimated: `13905`
-		// Minimum execution time: 223_619_000 picoseconds.
-		Weight::from_parts(225_375_000, 13905)
+		// Minimum execution time: 216_160_000 picoseconds.
+		Weight::from_parts(218_332_000, 13905)
 			.saturating_add(T::DbWeight::get().reads(12_u64))
 			.saturating_add(T::DbWeight::get().writes(7_u64))
 	}
@@ -161,8 +161,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `1538`
 		//  Estimated: `13905`
-		// Minimum execution time: 222_115_000 picoseconds.
-		Weight::from_parts(223_342_000, 13905)
+		// Minimum execution time: 216_459_000 picoseconds.
+		Weight::from_parts(217_991_000, 13905)
 			.saturating_add(T::DbWeight::get().reads(12_u64))
 			.saturating_add(T::DbWeight::get().writes(7_u64))
 	}
@@ -181,13 +181,13 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	fn router_execution_sell(c: u32, e: u32) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `784 + e * (754 ±0)`
-		//  Estimated: `6156 + e * (7749 ±99_524_913_928_918_768)`
-		// Minimum execution time: 65_797_000 picoseconds.
-		Weight::from_parts(66_204_000, 6156)
-			// Standard Error: 607_194
-			.saturating_add(Weight::from_parts(2_356_072, 0).saturating_mul(c.into()))
-			// Standard Error: 1_332_964
-			.saturating_add(Weight::from_parts(163_171_534, 0).saturating_mul(e.into()))
+		//  Estimated: `6156 + e * (7749 ±34_606_984_459_695_172)`
+		// Minimum execution time: 65_605_000 picoseconds.
+		Weight::from_parts(66_090_000, 6156)
+			// Standard Error: 614_731
+			.saturating_add(Weight::from_parts(2_364_398, 0).saturating_mul(c.into()))
+			// Standard Error: 1_349_510
+			.saturating_add(Weight::from_parts(158_869_336, 0).saturating_mul(e.into()))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().reads((9_u64).saturating_mul(e.into())))
 			.saturating_add(T::DbWeight::get().writes((7_u64).saturating_mul(e.into())))
@@ -209,12 +209,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `784 + e * (754 ±0)`
 		//  Estimated: `6156 + e * (7749 ±0)`
-		// Minimum execution time: 116_647_000 picoseconds.
-		Weight::from_parts(117_313_000, 6156)
-			// Standard Error: 753_910
-			.saturating_add(Weight::from_parts(3_692_752, 0).saturating_mul(c.into()))
-			// Standard Error: 2_489_458
-			.saturating_add(Weight::from_parts(135_925_022, 0).saturating_mul(e.into()))
+		// Minimum execution time: 116_794_000 picoseconds.
+		Weight::from_parts(117_321_000, 6156)
+			// Standard Error: 759_399
+			.saturating_add(Weight::from_parts(3_773_334, 0).saturating_mul(c.into()))
+			// Standard Error: 2_507_585
+			.saturating_add(Weight::from_parts(131_536_809, 0).saturating_mul(e.into()))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().reads((9_u64).saturating_mul(e.into())))
 			.saturating_add(T::DbWeight::get().writes((7_u64).saturating_mul(e.into())))
@@ -228,7 +228,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `784`
 		//  Estimated: `6156`
-		// Minimum execution time: 66_271_000 picoseconds.
-		Weight::from_parts(66_643_000, 6156).saturating_add(T::DbWeight::get().reads(3_u64))
+		// Minimum execution time: 65_901_000 picoseconds.
+		Weight::from_parts(66_148_000, 6156).saturating_add(T::DbWeight::get().reads(3_u64))
 	}
 }

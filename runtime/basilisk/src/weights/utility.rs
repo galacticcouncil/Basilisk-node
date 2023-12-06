@@ -34,7 +34,7 @@
 // --heap-pages=4096
 // --template=.maintain/pallet-weight-template-no-back.hbs
 // --pallet=pallet-utility
-// --output=utility.rs
+// --output=weights-1.1.0/utility.rs
 // --extrinsic=*
 
 #![allow(unused_parens)]
@@ -57,43 +57,43 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 10_465_000 picoseconds.
-		Weight::from_parts(27_663_433, 0)
-			// Standard Error: 6_642
-			.saturating_add(Weight::from_parts(6_748_023, 0).saturating_mul(c.into()))
+		// Minimum execution time: 10_682_000 picoseconds.
+		Weight::from_parts(11_477_983, 0)
+			// Standard Error: 8_381
+			.saturating_add(Weight::from_parts(6_924_986, 0).saturating_mul(c.into()))
 	}
 	fn as_derivative() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 7_814_000 picoseconds.
-		Weight::from_parts(8_073_000, 0)
+		// Minimum execution time: 8_012_000 picoseconds.
+		Weight::from_parts(8_236_000, 0)
 	}
 	/// The range of component `c` is `[0, 1000]`.
 	fn batch_all(c: u32) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 10_467_000 picoseconds.
-		Weight::from_parts(19_111_722, 0)
-			// Standard Error: 4_841
-			.saturating_add(Weight::from_parts(7_115_721, 0).saturating_mul(c.into()))
+		// Minimum execution time: 10_691_000 picoseconds.
+		Weight::from_parts(17_408_249, 0)
+			// Standard Error: 5_637
+			.saturating_add(Weight::from_parts(7_299_736, 0).saturating_mul(c.into()))
 	}
 	fn dispatch_as() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 13_379_000 picoseconds.
-		Weight::from_parts(13_619_000, 0)
+		// Minimum execution time: 13_764_000 picoseconds.
+		Weight::from_parts(14_038_000, 0)
 	}
 	/// The range of component `c` is `[0, 1000]`.
 	fn force_batch(c: u32) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 10_366_000 picoseconds.
-		Weight::from_parts(12_968_873, 0)
-			// Standard Error: 5_452
-			.saturating_add(Weight::from_parts(6_756_652, 0).saturating_mul(c.into()))
+		// Minimum execution time: 10_754_000 picoseconds.
+		Weight::from_parts(8_816_518, 0)
+			// Standard Error: 4_938
+			.saturating_add(Weight::from_parts(6_883_918, 0).saturating_mul(c.into()))
 	}
 }

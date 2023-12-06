@@ -34,7 +34,7 @@
 // --heap-pages=4096
 // --template=.maintain/pallet-weight-template-no-back.hbs
 // --pallet=pallet-timestamp
-// --output=timestamp.rs
+// --output=weights-1.1.0/timestamp.rs
 // --extrinsic=*
 
 #![allow(unused_parens)]
@@ -58,8 +58,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `42`
 		//  Estimated: `1493`
-		// Minimum execution time: 10_471_000 picoseconds.
-		Weight::from_parts(10_728_000, 1493)
+		// Minimum execution time: 10_265_000 picoseconds.
+		Weight::from_parts(10_513_000, 1493)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -67,7 +67,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `94`
 		//  Estimated: `0`
-		// Minimum execution time: 5_483_000 picoseconds.
-		Weight::from_parts(5_750_000, 0)
+		// Minimum execution time: 5_546_000 picoseconds.
+		Weight::from_parts(5_705_000, 0)
 	}
 }

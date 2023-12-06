@@ -34,7 +34,7 @@
 // --heap-pages=4096
 // --template=.maintain/pallet-weight-template-no-back.hbs
 // --pallet=pallet-duster
-// --output=duster.rs
+// --output=weights-1.1.0/duster.rs
 // --extrinsic=*
 
 #![allow(unused_parens)]
@@ -68,10 +68,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `MultiTransactionPayment::AccountCurrencyMap` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
 	fn dust_account() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `2388`
+		//  Measured:  `2389`
 		//  Estimated: `6156`
-		// Minimum execution time: 89_696_000 picoseconds.
-		Weight::from_parts(90_507_000, 6156)
+		// Minimum execution time: 90_423_000 picoseconds.
+		Weight::from_parts(91_336_000, 6156)
 			.saturating_add(T::DbWeight::get().reads(7_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
@@ -79,19 +79,19 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `Duster::AccountBlacklist` (`max_values`: None, `max_size`: Some(48), added: 2523, mode: `MaxEncodedLen`)
 	fn add_nondustable_account() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `966`
+		//  Measured:  `967`
 		//  Estimated: `0`
-		// Minimum execution time: 21_498_000 picoseconds.
-		Weight::from_parts(21_926_000, 0).saturating_add(T::DbWeight::get().writes(1_u64))
+		// Minimum execution time: 21_334_000 picoseconds.
+		Weight::from_parts(21_802_000, 0).saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 	/// Storage: `Duster::AccountBlacklist` (r:1 w:1)
 	/// Proof: `Duster::AccountBlacklist` (`max_values`: None, `max_size`: Some(48), added: 2523, mode: `MaxEncodedLen`)
 	fn remove_nondustable_account() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `1287`
+		//  Measured:  `1288`
 		//  Estimated: `3513`
-		// Minimum execution time: 26_697_000 picoseconds.
-		Weight::from_parts(27_090_000, 3513)
+		// Minimum execution time: 26_321_000 picoseconds.
+		Weight::from_parts(26_849_000, 3513)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}

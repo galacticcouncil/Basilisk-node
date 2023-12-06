@@ -34,8 +34,8 @@
 // --heap-pages=4096
 // --template=.maintain/pallet-weight-template-no-back.hbs
 // --pallet=pallet-marketplace
-// --output=marketplace.rs
-// --extrinsic=
+// --output=weights-1.1.0/marketplace.rs
+// --extrinsic=*
 
 #![allow(unused_parens)]
 #![allow(unused_imports)]
@@ -76,10 +76,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `Uniques::ItemPriceOf` (`max_values`: None, `max_size`: Some(113), added: 2588, mode: `MaxEncodedLen`)
 	fn buy() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `2858`
+		//  Measured:  `2859`
 		//  Estimated: `6156`
-		// Minimum execution time: 129_748_000 picoseconds.
-		Weight::from_parts(130_751_000, 6156)
+		// Minimum execution time: 130_029_000 picoseconds.
+		Weight::from_parts(130_806_000, 6156)
 			.saturating_add(T::DbWeight::get().reads(10_u64))
 			.saturating_add(T::DbWeight::get().writes(7_u64))
 	}
@@ -89,10 +89,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `Marketplace::Prices` (`max_values`: None, `max_size`: Some(80), added: 2555, mode: `MaxEncodedLen`)
 	fn set_price() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `1359`
+		//  Measured:  `1360`
 		//  Estimated: `3611`
-		// Minimum execution time: 35_495_000 picoseconds.
-		Weight::from_parts(36_171_000, 3611)
+		// Minimum execution time: 35_699_000 picoseconds.
+		Weight::from_parts(36_340_000, 3611)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -108,10 +108,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `AssetRegistry::Assets` (`max_values`: None, `max_size`: Some(87), added: 2562, mode: `MaxEncodedLen`)
 	fn make_offer() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `1796`
+		//  Measured:  `1797`
 		//  Estimated: `4087`
-		// Minimum execution time: 64_847_000 picoseconds.
-		Weight::from_parts(65_533_000, 4087)
+		// Minimum execution time: 64_370_000 picoseconds.
+		Weight::from_parts(65_044_000, 4087)
 			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -129,10 +129,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `AssetRegistry::Assets` (`max_values`: None, `max_size`: Some(87), added: 2562, mode: `MaxEncodedLen`)
 	fn withdraw_offer() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `2287`
+		//  Measured:  `2288`
 		//  Estimated: `4087`
-		// Minimum execution time: 65_311_000 picoseconds.
-		Weight::from_parts(66_226_000, 4087)
+		// Minimum execution time: 65_488_000 picoseconds.
+		Weight::from_parts(66_451_000, 4087)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
@@ -162,10 +162,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `Uniques::ItemPriceOf` (`max_values`: None, `max_size`: Some(113), added: 2588, mode: `MaxEncodedLen`)
 	fn accept_offer() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `2928`
+		//  Measured:  `2929`
 		//  Estimated: `6156`
-		// Minimum execution time: 155_327_000 picoseconds.
-		Weight::from_parts(157_067_000, 6156)
+		// Minimum execution time: 158_110_000 picoseconds.
+		Weight::from_parts(159_121_000, 6156)
 			.saturating_add(T::DbWeight::get().reads(11_u64))
 			.saturating_add(T::DbWeight::get().writes(8_u64))
 	}
@@ -179,10 +179,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `AssetRegistry::LocationAssets` (`max_values`: None, `max_size`: Some(622), added: 3097, mode: `MaxEncodedLen`)
 	fn add_royalty() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `1609`
+		//  Measured:  `1610`
 		//  Estimated: `4087`
-		// Minimum execution time: 47_072_000 picoseconds.
-		Weight::from_parts(47_584_000, 4087)
+		// Minimum execution time: 47_308_000 picoseconds.
+		Weight::from_parts(47_795_000, 4087)
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}

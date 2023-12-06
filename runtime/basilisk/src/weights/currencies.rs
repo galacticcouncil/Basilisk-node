@@ -34,7 +34,7 @@
 // --heap-pages=4096
 // --template=.maintain/pallet-weight-template-no-back.hbs
 // --pallet=pallet-currencies
-// --output=currencies.rs
+// --output=weights-1.1.0/currencies.rs
 // --extrinsic=*
 
 #![allow(unused_parens)]
@@ -64,10 +64,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `MultiTransactionPayment::AcceptedCurrencies` (`max_values`: None, `max_size`: Some(28), added: 2503, mode: `MaxEncodedLen`)
 	fn transfer_non_native_currency() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `2105`
+		//  Measured:  `2106`
 		//  Estimated: `6156`
-		// Minimum execution time: 93_648_000 picoseconds.
-		Weight::from_parts(94_340_000, 6156)
+		// Minimum execution time: 95_273_000 picoseconds.
+		Weight::from_parts(95_988_000, 6156)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
@@ -75,10 +75,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(128), added: 2603, mode: `MaxEncodedLen`)
 	fn transfer_native_currency() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `1443`
+		//  Measured:  `1444`
 		//  Estimated: `3593`
-		// Minimum execution time: 89_523_000 picoseconds.
-		Weight::from_parts(90_452_000, 3593)
+		// Minimum execution time: 92_596_000 picoseconds.
+		Weight::from_parts(93_466_000, 3593)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -96,10 +96,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `MultiTransactionPayment::AcceptedCurrencies` (`max_values`: None, `max_size`: Some(28), added: 2503, mode: `MaxEncodedLen`)
 	fn update_balance_non_native_currency() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `1896`
+		//  Measured:  `1897`
 		//  Estimated: `3593`
-		// Minimum execution time: 69_939_000 picoseconds.
-		Weight::from_parts(70_719_000, 3593)
+		// Minimum execution time: 71_703_000 picoseconds.
+		Weight::from_parts(72_244_000, 3593)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -107,10 +107,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(128), added: 2603, mode: `MaxEncodedLen`)
 	fn update_balance_native_currency_creating() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `1303`
+		//  Measured:  `1304`
 		//  Estimated: `3593`
-		// Minimum execution time: 51_621_000 picoseconds.
-		Weight::from_parts(52_267_000, 3593)
+		// Minimum execution time: 53_642_000 picoseconds.
+		Weight::from_parts(54_216_000, 3593)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -118,10 +118,10 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(128), added: 2603, mode: `MaxEncodedLen`)
 	fn update_balance_native_currency_killing() -> Weight {
 		// Proof Size summary in bytes:
-		//  Measured:  `1439`
+		//  Measured:  `1440`
 		//  Estimated: `3593`
-		// Minimum execution time: 51_733_000 picoseconds.
-		Weight::from_parts(52_596_000, 3593)
+		// Minimum execution time: 53_388_000 picoseconds.
+		Weight::from_parts(53_917_000, 3593)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
