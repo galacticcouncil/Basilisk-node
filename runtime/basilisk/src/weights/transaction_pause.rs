@@ -54,7 +54,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: TransactionPause PausedTransactions (max_values: None, max_size: None, mode: Measured)
 	fn pause_transaction() -> Weight {
 		// Minimum execution time: 7_829 nanoseconds.
-		Weight::from_parts(8_312_000, 0)
+		Weight::from_ref_time(8_312_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -62,7 +62,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	// Proof Skipped: TransactionPause PausedTransactions (max_values: None, max_size: None, mode: Measured)
 	fn unpause_transaction() -> Weight {
 		// Minimum execution time: 9_161 nanoseconds.
-		Weight::from_parts(9_447_000, 0)
+		Weight::from_ref_time(9_447_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
