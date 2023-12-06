@@ -377,7 +377,6 @@ polkadot-service = { git = "https://github.com/galacticcouncil/polkadot-sdk", br
 polkadot-statement-table = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
 rococo-runtime = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
 westend-runtime = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
-#xcm = { package = "staging-xcm", git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
 polkadot-xcm = { package = "staging-xcm", git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
 xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
 xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
@@ -405,3 +404,15 @@ parachain-info = { git = "https://github.com/galacticcouncil/polkadot-sdk", bran
 cumulus-relay-chain-interface = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
 cumulus-relay-chain-minimal-node = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
 cumulus-relay-chain-inprocess-interface = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
+
+# pallet-transaction-multi-payment depends on pallet-evm from moonbeam. Patch dependencies of this pallet.
+[patch."https://github.com/moonbeam-foundation/polkadot-sdk"]
+frame-benchmarking = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
+frame-support = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
+frame-system = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
+sp-core = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
+sp-io = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
+sp-keystore = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
+sp-runtime = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
+sp-storage = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }
+sp-std = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "apopiak/xcmp-pov-benchmarking" }

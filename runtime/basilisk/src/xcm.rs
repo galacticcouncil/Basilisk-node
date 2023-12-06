@@ -146,7 +146,7 @@ impl Config for XcmConfig {
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetLocker = ();
-	type AssetExchanger = XcmAssetExchanger<Runtime, TempAccount, CurrencyIdConvert, Currencies, DefaultPoolType>;
+	type AssetExchanger = XcmAssetExchanger<Runtime, TempAccount, CurrencyIdConvert, Currencies>;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type PalletInstancesInfo = AllPalletsWithSystem;

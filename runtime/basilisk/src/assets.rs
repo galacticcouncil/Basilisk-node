@@ -18,13 +18,15 @@
 use super::*;
 use crate::governance::{SuperMajorityCouncilOrRoot, SuperMajorityTechCommitteeOrRoot, UnanimousTechCommitteeOrRoot};
 use crate::system::NativeAssetId;
-use adapter::OrmlTokensAdapter;
 
-use hydradx_adapters::inspect::MultiInspectAdapter;
+use pallet_currencies::fungibles::FungibleCurrencies;
 use hydradx_traits::{
-	router::{AmmTradeWeights, Trade},
-	AssetPairAccountIdFor, LockedBalance, OraclePeriod, Source,
+	router::{AmmTradeWeights, PoolType, Trade, inverse_route},
+	AssetPairAccountIdFor, LockedBalance, OnTradeHandler, OraclePeriod, Source,
 };
+use pallet_xyk::weights::WeightInfo as XykWeights;
+use pallet_lbp::weights::WeightInfo as LbpWeights;
+use pallet_route_executor::weights::WeightInfo as RouterWeights;
 use pallet_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, RemoveTxAssetOnKilled};
 use primitives::constants::{
@@ -132,7 +134,7 @@ impl orml_tokens::Config for Runtime {
 // the pallet that contains and emit events and was updated to the polkadot version we use.
 impl pallet_currencies::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type MultiCurrency = OrmlTokensAdapter<Runtime>;
+	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = weights::currencies::BasiliskWeight<Runtime>;
@@ -406,51 +408,212 @@ impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime 
 	type PriceAdjustment = warehouse_liquidity_mining::DefaultPriceAdjustment;
 }
 
-// TODO
+// Provides weight info for the router. Router extrinsics can be executed with different AMMs, so we split the router weights into two parts:
+// the router extrinsic overhead and the AMM weight.
 pub struct RouterWeightInfo;
+// Calculates the overhead of Router extrinsics. To do that, we benchmark Router::sell with single LBP trade and subtract the weight of LBP::sell.
+// This allows us to calculate the weight of any route by adding the weight of AMM trades to the overhead of a router extrinsic.
 impl RouterWeightInfo {
 	pub fn sell_and_calculate_sell_trade_amounts_overhead_weight(
-		_num_of_calc_sell: u32,
-		_num_of_execute_sell: u32,
+		num_of_calc_sell: u32,
+		num_of_execute_sell: u32,
 	) -> Weight {
-		Weight::zero()
+		weights::route_executor::BasiliskWeight::<Runtime>::calculate_and_execute_sell_in_lbp(
+			num_of_calc_sell,
+			num_of_execute_sell,
+		)
+		.saturating_sub(weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(
+			num_of_calc_sell.saturating_add(num_of_execute_sell),
+			num_of_execute_sell,
+		))
 	}
+
 	pub fn buy_and_calculate_buy_trade_amounts_overhead_weight(
-		_num_of_calc_buy: u32,
-		_num_of_execute_buy: u32,
+		num_of_calc_buy: u32,
+		num_of_execute_buy: u32,
 	) -> Weight {
-		Weight::zero()
+		let router_weight = weights::route_executor::BasiliskWeight::<Runtime>::calculate_and_execute_buy_in_lbp(
+			num_of_calc_buy,
+			num_of_execute_buy,
+		);
+		// Handle this case separately. router_execution_buy provides incorrect weight for the case when only calculate_buy is executed.
+		let lbp_weight = if (num_of_calc_buy, num_of_execute_buy) == (1, 0) {
+			weights::lbp::BasiliskWeight::<Runtime>::calculate_buy()
+		} else {
+			weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(
+				num_of_calc_buy.saturating_add(num_of_execute_buy),
+				num_of_execute_buy,
+			)
+		};
+		router_weight.saturating_sub(lbp_weight)
 	}
-}
-impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
-	fn sell_weight(_route: &[Trade<AssetId>]) -> Weight {
-		Weight::zero()
-	}
-	fn buy_weight(_route: &[Trade<AssetId>]) -> Weight {
-		Weight::zero()
-	}
-	fn calculate_buy_trade_amounts_weight(_route: &[Trade<AssetId>]) -> Weight {
-		Weight::zero()
-	}
-	fn sell_and_calculate_sell_trade_amounts_weight(_route: &[Trade<AssetId>]) -> Weight {
-		Weight::zero()
-	}
-	fn buy_and_calculate_buy_trade_amounts_weight(_route: &[Trade<AssetId>]) -> Weight {
-		Weight::zero()
+
+	pub fn set_route_overweight() -> Weight {
+		let number_of_times_calculate_sell_amounts_executed = 5; //4 calculations + in the validation
+		let number_of_times_execute_sell_amounts_executed = 0; //We do have it once executed in the validation of the route, but it is without writing to database (as rolled back), and since we pay back successful set_route, we just keep this overhead
+
+		let set_route_overweight = weights::route_executor::BasiliskWeight::<Runtime>::set_route_for_xyk();
+
+		set_route_overweight.saturating_sub(weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(
+			number_of_times_calculate_sell_amounts_executed,
+			number_of_times_execute_sell_amounts_executed,
+		))
 	}
 }
 
-parameter_types! {
-	pub const MaxNumberOfTrades: u8 = 5;
+impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
+	// Used in Router::sell extrinsic, which calls AMM::calculate_sell and AMM::execute_sell
+	fn sell_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 1; // number of times AMM::calculate_sell is executed
+		let e = 1; // number of times AMM::execute_sell is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(0, 1));
+
+			let amm_weight = match trade.pool {
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
+				_ => Weight::MAX,
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in Router::buy extrinsic, which calls AMM::calculate_buy and AMM::execute_buy
+	fn buy_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 1; // number of times AMM::calculate_buy is executed
+		let e = 1; // number of times AMM::execute_buy is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(0, 1));
+
+			let amm_weight = match trade.pool {
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
+				_ => Weight::MAX,
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in DCA::schedule extrinsic, which calls Router::calculate_buy_trade_amounts
+	fn calculate_buy_trade_amounts_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 1; // number of times AMM::calculate_buy is executed
+		let e = 0; // number of times AMM::execute_buy is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(1, 0));
+
+			let amm_weight = match trade.pool {
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
+				_ => Weight::MAX,
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in DCA::on_initialize for Order::Sell, which calls Router::calculate_sell_trade_amounts and Router::sell.
+	fn sell_and_calculate_sell_trade_amounts_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 2; // number of times AMM::calculate_sell is executed
+		let e = 1; // number of times AMM::execute_sell is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(1, 1));
+
+			let amm_weight = match trade.pool {
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
+				_ => Weight::MAX,
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in DCA::on_initialize for Order::Buy, which calls 2 * Router::calculate_buy_trade_amounts and Router::buy.
+	fn buy_and_calculate_buy_trade_amounts_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 3; // number of times AMM::calculate_buy is executed
+		let e = 1; // number of times AMM::execute_buy is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(2, 1));
+
+			let amm_weight = match trade.pool {
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
+				_ => Weight::MAX,
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	fn set_route_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+
+		//We ignore the calls for AMM:get_liquidty_depth, as the same logic happens in AMM calculation/execution
+
+		//Overweight
+		weight.saturating_accrue(Self::set_route_overweight());
+
+		//Add a sell weight as we do a dry-run sell as validation
+		weight.saturating_accrue(Self::sell_weight(route));
+
+		//For the stored route we expect a worst case with max number of trades in the most expensive pool which is stableswap
+		//We have have two sell calculation for that, normal and inverse
+		// weights::stableswap::BasiliskWeight::<Runtime>::router_execution_sell(2, 0) // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! uncomment
+		// 	.checked_mul(MAX_NUMBER_OF_TRADES.into());
+
+		//Calculate sell amounts for the new route
+		for trade in route {
+			let amm_weight = match trade.pool {
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(1, 0),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(1, 0),
+				_ => Weight::MAX,
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		//Calculate sell amounts for the inversed new route
+		for trade in inverse_route(route.to_vec()) {
+			let amm_weight = match trade.pool {
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(1, 0),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(1, 0),
+				_ => Weight::MAX,
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
 }
 
 impl pallet_route_executor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type Balance = Balance;
-	type MaxNumberOfTrades = MaxNumberOfTrades;
-	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
+	type Currency = FungibleCurrencies<Runtime>;
 	type AMM = (XYK, LBP);
+	type NativeAssetId = NativeAssetId;
 	type WeightInfo = RouterWeightInfo;
 }
 

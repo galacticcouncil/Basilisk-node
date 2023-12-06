@@ -38,6 +38,7 @@ use frame_support::{
 	},
 	PalletId,
 };
+use hydradx_adapters::RelayChainBlockNumberProvider;
 use scale_info::TypeInfo;
 
 /// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
@@ -226,7 +227,8 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AcceptedCurrencyOrigin = MajorityTechCommitteeOrRoot;
 	type Currencies = Currencies;
-	type SpotPriceProvider = pallet_xyk::XYKSpotPrice<Runtime>;
+	type RouteProvider = Router;
+	type OraclePriceProvider = adapter::OraclePriceProvider<AssetId, EmaOracle>;
 	type WeightInfo = weights::payment::BasiliskWeight<Runtime>;
 	type WeightToFee = WeightToFee;
 	type NativeAssetId = NativeAssetId;

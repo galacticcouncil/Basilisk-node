@@ -6,9 +6,18 @@ use orml_traits::{
 	LockIdentifier, MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency, MultiReservableCurrency,
 	NamedMultiReservableCurrency,
 };
+use hydradx_traits::{PriceOracle, OraclePeriod, router::{Trade, PoolType}, AggregatedPriceOracle};
+use hydra_dx_math::{
+	ema::EmaPrice,
+	support::rational::{round_u512_to_rational, Rounding},
+};
+use pallet_ema_oracle::OracleError;
+use primitives::{BlockNumber, constants::chain::XYK_SOURCE};
 use sp_runtime::DispatchError;
+use sp_std::{marker::PhantomData, vec::Vec};
+use primitive_types::U512;
 
-pub struct OrmlTokensAdapter<T>(sp_std::marker::PhantomData<T>);
+pub struct OrmlTokensAdapter<T>(PhantomData<T>);
 
 impl<T: orml_tokens::Config + frame_system::Config> MultiCurrency<T::AccountId> for OrmlTokensAdapter<T> {
 	type CurrencyId = <T as orml_tokens::Config>::CurrencyId;
@@ -279,5 +288,58 @@ impl<T: orml_tokens::Config> NamedMultiReservableCurrency<T::AccountId> for Orml
 			beneficiary,
 			status,
 		)
+	}
+}
+
+pub struct OraclePriceProvider<AssetId, AggregatedPriceGetter>(
+	PhantomData<(AssetId, AggregatedPriceGetter)>,
+);
+
+impl<AssetId, AggregatedPriceGetter> PriceOracle<AssetId>
+	for OraclePriceProvider<AssetId, AggregatedPriceGetter>
+where
+	u32: From<AssetId>,
+	AggregatedPriceGetter: AggregatedPriceOracle<AssetId, BlockNumber, EmaPrice, Error = OracleError>,
+	AssetId: Clone + Copy,
+{
+	type Price = EmaPrice;
+
+	/// We calculate prices for trade (in a route) then making the product of them
+	fn price(route: &[Trade<AssetId>], period: OraclePeriod) -> Option<EmaPrice> {
+		let mut prices: Vec<EmaPrice> = Vec::with_capacity(route.len());
+		for trade in route {
+			let asset_a = trade.asset_in;
+			let asset_b = trade.asset_out;
+			let price = match trade.pool {
+				PoolType::XYK => {
+					let price_result = AggregatedPriceGetter::get_price(asset_a, asset_b, period, XYK_SOURCE);
+
+					match price_result {
+						Ok(price) => price.0,
+						Err(OracleError::SameAsset) => EmaPrice::from(1),
+						Err(_) => return None,
+					}
+				}
+				_ => return None,
+			};
+
+			prices.push(price);
+		}
+
+		if prices.is_empty() {
+			return None;
+		}
+
+		let nominator = prices
+			.iter()
+			.try_fold(U512::from(1u128), |acc, price| acc.checked_mul(U512::from(price.n)))?;
+
+		let denominator = prices
+			.iter()
+			.try_fold(U512::from(1u128), |acc, price| acc.checked_mul(U512::from(price.d)))?;
+
+		let rat_as_u128 = round_u512_to_rational((nominator, denominator), Rounding::Nearest);
+
+		Some(EmaPrice::new(rat_as_u128.0, rat_as_u128.1))
 	}
 }

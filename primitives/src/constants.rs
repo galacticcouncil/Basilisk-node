@@ -96,6 +96,9 @@ pub mod chain {
 
 	/// Discounted XYK fee
 	pub const DISCOUNTED_FEE: (u32, u32) = (7, 10_000); // 0.07%
+
+	/// The source of the data for the oracle.
+	pub const XYK_SOURCE: [u8; 8] = *b"hydraxyk";
 }
 
 #[cfg(test)]

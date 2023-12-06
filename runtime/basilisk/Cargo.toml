@@ -36,6 +36,7 @@ pallet-identity = { workspace = true }
 
 # HydraDX dependencies
 hydradx-traits = { workspace = true }
+hydra-dx-math = { workspace = true }
 pallet-transaction-multi-payment = { workspace = true }
 pallet-relaychain-info = { workspace = true }
 pallet-asset-registry = { workspace = true }
@@ -88,6 +89,7 @@ xcm-executor = { workspace = true }
 polkadot-xcm = { workspace = true }
 
 # Substrate dependencies
+primitive-types = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 frame-executive = { workspace = true }
 frame-support = { workspace = true }

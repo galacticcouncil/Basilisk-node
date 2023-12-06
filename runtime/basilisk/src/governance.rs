@@ -154,7 +154,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type MaxProposals = CouncilMaxProposals;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = (); // TODO
+	type WeightInfo = weights::collective::BasiliskWeight<Runtime>; // use the weights from TechnicalCommittee because we are not able to benchmark both pallets
 	type MaxProposalWeight = MaxProposalWeight;
 	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
@@ -174,7 +174,7 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type MaxProposals = TechnicalMaxProposals;
 	type MaxMembers = TechnicalMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = (); // TODO
+	type WeightInfo = weights::collective::BasiliskWeight<Runtime>;
 	type MaxProposalWeight = MaxProposalWeight;
 	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
