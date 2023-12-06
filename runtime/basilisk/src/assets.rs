@@ -471,11 +471,14 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		for trade in route {
 			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(0, 1));
 
+			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e);
+			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
+
 			let amm_weight = match trade.pool {
-				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e),
-				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
-					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
-				_ => Weight::MAX,
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
 			};
 			weight.saturating_accrue(amm_weight);
 		}
@@ -492,11 +495,14 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		for trade in route {
 			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(0, 1));
 
+			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
+			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
+
 			let amm_weight = match trade.pool {
-				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e),
-				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
-					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
-				_ => Weight::MAX,
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
 			};
 			weight.saturating_accrue(amm_weight);
 		}
@@ -513,11 +519,14 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		for trade in route {
 			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(1, 0));
 
+			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
+			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
+
 			let amm_weight = match trade.pool {
-				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e),
-				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
-					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
-				_ => Weight::MAX,
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
 			};
 			weight.saturating_accrue(amm_weight);
 		}
@@ -534,11 +543,14 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		for trade in route {
 			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(1, 1));
 
+			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e);
+			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
+
 			let amm_weight = match trade.pool {
-				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e),
-				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
-					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
-				_ => Weight::MAX,
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
 			};
 			weight.saturating_accrue(amm_weight);
 		}
@@ -555,11 +567,14 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		for trade in route {
 			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(2, 1));
 
+			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
+			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
+
 			let amm_weight = match trade.pool {
-				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e),
-				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
-					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
-				_ => Weight::MAX,
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
 			};
 			weight.saturating_accrue(amm_weight);
 		}
@@ -583,12 +598,15 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(2, 0)
 			.checked_mul(pallet_route_executor::MAX_NUMBER_OF_TRADES.into());
 
+		let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
+		let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
+
 		//Calculate sell amounts for the new route
 		for trade in route {
 			let amm_weight = match trade.pool {
-				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(1, 0),
-				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(1, 0),
-				_ => Weight::MAX,
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
 			};
 			weight.saturating_accrue(amm_weight);
 		}
@@ -596,9 +614,9 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		//Calculate sell amounts for the inversed new route
 		for trade in inverse_route(route.to_vec()) {
 			let amm_weight = match trade.pool {
-				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(1, 0),
-				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(1, 0),
-				_ => Weight::MAX,
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
 			};
 			weight.saturating_accrue(amm_weight);
 		}
