@@ -1,21 +1,24 @@
 use frame_support::sp_runtime::DispatchResult;
 use frame_support::traits::BalanceStatus;
 use frame_system::pallet_prelude::BlockNumberFor;
+use hydra_dx_math::{
+	ema::EmaPrice,
+	support::rational::{round_u512_to_rational, Rounding},
+};
+use hydradx_traits::{
+	router::{PoolType, Trade},
+	AggregatedPriceOracle, OraclePeriod, PriceOracle,
+};
 use orml_traits::currency::TransferAll;
 use orml_traits::{
 	LockIdentifier, MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency, MultiReservableCurrency,
 	NamedMultiReservableCurrency,
 };
-use hydradx_traits::{PriceOracle, OraclePeriod, router::{Trade, PoolType}, AggregatedPriceOracle};
-use hydra_dx_math::{
-	ema::EmaPrice,
-	support::rational::{round_u512_to_rational, Rounding},
-};
 use pallet_ema_oracle::OracleError;
-use primitives::{BlockNumber, constants::chain::XYK_SOURCE};
+use primitive_types::U512;
+use primitives::BlockNumber;
 use sp_runtime::DispatchError;
 use sp_std::{marker::PhantomData, vec::Vec};
-use primitive_types::U512;
 
 pub struct OrmlTokensAdapter<T>(PhantomData<T>);
 
@@ -291,12 +294,9 @@ impl<T: orml_tokens::Config> NamedMultiReservableCurrency<T::AccountId> for Orml
 	}
 }
 
-pub struct OraclePriceProvider<AssetId, AggregatedPriceGetter>(
-	PhantomData<(AssetId, AggregatedPriceGetter)>,
-);
+pub struct OraclePriceProvider<AssetId, AggregatedPriceGetter>(PhantomData<(AssetId, AggregatedPriceGetter)>);
 
-impl<AssetId, AggregatedPriceGetter> PriceOracle<AssetId>
-	for OraclePriceProvider<AssetId, AggregatedPriceGetter>
+impl<AssetId, AggregatedPriceGetter> PriceOracle<AssetId> for OraclePriceProvider<AssetId, AggregatedPriceGetter>
 where
 	u32: From<AssetId>,
 	AggregatedPriceGetter: AggregatedPriceOracle<AssetId, BlockNumber, EmaPrice, Error = OracleError>,
@@ -312,7 +312,12 @@ where
 			let asset_b = trade.asset_out;
 			let price = match trade.pool {
 				PoolType::XYK => {
-					let price_result = AggregatedPriceGetter::get_price(asset_a, asset_b, period, XYK_SOURCE);
+					let price_result = AggregatedPriceGetter::get_price(
+						asset_a,
+						asset_b,
+						period,
+						crate::XYKOracleSourceIdentifier::get(),
+					);
 
 					match price_result {
 						Ok(price) => price.0,

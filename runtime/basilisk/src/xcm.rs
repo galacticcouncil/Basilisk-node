@@ -264,7 +264,7 @@ impl pallet_xcm::Config for Runtime {
 	type WeightInfo = weights::xcm::BasiliskWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type ReachableDest = ReachableDest;
-	type AdminOrigin = SuperMajorityCouncilOrRoot;
+	type AdminOrigin = SuperMajorityTechCommitteeOrRoot;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 }

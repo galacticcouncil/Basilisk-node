@@ -19,16 +19,16 @@ use super::*;
 use crate::governance::{SuperMajorityCouncilOrRoot, SuperMajorityTechCommitteeOrRoot, UnanimousTechCommitteeOrRoot};
 use crate::system::NativeAssetId;
 
-use pallet_currencies::fungibles::FungibleCurrencies;
 use hydradx_traits::{
-	router::{AmmTradeWeights, PoolType, Trade, inverse_route},
+	router::{inverse_route, AmmTradeWeights, PoolType, Trade},
 	AssetPairAccountIdFor, LockedBalance, OnTradeHandler, OraclePeriod, Source,
 };
-use pallet_xyk::weights::WeightInfo as XykWeights;
+use pallet_currencies::fungibles::FungibleCurrencies;
+use pallet_currencies::BasicCurrencyAdapter;
 use pallet_lbp::weights::WeightInfo as LbpWeights;
 use pallet_route_executor::weights::WeightInfo as RouterWeights;
-use pallet_currencies::BasicCurrencyAdapter;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, RemoveTxAssetOnKilled};
+use pallet_xyk::weights::WeightInfo as XykWeights;
 use primitives::constants::{
 	chain::{DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	currency::{NATIVE_EXISTENTIAL_DEPOSIT, UNITS},
@@ -580,8 +580,8 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 
 		//For the stored route we expect a worst case with max number of trades in the most expensive pool which is stableswap
 		//We have have two sell calculation for that, normal and inverse
-		// weights::stableswap::BasiliskWeight::<Runtime>::router_execution_sell(2, 0) // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! uncomment
-		// 	.checked_mul(MAX_NUMBER_OF_TRADES.into());
+		weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(2, 0)
+			.checked_mul(pallet_route_executor::MAX_NUMBER_OF_TRADES.into());
 
 		//Calculate sell amounts for the new route
 		for trade in route {
@@ -607,6 +607,9 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 	}
 }
 
+parameter_types! {
+	pub DefaultRoutePoolType: PoolType<AssetId> = PoolType::XYK;
+}
 impl pallet_route_executor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
@@ -614,12 +617,13 @@ impl pallet_route_executor::Config for Runtime {
 	type Currency = FungibleCurrencies<Runtime>;
 	type AMM = (XYK, LBP);
 	type NativeAssetId = NativeAssetId;
+	type DefaultRoutePoolType = DefaultRoutePoolType;
 	type WeightInfo = RouterWeightInfo;
 }
 
 parameter_types! {
 	pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<{ pallet_ema_oracle::MAX_PERIODS }>> = BoundedVec::truncate_from(
-		vec![OraclePeriod::LastBlock, OraclePeriod::Hour, OraclePeriod::Day, OraclePeriod::Week]
+		vec![OraclePeriod::LastBlock, OraclePeriod::Short, OraclePeriod::Hour, OraclePeriod::Day, OraclePeriod::Week]
 	);
 	// There are currently only a few pools, so the number of entries per block is limited.
 	// NOTE: Needs to be updated once the number of pools grows.

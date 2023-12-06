@@ -14,11 +14,10 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 	weights::Weight,
 };
-use hydradx_traits::{pools::SpotPriceProvider, NativePriceOracle, AMM};
+use hydradx_traits::AMM;
 use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;
-use pallet_xyk::XYKSpotPrice;
 use primitives::AssetId;
 use xcm_emulator::TestExt;
 
@@ -27,9 +26,11 @@ pub fn basilisk_run_to_next_block() {
 
 	basilisk_runtime::System::on_finalize(b);
 	basilisk_runtime::MultiTransactionPayment::on_finalize(b);
+	basilisk_runtime::EmaOracle::on_finalize(b);
 
 	basilisk_runtime::System::on_initialize(b + 1);
 	basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
+	basilisk_runtime::EmaOracle::on_initialize(b + 1);
 
 	basilisk_runtime::System::set_block_number(b + 1);
 }
@@ -64,7 +65,7 @@ fn non_native_fee_payment_works_with_configured_price() {
 }
 
 #[test]
-fn non_native_fee_payment_works_with_xyk_spot_price() {
+fn non_native_fee_payment_works_with_oracle_price_based_on_onchain_route() {
 	TestNet::reset();
 
 	const NEW_TOKEN: AssetId = 42;
@@ -143,14 +144,6 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 			asset_in: BSX,
 			asset_out: NEW_TOKEN,
 		}));
-
-		let spot_price = XYKSpotPrice::<basilisk_runtime::Runtime>::spot_price(NEW_TOKEN, BSX);
-		assert_eq!(spot_price, Some(Price::from_float(0.5)));
-
-		basilisk_run_to_next_block();
-
-		let pallet_price = basilisk_runtime::MultiTransactionPayment::price(NEW_TOKEN);
-		assert_eq!(spot_price, pallet_price);
 
 		assert_ok!(basilisk_runtime::XYK::buy(
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),

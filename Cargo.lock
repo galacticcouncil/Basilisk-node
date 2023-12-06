@@ -486,9 +486,9 @@ dependencies = [
 
 [[package]]
 name = "array-bytes"
-version = "6.2.0"
+version = "6.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de17a919934ad8c5cc99a1a74de4e2dab95d6121a8f27f94755ff525b630382c"
+checksum = "6f840fb7195bcfc5e17ea40c26e5ce6d5b9ce5d584466e17703209657e459ae0"
 
 [[package]]
 name = "arrayref"
@@ -3022,7 +3022,7 @@ dependencies = [
  "regex",
  "syn 2.0.39",
  "termcolor",
- "toml 0.8.8",
+ "toml 0.8.2",
  "walkdir",
 ]
 
@@ -4577,7 +4577,7 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 [[package]]
 name = "hydra-dx-build-script-utils"
 version = "1.0.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "cargo-lock",
  "platforms 1.1.0",
@@ -4586,7 +4586,7 @@ dependencies = [
 [[package]]
 name = "hydra-dx-math"
 version = "7.6.4"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "fixed",
  "num-traits",
@@ -4601,7 +4601,7 @@ dependencies = [
 [[package]]
 name = "hydradx-adapters"
 version = "1.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -4645,7 +4645,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "2.8.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -6117,9 +6117,9 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "0.8.9"
+version = "0.8.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3dce281c5e46beae905d4de1870d8b1509a9142b62eedf18b443b011ca8343d0"
+checksum = "8f3d0b296e374a4e6f3c7b0a1f5a51d748a0d34c85e7dc48fc3fa9a87657fe09"
 dependencies = [
  "libc",
  "wasi 0.11.0+wasi-snapshot-preview1",
@@ -6801,7 +6801,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "2.3.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7048,7 +7048,7 @@ dependencies = [
 [[package]]
 name = "pallet-circuit-breaker"
 version = "1.1.18"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7064,7 +7064,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-rewards"
 version = "1.0.6"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7136,7 +7136,7 @@ dependencies = [
 [[package]]
 name = "pallet-currencies"
 version = "2.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7171,7 +7171,7 @@ dependencies = [
 [[package]]
 name = "pallet-democracy"
 version = "4.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7187,7 +7187,7 @@ dependencies = [
 [[package]]
 name = "pallet-duster"
 version = "3.2.4"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7206,7 +7206,7 @@ dependencies = [
 [[package]]
 name = "pallet-dynamic-fees"
 version = "1.0.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7278,7 +7278,7 @@ dependencies = [
 [[package]]
 name = "pallet-ema-oracle"
 version = "1.1.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7417,7 +7417,7 @@ dependencies = [
 [[package]]
 name = "pallet-lbp"
 version = "4.7.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7439,7 +7439,7 @@ dependencies = [
 [[package]]
 name = "pallet-liquidity-mining"
 version = "4.2.5"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7548,7 +7548,7 @@ dependencies = [
 [[package]]
 name = "pallet-nft"
 version = "7.1.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7674,7 +7674,7 @@ dependencies = [
 [[package]]
 name = "pallet-omnipool"
 version = "4.0.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "bitflags 1.3.2",
  "frame-support",
@@ -7694,7 +7694,7 @@ dependencies = [
 [[package]]
 name = "pallet-omnipool-liquidity-mining"
 version = "2.0.13"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "bitflags 1.3.2",
  "frame-support",
@@ -7801,7 +7801,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.3.4"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -7816,7 +7816,7 @@ dependencies = [
 [[package]]
 name = "pallet-route-executor"
 version = "1.3.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7908,7 +7908,7 @@ dependencies = [
 [[package]]
 name = "pallet-stableswap"
 version = "3.4.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "bitflags 1.3.2",
  "frame-support",
@@ -7927,7 +7927,7 @@ dependencies = [
 [[package]]
 name = "pallet-staking"
 version = "2.1.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8068,7 +8068,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "9.1.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8089,7 +8089,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-pause"
 version = "1.0.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8266,7 +8266,7 @@ dependencies = [
 [[package]]
 name = "pallet-xcm-rate-limiter"
 version = "0.1.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "cumulus-pallet-xcmp-queue",
  "frame-benchmarking",
@@ -8290,7 +8290,7 @@ dependencies = [
 [[package]]
 name = "pallet-xyk"
 version = "6.3.4"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8455,7 +8455,7 @@ version = "3.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be30eaf4b0a9fba5336683b38de57bb86d179a35862ba6bfcf57625d006bde5b"
 dependencies = [
- "proc-macro-crate 2.0.0",
+ "proc-macro-crate 2.0.1",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
@@ -9993,9 +9993,9 @@ dependencies = [
 
 [[package]]
 name = "portable-atomic"
-version = "1.5.1"
+version = "1.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3bccab0e7fd7cc19f820a1c8c91720af652d0c88dc9664dd72aef2614f04af3b"
+checksum = "7170ef9988bc169ba16dd36a7fa041e5c4cbeb6a35b76d4c03daded371eae7c0"
 
 [[package]]
 name = "powerfmt"
@@ -10086,7 +10086,7 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "6.0.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#6300a42593387a0f350ba32d5812efae41ce24ef"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.1.0#10bc08ddac1b8cd23bbb64e1e70fdaa98842a508"
 dependencies = [
  "frame-support",
  "hex-literal 0.3.4",
@@ -10145,11 +10145,12 @@ dependencies = [
 
 [[package]]
 name = "proc-macro-crate"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e8366a6159044a37876a2b9817124296703c586a5c92e2c53751fa06d8d43e8"
+checksum = "97dc5fea232fc28d2f597b37c4876b348a40e33f3b02cc975c8d006d78d94b1a"
 dependencies = [
- "toml_edit 0.20.7",
+ "toml_datetime",
+ "toml_edit 0.20.2",
 ]
 
 [[package]]
@@ -10680,9 +10681,9 @@ dependencies = [
 
 [[package]]
 name = "ring"
-version = "0.17.6"
+version = "0.17.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "684d5e6e18f669ccebf64a92236bb7db9a34f07be010e3627368182027180866"
+checksum = "688c63d65483050968b2a8937f7995f443e27041a0f7700aa59b0822aedebb74"
 dependencies = [
  "cc",
  "getrandom 0.2.11",
@@ -11090,7 +11091,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "629648aced5775d558af50b2b4c7b02983a04b312126d45eeead26e7caa498b9"
 dependencies = [
  "log",
- "ring 0.17.6",
+ "ring 0.17.7",
  "rustls-webpki",
  "sct 0.7.1",
 ]
@@ -11122,7 +11123,7 @@ version = "0.101.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b6275d1ee7a1cd780b64aca7726599a1dbc893b1e64144529e55c3c2f745765"
 dependencies = [
- "ring 0.17.6",
+ "ring 0.17.7",
  "untrusted 0.9.0",
 ]
 
@@ -12375,7 +12376,7 @@ version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "da046153aa2352493d6cb7da4b6e5c0c057d8a1d0a9aa8560baffdd945acd414"
 dependencies = [
- "ring 0.17.6",
+ "ring 0.17.7",
  "untrusted 0.9.0",
 ]
 
@@ -12832,7 +12833,7 @@ dependencies = [
  "chacha20poly1305",
  "curve25519-dalek 4.1.1",
  "rand_core 0.6.4",
- "ring 0.17.6",
+ "ring 0.17.7",
  "rustc_version",
  "sha2 0.10.8",
  "subtle",
@@ -14528,21 +14529,21 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.8.8"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1a195ec8c9da26928f773888e0742ca3ca1040c6cd859c919c9f59c1954ab35"
+checksum = "185d8ab0dfbb35cf1399a6344d8484209c088f75f8f68230da55d48d95d43e3d"
 dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_edit 0.21.0",
+ "toml_edit 0.20.2",
 ]
 
 [[package]]
 name = "toml_datetime"
-version = "0.6.5"
+version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3550f4e9685620ac18a50ed434eb3aec30db8ba93b0287467bca5826ea25baf1"
+checksum = "7cda73e2f1397b1262d6dfdcef8aafae14d1de7748d66822d3bfeeb6d03e5e4b"
 dependencies = [
  "serde",
 ]
@@ -14562,20 +14563,9 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.20.7"
+version = "0.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70f427fce4d84c72b5b732388bf4a9f4531b53f74e2887e3ecb2481f68f66d81"
-dependencies = [
- "indexmap 2.1.0",
- "toml_datetime",
- "winnow",
-]
-
-[[package]]
-name = "toml_edit"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d34d383cd00a163b4a5b85053df514d45bc330f6de7737edfe0a93311d1eaa03"
+checksum = "396e4d48bbb2b7554c944bde63101b5ae446cff6ec4a24227428f15eb72ef338"
 dependencies = [
  "indexmap 2.1.0",
  "serde",
@@ -15490,7 +15480,7 @@ version = "0.22.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed63aea5ce73d0ff405984102c42de94fc55a6b75765d621c65262469b3c9b53"
 dependencies = [
- "ring 0.17.6",
+ "ring 0.17.7",
  "untrusted 0.9.0",
 ]
 
@@ -16108,9 +16098,9 @@ checksum = "dff9641d1cd4be8d1a070daf9e3773c5f67e78b4d9d42263020c057706765c04"
 
 [[package]]
 name = "winnow"
-version = "0.5.24"
+version = "0.5.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0383266b19108dfc6314a56047aa545a1b4d1be60e799b4dbdd407b56402704b"
+checksum = "b7e87b8dfbe3baffbe687eef2e164e32286eff31a5ee16463ce03d991643ec94"
 dependencies = [
  "memchr",
 ]
