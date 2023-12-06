@@ -578,7 +578,7 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		//Add a sell weight as we do a dry-run sell as validation
 		weight.saturating_accrue(Self::sell_weight(route));
 
-		//For the stored route we expect a worst case with max number of trades in the most expensive pool which is stableswap
+		//For the stored route we expect a worst case with max number of trades in the most expensive pool which is LBP
 		//We have have two sell calculation for that, normal and inverse
 		weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(2, 0)
 			.checked_mul(pallet_route_executor::MAX_NUMBER_OF_TRADES.into());
