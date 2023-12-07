@@ -64,20 +64,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	/// Proof: `AssetRegistry::Assets` (`max_values`: None, `max_size`: Some(87), added: 2562, mode: `MaxEncodedLen`)
 	/// The range of component `c` is `[0, 1]`.
 	/// The range of component `s` is `[0, 1]`.
-	fn calculate_and_execute_sell_in_lbp(c: u32, s: u32) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1600 + s * (1192 ±0)`
-		//  Estimated: `256132379456316 + s * (7749 ±0)`
-		// Minimum execution time: 72_895_000 picoseconds.
-		Weight::from_parts(19_358_860, 256132379456316)
-			// Standard Error: 201_208
-			.saturating_add(Weight::from_parts(54_435_286, 0).saturating_mul(c.into()))
-			// Standard Error: 201_208
-			.saturating_add(Weight::from_parts(298_828_852, 0).saturating_mul(s.into()))
-			.saturating_add(T::DbWeight::get().reads(3_u64))
-			.saturating_add(T::DbWeight::get().reads((9_u64).saturating_mul(s.into())))
-			.saturating_add(T::DbWeight::get().writes((7_u64).saturating_mul(s.into())))
-			.saturating_add(Weight::from_parts(0, 7749).saturating_mul(s.into()))
+	fn calculate_and_execute_sell_in_lbp(_c: u32) -> Weight {
+		Weight::from_parts(0, 0)
 	}
 	/// Storage: `LBP::PoolData` (r:1 w:0)
 	/// Proof: `LBP::PoolData` (`max_values`: None, `max_size`: Some(163), added: 2638, mode: `MaxEncodedLen`)
