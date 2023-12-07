@@ -1,7 +1,7 @@
 #![cfg(test)]
 use crate::kusama_test_net::*;
 
-use frame_support::{assert_ok, weights::Weight, dispatch::GetDispatchInfo};
+use frame_support::{assert_ok, dispatch::GetDispatchInfo, weights::Weight};
 use sp_runtime::codec::Encode;
 
 use polkadot_xcm::latest::prelude::*;
