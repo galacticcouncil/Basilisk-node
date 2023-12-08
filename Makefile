@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	cargo build --release
+	cargo build --release --locked
 
 .PHONY: check
 check:
@@ -12,7 +12,11 @@ build-benchmarks:
 
 .PHONY: test
 test:
-	cargo test --release
+	cargo test --locked
+
+.PHONY: test-release
+test-release:
+	cargo test --release --locked
 
 .PHONY: test-benchmarks
 test-benchmarks:
@@ -33,6 +37,7 @@ format:
 
 .PHONY: try-runtime
 try-runtime:
+	cargo build --release --features try-runtime
 	try-runtime --runtime ./target/release/wbuild/basilisk-runtime/basilisk_runtime.wasm on-runtime-upgrade --checks all live --uri wss://rpc.basilisk.cloud:443
 
 .PHONY: build-docs
@@ -57,3 +62,6 @@ checksum:
 release: build checksum
 
 all: clippy test test-benchmarks build build-benchmarks checksum
+
+chopstics: release
+	npx @acala-network/chopsticks --parachain=launch-configs/chopsticks/basilisk.yml
