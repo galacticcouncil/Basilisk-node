@@ -27,8 +27,7 @@ impl OnRuntimeUpgrade for OnRuntimeUpgradeMigration {
 		log::info!("Migrate Collator Selection Pallet to v1 end");
 
 		log::info!("Migrate Collator Rewards Pallet to v1 start");
-		weight = weight
-			.saturating_add(pallet_collator_rewards::migration::v1::migrate::<Runtime>());
+		weight = weight.saturating_add(pallet_collator_rewards::migration::v1::migrate::<Runtime>());
 		log::info!("Migrate Collator Rewards Pallet to v1 end");
 
 		log::info!("Migrate Unknown Tokens Pallet to v2 start");
