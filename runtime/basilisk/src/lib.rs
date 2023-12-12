@@ -262,7 +262,9 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsReversedWithSystemFirst,
-	(migrations::OnRuntimeUpgradeMigration,),
+	(migrations::OnRuntimeUpgradeMigration,
+	pallet_transaction_pause::migration::v1::Migration<Runtime>,
+	),
 >;
 
 impl_runtime_apis! {
