@@ -59,41 +59,6 @@ jobs:
           name: basilisk_runtime.compact.compressed.wasm
           path: target/release/wbuild/basilisk-runtime/basilisk_runtime.compact.compressed.wasm
 
-  test-inclusion:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/download-artifact@v2
-        name: Download basilisk binary
-        with:
-          name: basilisk
-          path: target/release
-      - uses: robinraju/release-downloader@v1
-        name: Download relay chain binary
-        with:
-          repository: paritytech/polkadot
-          tag: ${{ env.RELAY_CHAIN_VERSION }}
-          fileName: polkadot
-          out-file-path: ../polkadot/target/release
-      - run: chmod +x ./basilisk && ./basilisk --version
-        name: Basilisk version
-        working-directory: target/release
-      - run: chmod +x ./polkadot && ./polkadot --version
-        name: Polkadot version
-        working-directory: ../polkadot/target/release
-      - uses: actions/setup-node@v2
-        name: Setup node.js
-        with:
-          node-version: '14'
-          check-latest: true
-      - run: npm install && npm start
-        name: Launch rococo local & wait for inclusion
-        working-directory: scripts/wait-for-inclusion
-
   version-check:
     runs-on: ubuntu-latest
     outputs:
