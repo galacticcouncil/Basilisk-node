@@ -37,7 +37,7 @@
 * *PARACHAIN* - `coll-01` - `127.0.0.1:3344`, `127.0.0.1:3333`
 
 ## Useful commands
-* start/stop parchain and relaychain with one cmd `./fork-testing.sh --start/--stop`
+* start/stop parachain and relaychain with one cmd `./fork-testing.sh --start/--stop`
 * generate `local` chainspec `../target/release/basilisk build-spec --chain local --raw > local-raw.json`
 * view logs relaychain `docker-compose --env-file env -f relaychain.yml logs --tail=100 -f {alice|bob|charlie|dave}` 
 * view logs parachain `docker-compose --env-file env -f parachain.yml logs --tail=100 -f {coll-01|coll-02|coll-03}`
