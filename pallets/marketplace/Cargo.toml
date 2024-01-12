@@ -1,7 +1,7 @@
 [package]
 name = "pallet-marketplace"
 version = "5.0.15"
-authors = ["GalacticCoucil"]
+authors = ["GalacticCouncil"]
 description = "The marketplace for trading NFTs"
 edition = "2018"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
