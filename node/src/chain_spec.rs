@@ -21,8 +21,8 @@
 
 use basilisk_runtime::{
 	AccountId, AssetRegistryConfig, AuraId, Balance, BalancesConfig, CollatorSelectionConfig, CouncilConfig,
-	DusterConfig, ElectionsConfig, GenesisConfig, MultiTransactionPaymentConfig, ParachainInfoConfig, SessionConfig,
-	Signature, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, WASM_BINARY,
+	DusterConfig, ElectionsConfig, MultiTransactionPaymentConfig, ParachainInfoConfig, RuntimeGenesisConfig,
+	SessionConfig, Signature, SystemConfig, TechnicalCommitteeConfig, TokensConfig, VestingConfig, WASM_BINARY,
 };
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
@@ -67,7 +67,7 @@ impl Extensions {
 }
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
+pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;
 
 /// Generate a crypto pair from seed.
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -643,11 +643,12 @@ fn parachain_genesis(
 	_endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
 	parachain_id: ParaId,
-) -> GenesisConfig {
-	GenesisConfig {
+) -> RuntimeGenesisConfig {
+	RuntimeGenesisConfig {
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
 			code: wasm_binary.to_vec(),
+			..Default::default()
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of a lot.
@@ -721,7 +722,10 @@ fn parachain_genesis(
 			phantom: Default::default(),
 		},
 		vesting: VestingConfig { vesting: vec![] },
-		parachain_info: ParachainInfoConfig { parachain_id },
+		parachain_info: ParachainInfoConfig {
+			parachain_id,
+			..Default::default()
+		},
 		aura_ext: Default::default(),
 		duster: DusterConfig {
 			// treasury
@@ -748,11 +752,12 @@ fn testnet_parachain_genesis(
 	registered_assets: Vec<(Vec<u8>, Balance, Option<AssetId>)>, // (Asset name, Existential deposit, Chosen asset id)
 	accepted_assets: Vec<(AssetId, Price)>, // (Asset id, Fallback price) - asset which fee can be paid with
 	elections: Vec<AccountId>,
-) -> GenesisConfig {
-	GenesisConfig {
+) -> RuntimeGenesisConfig {
+	RuntimeGenesisConfig {
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
 			code: wasm_binary.to_vec(),
+			..Default::default()
 		},
 		balances: BalancesConfig {
 			// Configure endowed accounts with initial balance of a lot.
@@ -825,7 +830,10 @@ fn testnet_parachain_genesis(
 			phantom: Default::default(),
 		},
 		vesting: VestingConfig { vesting: vesting_list },
-		parachain_info: ParachainInfoConfig { parachain_id },
+		parachain_info: ParachainInfoConfig {
+			parachain_id,
+			..Default::default()
+		},
 		aura_ext: Default::default(),
 		duster: DusterConfig {
 			account_blacklist: vec![get_account_id_from_seed::<sr25519::Public>("Duster")],

@@ -30,14 +30,15 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
-	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill},
-	traits::{Contains, InstanceFilter},
+	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill, RuntimeDebug},
+	traits::{ConstBool, Contains, InstanceFilter},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_MICROS},
 		ConstantMultiplier, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
-	PalletId, RuntimeDebug,
+	PalletId,
 };
+use hydradx_adapters::RelayChainBlockNumberProvider;
 use scale_info::TypeInfo;
 
 /// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
@@ -82,7 +83,7 @@ parameter_types! {
 	/// Basilisk base weight of an extrinsic
 	/// This includes weight for payment in non-native currency.
 	// Default substrate base weight is 125 * WEIGHT_PER_MICROS
-	pub const BasiliskExtrinsicBaseWeight: Weight = Weight::from_ref_time(200 * WEIGHT_REF_TIME_PER_MICROS);
+	pub const BasiliskExtrinsicBaseWeight: Weight = Weight::from_parts(200 * WEIGHT_REF_TIME_PER_MICROS, 0);
 	pub const Version: RuntimeVersion = VERSION;
 	/// Block weights base values and limits.
 	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights::builder()
@@ -116,9 +117,9 @@ impl frame_system::Config for Runtime {
 	/// The aggregated dispatch type that is available for extrinsics.
 	type RuntimeCall = RuntimeCall;
 	/// The index type for storing how many extrinsics an account has signed.
-	type Index = Index;
+	type Nonce = Index;
 	/// The index type for blocks.
-	type BlockNumber = BlockNumber;
+	type Block = Block;
 	/// The type for hashing blocks and tries.
 	type Hash = Hash;
 	/// The hashing algorithm used.
@@ -127,8 +128,6 @@ impl frame_system::Config for Runtime {
 	type AccountId = AccountId;
 	/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
 	type Lookup = IdentityLookup<AccountId>;
-	/// The header type.
-	type Header = generic::Header<BlockNumber, BlakeTwo256>;
 	/// The ubiquitous event type.
 	type RuntimeEvent = RuntimeEvent;
 	/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
@@ -228,7 +227,8 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AcceptedCurrencyOrigin = MajorityTechCommitteeOrRoot;
 	type Currencies = Currencies;
-	type SpotPriceProvider = pallet_xyk::XYKSpotPrice<Runtime>;
+	type RouteProvider = Router;
+	type OraclePriceProvider = adapter::OraclePriceProvider<AssetId, EmaOracle>;
 	type WeightInfo = weights::payment::BasiliskWeight<Runtime>;
 	type WeightToFee = WeightToFee;
 	type NativeAssetId = NativeAssetId;
@@ -331,6 +331,7 @@ impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
 	type MaxAuthorities = MaxAuthorities;
 	type DisabledValidators = ();
+	type AllowMultipleBlocksPerSlot = ConstBool<false>;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -352,7 +353,6 @@ impl pallet_authorship::Config for Runtime {
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
 	pub const MaxCandidates: u32 = 20;
-	pub const MinCandidates: u32 = 4;
 	pub const MaxInvulnerables: u32 = 50;
 }
 
@@ -362,7 +362,6 @@ impl pallet_collator_selection::Config for Runtime {
 	type UpdateOrigin = MajorityTechCommitteeOrRoot;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
-	type MinCandidates = MinCandidates;
 	type MaxInvulnerables = MaxInvulnerables;
 	// should be a multiple of session or things will get inconsistent
 	type KickThreshold = Period;
@@ -370,6 +369,7 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
 	type WeightInfo = weights::collator_selection::BasiliskWeight<Runtime>;
+	type MinEligibleCollators = ConstU32<4>;
 }
 
 parameter_types! {
@@ -426,6 +426,7 @@ impl pallet_collator_rewards::Config for Runtime {
 	// We wrap the ` SessionManager` implementation of `CollatorSelection` to get the collatrs that
 	// we hand out rewards to.
 	type SessionManager = CollatorSelection;
+	type MaxCandidates = MaxInvulnerables;
 }
 
 parameter_types! {

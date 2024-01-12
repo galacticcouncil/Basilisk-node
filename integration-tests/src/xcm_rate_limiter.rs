@@ -14,12 +14,12 @@ pub const EVE: [u8; 32] = [8u8; 32];
 /// Returns the message hash in the `XcmpMessageSent` event at the `n`th last event (1-indexed, so if the second to last
 /// event has the hash, pass `2`);
 fn get_message_hash_from_event(n: usize) -> Option<[u8; 32]> {
+	use basilisk_runtime::RuntimeEvent;
 	use cumulus_pallet_xcmp_queue::Event;
-	use parachain_runtime_mock::RuntimeEvent;
 	let RuntimeEvent::XcmpQueue(Event::XcmpMessageSent { message_hash }) = &last_parachain_events(n)[0] else {
 		panic!("expecting to find message sent event");
 	};
-	*message_hash
+	Some(*message_hash)
 }
 
 // NOTE: Tests disabled until toggling the `runtime-benchmarks` feature no longer fails these tests.
@@ -53,10 +53,10 @@ fn xcm_rate_limiter_should_limit_aca_when_limit_is_exceeded() {
 	let amount = 100 * UNITS;
 	let mut message_hash = None;
 	OtherParachain::execute_with(|| {
-		assert!(parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)) >= amount);
+		assert!(basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)) >= amount);
 		// Act
-		assert_ok!(parachain_runtime_mock::XTokens::transfer(
-			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			0,
 			amount,
 			Box::new(
@@ -69,12 +69,12 @@ fn xcm_rate_limiter_should_limit_aca_when_limit_is_exceeded() {
 				)
 				.into()
 			),
-			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
+			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 
 		// Assert
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - amount
 		);
 
@@ -87,6 +87,8 @@ fn xcm_rate_limiter_should_limit_aca_when_limit_is_exceeded() {
 				sender: OTHER_PARA_ID.into(),
 				sent_at: 3,
 				deferred_to: basilisk_runtime::DeferDuration::get() + 4,
+				index: (1, 1),
+				position: 1,
 				message_hash,
 			}
 			.into(),
@@ -127,8 +129,8 @@ fn xcm_rate_limiter_should_not_limit_aca_when_limit_is_not_exceeded() {
 	let amount = 100 * UNITS;
 	OtherParachain::execute_with(|| {
 		// Act
-		assert_ok!(parachain_runtime_mock::XTokens::transfer(
-			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			0,
 			amount,
 			Box::new(
@@ -141,12 +143,12 @@ fn xcm_rate_limiter_should_not_limit_aca_when_limit_is_not_exceeded() {
 				)
 				.into()
 			),
-			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
+			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 
 		// Assert
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - amount
 		);
 	});
@@ -188,13 +190,13 @@ fn deferred_messages_should_be_executable_by_root() {
 
 	let amount = 100 * UNITS;
 	let mut message_hash = None;
-	let max_weight = Weight::from_ref_time(399_600_000_000);
+	let max_weight = Weight::from_parts(399_600_000_000, 0);
 
 	OtherParachain::execute_with(|| {
-		assert!(parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)) >= amount);
+		assert!(basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)) >= amount);
 		// Act
-		assert_ok!(parachain_runtime_mock::XTokens::transfer(
-			parachain_runtime_mock::RuntimeOrigin::signed(ALICE.into()),
+		assert_ok!(basilisk_runtime::XTokens::transfer(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			0,
 			amount,
 			Box::new(
@@ -207,12 +209,12 @@ fn deferred_messages_should_be_executable_by_root() {
 				)
 				.into()
 			),
-			WeightLimit::Limited(Weight::from_ref_time(399_600_000_000))
+			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
 
 		// Assert
 		assert_eq!(
-			parachain_runtime_mock::Balances::free_balance(&AccountId::from(ALICE)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
 			ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN - amount
 		);
 
@@ -225,6 +227,8 @@ fn deferred_messages_should_be_executable_by_root() {
 				sender: OTHER_PARA_ID.into(),
 				sent_at: 3,
 				deferred_to: basilisk_runtime::DeferDuration::get() + 4,
+				index: (1, 1),
+				position: 1,
 				message_hash,
 			}
 			.into(),
@@ -243,6 +247,7 @@ fn deferred_messages_should_be_executable_by_root() {
 			basilisk_runtime::RuntimeOrigin::root(),
 			max_weight,
 			OTHER_PARA_ID.into(),
+			basilisk_runtime::MaxBucketsProcessed::get(),
 		));
 
 		let fee = basilisk_runtime::Tokens::free_balance(AUSD, &basilisk_runtime::Treasury::account_id());

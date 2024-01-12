@@ -18,22 +18,29 @@
 use super::*;
 use crate::governance::{SuperMajorityCouncilOrRoot, SuperMajorityTechCommitteeOrRoot, UnanimousTechCommitteeOrRoot};
 use crate::system::NativeAssetId;
-use adapter::OrmlTokensAdapter;
 
-use hydradx_adapters::inspect::MultiInspectAdapter;
-use hydradx_traits::{AssetPairAccountIdFor, LockedBalance, OraclePeriod};
+use hydradx_traits::{
+	router::{inverse_route, AmmTradeWeights, PoolType, Trade},
+	AssetPairAccountIdFor, LockedBalance, OnTradeHandler, OraclePeriod, Source,
+};
+use pallet_currencies::fungibles::FungibleCurrencies;
 use pallet_currencies::BasicCurrencyAdapter;
+use pallet_lbp::weights::WeightInfo as LbpWeights;
+use pallet_route_executor::weights::WeightInfo as RouterWeights;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, RemoveTxAssetOnKilled};
+use pallet_xyk::weights::WeightInfo as XykWeights;
 use primitives::constants::{
 	chain::{DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	currency::{NATIVE_EXISTENTIAL_DEPOSIT, UNITS},
 };
 
-use codec::Decode;
 use frame_support::{
 	parameter_types,
 	sp_runtime::{app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero},
-	traits::{AsEnsureOriginWithArg, Contains, Defensive, EnsureOrigin, Get, LockIdentifier, NeverEnsureOrigin},
+	traits::{
+		AsEnsureOriginWithArg, Contains, Currency, Defensive, EnsureOrigin, Get, Imbalance, LockIdentifier,
+		NeverEnsureOrigin, OnUnbalanced,
+	},
 	BoundedVec, PalletId,
 };
 use frame_system::RawOrigin;
@@ -60,10 +67,21 @@ parameter_types! {
 	pub const MaxReserves: u32 = 50;
 }
 
+// pallet-treasury did not impl OnUnbalanced<Credit>, need an adapter to handle dust.
+type CreditOf = frame_support::traits::fungible::Credit<<Runtime as frame_system::Config>::AccountId, Balances>;
+type NegativeImbalance = <Balances as Currency<AccountId>>::NegativeImbalance;
+pub struct DustRemovalAdapter;
+impl OnUnbalanced<CreditOf> for DustRemovalAdapter {
+	fn on_nonzero_unbalanced(amount: CreditOf) {
+		let new_amount = NegativeImbalance::new(amount.peek());
+		Treasury::on_nonzero_unbalanced(new_amount);
+	}
+}
+
 impl pallet_balances::Config for Runtime {
 	/// The type for recording an account's balance.
 	type Balance = Balance;
-	type DustRemoval = Treasury;
+	type DustRemoval = DustRemovalAdapter;
 	type RuntimeEvent = RuntimeEvent;
 	/// The ubiquitous event type.
 	type ExistentialDeposit = NativeExistentialDeposit;
@@ -72,6 +90,10 @@ impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxFreezes = ();
+	type MaxHolds = ();
+	type RuntimeHoldReason = ();
 }
 
 pub struct CurrencyHooks;
@@ -112,7 +134,7 @@ impl orml_tokens::Config for Runtime {
 // the pallet that contains and emit events and was updated to the polkadot version we use.
 impl pallet_currencies::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type MultiCurrency = OrmlTokensAdapter<Runtime>;
+	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = weights::currencies::BasiliskWeight<Runtime>;
@@ -177,6 +199,7 @@ parameter_types! {
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 	pub const RegistryStrLimit: u32 = 32;
 	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
+	pub const XYKOracleSourceIdentifier: Source = *b"snek/xyk";
 }
 
 impl pallet_xyk::Config for Runtime {
@@ -191,6 +214,7 @@ impl pallet_xyk::Config for Runtime {
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
+	type OracleSource = XYKOracleSourceIdentifier;
 	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
 	type AMMHandler = pallet_ema_oracle::OnActivityHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
@@ -245,6 +269,9 @@ impl pallet_lbp::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
+
+#[cfg(feature = "runtime-benchmarks")]
+use codec::Decode;
 
 pub struct RootAsVestingPallet;
 impl EnsureOrigin<RuntimeOrigin> for RootAsVestingPallet {
@@ -381,23 +408,237 @@ impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime 
 	type PriceAdjustment = warehouse_liquidity_mining::DefaultPriceAdjustment;
 }
 
-parameter_types! {
-	pub const MaxNumberOfTrades: u8 = 5;
+// Provides weight info for the router. Router extrinsics can be executed with different AMMs, so we split the router weights into two parts:
+// the router extrinsic overhead and the AMM weight.
+pub struct RouterWeightInfo;
+// Calculates the overhead of Router extrinsics. To do that, we benchmark Router::sell with single LBP trade and subtract the weight of LBP::sell.
+// This allows us to calculate the weight of any route by adding the weight of AMM trades to the overhead of a router extrinsic.
+impl RouterWeightInfo {
+	pub fn sell_and_calculate_sell_trade_amounts_overhead_weight(
+		num_of_calc_sell: u32,
+		num_of_execute_sell: u32,
+	) -> Weight {
+		weights::route_executor::BasiliskWeight::<Runtime>::calculate_and_execute_sell_in_lbp(num_of_calc_sell)
+			.saturating_sub(weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(
+				num_of_calc_sell.saturating_add(num_of_execute_sell),
+				num_of_execute_sell,
+			))
+	}
+
+	pub fn buy_and_calculate_buy_trade_amounts_overhead_weight(
+		num_of_calc_buy: u32,
+		num_of_execute_buy: u32,
+	) -> Weight {
+		let router_weight = weights::route_executor::BasiliskWeight::<Runtime>::calculate_and_execute_buy_in_lbp(
+			num_of_calc_buy,
+			num_of_execute_buy,
+		);
+		// Handle this case separately. router_execution_buy provides incorrect weight for the case when only calculate_buy is executed.
+		let lbp_weight = if (num_of_calc_buy, num_of_execute_buy) == (1, 0) {
+			weights::lbp::BasiliskWeight::<Runtime>::calculate_buy()
+		} else {
+			weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(
+				num_of_calc_buy.saturating_add(num_of_execute_buy),
+				num_of_execute_buy,
+			)
+		};
+		router_weight.saturating_sub(lbp_weight)
+	}
+
+	pub fn set_route_overweight() -> Weight {
+		let number_of_times_calculate_sell_amounts_executed = 5; //4 calculations + in the validation
+		let number_of_times_execute_sell_amounts_executed = 0; //We do have it once executed in the validation of the route, but it is without writing to database (as rolled back), and since we pay back successful set_route, we just keep this overhead
+
+		let set_route_overweight = weights::route_executor::BasiliskWeight::<Runtime>::set_route_for_xyk();
+
+		set_route_overweight.saturating_sub(weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(
+			number_of_times_calculate_sell_amounts_executed,
+			number_of_times_execute_sell_amounts_executed,
+		))
+	}
 }
 
+impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
+	// Used in Router::sell extrinsic, which calls AMM::calculate_sell and AMM::execute_sell
+	fn sell_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 1; // number of times AMM::calculate_sell is executed
+		let e = 1; // number of times AMM::execute_sell is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(0, 1));
+
+			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e);
+			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
+
+			let amm_weight = match trade.pool {
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in Router::buy extrinsic, which calls AMM::calculate_buy and AMM::execute_buy
+	fn buy_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 1; // number of times AMM::calculate_buy is executed
+		let e = 1; // number of times AMM::execute_buy is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(0, 1));
+
+			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
+			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
+
+			let amm_weight = match trade.pool {
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in DCA::schedule extrinsic, which calls Router::calculate_buy_trade_amounts
+	fn calculate_buy_trade_amounts_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 1; // number of times AMM::calculate_buy is executed
+		let e = 0; // number of times AMM::execute_buy is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(1, 0));
+
+			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
+			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
+
+			let amm_weight = match trade.pool {
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in DCA::on_initialize for Order::Sell, which calls Router::calculate_sell_trade_amounts and Router::sell.
+	fn sell_and_calculate_sell_trade_amounts_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 2; // number of times AMM::calculate_sell is executed
+		let e = 1; // number of times AMM::execute_sell is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(1, 1));
+
+			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e);
+			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
+
+			let amm_weight = match trade.pool {
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in DCA::on_initialize for Order::Buy, which calls 2 * Router::calculate_buy_trade_amounts and Router::buy.
+	fn buy_and_calculate_buy_trade_amounts_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 3; // number of times AMM::calculate_buy is executed
+		let e = 1; // number of times AMM::execute_buy is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(2, 1));
+
+			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
+			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
+
+			let amm_weight = match trade.pool {
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	fn set_route_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+
+		//We ignore the calls for AMM:get_liquidty_depth, as the same logic happens in AMM calculation/execution
+
+		//Overweight
+		weight.saturating_accrue(Self::set_route_overweight());
+
+		//Add a sell weight as we do a dry-run sell as validation
+		weight.saturating_accrue(Self::sell_weight(route));
+
+		//For the stored route we expect a worst case with max number of trades in the most expensive pool which is LBP
+		//We have have two sell calculation for that, normal and inverse
+		weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(2, 0)
+			.checked_mul(pallet_route_executor::MAX_NUMBER_OF_TRADES.into());
+
+		let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
+		let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
+
+		//Calculate sell amounts for the new route
+		for trade in route {
+			let amm_weight = match trade.pool {
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		//Calculate sell amounts for the inversed new route
+		for trade in inverse_route(route.to_vec()) {
+			let amm_weight = match trade.pool {
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+}
+
+parameter_types! {
+	pub DefaultRoutePoolType: PoolType<AssetId> = PoolType::XYK;
+}
 impl pallet_route_executor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type Balance = Balance;
-	type MaxNumberOfTrades = MaxNumberOfTrades;
-	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
+	type Currency = FungibleCurrencies<Runtime>;
 	type AMM = (XYK, LBP);
-	type WeightInfo = weights::route_executor::BasiliskWeight<Runtime>;
+	type NativeAssetId = NativeAssetId;
+	type DefaultRoutePoolType = DefaultRoutePoolType;
+	type WeightInfo = RouterWeightInfo;
 }
 
 parameter_types! {
 	pub SupportedPeriods: BoundedVec<OraclePeriod, ConstU32<{ pallet_ema_oracle::MAX_PERIODS }>> = BoundedVec::truncate_from(
-		vec![OraclePeriod::LastBlock, OraclePeriod::Hour, OraclePeriod::Day, OraclePeriod::Week]
+		vec![OraclePeriod::LastBlock, OraclePeriod::Short, OraclePeriod::Hour, OraclePeriod::Day, OraclePeriod::Week]
 	);
 	// There are currently only a few pools, so the number of entries per block is limited.
 	// NOTE: Needs to be updated once the number of pools grows.

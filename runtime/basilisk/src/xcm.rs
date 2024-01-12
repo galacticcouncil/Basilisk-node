@@ -36,9 +36,8 @@ use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_transaction_multi_payment::DepositAll;
 use pallet_xcm::XcmPassthrough;
-use polkadot_parachain::primitives::RelayChainBlockNumber;
-use polkadot_parachain::primitives::Sibling;
-use polkadot_xcm::v3::{prelude::*, Error, MultiLocation, Weight as XcmWeight};
+use polkadot_parachain::primitives::{RelayChainBlockNumber, Sibling};
+use polkadot_xcm::v3::{prelude::*, MultiLocation, Weight as XcmWeight};
 use primitives::AssetId;
 use scale_info::TypeInfo;
 use xcm_builder::{
@@ -47,7 +46,7 @@ use xcm_builder::{
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
 	TakeWeightCredit, WithComputedOrigin,
 };
-use xcm_executor::{traits::WeightTrader, Assets, Config, XcmExecutor};
+use xcm_executor::{Config, XcmExecutor};
 
 #[derive(Debug, Default, Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct AssetLocation(pub MultiLocation);
@@ -106,27 +105,15 @@ pub type XcmOriginToCallOrigin = (
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	XcmPassthrough<RuntimeOrigin>,
 	// Derives signed AccountId32 origins for Tinkernet multisigs.
-	invarch_xcm_builder::DeriveOriginFromTinkernetMultisig<RuntimeOrigin>,
+	orml_xcm_builder_kusama::TinkernetMultisigAsNativeOrigin<RuntimeOrigin>,
 );
 
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is a safe overestimate.
-	pub const BaseXcmWeight: XcmWeight = XcmWeight::from_ref_time(100_000_000);
+	pub const BaseXcmWeight: XcmWeight = XcmWeight::from_parts(100_000_000, 0);
 	pub const MaxInstructions: u32 = 100;
 	pub const MaxAssetsForTransfer: usize = 2;
 	pub UniversalLocation: InteriorMultiLocation = X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into()));
-}
-
-pub struct TradePassthrough();
-impl WeightTrader for TradePassthrough {
-	fn new() -> Self {
-		Self()
-	}
-
-	fn buy_weight(&mut self, _weight: Weight, payment: Assets) -> Result<Assets, Error> {
-		// Just let it through for now
-		Ok(payment)
-	}
 }
 
 pub struct XcmConfig;
@@ -159,7 +146,7 @@ impl Config for XcmConfig {
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetLocker = ();
-	type AssetExchanger = XcmAssetExchanger<Runtime, TempAccount, CurrencyIdConvert, Currencies, DefaultPoolType>;
+	type AssetExchanger = XcmAssetExchanger<Runtime, TempAccount, CurrencyIdConvert, Currencies>;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type PalletInstancesInfo = AllPalletsWithSystem;
@@ -169,11 +156,18 @@ impl Config for XcmConfig {
 	type UniversalAliases = Nothing;
 	type CallDispatcher = RuntimeCall;
 	type SafeCallFilter = SafeCallFilter;
+	type Aliasers = Nothing;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
+}
+
+parameter_types! {
+	pub const MaxDeferredMessages: u32 = 20;
+	pub const MaxDeferredBuckets: u32 = 1_000;
+	pub const MaxBucketsProcessed: u32 = 3;
 }
 
 impl cumulus_pallet_xcmp_queue::Config for Runtime {
@@ -187,7 +181,9 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type PriceForSiblingDelivery = ();
 	type WeightInfo = weights::xcmp_queue::BasiliskWeight<Runtime>;
 	type ExecuteDeferredOrigin = EnsureRoot<AccountId>;
-	type MaxDeferredMessages = ConstU32<100>;
+	type MaxDeferredMessages = MaxDeferredMessages;
+	type MaxDeferredBuckets = MaxDeferredBuckets;
+	type MaxBucketsProcessed = MaxBucketsProcessed;
 	type RelayChainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type XcmDeferFilter = XcmRateLimiter;
 }
@@ -268,10 +264,30 @@ impl pallet_xcm::Config for Runtime {
 	type WeightInfo = weights::xcm::BasiliskWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type ReachableDest = ReachableDest;
+	type AdminOrigin = SuperMajorityTechCommitteeOrRoot;
+	type MaxRemoteLockConsumers = ConstU32<0>;
+	type RemoteLockConsumerIdentifier = ();
 }
 
+#[test]
+fn defer_duration_configuration() {
+	use sp_runtime::{traits::One, FixedPointNumber, FixedU128};
+	/// Calculate the configuration value for the defer duration based on the desired defer duration and
+	/// the threshold percentage when to start deferring.
+	/// - `defer_by`: the desired defer duration when reaching the rate limit
+	/// - `a``: the fraction of the rate limit where we start deferring, e.g. 0.9
+	fn defer_duration(defer_by: u32, a: FixedU128) -> u32 {
+		assert!(a < FixedU128::one());
+		// defer_by * a / (1 - a)
+		(FixedU128::one() / (FixedU128::one() - a)).saturating_mul_int(a.saturating_mul_int(defer_by))
+	}
+	assert_eq!(
+		defer_duration(600 * 4, FixedU128::from_rational(9, 10)),
+		DeferDuration::get()
+	);
+}
 parameter_types! {
-	pub DeferDuration: RelayChainBlockNumber = 100; // 10 min
+	pub DeferDuration: RelayChainBlockNumber = 600 * 36; // 36 hours
 	pub MaxDeferDuration: RelayChainBlockNumber = 600 * 24 * 10; // 10 days
 }
 
@@ -365,7 +381,7 @@ pub type LocationToAccountId = (
 	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
 	AccountId32Aliases<RelayNetwork, AccountId>,
 	// Mapping Tinkernet multisig to the correctly derived AccountId32.
-	invarch_xcm_builder::TinkernetMultisigAsAccountId<AccountId>,
+	orml_xcm_builder_kusama::TinkernetMultisigAsAccountId<AccountId>,
 );
 
 parameter_types! {

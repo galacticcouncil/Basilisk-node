@@ -1,7 +1,7 @@
 #![cfg(test)]
 use crate::kusama_test_net::*;
 
-use frame_support::{assert_ok, weights::Weight};
+use frame_support::{assert_ok, dispatch::GetDispatchInfo, weights::Weight};
 use sp_runtime::codec::Encode;
 
 use polkadot_xcm::latest::prelude::*;
@@ -49,7 +49,7 @@ fn allowed_transact_call_should_pass_filter() {
 				weight_limit: Unlimited,
 			},
 			Transact {
-				require_weight_at_most: Weight::from_parts(10_000_000_000, 0u64),
+				require_weight_at_most: call.get_dispatch_info().weight,
 				origin_kind: OriginKind::SovereignAccount,
 				call: basilisk_runtime::RuntimeCall::Balances(call).encode().into(),
 			},
@@ -66,7 +66,7 @@ fn allowed_transact_call_should_pass_filter() {
 		]);
 
 		// Act
-		assert_ok!(parachain_runtime_mock::PolkadotXcm::send_xcm(
+		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(
 			Here,
 			MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))),
 			message
@@ -80,7 +80,7 @@ fn allowed_transact_call_should_pass_filter() {
 			basilisk_runtime::RuntimeEvent::XcmpQueue(cumulus_pallet_xcmp_queue::Event::Success { .. })
 		)));
 		assert_eq!(
-			basilisk_runtime::Balances::free_balance(&AccountId::from(BOB)),
+			basilisk_runtime::Balances::free_balance(AccountId::from(BOB)),
 			BOB_INITIAL_BSX_BALANCE + UNITS
 		);
 	});
@@ -145,7 +145,7 @@ fn blocked_transact_calls_should_not_pass_filter() {
 		]);
 
 		// Act
-		assert_ok!(parachain_runtime_mock::PolkadotXcm::send_xcm(
+		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(
 			Here,
 			MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))),
 			message
@@ -223,7 +223,7 @@ fn safe_call_filter_should_respect_runtime_call_filter() {
 		]);
 
 		// Act
-		assert_ok!(parachain_runtime_mock::PolkadotXcm::send_xcm(
+		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(
 			Here,
 			MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))),
 			message

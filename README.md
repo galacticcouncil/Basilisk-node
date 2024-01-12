@@ -52,28 +52,6 @@ Observe Basilisk logs
 multitail 99*.log
 ```
 
-#### Use Testing Runtime
-
-There is also an option to run the testing runtime with less restrictive settings to facilitate testing of new features.
-The following command starts a dev node collator, and the testing runtime is used as a runtime for our node.
-```bash
-./target/release/basilisk --dev --runtime=testing
-```
-The testing runtime currently supports only two chain specifications: _dev_ and _local_ testnet.
-Both runtimes store blockchain data in the same directories( e.g. the _dev_ directory is shared for both runtimes 
-started with the `--dev` parameter. That's why it is important to purge chain data when switching to different runtime( note: `--runtime` parameter can't be used when purging chain data)
-
-In the case of starting a testnet using the `polkadot-launch` tool, 
-we don't have an option to communicate to its internal commands that we would like to use the testing runtime.
-To overcome this limitation, rename the binary so it starts with the `testing` prefix, e.g. `testing-basilisk`.
-Such a binary always uses the testing runtime, even if the `--runtime testing` option is not specified.
-
-Start local testnet with testing runtime
-```
-cd ../rococo-local
-polkadot-launch testing-config.json
-```
-
 ### Interaction with the node
 
 Go to the Polkadot apps at https://dotapps.io
@@ -88,14 +66,13 @@ Connect to the local testnet at `ws://localhost:9988` or live `wss://basilisk.hy
 ### Testing of storage migrations and runtime upgrades
 
 The `try-runtime` tool can be used to test storage migrations and runtime upgrades against state from a real chain.
-Run the following command to test against the state on Basilisk on Kusama
+Run the following command to test against the state on Basilisk on Kusama.
+Don't forget to use a runtime built with `try-runtime` feature.
 ```
-cargo run --features=try-runtime try-runtime on-runtime-upgrade live --uri wss://rpc.basilisk.cloud:443
+try-runtime --runtime ./target/release/wbuild/basilisk-runtime/basilisk_runtime.wasm on-runtime-upgrade --checks all live --uri wss://rpc.basilisk.cloud:443
 ```
-or against the Basilisk testnet on Rococo
-```
-cargo run --release --features=try-runtime try-runtime on-runtime-upgrade live --uri wss://rococo-basilisk-rpc.hydration.dev:443
-```
+or against the Basilisk testnet on Rococo using `--uri wss://rococo-basilisk-rpc.hydration.dev:443`
+
 
 ### Chopsticks simulations
 `Chopsticks` can be used to dry-run any transaction in parallel reality of any Substrate network.

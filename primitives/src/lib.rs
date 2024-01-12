@@ -36,7 +36,6 @@ use frame_support::{
 	},
 };
 
-pub mod asset;
 pub mod constants;
 
 /// An index to a block.
@@ -99,27 +98,9 @@ pub type HighPrecisionBalance = U256;
 pub type LowPrecisionBalance = u128;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Debug, Encode, Decode, Clone, Copy, PartialEq, Eq, TypeInfo)]
+#[derive(Default, Debug, Encode, Decode, Clone, Copy, PartialEq, Eq, TypeInfo)]
 pub enum IntentionType {
+	#[default]
 	SELL,
 	BUY,
-}
-
-impl Default for IntentionType {
-	fn default() -> IntentionType {
-		IntentionType::SELL
-	}
-}
-
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Encode, Decode, Default, Clone, PartialEq, Eq, TypeInfo)]
-pub struct ExchangeIntention<AccountId, Balance, IntentionID> {
-	pub who: AccountId,
-	pub assets: asset::AssetPair,
-	pub amount_in: Balance,
-	pub amount_out: Balance,
-	pub trade_limit: Balance,
-	pub discount: bool,
-	pub sell_or_buy: IntentionType,
-	pub intention_id: IntentionID,
 }

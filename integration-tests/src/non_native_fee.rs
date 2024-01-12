@@ -6,34 +6,33 @@ use basilisk_runtime::{Balances, Currencies, MultiTransactionPayment, RuntimeOri
 
 use frame_support::{
 	assert_err, assert_ok,
-	dispatch::{DispatchInfo, Weight},
+	dispatch::DispatchInfo,
 	sp_runtime::{
 		traits::SignedExtension,
 		transaction_validity::{InvalidTransaction, TransactionValidityError},
 	},
 	traits::{OnFinalize, OnInitialize},
+	weights::Weight,
 };
-use hydradx_traits::{pools::SpotPriceProvider, NativePriceOracle, AMM};
+use hydradx_traits::AMM;
 use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;
-use pallet_xyk::XYKSpotPrice;
-use polkadot_primitives::v2::BlockNumber;
-use primitives::{asset::AssetPair, AssetId};
+use primitives::AssetId;
 use xcm_emulator::TestExt;
 
-pub fn basilisk_run_to_block(to: BlockNumber) {
-	while basilisk_runtime::System::block_number() < to {
-		let b = basilisk_runtime::System::block_number();
+pub fn basilisk_run_to_next_block() {
+	let b = basilisk_runtime::System::block_number();
 
-		basilisk_runtime::System::on_finalize(b);
-		basilisk_runtime::MultiTransactionPayment::on_finalize(b);
+	basilisk_runtime::System::on_finalize(b);
+	basilisk_runtime::MultiTransactionPayment::on_finalize(b);
+	basilisk_runtime::EmaOracle::on_finalize(b);
 
-		basilisk_runtime::System::on_initialize(b + 1);
-		basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
+	basilisk_runtime::System::on_initialize(b + 1);
+	basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
+	basilisk_runtime::EmaOracle::on_initialize(b + 1);
 
-		basilisk_runtime::System::set_block_number(b + 1);
-	}
+	basilisk_runtime::System::set_block_number(b + 1);
 }
 
 #[test]
@@ -46,7 +45,7 @@ fn non_native_fee_payment_works_with_configured_price() {
 		);
 
 		let info = DispatchInfo {
-			weight: Weight::from_ref_time(106_957_000),
+			weight: Weight::from_parts(106_957_000, 0),
 			..Default::default()
 		};
 		let len: usize = 10;
@@ -66,7 +65,7 @@ fn non_native_fee_payment_works_with_configured_price() {
 }
 
 #[test]
-fn non_native_fee_payment_works_with_xyk_spot_price() {
+fn non_native_fee_payment_works_with_oracle_price_based_on_onchain_route() {
 	TestNet::reset();
 
 	const NEW_TOKEN: AssetId = 42;
@@ -76,7 +75,7 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 			currency: NEW_TOKEN,
 		});
 	let info = DispatchInfo {
-		weight: Weight::from_ref_time(106_957_000),
+		weight: Weight::from_parts(106_957_000, 0),
 		..Default::default()
 	};
 	let len: usize = 10;
@@ -94,11 +93,10 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 			None,
 		));
 
-		assert_ok!(basilisk_runtime::Balances::set_balance(
+		assert_ok!(basilisk_runtime::Balances::force_set_balance(
 			basilisk_runtime::RuntimeOrigin::root(),
 			ALICE.into(),
 			2_000_000_000_000 * UNITS,
-			0,
 		));
 
 		assert_ok!(basilisk_runtime::Tokens::set_balance(
@@ -147,14 +145,6 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 			asset_out: NEW_TOKEN,
 		}));
 
-		let spot_price = XYKSpotPrice::<basilisk_runtime::Runtime>::spot_price(NEW_TOKEN, BSX);
-		assert_eq!(spot_price, Some(Price::from_float(0.5)));
-
-		basilisk_run_to_block(2);
-
-		let pallet_price = basilisk_runtime::MultiTransactionPayment::price(NEW_TOKEN);
-		assert_eq!(spot_price, pallet_price);
-
 		assert_ok!(basilisk_runtime::XYK::buy(
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			BSX,
@@ -164,7 +154,7 @@ fn non_native_fee_payment_works_with_xyk_spot_price() {
 			false,
 		));
 
-		basilisk_run_to_block(3);
+		basilisk_run_to_next_block();
 
 		// pay with the new token
 		assert_ok!(
@@ -188,10 +178,7 @@ fn fee_currency_on_account_lifecycle() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
-		assert_eq!(
-			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
-			None
-		);
+		assert_eq!(MultiTransactionPayment::get_currency(AccountId::from(HITCHHIKER)), None);
 
 		// ------------ set on create ------------
 		assert_ok!(Currencies::transfer(
@@ -206,7 +193,7 @@ fn fee_currency_on_account_lifecycle() {
 			50_000_000_000_000
 		);
 		assert_eq!(
-			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			MultiTransactionPayment::get_currency(AccountId::from(HITCHHIKER)),
 			Some(1)
 		);
 
@@ -218,10 +205,7 @@ fn fee_currency_on_account_lifecycle() {
 			false,
 		));
 
-		assert_eq!(
-			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
-			None
-		);
+		assert_eq!(MultiTransactionPayment::get_currency(AccountId::from(HITCHHIKER)), None);
 	});
 }
 
@@ -229,11 +213,10 @@ fn fee_currency_on_account_lifecycle() {
 fn fee_currency_should_not_change_when_account_holds_native_currency_already() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
-		assert_ok!(Balances::set_balance(
+		assert_ok!(Balances::force_set_balance(
 			RuntimeOrigin::root(),
 			HITCHHIKER.into(),
 			UNITS,
-			0,
 		));
 
 		assert_ok!(Currencies::transfer(
@@ -243,11 +226,8 @@ fn fee_currency_should_not_change_when_account_holds_native_currency_already() {
 			50_000_000_000_000,
 		));
 
-		assert_eq!(Balances::free_balance(&AccountId::from(HITCHHIKER)), UNITS);
-		assert_eq!(
-			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
-			None
-		);
+		assert_eq!(Balances::free_balance(AccountId::from(HITCHHIKER)), UNITS);
+		assert_eq!(MultiTransactionPayment::get_currency(AccountId::from(HITCHHIKER)), None);
 	});
 }
 
@@ -270,7 +250,7 @@ fn fee_currency_should_not_change_when_account_holds_other_token_already() {
 		));
 
 		assert_eq!(
-			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
+			MultiTransactionPayment::get_currency(AccountId::from(HITCHHIKER)),
 			Some(1)
 		);
 	});
@@ -300,9 +280,6 @@ fn fee_currency_should_reset_to_default_when_account_spends_tokens() {
 			false,
 		));
 
-		assert_eq!(
-			MultiTransactionPayment::get_currency(&AccountId::from(HITCHHIKER)),
-			None
-		);
+		assert_eq!(MultiTransactionPayment::get_currency(AccountId::from(HITCHHIKER)), None);
 	});
 }

@@ -23,6 +23,7 @@
 #![allow(clippy::large_enum_variant)]
 #![allow(clippy::from_over_into)]
 #![allow(clippy::match_like_matches_macro)]
+#![allow(clippy::items_after_test_module)]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -39,7 +40,7 @@ mod adapter;
 mod assets;
 mod governance;
 mod system;
-mod xcm;
+pub mod xcm;
 
 pub use assets::*;
 pub use governance::*;
@@ -56,6 +57,7 @@ use frame_support::sp_runtime::{
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
+use frame_system::pallet_prelude::BlockNumberFor;
 use sp_api::impl_runtime_apis;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{ConstU32, OpaqueMetadata};
@@ -73,6 +75,10 @@ use frame_support::{construct_runtime, weights::Weight};
 /// to even the core data structures.
 pub mod opaque {
 	use super::*;
+	use sp_runtime::{
+		generic,
+		traits::{BlakeTwo256, Hash as HashT},
+	};
 
 	pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
 
@@ -82,6 +88,8 @@ pub mod opaque {
 	pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 	/// Opaque block identifier type.
 	pub type BlockId = generic::BlockId<Block>;
+	/// Opaque block hash type.
+	pub type Hash = <BlakeTwo256 as HashT>::Output;
 	impl_opaque_keys! {
 		pub struct SessionKeys {
 			pub aura: Aura,
@@ -94,7 +102,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 106,
+	spec_version: 108,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -129,13 +137,13 @@ pub struct RelayChainBlockNumberProvider<T>(PhantomData<T>);
 impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumberProvider
 	for RelayChainBlockNumberProvider<T>
 {
-	type BlockNumber = BlockNumber;
+	type BlockNumber = BlockNumberFor<T>;
 
 	fn current_block_number() -> Self::BlockNumber {
 		let maybe_data = cumulus_pallet_parachain_system::Pallet::<T>::validation_data();
 
 		if let Some(data) = maybe_data {
-			data.relay_parent_number
+			data.relay_parent_number.into()
 		} else {
 			Self::BlockNumber::default()
 		}
@@ -144,7 +152,7 @@ impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumb
 
 #[cfg(feature = "runtime-benchmarks")]
 impl<T: frame_system::Config> BlockNumberProvider for RelayChainBlockNumberProvider<T> {
-	type BlockNumber = <T as frame_system::Config>::BlockNumber;
+	type BlockNumber = BlockNumberFor<T>;
 
 	fn current_block_number() -> Self::BlockNumber {
 		frame_system::Pallet::<T>::current_block_number()
@@ -153,10 +161,7 @@ impl<T: frame_system::Config> BlockNumberProvider for RelayChainBlockNumberProvi
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
-	pub enum Runtime where
-		Block = Block,
-		NodeBlock = opaque::Block,
-		UncheckedExtrinsic = UncheckedExtrinsic
+	pub enum Runtime
 	{
 		// Substrate
 		System: frame_system exclude_parts { Origin } = 0,
@@ -258,16 +263,8 @@ pub type Executive = frame_executive::Executive<
 	Runtime,
 	AllPalletsReversedWithSystemFirst,
 	(
-		pallet_preimage::migration::v1::Migration<Runtime>,
-		pallet_democracy::migrations::v1::Migration<Runtime>,
-		pallet_multisig::migrations::v1::MigrateToV1<Runtime>,
-		pallet_xcm::migration::v1::MigrateToV1<Runtime>,
-		DmpQueue,
-		XcmpQueue,
-		ParachainSystem,
 		migrations::OnRuntimeUpgradeMigration,
-		migrations::MigrateRegistryLocationToV3<Runtime>,
-		migrations::XcmRateLimitMigration,
+		pallet_transaction_pause::migration::v1::Migration<Runtime>,
 	),
 >;
 
@@ -289,6 +286,14 @@ impl_runtime_apis! {
 	impl sp_api::Metadata<Block> for Runtime {
 		fn metadata() -> OpaqueMetadata {
 			OpaqueMetadata::new(Runtime::metadata().into())
+		}
+
+		fn metadata_at_version(version: u32) -> Option<OpaqueMetadata> {
+			Runtime::metadata_at_version(version)
+		}
+
+		fn metadata_versions() -> sp_std::vec::Vec<u32> {
+			Runtime::metadata_versions()
 		}
 	}
 
@@ -360,7 +365,7 @@ impl_runtime_apis! {
 	#[cfg(feature = "try-runtime")]
 	impl frame_try_runtime::TryRuntime<Block> for Runtime {
 		fn on_runtime_upgrade(checks: frame_try_runtime::UpgradeCheckSelect) -> (Weight, Weight) {
-			//log::info!("try-runtime::on_runtime_upgrade.");
+			log::info!("try-runtime::on_runtime_upgrade.");
 			let weight = Executive::try_runtime_upgrade(checks).unwrap();
 			(weight, BlockWeights::get().max_block)
 		}
@@ -437,6 +442,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_scheduler, Scheduler);
 			list_benchmark!(list, extra, pallet_utility, Utility);
 			list_benchmark!(list, extra, pallet_tips, Tips);
+			list_benchmark!(list, extra, pallet_collective, TechnicalCommittee);
 
 			list_benchmark!(list, extra, cumulus_pallet_xcmp_queue, XcmpQueue);
 			list_benchmark!(list, extra, pallet_xcm, PolkadotXcm);
@@ -457,14 +463,24 @@ impl_runtime_apis! {
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-			use frame_benchmarking::{Benchmarking, BenchmarkBatch, add_benchmark, TrackedStorageKey};
+			use frame_benchmarking::{BenchmarkError, Benchmarking, BenchmarkBatch, add_benchmark};
+			use frame_support::traits::TrackedStorageKey;
 
 			use orml_benchmarking::add_benchmark as orml_add_benchmark;
 
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
-			impl frame_system_benchmarking::Config for Runtime {}
+			impl frame_system_benchmarking::Config for Runtime {
+				fn setup_set_code_requirements(code: &sp_std::vec::Vec<u8>) -> Result<(), BenchmarkError> {
+					ParachainSystem::initialize_for_set_code_benchmark(code.len() as u32);
+					Ok(())
+				}
+
+				fn verify_set_code() {
+					System::assert_last_event(cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into());
+				}
+			}
 			impl pallet_xyk_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
@@ -504,6 +520,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_scheduler, Scheduler);
 			add_benchmark!(params, batches, pallet_utility, Utility);
 			add_benchmark!(params, batches, pallet_tips, Tips);
+			add_benchmark!(params, batches, pallet_collective, TechnicalCommittee);
 
 			add_benchmark!(params, batches, cumulus_pallet_xcmp_queue, XcmpQueue);
 			add_benchmark!(params, batches, pallet_xcm, PolkadotXcm);

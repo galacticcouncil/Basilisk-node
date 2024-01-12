@@ -24,11 +24,12 @@ use primitives::constants::{
 use frame_support::{
 	parameter_types,
 	sp_runtime::{Perbill, Percent, Permill},
-	traits::{EitherOfDiverse, EqualPrivilegeOnly, LockIdentifier, NeverEnsureOrigin, U128CurrencyToVote},
+	traits::{EitherOfDiverse, EqualPrivilegeOnly, LockIdentifier, NeverEnsureOrigin},
 	PalletId,
 };
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_collective::EnsureProportionAtLeast;
+use sp_staking::currency_to_vote::U128CurrencyToVote;
 
 pub type MajorityCouncilOrRoot =
 	EitherOfDiverse<EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 2>, EnsureRoot<AccountId>>;
@@ -97,6 +98,7 @@ impl pallet_democracy::Config for Runtime {
 	type VetoOrigin = pallet_collective::EnsureMember<AccountId, TechnicalCollective>;
 	type PalletsOrigin = OriginCaller;
 	type Slash = Treasury;
+	type SubmitOrigin = EnsureSigned<AccountId>;
 }
 
 parameter_types! {
@@ -111,7 +113,8 @@ parameter_types! {
 	pub const DesiredRunnersUp: u32 = 9;
 	pub const ElectionsPhragmenPalletId: LockIdentifier = *b"phrelect";
 	pub const MaxElectionCandidates: u32 = 1_000;
-	pub const MaxElectionVoters: u32 = 10_000;
+	pub const MaxElectionVoters: u32 = 1_000;
+	pub const MaxVotesPerVoter: u32 = 5;
 }
 
 impl pallet_elections_phragmen::Config for Runtime {
@@ -132,12 +135,14 @@ impl pallet_elections_phragmen::Config for Runtime {
 	type MaxCandidates = MaxElectionCandidates;
 	type MaxVoters = MaxElectionVoters;
 	type WeightInfo = ();
+	type MaxVotesPerVoter = MaxVotesPerVoter;
 }
 
 parameter_types! {
 	pub const CouncilMotionDuration: BlockNumber = 5 * DAYS;
 	pub const CouncilMaxProposals: u32 = 13;
 	pub const CouncilMaxMembers: u32 = 7;
+	pub MaxProposalWeight: Weight = Perbill::from_percent(50) * BlockWeights::get().max_block;
 }
 
 type CouncilCollective = pallet_collective::Instance1;
@@ -149,7 +154,9 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type MaxProposals = CouncilMaxProposals;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = ();
+	type WeightInfo = weights::collective::BasiliskWeight<Runtime>; // use the weights from TechnicalCommittee because we are not able to benchmark both pallets
+	type MaxProposalWeight = MaxProposalWeight;
+	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
 
 parameter_types! {
@@ -167,7 +174,9 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type MaxProposals = TechnicalMaxProposals;
 	type MaxMembers = TechnicalMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = ();
+	type WeightInfo = weights::collective::BasiliskWeight<Runtime>;
+	type MaxProposalWeight = MaxProposalWeight;
+	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
 
 parameter_types! {

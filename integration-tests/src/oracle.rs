@@ -2,31 +2,26 @@
 
 use crate::kusama_test_net::*;
 
-use basilisk_runtime::{EmaOracle, RuntimeOrigin, XYK};
+use basilisk_runtime::{EmaOracle, RuntimeOrigin, XYKOracleSourceIdentifier, XYK};
 use frame_support::{
 	assert_ok,
 	traits::{OnFinalize, OnInitialize},
 };
 use hydradx_traits::{AggregatedPriceOracle, OraclePeriod::*};
 use pallet_ema_oracle::OracleError;
-use polkadot_primitives::v2::BlockNumber;
 use xcm_emulator::TestExt;
 
-pub fn basilisk_run_to_block(to: BlockNumber) {
-	while basilisk_runtime::System::block_number() < to {
-		let b = basilisk_runtime::System::block_number();
+pub fn basilisk_run_to_next_block() {
+	let b = basilisk_runtime::System::block_number();
 
-		basilisk_runtime::System::on_finalize(b);
-		basilisk_runtime::EmaOracle::on_finalize(b);
+	basilisk_runtime::System::on_finalize(b);
+	basilisk_runtime::EmaOracle::on_finalize(b);
 
-		basilisk_runtime::System::on_initialize(b + 1);
-		basilisk_runtime::EmaOracle::on_initialize(b + 1);
+	basilisk_runtime::System::on_initialize(b + 1);
+	basilisk_runtime::EmaOracle::on_initialize(b + 1);
 
-		basilisk_runtime::System::set_block_number(b + 1);
-	}
+	basilisk_runtime::System::set_block_number(b + 1);
 }
-
-use pallet_xyk::SOURCE;
 
 #[test]
 fn xyk_trades_are_ingested_into_oracle() {
@@ -37,7 +32,7 @@ fn xyk_trades_are_ingested_into_oracle() {
 
 	Basilisk::execute_with(|| {
 		// arrange
-		basilisk_run_to_block(2);
+		basilisk_run_to_next_block();
 
 		assert_ok!(XYK::create_pool(
 			RuntimeOrigin::signed(ALICE.into()),
@@ -57,18 +52,30 @@ fn xyk_trades_are_ingested_into_oracle() {
 
 		// act
 		// will store the data received in the sell as oracle values
-		basilisk_run_to_block(3);
+		basilisk_run_to_next_block();
 
 		// assert
 		let expected = ((105000000000000, 190504761904760).into(), 0);
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, LastBlock, SOURCE), Ok(expected));
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, LastBlock, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
 		// ten minutes oracle not configured/supported
 		assert_eq!(
-			EmaOracle::get_price(asset_a, asset_b, TenMinutes, SOURCE),
+			EmaOracle::get_price(asset_a, asset_b, TenMinutes, XYKOracleSourceIdentifier::get()),
 			Err(OracleError::NotPresent)
 		);
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Hour, SOURCE), Ok(expected));
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Day, SOURCE), Ok(expected));
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Week, SOURCE), Ok(expected));
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, Hour, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, Day, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, Week, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
 	});
 }

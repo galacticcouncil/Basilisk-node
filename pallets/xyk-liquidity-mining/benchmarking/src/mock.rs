@@ -20,13 +20,13 @@
 use frame_support::{
 	instances::Instance1,
 	parameter_types,
-	traits::{AsEnsureOriginWithArg, Everything, GenesisBuild, Nothing},
+	traits::{AsEnsureOriginWithArg, Everything, Nothing},
 	PalletId,
 };
 
 use frame_system as system;
 use frame_system::{EnsureRoot, EnsureSigned};
-use hydradx_traits::AssetPairAccountIdFor;
+use hydradx_traits::{AssetPairAccountIdFor, Source};
 use orml_traits::parameter_type_with_key;
 use primitives::{
 	constants::{
@@ -39,8 +39,8 @@ use primitives::{
 use pallet_nft::{CollectionType, NftPermissions};
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
+	BuildStorage,
 };
 
 pub const UNITS: Balance = 1_000_000_000_000;
@@ -54,14 +54,10 @@ pub const DOT: AssetId = 2;
 
 pub const LIQ_MINING_NFT_COLLECTION: primitives::CollectionId = 1;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 frame_support::construct_runtime!(
-	pub enum Test where
-	Block = Block,
-	NodeBlock = Block,
-	UncheckedExtrinsic = UncheckedExtrinsic,
+	pub enum Test
 	{
 		System: frame_system,
 		Duster: pallet_duster,
@@ -100,13 +96,12 @@ impl system::Config for Test {
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
-	type Index = u64;
-	type BlockNumber = BlockNumber;
+	type Nonce = u64;
+	type Block = Block;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
 	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -207,6 +202,10 @@ impl pallet_balances::Config for Test {
 	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
+	type FreezeIdentifier = ();
+	type MaxFreezes = ();
+	type MaxHolds = ();
+	type RuntimeHoldReason = ();
 }
 
 parameter_types! {
@@ -296,6 +295,7 @@ parameter_types! {
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
+	pub const XYKOracleSourceIdentifier: Source = *b"snek/xyk";
 }
 
 impl pallet_xyk::Config for Test {
@@ -310,6 +310,7 @@ impl pallet_xyk::Config for Test {
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
+	type OracleSource = XYKOracleSourceIdentifier;
 	type CanCreatePool = pallet_xyk::AllowAllPools;
 	type AMMHandler = ();
 	type DiscountedFee = DiscountedFee;
@@ -318,7 +319,7 @@ impl pallet_xyk::Config for Test {
 
 impl ExtBuilder {
 	pub fn build(self) -> sp_io::TestExternalities {
-		let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+		let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 
 		orml_tokens::GenesisConfig::<Test> {
 			balances: self.endowed_accounts,
@@ -334,8 +335,8 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		<pallet_xyk_liquidity_mining::GenesisConfig as GenesisBuild<Test>>::assimilate_storage(
-			&pallet_xyk_liquidity_mining::GenesisConfig::default(),
+		<pallet_xyk_liquidity_mining::GenesisConfig<Test> as BuildStorage>::assimilate_storage(
+			&pallet_xyk_liquidity_mining::GenesisConfig::<Test>::default(),
 			&mut t,
 		)
 		.unwrap();
