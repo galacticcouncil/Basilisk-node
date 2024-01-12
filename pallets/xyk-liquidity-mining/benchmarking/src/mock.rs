@@ -26,7 +26,7 @@ use frame_support::{
 
 use frame_system as system;
 use frame_system::{EnsureRoot, EnsureSigned};
-use hydradx_traits::AssetPairAccountIdFor;
+use hydradx_traits::{AssetPairAccountIdFor, Source};
 use orml_traits::parameter_type_with_key;
 use primitives::{
 	constants::{
@@ -57,6 +57,8 @@ pub const LIQ_MINING_NFT_COLLECTION: primitives::CollectionId = 1;
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
+pub const TREASURY: u64 = 2_222;
+
 frame_support::construct_runtime!(
 	pub enum Test where
 	Block = Block,
@@ -82,6 +84,7 @@ parameter_types! {
 	pub static MockBlockNumberProvider: u64 = 0;
 	pub const BSXAssetId: AssetId = BSX;
 	pub ExchangeFeeRate: (u32, u32) = (2, 1_000);
+	#[derive(PartialEq, Debug)]
 	pub RegistryStringLimit: u32 = 100;
 	pub const SequentialIdOffset: u32 = 1_000_000;
 }
@@ -277,16 +280,23 @@ impl AssetPairAccountIdFor<AssetId, AccountId> for AssetPairAccountIdTest {
 		(a * 1000 + b) as AccountId
 	}
 }
+parameter_types! {
+	pub const StoreFees: Balance = 10 * UNITS;
+	pub const FeesBeneficiarry: u64 = TREASURY;
+}
 
 impl pallet_asset_registry::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
+	type Currency = Currency;
 	type RegistryOrigin = EnsureSigned<AccountId>;
+	type UpdateOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;
-	type Balance = Balance;
 	type AssetNativeLocation = u8;
 	type StringLimit = RegistryStringLimit;
 	type SequentialIdStartAt = SequentialIdOffset;
-	type NativeAssetId = BSXAssetId;
+	type StorageFeesAssetId = BSXAssetId;
+	type StorageFees = StoreFees;
+	type StorageFeesBeneficiary = FeesBeneficiarry;
 	type WeightInfo = ();
 }
 
@@ -296,6 +306,7 @@ parameter_types! {
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
 	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
+	pub const OracleSourceIdentifier: Source = *b"hydraxyk";
 }
 
 impl pallet_xyk::Config for Test {
@@ -314,6 +325,7 @@ impl pallet_xyk::Config for Test {
 	type AMMHandler = ();
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
+	type OracleSource = OracleSourceIdentifier;
 }
 
 impl ExtBuilder {
@@ -327,9 +339,14 @@ impl ExtBuilder {
 		.unwrap();
 
 		pallet_asset_registry::GenesisConfig::<Test> {
-			registered_assets: vec![(b"KSM".to_vec(), 1_000, Some(KSM)), (b"DOT".to_vec(), 1_000, Some(DOT))],
+			registered_assets: vec![
+				(Some(KSM), Some(b"KSM".to_vec()), 1_000, None, None, None, true),
+				(Some(DOT), Some(b"DOT".to_vec()), 1_000, None, None, None, true),
+			],
 			native_asset_name: b"BSX".to_vec(),
 			native_existential_deposit: 1_000_000_000_000,
+			native_symbol: b"BSX".to_vec(),
+			native_decimals: 12,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

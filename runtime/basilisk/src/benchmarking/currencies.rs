@@ -38,7 +38,7 @@ runtime_benchmarks! {
 	transfer_non_native_currency {
 		let amount: Balance = 1_000 * BSX;
 		let from: AccountId = whitelisted_caller();
-		let asset_id = register_asset(b"TST".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_id = register_asset(b"TST".to_vec(), 1u128, None).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 		set_balance(asset_id, &from, amount);
 
 		let to: AccountId = account("to", 0, SEED);
@@ -85,7 +85,7 @@ runtime_benchmarks! {
 		let amount: Amount = balance.unique_saturated_into();
 		let who: AccountId = account("who", 0, SEED);
 		let who_lookup = lookup_of_account(who.clone());
-		let asset_id = register_asset(b"TST".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_id = register_asset(b"TST".to_vec(), 1u128, None).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 	}: update_balance(RawOrigin::Root, who_lookup, asset_id, amount)
 	verify {
 		assert_eq!(<Currencies as MultiCurrency<_>>::total_balance(asset_id, &who), balance);

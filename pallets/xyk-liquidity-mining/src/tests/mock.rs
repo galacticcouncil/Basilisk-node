@@ -32,7 +32,8 @@ use hydradx_traits::{nft::CreateTypedCollection, pools::DustRemovalAccountWhitel
 use orml_traits::parameter_type_with_key;
 use pallet_liquidity_mining::{FarmMultiplier, YieldFarmId};
 use pallet_nft::CollectionType;
-use primitives::{asset::AssetPair, Amount, AssetId, Balance};
+use pallet_xyk::types::{AssetId, AssetPair, Balance};
+use primitives::Amount;
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,

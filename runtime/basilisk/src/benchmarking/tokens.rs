@@ -35,7 +35,7 @@ runtime_benchmarks! {
 	transfer {
 		let amount: Balance = BSX;
 
-		let asset_id = register_asset(b"TST".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_id = register_asset(b"TST".to_vec(), 1u128, None).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 
 		let from: AccountId = whitelisted_caller();
 		update_balance(asset_id, &from, amount);
@@ -50,7 +50,7 @@ runtime_benchmarks! {
 	transfer_all {
 		let amount: Balance = BSX;
 
-		let asset_id = register_asset(b"TST".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_id = register_asset(b"TST".to_vec(), 1u128, None).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 
 		let from: AccountId = whitelisted_caller();
 		update_balance(asset_id, &from, amount);
@@ -64,7 +64,7 @@ runtime_benchmarks! {
 
 	transfer_keep_alive {
 		let from: AccountId = whitelisted_caller();
-		let asset_id = register_asset(b"TST".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_id = register_asset(b"TST".to_vec(), 1u128, None).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 		update_balance(asset_id, &from, 2 * BSX);
 
 		let to: AccountId = account("to", 0, SEED);
@@ -77,7 +77,7 @@ runtime_benchmarks! {
 	force_transfer {
 		let from: AccountId = account("from", 0, SEED);
 		let from_lookup = lookup_of_account(from.clone());
-		let asset_id = register_asset(b"TST".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_id = register_asset(b"TST".to_vec(), 1u128, None).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 		update_balance(asset_id, &from, 2 * BSX);
 
 		let to: AccountId = account("to", 0, SEED);
@@ -91,7 +91,7 @@ runtime_benchmarks! {
 		let who: AccountId = account("who", 0, SEED);
 		let who_lookup = lookup_of_account(who.clone());
 
-		let asset_id = register_asset(b"TST".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_id = register_asset(b"TST".to_vec(), 1u128, None).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 
 	}: _(RawOrigin::Root, who_lookup, asset_id, BSX, BSX)
 	verify {

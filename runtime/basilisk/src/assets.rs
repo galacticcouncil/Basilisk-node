@@ -21,24 +21,35 @@ use crate::system::NativeAssetId;
 use adapter::OrmlTokensAdapter;
 
 use hydradx_adapters::inspect::MultiInspectAdapter;
-use hydradx_traits::{AssetPairAccountIdFor, LockedBalance, OraclePeriod};
+use hydradx_traits::{
+	registry::Inspect,
+	router::{PoolType, Trade},
+	AssetPairAccountIdFor, LockedBalance, NativePriceOracle, OnTradeHandler, OraclePeriod, Source,
+};
 use pallet_currencies::BasicCurrencyAdapter;
+use pallet_lbp::weights::WeightInfo as LbpWeights;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, RemoveTxAssetOnKilled};
+use pallet_xyk::weights::WeightInfo as XykWeights;
 use primitives::constants::{
 	chain::{DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	currency::{NATIVE_EXISTENTIAL_DEPOSIT, UNITS},
 };
 
-use codec::Decode;
 use frame_support::{
-	parameter_types,
-	sp_runtime::{app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero},
+	ensure, parameter_types,
+	sp_runtime::{
+		app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero, DispatchResult, FixedPointNumber, FixedU128,
+	},
 	traits::{AsEnsureOriginWithArg, Contains, Defensive, EnsureOrigin, Get, LockIdentifier, NeverEnsureOrigin},
 	BoundedVec, PalletId,
 };
-use frame_system::RawOrigin;
+use frame_system::{EnsureRoot, RawOrigin};
 use orml_tokens::CurrencyAdapter;
-use orml_traits::currency::MutationHooks;
+use orml_traits::{
+	currency::{MutationHooks, OnDeposit, OnTransfer},
+	Happened, MultiCurrency, MultiLockableCurrency,
+};
+use pallet_route_executor::{weights::WeightInfo as RouterWeights, AmmTradeWeights};
 
 pub struct RelayChainAssetId;
 impl Get<AssetId> for RelayChainAssetId {
@@ -78,12 +89,179 @@ pub struct CurrencyHooks;
 impl MutationHooks<AccountId, AssetId, Balance> for CurrencyHooks {
 	type OnDust = Duster;
 	type OnSlash = ();
-	type PreDeposit = ();
+	type PreDeposit = SufficiencyCheck;
 	type PostDeposit = ();
-	type PreTransfer = ();
+	type PreTransfer = SufficiencyCheck;
 	type PostTransfer = ();
 	type OnNewTokenAccount = AddTxAssetOnAccount<Runtime>;
-	type OnKilledTokenAccount = RemoveTxAssetOnKilled<Runtime>;
+	type OnKilledTokenAccount = (RemoveTxAssetOnKilled<Runtime>, OnKilledTokenAccount);
+}
+
+pub const SUFFICIENCY_LOCK: LockIdentifier = *b"insuffED";
+
+parameter_types! {
+	pub InsufficientEDinBSX: Balance = FixedU128::from_rational(11, 10)
+		.saturating_mul_int(<Runtime as pallet_balances::Config>::ExistentialDeposit::get());
+}
+
+pub struct SufficiencyCheck;
+impl SufficiencyCheck {
+	/// This function is used by `orml-toknes` `MutationHooks` before a transaction is executed.
+	/// It is called from `PreDeposit` and `PreTransfer`.
+	/// If transferred asset is not sufficient asset, it calculates ED amount in user's fee asset
+	/// and transfers it from user to treasury account.
+	/// Function also locks corresponding HDX amount in the treasury because returned ED to the users
+	/// when the account is killed is in the HDX.
+	///
+	/// We assume account already paid ED if it holds transferred insufficient asset so additional
+	/// ED payment is not necessary.
+	///
+	/// NOTE: `OnNewTokenAccount` mutation hooks is not used because it can't fail so we would not
+	/// be able to fail transactions e.g. if the user doesn't have enough funds to pay ED.
+	///
+	/// ED payment - transfer:
+	/// - if both sender and dest. accounts are regular accounts, sender pays ED for dest. account.
+	/// - if sender is whitelisted account, dest. accounts pays its own ED.
+	///
+	/// ED payment - deposit:
+	/// - dest. accounts always pays its own ED no matter if it's whitelisted or not.
+	///
+	/// ED release:
+	/// ED is always released on account kill to killed account, whitelisting doesn't matter.
+	/// Released ED amount is calculated from locked HDX divided by number of accounts that paid
+	/// ED.
+	///
+	/// WARN:
+	/// `set_balance` - bypass `MutationHooks` so no one pays ED for these account but ED is still released
+	/// when account is killed.
+	///
+	/// Emits `pallet_asset_registry::Event::ExistentialDepositPaid` when ED was paid.
+	fn on_funds(asset: AssetId, paying_account: &AccountId, to: &AccountId) -> DispatchResult {
+		//NOTE: To prevent duplicate ED collection we assume account already paid ED
+		//if it has any amount of `asset`(exists in the storage).
+		if orml_tokens::Accounts::<Runtime>::try_get(to, asset).is_err() && !AssetRegistry::is_sufficient(asset) {
+			let fee_payment_asset = MultiTransactionPayment::account_currency(paying_account);
+
+			let ed_in_fee_asset = MultiTransactionPayment::price(fee_payment_asset)
+				.ok_or(pallet_transaction_multi_payment::Error::<Runtime>::UnsupportedCurrency)?
+				.saturating_mul_int(InsufficientEDinBSX::get());
+
+			//NOTE: Not tested, this should never happen.
+			ensure!(
+				!ed_in_fee_asset.is_zero(),
+				pallet_asset_registry::Error::<Runtime>::ZeroExistentialDeposit
+			);
+
+			//NOTE: Account doesn't have enough funds to pay ED if this fail.
+			<Currencies as MultiCurrency<AccountId>>::transfer(
+				fee_payment_asset,
+				paying_account,
+				&TreasuryAccount::get(),
+				ed_in_fee_asset,
+			)
+			.map_err(|_| orml_tokens::Error::<Runtime>::ExistentialDeposit)?;
+
+			let to_lock = pallet_balances::Locks::<Runtime>::get(TreasuryAccount::get())
+				.iter()
+				.find(|x| x.id == SUFFICIENCY_LOCK)
+				.map(|p| p.amount)
+				.unwrap_or_default()
+				.saturating_add(InsufficientEDinBSX::get());
+
+			<Currencies as MultiLockableCurrency<AccountId>>::set_lock(
+				SUFFICIENCY_LOCK,
+				NativeAssetId::get(),
+				&TreasuryAccount::get(),
+				to_lock,
+			)?;
+
+			frame_system::Pallet::<Runtime>::inc_sufficients(paying_account);
+
+			pallet_asset_registry::ExistentialDepositCounter::<Runtime>::mutate(|v| *v = v.saturating_add(1));
+
+			pallet_asset_registry::Pallet::<Runtime>::deposit_event(
+				pallet_asset_registry::Event::<Runtime>::ExistentialDepositPaid {
+					who: paying_account.clone(),
+					fee_asset: fee_payment_asset,
+					amount: ed_in_fee_asset,
+				},
+			);
+		}
+
+		Ok(())
+	}
+}
+
+impl OnTransfer<AccountId, AssetId, Balance> for SufficiencyCheck {
+	fn on_transfer(asset: AssetId, from: &AccountId, to: &AccountId, _amount: Balance) -> DispatchResult {
+		//NOTE: `to` is paying ED if `from` is whitelisted.
+		//This can happen if pallet's account transfers insufficient tokens to another account.
+		if <Runtime as orml_tokens::Config>::DustRemovalWhitelist::contains(from) {
+			Self::on_funds(asset, to, to)
+		} else {
+			Self::on_funds(asset, from, to)
+		}
+	}
+}
+
+impl OnDeposit<AccountId, AssetId, Balance> for SufficiencyCheck {
+	fn on_deposit(asset: AssetId, to: &AccountId, _amount: Balance) -> DispatchResult {
+		Self::on_funds(asset, to, to)
+	}
+}
+
+pub struct OnKilledTokenAccount;
+impl Happened<(AccountId, AssetId)> for OnKilledTokenAccount {
+	fn happened((who, asset): &(AccountId, AssetId)) {
+		if AssetRegistry::is_sufficient(*asset) {
+			return;
+		}
+
+		let locked_ed = pallet_balances::Locks::<Runtime>::get(TreasuryAccount::get())
+			.iter()
+			.find(|x| x.id == SUFFICIENCY_LOCK)
+			.map(|p| p.amount)
+			.unwrap_or_default();
+
+		let paid_accounts = pallet_asset_registry::ExistentialDepositCounter::<Runtime>::get();
+		let ed_to_refund = if paid_accounts != 0 {
+			locked_ed.saturating_div(paid_accounts)
+		} else {
+			0
+		};
+		let to_lock = locked_ed.saturating_sub(ed_to_refund);
+
+		if to_lock.is_zero() {
+			let _ = <Currencies as MultiLockableCurrency<AccountId>>::remove_lock(
+				SUFFICIENCY_LOCK,
+				NativeAssetId::get(),
+				&TreasuryAccount::get(),
+			);
+		} else {
+			let _ = <Currencies as MultiLockableCurrency<AccountId>>::set_lock(
+				SUFFICIENCY_LOCK,
+				NativeAssetId::get(),
+				&TreasuryAccount::get(),
+				to_lock,
+			);
+		}
+
+		let _ = <Currencies as MultiCurrency<AccountId>>::transfer(
+			NativeAssetId::get(),
+			&TreasuryAccount::get(),
+			who,
+			ed_to_refund,
+		);
+
+		//NOTE: This is necessary because grandfathered accounts doesn't have incremented
+		//sufficients by `SufficiencyCheck` so without check it can overflow.
+		//`set_balance` also bypass `MutationHooks`
+		if frame_system::Pallet::<Runtime>::account(who).sufficients > 0 {
+			frame_system::Pallet::<Runtime>::dec_sufficients(who);
+		}
+
+		pallet_asset_registry::ExistentialDepositCounter::<Runtime>::set(paid_accounts.saturating_sub(1));
+	}
 }
 
 pub struct DustRemovalWhitelist;
@@ -120,16 +298,20 @@ impl pallet_currencies::Config for Runtime {
 
 parameter_types! {
 	pub const SequentialIdOffset: u32 = 1_000_000;
+	pub const StoreFees: Balance = 100 * UNITS; //TODO:
 }
 impl pallet_asset_registry::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type RegistryOrigin = SuperMajorityTechCommitteeOrRoot;
+	type RegistryOrigin = EnsureRoot<AccountId>;
+	type UpdateOrigin = SuperMajorityTechCommitteeOrRoot;
+	type Currency = Currencies;
 	type AssetId = AssetId;
-	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStrLimit;
 	type SequentialIdStartAt = SequentialIdOffset;
-	type NativeAssetId = NativeAssetId;
+	type StorageFeesAssetId = NativeAssetId;
+	type StorageFees = StoreFees;
+	type StorageFeesBeneficiary = TreasuryAccount;
 	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
 }
 
@@ -175,8 +357,10 @@ parameter_types! {
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
 	pub const MaxOutRatio: u128 = MAX_OUT_RATIO;
+	#[derive(Debug, PartialEq)]
 	pub const RegistryStrLimit: u32 = 32;
 	pub const DiscountedFee: (u32, u32) = DISCOUNTED_FEE;
+	pub const XYKOracleSourceIdentifier: Source = *b"snek/xyk";
 }
 
 impl pallet_xyk::Config for Runtime {
@@ -185,7 +369,6 @@ impl pallet_xyk::Config for Runtime {
 	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
@@ -195,6 +378,8 @@ impl pallet_xyk::Config for Runtime {
 	type AMMHandler = pallet_ema_oracle::OnActivityHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
+	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>;
+	type OracleSource = XYKOracleSourceIdentifier;
 }
 
 pub struct MultiCurrencyLockedBalance<T>(PhantomData<T>);
@@ -245,6 +430,9 @@ impl pallet_lbp::Config for Runtime {
 	type MaxOutRatio = MaxOutRatio;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
+
+#[cfg(feature = "runtime-benchmarks")]
+use codec::Decode;
 
 pub struct RootAsVestingPallet;
 impl EnsureOrigin<RuntimeOrigin> for RootAsVestingPallet {
@@ -381,6 +569,152 @@ impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime 
 	type PriceAdjustment = warehouse_liquidity_mining::DefaultPriceAdjustment;
 }
 
+// Provides weight info for the router. Router extrinsics can be executed with different AMMs, so we split the router weights into two parts:
+// the router extrinsic overhead and the AMM weight.
+pub struct RouterWeightInfo;
+// Calculates the overhead of Router extrinsics. To do that, we benchmark Router::sell with single LBP trade and subtract the weight of LBP::sell.
+// This allows us to calculate the weight of any route by adding the weight of AMM trades to the overhead of a router extrinsic.
+impl RouterWeightInfo {
+	pub fn sell_and_calculate_sell_trade_amounts_overhead_weight(
+		num_of_calc_sell: u32,
+		num_of_execute_sell: u32,
+	) -> Weight {
+		weights::route_executor::BasiliskWeight::<Runtime>::calculate_and_execute_sell_in_lbp(
+			num_of_calc_sell,
+			num_of_execute_sell,
+		)
+		.saturating_sub(weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(
+			num_of_calc_sell.saturating_add(num_of_execute_sell),
+			num_of_execute_sell,
+		))
+	}
+
+	pub fn buy_and_calculate_buy_trade_amounts_overhead_weight(
+		num_of_calc_buy: u32,
+		num_of_execute_buy: u32,
+	) -> Weight {
+		weights::route_executor::BasiliskWeight::<Runtime>::calculate_and_execute_buy_in_lbp(
+			num_of_calc_buy,
+			num_of_execute_buy,
+		)
+		.saturating_sub(weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(
+			num_of_calc_buy.saturating_add(num_of_execute_buy),
+			num_of_execute_buy,
+		))
+	}
+}
+impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
+	// Used in Router::sell extrinsic, which calls AMM::calculate_sell and AMM::execute_sell
+	fn sell_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 1; // number of times AMM::calculate_sell is executed
+		let e = 1; // number of times AMM::execute_sell is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(0, 1));
+
+			let amm_weight = match trade.pool {
+				PoolType::Omnipool => Weight::zero(),
+				PoolType::Stableswap(_) => Weight::zero(),
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in Router::buy extrinsic, which calls AMM::calculate_buy and AMM::execute_buy
+	fn buy_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 1; // number of times AMM::calculate_buy is executed
+		let e = 1; // number of times AMM::execute_buy is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(0, 1));
+
+			let amm_weight = match trade.pool {
+				PoolType::Omnipool => Weight::zero(),
+				PoolType::Stableswap(_) => Weight::zero(),
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in DCA::schedule extrinsic, which calls Router::calculate_buy_trade_amounts
+	fn calculate_buy_trade_amounts_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 1; // number of times AMM::calculate_buy is executed
+		let e = 0; // number of times AMM::execute_buy is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(1, 0));
+
+			let amm_weight = match trade.pool {
+				PoolType::Omnipool => Weight::zero(),
+				PoolType::Stableswap(_) => Weight::zero(),
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in DCA::on_initialize for Order::Sell, which calls Router::calculate_sell_trade_amounts and Router::sell.
+	fn sell_and_calculate_sell_trade_amounts_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 2; // number of times AMM::calculate_sell is executed
+		let e = 1; // number of times AMM::execute_sell is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(1, 1));
+
+			let amm_weight = match trade.pool {
+				PoolType::Omnipool => Weight::zero(),
+				PoolType::Stableswap(_) => Weight::zero(),
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	// Used in DCA::on_initialize for Order::Buy, which calls 2 * Router::calculate_buy_trade_amounts and Router::buy.
+	fn buy_and_calculate_buy_trade_amounts_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Weight::zero();
+		let c = 3; // number of times AMM::calculate_buy is executed
+		let e = 1; // number of times AMM::execute_buy is executed
+
+		for trade in route {
+			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(2, 1));
+
+			let amm_weight = match trade.pool {
+				PoolType::Omnipool => Weight::zero(),
+				PoolType::Stableswap(_) => Weight::zero(),
+				PoolType::LBP => weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e),
+				PoolType::XYK => weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+					.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight()),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+}
+
 parameter_types! {
 	pub const MaxNumberOfTrades: u8 = 5;
 }
@@ -392,7 +726,7 @@ impl pallet_route_executor::Config for Runtime {
 	type MaxNumberOfTrades = MaxNumberOfTrades;
 	type Currency = MultiInspectAdapter<AccountId, AssetId, Balance, Balances, Tokens, NativeAssetId>;
 	type AMM = (XYK, LBP);
-	type WeightInfo = weights::route_executor::BasiliskWeight<Runtime>;
+	type WeightInfo = RouterWeightInfo;
 }
 
 parameter_types! {

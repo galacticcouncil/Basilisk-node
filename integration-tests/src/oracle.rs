@@ -12,6 +12,8 @@ use pallet_ema_oracle::OracleError;
 use polkadot_primitives::v2::BlockNumber;
 use xcm_emulator::TestExt;
 
+use basilisk_runtime::XYKOracleSourceIdentifier;
+
 pub fn basilisk_run_to_block(to: BlockNumber) {
 	while basilisk_runtime::System::block_number() < to {
 		let b = basilisk_runtime::System::block_number();
@@ -25,8 +27,6 @@ pub fn basilisk_run_to_block(to: BlockNumber) {
 		basilisk_runtime::System::set_block_number(b + 1);
 	}
 }
-
-use pallet_xyk::SOURCE;
 
 #[test]
 fn xyk_trades_are_ingested_into_oracle() {
@@ -61,14 +61,26 @@ fn xyk_trades_are_ingested_into_oracle() {
 
 		// assert
 		let expected = ((105000000000000, 190504761904760).into(), 0);
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, LastBlock, SOURCE), Ok(expected));
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, LastBlock, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
 		// ten minutes oracle not configured/supported
 		assert_eq!(
-			EmaOracle::get_price(asset_a, asset_b, TenMinutes, SOURCE),
+			EmaOracle::get_price(asset_a, asset_b, TenMinutes, XYKOracleSourceIdentifier::get()),
 			Err(OracleError::NotPresent)
 		);
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Hour, SOURCE), Ok(expected));
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Day, SOURCE), Ok(expected));
-		assert_eq!(EmaOracle::get_price(asset_a, asset_b, Week, SOURCE), Ok(expected));
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, Hour, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, Day, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
+		assert_eq!(
+			EmaOracle::get_price(asset_a, asset_b, Week, XYKOracleSourceIdentifier::get()),
+			Ok(expected)
+		);
 	});
 }

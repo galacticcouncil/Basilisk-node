@@ -57,7 +57,8 @@ use hydradx_traits::{
 };
 use orml_traits::MultiCurrency;
 use pallet_nft::CollectionType;
-use primitives::{asset::AssetPair, AssetId, Balance, CollectionId as DepositId};
+use pallet_xyk::types::{AssetId, AssetPair, Balance};
+use primitives::CollectionId as DepositId;
 use scale_info::TypeInfo;
 use sp_arithmetic::{FixedU128, Perquintill};
 use sp_std::{

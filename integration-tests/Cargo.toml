@@ -18,8 +18,8 @@ pallet-asset-registry = { workspace = true }
 pallet-ema-oracle = { workspace = true }
 hydradx-traits = { workspace = true }
 pallet-duster = { workspace = true }
+pallet-xyk = { workspace = true }
 
-pallet-xyk = { path = "../pallets/xyk",default-features = false}
 pallet-lbp = { path = "../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../pallets/marketplace', default-features = false }
 

@@ -22,8 +22,8 @@ pallet-asset-registry = { workspace = true }
 hydradx-traits = { workspace = true }
 hydradx-adapters = { workspace = true }
 pallet-duster = { workspace = true }
+pallet-xyk = { workspace = true }
 
-pallet-xyk = { path = "../../pallets/xyk",default-features = false}
 pallet-lbp = { path = "../../pallets/lbp", default-features = false }
 pallet-marketplace = { path = '../../pallets/marketplace', default-features = false }
 

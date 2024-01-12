@@ -20,7 +20,7 @@ fn allowed_transact_call_should_pass_filter() {
 		));
 	});
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		// allowed by SafeCallFilter and the runtime call filter
 		let call = pallet_balances::Call::<basilisk_runtime::Runtime>::transfer {
 			dest: BOB.into(),
@@ -99,7 +99,7 @@ fn blocked_transact_calls_should_not_pass_filter() {
 		));
 	});
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		// filtered by SafeCallFilter
 		let call = pallet_tips::Call::<basilisk_runtime::Runtime>::report_awesome {
 			reason: vec![0, 10],
@@ -177,7 +177,7 @@ fn safe_call_filter_should_respect_runtime_call_filter() {
 		));
 	});
 
-	OtherParachain::execute_with(|| {
+	SecondParachain::execute_with(|| {
 		// filtered by the runtime call filter
 		let call = pallet_uniques::Call::<basilisk_runtime::Runtime>::create {
 			collection: 1u128,

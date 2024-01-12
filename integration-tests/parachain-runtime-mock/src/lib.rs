@@ -28,7 +28,7 @@ use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain::primitives::Sibling;
 use primitives::{constants::currency::*, AssetId};
-use sp_core::H256;
+use sp_core::{ConstU128, H256};
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
@@ -78,6 +78,7 @@ parameter_types! {
 		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	pub const ReservedXcmpWeight: Weight = Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND / 4);
 	pub const ReservedDmpWeight: Weight =Weight::from_ref_time(WEIGHT_REF_TIME_PER_SECOND / 4);
+	#[derive(PartialEq, Debug)]
 	pub RegistryStringLimit: u32 = 100;
 	pub const TreasuryPalletId: PalletId = PalletId(*b"aca/trsy");
 	pub ParachainTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
@@ -302,11 +303,14 @@ impl pallet_asset_registry::Config for ParachainRuntime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type RegistryOrigin = EnsureRoot<AccountId>;
-	type Balance = Balance;
+	type UpdateOrigin = EnsureRoot<AccountId>;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStringLimit;
 	type SequentialIdStartAt = SequentialIdOffset;
-	type NativeAssetId = ParachainNativeCurrencyId;
+	type StorageFeesAssetId = ParachainNativeCurrencyId;
+	type StorageFees = ConstU128<100_000_000_000_000_u128>;
+	type Currency = Currencies;
+	type StorageFeesBeneficiary = ParachainTreasuryAccount;
 	type WeightInfo = ();
 }
 

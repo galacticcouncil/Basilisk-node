@@ -47,7 +47,7 @@ runtime_benchmarks! {
 		let dust_dest_account: AccountId = account("dest", 1, SEED);
 		pallet_duster::DustAccount::<Runtime>::put(dust_dest_account);
 
-		let asset_id = register_asset(b"TST".to_vec(), 100u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_id = register_asset(b"TST".to_vec(), 100u128, None).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 		let reward = DustingReward::get();
 		let dest_account = Duster::dust_dest_account();
 
@@ -59,7 +59,7 @@ runtime_benchmarks! {
 
 		update_balance(asset_id, &to_dust_account, min_deposit);
 
-		update_asset(asset_id, b"TST".to_vec(), 110u128).map_err(|_| BenchmarkError::Stop("Failed to update asset"))?;
+		update_asset(asset_id, None, 110u128).map_err(|_| BenchmarkError::Stop("Failed to update asset"))?;
 		assert_eq!(Tokens::free_balance(asset_id, &to_dust_account), dust_amount);
 
 		let current_balance = Tokens::free_balance(asset_id, &dest_account.clone().unwrap());

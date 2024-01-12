@@ -53,7 +53,7 @@ runtime_benchmarks! {
 		let maker: AccountId = account("maker", 0, SEED);
 		let caller: AccountId = account("caller", 0, SEED);
 
-		let asset_id = register_asset(b"TST".to_vec(), 100u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_id = register_asset(b"TST".to_vec(), 100u128, None).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 
 		MultiPaymentPallet::<Runtime>::add_currency(RawOrigin::Root.into(), asset_id, Price::from(1)).map_err(|_| BenchmarkError::Stop("Failed to add supported currency"))?;
 
@@ -68,7 +68,7 @@ runtime_benchmarks! {
 		let maker: AccountId = account("maker", 0, SEED);
 
 		let asset_out = 0u32;
-		let asset_id = register_asset(b"TST".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_id = register_asset(b"TST".to_vec(), 1u128, None).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 		update_balance(asset_out, &maker, 2_000_000_000_000_000);
 		update_balance(asset_id, &maker, 2_000_000_000_000_000);
 

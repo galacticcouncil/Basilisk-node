@@ -6,6 +6,7 @@ use basilisk_runtime::{
 	Tokens, NFT, RELAY_CHAIN_ASSET_LOCATION,
 };
 use frame_support::{assert_noop, assert_ok};
+use hydradx_traits::registry::Mutate;
 use orml_traits::MultiCurrency;
 use orml_traits::MultiReservableCurrency;
 use pallet_nft::CollectionType;
@@ -19,7 +20,6 @@ fn init() {
 	TestNet::reset();
 	Basilisk::execute_with(|| {
 		assert_ok!(AssetRegistry::set_location(
-			basilisk_runtime::RuntimeOrigin::root(),
 			KSM,
 			basilisk_runtime::AssetLocation(RELAY_CHAIN_ASSET_LOCATION.0)
 		));
