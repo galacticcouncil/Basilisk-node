@@ -72,6 +72,7 @@ pallet-society = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8
 pallet-staking = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
 pallet-staking-reward-curve = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
 pallet-staking-reward-fn = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
+pallet-state-trie-migration = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
 pallet-sudo = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
 pallet-timestamp = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
 pallet-tips = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
@@ -161,6 +162,7 @@ substrate-prometheus-endpoint = { git = "https://github.com/paritytech/polkadot-
 substrate-wasm-builder = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
 pallet-mmr = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
 sp-mmr-primitives = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
+substrate-state-trie-migration-rpc = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901" }
 
 kusama-runtime = { package = "staging-kusama-runtime", git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
 pallet-xcm = { git = "https://github.com/paritytech/polkadot-sdk", rev = "c8d2251cafadc108ba2f1f8a3208dc547ff38901", default-features = false }
@@ -266,6 +268,7 @@ pallet-society = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev 
 pallet-staking = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
 pallet-staking-reward-curve = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
 pallet-staking-reward-fn = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
+pallet-state-trie-migration = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
 pallet-sudo = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
 pallet-timestamp = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
 pallet-tips = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
@@ -355,6 +358,7 @@ substrate-prometheus-endpoint = { git = "https://github.com/galacticcouncil/polk
 substrate-wasm-builder = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
 pallet-mmr = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
 sp-mmr-primitives = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
+substrate-state-trie-migration-rpc = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
 
 kusama-runtime = { package = "staging-kusama-runtime", git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }
 pallet-xcm = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }

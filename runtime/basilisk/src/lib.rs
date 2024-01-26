@@ -16,8 +16,8 @@
 // limitations under the License.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
-#![recursion_limit = "256"]
+// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 512.
+#![recursion_limit = "512"]
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::type_complexity)]
 #![allow(clippy::large_enum_variant)]
@@ -102,11 +102,11 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 108,
+	spec_version: 109,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
-	state_version: 0,
+	state_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -188,6 +188,7 @@ construct_runtime!(
 		Uniques: pallet_uniques = 20,
 		Identity: pallet_identity = 21,
 		Multisig: pallet_multisig = 22,
+		StateTrieMigration: pallet_state_trie_migration = 23,
 
 		// Parachain and XCM - starts at index 50
 		ParachainSystem: cumulus_pallet_parachain_system exclude_parts { Config } = 50,
@@ -443,6 +444,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_utility, Utility);
 			list_benchmark!(list, extra, pallet_tips, Tips);
 			list_benchmark!(list, extra, pallet_collective, TechnicalCommittee);
+			list_benchmark!(list, extra, pallet_state_trie_migration, StateTrieMigration);
 
 			list_benchmark!(list, extra, cumulus_pallet_xcmp_queue, XcmpQueue);
 			list_benchmark!(list, extra, pallet_xcm, PolkadotXcm);
@@ -521,6 +523,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_utility, Utility);
 			add_benchmark!(params, batches, pallet_tips, Tips);
 			add_benchmark!(params, batches, pallet_collective, TechnicalCommittee);
+			add_benchmark!(params, batches, pallet_state_trie_migration, StateTrieMigration);
 
 			add_benchmark!(params, batches, cumulus_pallet_xcmp_queue, XcmpQueue);
 			add_benchmark!(params, batches, pallet_xcm, PolkadotXcm);

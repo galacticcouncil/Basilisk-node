@@ -792,7 +792,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "11.0.0"
+version = "11.0.1"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -861,17 +861,20 @@ dependencies = [
  "sp-offchain",
  "sp-runtime",
  "sp-session",
+ "sp-state-machine",
  "sp-storage",
  "sp-timestamp",
  "sp-transaction-pool",
  "sp-trie",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
+ "substrate-state-trie-migration-rpc",
+ "trie-db 0.28.0",
 ]
 
 [[package]]
 name = "basilisk-runtime"
-version = "108.0.0"
+version = "109.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
@@ -927,6 +930,7 @@ dependencies = [
  "pallet-route-executor",
  "pallet-scheduler",
  "pallet-session",
+ "pallet-state-trie-migration",
  "pallet-timestamp",
  "pallet-tips",
  "pallet-transaction-multi-payment",
@@ -2129,7 +2133,7 @@ dependencies = [
  "sp-trie",
  "sp-version",
  "staging-xcm",
- "trie-db",
+ "trie-db 0.27.1",
 ]
 
 [[package]]
@@ -12863,7 +12867,7 @@ dependencies = [
  "sp-trie",
  "thiserror",
  "tracing",
- "trie-db",
+ "trie-db 0.27.1",
 ]
 
 [[package]]
@@ -12988,7 +12992,7 @@ dependencies = [
  "sp-std",
  "thiserror",
  "tracing",
- "trie-db",
+ "trie-db 0.27.1",
  "trie-root",
 ]
 
@@ -13437,7 +13441,7 @@ dependencies = [
  "sp-runtime",
  "sp-state-machine",
  "sp-trie",
- "trie-db",
+ "trie-db 0.27.1",
 ]
 
 [[package]]
@@ -14072,6 +14076,19 @@ name = "trie-db"
 version = "0.27.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "767abe6ffed88a1889671a102c2861ae742726f52e0a5a425b92c9fbfa7e9c85"
+dependencies = [
+ "hash-db 0.16.0",
+ "hashbrown 0.13.2",
+ "log",
+ "rustc-hex",
+ "smallvec",
+]
+
+[[package]]
+name = "trie-db"
+version = "0.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff28e0f815c2fea41ebddf148e008b077d2faddb026c9555b29696114d602642"
 dependencies = [
  "hash-db 0.16.0",
  "hashbrown 0.13.2",

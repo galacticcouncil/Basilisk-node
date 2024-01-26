@@ -238,12 +238,14 @@ async fn start_node_impl(
 	let rpc_builder = {
 		let client = client.clone();
 		let transaction_pool = transaction_pool.clone();
+		let backend = backend.clone();
 
 		Box::new(move |deny_unsafe, _| {
 			let deps = crate::rpc::FullDeps {
 				client: client.clone(),
 				pool: transaction_pool.clone(),
 				deny_unsafe,
+				backend: backend.clone(),
 			};
 
 			crate::rpc::create_full(deps).map_err(Into::into)
