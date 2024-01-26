@@ -492,14 +492,12 @@ parameter_types! {
 }
 
 impl pallet_state_trie_migration::Config for Runtime {
-	// An origin that can control the whole pallet: should be Root, or a part of your council.
 	type ControlOrigin = SuperMajorityTechCommitteeOrRoot;
-	// Warning: this is not advised, as it might allow the chain to be temporarily DOS-ed. Preferably, if the chain's governance/maintenance team is planning on using a specific account for the migration, put it here to make sure only that account can trigger the signed migrations.
 	type SignedFilter = EnsureSignedBy<TechCommAccounts, AccountId>;
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type MaxKeyLen = MaxKeyLen;
 	type SignedDepositPerItem = MigrationSignedDepositPerItem;
 	type SignedDepositBase = MigrationSignedDepositBase;
-	type WeightInfo = ();
+	type WeightInfo = weights::state_trie::BasiliskWeight<Runtime>;
 }
