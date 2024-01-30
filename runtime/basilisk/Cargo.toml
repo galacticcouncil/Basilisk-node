@@ -296,4 +296,5 @@ try-runtime= [
     "pallet-ema-oracle/try-runtime",
     "pallet-collator-rewards/try-runtime",
     "pallet-xcm-rate-limiter/try-runtime",
+    "pallet-state-trie-migration/try-runtime",
 ]
