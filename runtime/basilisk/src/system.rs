@@ -473,14 +473,7 @@ impl pallet_multisig::Config for Runtime {
 pub struct TechCommAccounts;
 impl SortedMembers<AccountId> for TechCommAccounts {
 	fn sorted_members() -> Vec<AccountId> {
-		vec![
-			hex_literal::hex!["2875dd47bc1bcb70e23de79e7538c312be12c716033bbae425130e46f5f2b35e"].into(),
-			hex_literal::hex!["bc96ec00952efa8f0e3e08b36bf5096bcb877acac536e478aecb72868db5db02"].into(),
-			hex_literal::hex!["d6cf8789dce651cb54a4036406f4aa0c771914d345c004ad0567b814c71fb637"].into(),
-			hex_literal::hex!["644643bf953233d08c4c9bae0acd49f3baa7658d9b342b7e6879bb149ee6e44c"].into(),
-			hex_literal::hex!["ccdb435892c9883656d0398b2b67023ba1e11bda0c7f213f70fdac54c6abab3f"].into(),
-			hex_literal::hex!["f461c5ae6e80bf4af5b84452789c17b0b0a095a2d77c2a407978147de2d5b572"].into(),
-		]
+		TechnicalCommittee::members()
 	}
 }
 
