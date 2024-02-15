@@ -42,9 +42,9 @@ use primitives::AssetId;
 use scale_info::TypeInfo;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
-	EnsureXcmOrigin, FixedWeightBounds, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation,
-	TakeWeightCredit, WithComputedOrigin,
+	DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin, FixedWeightBounds, HashedDescription, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
+	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{Config, XcmExecutor};
 
@@ -104,8 +104,6 @@ pub type XcmOriginToCallOrigin = (
 	SignedAccountId32AsNative<RelayNetwork, RuntimeOrigin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	XcmPassthrough<RuntimeOrigin>,
-	// Derives signed AccountId32 origins for Tinkernet multisigs.
-	orml_xcm_builder_kusama::TinkernetMultisigAsNativeOrigin<RuntimeOrigin>,
 );
 
 parameter_types! {
@@ -370,6 +368,18 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
+// TODO: Remove after upgrading to `polkadot-v1.2.0` and replace types from xcm-builder.
+pub struct DescribeBodyTerminal;
+impl xcm_builder::DescribeLocation for DescribeBodyTerminal {
+	fn describe_location(l: &MultiLocation) -> Option<Vec<u8>> {
+		match (l.parents, &l.interior) {
+			(0, X1(Plurality { id, part })) => Some((b"Body", id, part).encode()),
+			_ => return None,
+		}
+	}
+}
+pub type DescribeAllTerminalAndBody = (DescribeAllTerminal, DescribeBodyTerminal);
+
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
@@ -380,8 +390,9 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
 	AccountId32Aliases<RelayNetwork, AccountId>,
-	// Mapping Tinkernet multisig to the correctly derived AccountId32.
-	orml_xcm_builder_kusama::TinkernetMultisigAsAccountId<AccountId>,
+	// TODO: Replace DescribeAllTerminalAndBody with DescribeAllTerminal after upgrading to `polkadot-v1.2.0`.
+	// Foreign locations alias into accounts according to a hash of their standard description.
+	HashedDescription<AccountId, DescribeFamily<DescribeAllTerminalAndBody>>,
 );
 
 parameter_types! {
