@@ -112,9 +112,9 @@ parameter_types! {
 	pub const DesiredMembers: u32 = 7;
 	pub const DesiredRunnersUp: u32 = 9;
 	pub const ElectionsPhragmenPalletId: LockIdentifier = *b"phrelect";
-	pub const MaxElectionCandidates: u32 = 1_000;
-	pub const MaxElectionVoters: u32 = 1_000;
-	pub const MaxVotesPerVoter: u32 = 5;
+	pub const MaxElectionCandidates: u32 = 100;
+	pub const MaxElectionVoters: u32 = 768;
+	pub const MaxVotesPerVoter: u32 = 10;
 }
 
 impl pallet_elections_phragmen::Config for Runtime {
@@ -134,8 +134,8 @@ impl pallet_elections_phragmen::Config for Runtime {
 	type TermDuration = TermDuration;
 	type MaxCandidates = MaxElectionCandidates;
 	type MaxVoters = MaxElectionVoters;
-	type WeightInfo = ();
 	type MaxVotesPerVoter = MaxVotesPerVoter;
+	type WeightInfo = weights::elections::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -181,7 +181,7 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 
 parameter_types! {
 	pub const DataDepositPerByte: Balance = CENTS;
-	pub const TipCountdown: BlockNumber = 2 * HOURS;
+	pub const TipCountdown: BlockNumber = 24 * HOURS;
 	pub const TipFindersFee: Percent = Percent::from_percent(1);
 	pub const TipReportDepositBase: Balance = 10 * DOLLARS;
 	pub const TipReportDepositPerByte: Balance = CENTS;
@@ -196,7 +196,7 @@ impl pallet_tips::Config for Runtime {
 	type TipFindersFee = TipFindersFee;
 	type TipReportDepositBase = TipReportDepositBase;
 	type Tippers = Elections;
-	type WeightInfo = ();
+	type WeightInfo = weights::tips::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {

@@ -5,6 +5,7 @@ pub mod collective;
 pub mod currencies;
 pub mod democracy;
 pub mod duster;
+pub mod elections;
 pub mod ema_oracle;
 pub mod lbp;
 pub mod marketplace;
