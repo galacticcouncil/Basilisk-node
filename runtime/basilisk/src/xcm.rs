@@ -374,7 +374,7 @@ impl xcm_builder::DescribeLocation for DescribeBodyTerminal {
 	fn describe_location(l: &MultiLocation) -> Option<Vec<u8>> {
 		match (l.parents, &l.interior) {
 			(0, X1(Plurality { id, part })) => Some((b"Body", id, part).encode()),
-			_ => return None,
+			_ => None,
 		}
 	}
 }
