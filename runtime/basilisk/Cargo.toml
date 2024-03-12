@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "110.0.0"
+version = "111.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -124,9 +124,6 @@ sp-version = { workspace = true }
 sp-staking = { workspace = true }
 sp-trie = { workspace = true }
 sp-io = { workspace = true }
-
-# InvArch Tinkernet Multisig dependencies
-orml-xcm-builder-kusama = { workspace = true }
 
 [features]
 default = ["std"]

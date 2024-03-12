@@ -871,7 +871,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "110.0.0"
+version = "111.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
@@ -900,7 +900,6 @@ dependencies = [
  "orml-unknown-tokens",
  "orml-vesting",
  "orml-xcm",
- "orml-xcm-builder-kusama",
  "orml-xcm-support",
  "orml-xtokens",
  "pallet-asset-registry",
@@ -6279,26 +6278,6 @@ dependencies = [
  "scale-info",
  "sp-std",
  "staging-xcm",
-]
-
-[[package]]
-name = "orml-xcm-builder-kusama"
-version = "1.0.0"
-source = "git+https://github.com/open-web3-stack/orml-xcm-builder?rev=32f0b3f1cbe77d4d330e07c7d4fcc3ebd669db77#32f0b3f1cbe77d4d330e07c7d4fcc3ebd669db77"
-dependencies = [
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-arithmetic",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "sp-weights",
- "staging-xcm",
- "staging-xcm-executor",
 ]
 
 [[package]]
