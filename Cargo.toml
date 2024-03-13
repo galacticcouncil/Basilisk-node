@@ -225,9 +225,6 @@ orml-xcm = { git = "https://github.com/open-web3-stack/open-runtime-module-libra
 orml-xcm-support = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "b3694e631df7f1ca16b1973122937753fcdee9d4", default-features = false }
 orml-xtokens = { git = "https://github.com/open-web3-stack/open-runtime-module-library", rev = "b3694e631df7f1ca16b1973122937753fcdee9d4", default-features = false }
 
-# InvArch Tinkernet Multisig dependencies
-orml-xcm-builder-kusama = { git = "https://github.com/open-web3-stack/orml-xcm-builder", rev = "32f0b3f1cbe77d4d330e07c7d4fcc3ebd669db77", default-features = false }
-
 
 [patch."https://github.com/paritytech/polkadot-sdk"]
 frame-benchmarking = { git = "https://github.com/galacticcouncil/polkadot-sdk", rev = "062d92eae0f3bb9908faf2d4e241eef17368b9d3" }

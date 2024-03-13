@@ -126,9 +126,6 @@ sp-staking = { workspace = true }
 sp-trie = { workspace = true }
 sp-io = { workspace = true }
 
-# InvArch Tinkernet Multisig dependencies
-orml-xcm-builder-kusama = { workspace = true }
-
 [features]
 default = ["std"]
 runtime-benchmarks = [
