@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "111.0.0"
+version = "112.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -33,6 +33,7 @@ pallet-scheduler = { workspace = true }
 pallet-elections-phragmen = { workspace = true }
 pallet-tips = { workspace = true }
 pallet-identity = { workspace = true }
+pallet-state-trie-migration = { workspace = true }
 
 # HydraDX dependencies
 hydradx-traits = { workspace = true }
@@ -161,6 +162,7 @@ runtime-benchmarks = [
     "cumulus-pallet-parachain-system/runtime-benchmarks",
     "pallet-xcm-rate-limiter/runtime-benchmarks",
     "pallet-elections-phragmen/runtime-benchmarks",
+    "pallet-state-trie-migration/runtime-benchmarks",
 ]
 std = [
     "codec/std",
@@ -238,6 +240,7 @@ std = [
     "pallet-identity/std",
     "pallet-ema-oracle/std",
     "pallet-xcm-rate-limiter/std",
+    "pallet-state-trie-migration/std",
 ]
 try-runtime= [
     "frame-try-runtime",
@@ -290,4 +293,5 @@ try-runtime= [
     "pallet-ema-oracle/try-runtime",
     "pallet-collator-rewards/try-runtime",
     "pallet-xcm-rate-limiter/try-runtime",
+    "pallet-state-trie-migration/try-runtime",
 ]
