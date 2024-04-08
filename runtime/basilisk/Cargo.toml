@@ -114,6 +114,7 @@ pallet-uniques = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-whitelist = { workspace = true }
 sp-api = { workspace = true }
+sp-arithmetic = { workspace = true }
 sp-block-builder = { workspace = true }
 sp-consensus-aura = { workspace = true }
 sp-core = { workspace = true }
@@ -166,6 +167,9 @@ runtime-benchmarks = [
     "pallet-xcm-rate-limiter/runtime-benchmarks",
     "pallet-elections-phragmen/runtime-benchmarks",
     "pallet-state-trie-migration/runtime-benchmarks",
+    "pallet-conviction-voting/runtime-benchmarks",
+    "pallet-referenda/runtime-benchmarks",
+    "pallet-whitelist/runtime-benchmarks",
 ]
 std = [
     "codec/std",
@@ -216,6 +220,7 @@ std = [
     "hydradx-traits/std",
     "hydradx-adapters/std",
     "sp-api/std",
+    "sp-arithmetic/std",
     "sp-block-builder/std",
     "sp-consensus-aura/std",
     "sp-core/std",
@@ -244,6 +249,9 @@ std = [
     "pallet-ema-oracle/std",
     "pallet-xcm-rate-limiter/std",
     "pallet-state-trie-migration/std",
+    "pallet-conviction-voting/std",
+    "pallet-referenda/std",
+    "pallet-whitelist/std",
 ]
 try-runtime= [
     "frame-try-runtime",
@@ -297,4 +305,7 @@ try-runtime= [
     "pallet-collator-rewards/try-runtime",
     "pallet-xcm-rate-limiter/try-runtime",
     "pallet-state-trie-migration/try-runtime",
+    "pallet-conviction-voting/try-runtime",
+    "pallet-referenda/try-runtime",
+    "pallet-whitelist/try-runtime",
 ]
