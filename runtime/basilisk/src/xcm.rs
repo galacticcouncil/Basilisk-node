@@ -16,7 +16,10 @@
 // limitations under the License.
 
 use super::*;
-use crate::governance::{MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot, TreasuryAccount};
+use crate::governance::{
+	old::{MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot, SuperMajorityTechCommitteeOrRoot},
+	TreasuryAccount,
+};
 use crate::system::WeightToFee;
 
 use codec::{Decode, Encode, MaxEncodedLen};

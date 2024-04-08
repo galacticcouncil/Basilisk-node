@@ -16,7 +16,10 @@
 // limitations under the License.
 
 use super::*;
-use crate::governance::{SuperMajorityCouncilOrRoot, SuperMajorityTechCommitteeOrRoot, UnanimousTechCommitteeOrRoot};
+use crate::governance::old::{
+	MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot, SuperMajorityTechCommitteeOrRoot,
+	UnanimousTechCommitteeOrRoot,
+};
 use crate::system::NativeAssetId;
 
 use hydradx_traits::{

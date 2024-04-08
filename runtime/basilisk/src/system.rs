@@ -16,7 +16,10 @@
 // limitations under the License.
 
 use super::*;
-use crate::governance::{MajorityCouncilOrRoot, MajorityTechCommitteeOrRoot};
+use crate::governance::{
+	old::{MajorityCouncilOrRoot, MajorityTechCommitteeOrRoot, SuperMajorityTechCommitteeOrRoot},
+	TreasuryAccount,
+};
 
 use pallet_transaction_multi_payment::{DepositAll, TransferFees};
 use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
@@ -31,14 +34,14 @@ use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
 	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill, RuntimeDebug},
-	traits::{ConstBool, Contains, InstanceFilter, SortedMembers},
+	traits::{ConstBool, Contains, EqualPrivilegeOnly, InstanceFilter, SortedMembers},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_MICROS},
 		ConstantMultiplier, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
-use frame_system::EnsureSignedBy;
+use frame_system::{EnsureRoot, EnsureSignedBy};
 use hydradx_adapters::RelayChainBlockNumberProvider;
 use scale_info::TypeInfo;
 
@@ -281,6 +284,39 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			_ => false,
 		}
 	}
+}
+
+parameter_types! {
+	pub const PreimageMaxSize: u32 = 4096 * 1024;
+	pub PreimageBaseDeposit: Balance = deposit(2, 64);
+	pub PreimageByteDeposit: Balance = deposit(0, 1);
+}
+
+impl pallet_preimage::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+	type Currency = Balances;
+	type ManagerOrigin = EnsureRoot<AccountId>;
+	type BaseDeposit = PreimageBaseDeposit;
+	type ByteDeposit = PreimageByteDeposit;
+}
+
+parameter_types! {
+	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(10) * BlockWeights::get().max_block;
+	pub const MaxScheduledPerBlock: u32 = 50;
+}
+
+impl pallet_scheduler::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeOrigin = RuntimeOrigin;
+	type PalletsOrigin = OriginCaller;
+	type RuntimeCall = RuntimeCall;
+	type MaximumWeight = MaximumSchedulerWeight;
+	type ScheduleOrigin = EnsureRoot<AccountId>;
+	type OriginPrivilegeCmp = EqualPrivilegeOnly;
+	type MaxScheduledPerBlock = MaxScheduledPerBlock;
+	type WeightInfo = weights::scheduler::BasiliskWeight<Runtime>;
+	type Preimages = Preimage;
 }
 
 parameter_types! {

@@ -15,17 +15,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::*;
+use crate::*;
+
 use primitives::constants::{
-	currency::{deposit, CENTS, DOLLARS},
+	currency::{CENTS, DOLLARS},
 	time::{DAYS, HOURS},
 };
 
 use frame_support::{
 	parameter_types,
-	sp_runtime::{Perbill, Percent, Permill},
-	traits::{EitherOfDiverse, EqualPrivilegeOnly, LockIdentifier, NeverEnsureOrigin},
-	PalletId,
+	sp_runtime::{Perbill, Percent},
+	traits::{EitherOfDiverse, LockIdentifier},
 };
 use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_collective::EnsureProportionAtLeast;
@@ -197,67 +197,4 @@ impl pallet_tips::Config for Runtime {
 	type TipReportDepositBase = TipReportDepositBase;
 	type Tippers = Elections;
 	type WeightInfo = weights::tips::BasiliskWeight<Runtime>;
-}
-
-parameter_types! {
-	pub const PreimageMaxSize: u32 = 4096 * 1024;
-	pub PreimageBaseDeposit: Balance = deposit(2, 64);
-	pub PreimageByteDeposit: Balance = deposit(0, 1);
-}
-
-impl pallet_preimage::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
-	type Currency = Balances;
-	type ManagerOrigin = EnsureRoot<AccountId>;
-	type BaseDeposit = PreimageBaseDeposit;
-	type ByteDeposit = PreimageByteDeposit;
-}
-
-parameter_types! {
-	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(10) * BlockWeights::get().max_block;
-	pub const MaxScheduledPerBlock: u32 = 50;
-}
-
-impl pallet_scheduler::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeOrigin = RuntimeOrigin;
-	type PalletsOrigin = OriginCaller;
-	type RuntimeCall = RuntimeCall;
-	type MaximumWeight = MaximumSchedulerWeight;
-	type ScheduleOrigin = EnsureRoot<AccountId>;
-	type OriginPrivilegeCmp = EqualPrivilegeOnly;
-	type MaxScheduledPerBlock = MaxScheduledPerBlock;
-	type WeightInfo = weights::scheduler::BasiliskWeight<Runtime>;
-	type Preimages = Preimage;
-}
-
-parameter_types! {
-	pub const ProposalBond: Permill = Permill::from_percent(3);
-	pub const ProposalBondMinimum: Balance = 100 * DOLLARS;
-	pub const ProposalBondMaximum: Balance = 500 * DOLLARS;
-	pub const SpendPeriod: BlockNumber = 3 * DAYS;
-	pub const Burn: Permill = Permill::from_percent(0);
-	pub const TreasuryPalletId: PalletId = PalletId(*b"py/trsry");
-	pub const MaxApprovals: u32 =  100;
-	pub TreasuryAccount: AccountId = Treasury::account_id();
-}
-
-impl pallet_treasury::Config for Runtime {
-	type Currency = Balances;
-	type ApproveOrigin = SuperMajorityCouncilOrRoot;
-	type RejectOrigin = MajorityCouncilOrRoot;
-	type RuntimeEvent = RuntimeEvent;
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ProposalBondMinimum;
-	type ProposalBondMaximum = ProposalBondMaximum;
-	type SpendPeriod = SpendPeriod;
-	type Burn = Burn;
-	type PalletId = TreasuryPalletId;
-	type BurnDestination = ();
-	type WeightInfo = weights::treasury::BasiliskWeight<Runtime>;
-	type SpendFunds = ();
-	type MaxApprovals = MaxApprovals;
-	type SpendOrigin = NeverEnsureOrigin<Balance>;
 }
