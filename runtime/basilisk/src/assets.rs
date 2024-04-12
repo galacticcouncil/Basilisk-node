@@ -92,8 +92,8 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = ();
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
-	type MaxHolds = ();
 	type RuntimeHoldReason = ();
+	type RuntimeFreezeReason = ();
 }
 
 pub struct CurrencyHooks;
@@ -620,6 +620,11 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 
 		weight
 	}
+
+	fn force_insert_route_weight() -> Weight {
+		//Since we don't have any AMM specific thing in the extrinsic, we just return the plain weight
+		weights::route_executor::BasiliskWeight::<Runtime>::force_insert_route()
+	}
 }
 
 parameter_types! {
@@ -634,6 +639,8 @@ impl pallet_route_executor::Config for Runtime {
 	type NativeAssetId = NativeAssetId;
 	type DefaultRoutePoolType = DefaultRoutePoolType;
 	type WeightInfo = RouterWeightInfo;
+	type InspectRegistry = AssetRegistry;
+	type TechnicalOrigin = SuperMajorityTechCommitteeOrRoot;
 }
 
 parameter_types! {
@@ -648,9 +655,13 @@ parameter_types! {
 impl pallet_ema_oracle::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::ema_oracle::BasiliskWeight<Runtime>;
+	type AuthorityOrigin = SuperMajorityTechCommitteeOrRoot;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type SupportedPeriods = SupportedPeriods;
+	type OracleWhitelist = (); // TODO: What do here ?
 	type MaxUniqueEntries = MaxUniqueOracleEntries;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = (); //TODO: implement helper
 }
 
 parameter_types! {

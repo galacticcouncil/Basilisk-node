@@ -21,7 +21,7 @@ pallet-duster = { workspace = true }
 pallet-xyk = { workspace = true }
 pallet-lbp = { workspace = true }
 
-pallet-marketplace = { path = '../pallets/marketplace', default-features = false }
+pallet-marketplace = { workspace = true}
 
 primitives = { default-features = false, path = "../primitives" }
 

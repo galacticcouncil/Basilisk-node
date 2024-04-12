@@ -128,4 +128,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(34_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
+
+	fn force_insert_route() -> Weight {
+		todo!()
+	}
 }

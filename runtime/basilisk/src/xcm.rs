@@ -20,7 +20,7 @@ use crate::governance::{MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot,
 use crate::system::WeightToFee;
 
 use codec::{Decode, Encode, MaxEncodedLen};
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::{
 	parameter_types,
 	sp_runtime::traits::Convert,
@@ -47,6 +47,8 @@ use xcm_builder::{
 	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{Config, XcmExecutor};
+use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
+use sp_runtime::Perbill;
 
 #[derive(Debug, Default, Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct AssetLocation(pub MultiLocation);
@@ -55,6 +57,10 @@ pub const RELAY_CHAIN_ASSET_LOCATION: AssetLocation = AssetLocation(MultiLocatio
 	parents: 1,
 	interior: Here,
 });
+
+parameter_types! {
+	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
+}
 
 pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, RelayNetwork>;
 
@@ -284,19 +290,26 @@ fn defer_duration_configuration() {
 		DeferDuration::get()
 	);
 }
+
 parameter_types! {
 	pub DeferDuration: RelayChainBlockNumber = 600 * 36; // 36 hours
 	pub MaxDeferDuration: RelayChainBlockNumber = 600 * 24 * 10; // 10 days
+
+	pub MessageQueueServiceWeight: Weight = Perbill::from_percent(25) * BlockWeights::get().max_block;
+	pub const MessageQueueMaxStale: u32 = 8;
+	pub const MessageQueueHeapSize: u32 = 128 * 1048;
 }
 
-impl pallet_xcm_rate_limiter::Config for Runtime {
+impl pallet_message_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type AssetId = AssetId;
-	type DeferDuration = DeferDuration;
-	type MaxDeferDuration = MaxDeferDuration;
-	type RelayBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
-	type CurrencyIdConvert = CurrencyIdConvert;
-	type RateLimitFor = pallet_asset_registry::XcmRateLimitsInRegistry<Runtime>;
+	type WeightInfo = ();
+	type MessageProcessor = xcm_builder::ProcessXcmMessage<AggregateMessageOrigin, XcmExecutor<XcmConfig>, RuntimeCall>;
+	type Size = u32;
+	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;
+	type QueuePausedQuery = NarrowOriginToSibling<XcmpQueue>;
+	type HeapSize = MessageQueueHeapSize;
+	type MaxStale = MessageQueueMaxStale;
+	type ServiceWeight = MessageQueueServiceWeight;
 }
 
 pub struct CurrencyIdConvert;

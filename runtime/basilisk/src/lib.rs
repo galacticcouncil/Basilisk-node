@@ -192,7 +192,7 @@ construct_runtime!(
 
 		// Parachain and XCM - starts at index 50
 		ParachainSystem: cumulus_pallet_parachain_system exclude_parts { Config } = 50,
-		ParachainInfo: parachain_info = 51,
+		ParachainInfo: staging_parachain_info = 51,
 
 		//NOTE: Scheduler must be after ParachainSystem otherwise RelayChainBlockNumberProvider
 		//will return 0 as current block number when used with Scheduler(democracy).
@@ -202,6 +202,7 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm = 53,
 		XcmpQueue: cumulus_pallet_xcmp_queue exclude_parts { Call } = 54,
 		DmpQueue: cumulus_pallet_dmp_queue = 55,
+		MessageQueue: pallet_message_queue = 56,
 
 		// Basilisk - runtime module index for basilisk's pallets starts at 100
 		AssetRegistry: pallet_asset_registry = 100,
@@ -217,7 +218,7 @@ construct_runtime!(
 		XYKLiquidityMining: pallet_xyk_liquidity_mining = 112,
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
 		CollatorRewards: pallet_collator_rewards = 114,
-		XcmRateLimiter: pallet_xcm_rate_limiter = 115,
+		// Note: 115 was used by rate limiter which is now removed
 
 		EmaOracle: pallet_ema_oracle = 120,
 

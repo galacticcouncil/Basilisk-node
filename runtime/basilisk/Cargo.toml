@@ -50,7 +50,6 @@ warehouse-liquidity-mining = { workspace = true }
 pallet-ema-oracle = { workspace = true }
 pallet-duster = { workspace = true }
 pallet-collator-rewards = { workspace = true }
-pallet-xcm-rate-limiter = { workspace = true }
 pallet-xyk = { workspace = true }
 pallet-lbp = { workspace = true }
 
@@ -81,6 +80,7 @@ cumulus-primitives-utility = { workspace = true }
 cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-primitives-timestamp = { workspace = true }
 staging-parachain-info = { workspace = true }
+parachains-common = { workspace = true }
 
 # Polkadot dependencies
 polkadot-parachain = { workspace = true }
@@ -110,6 +110,8 @@ pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 pallet-uniques = { workspace = true }
 pallet-utility = { workspace = true }
+pallet-message-queue = { workspace = true }
+
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
 sp-consensus-aura = { workspace = true }
@@ -160,9 +162,9 @@ runtime-benchmarks = [
     "pallet-ema-oracle/runtime-benchmarks",
     "cumulus-pallet-xcmp-queue/runtime-benchmarks",
     "cumulus-pallet-parachain-system/runtime-benchmarks",
-    "pallet-xcm-rate-limiter/runtime-benchmarks",
     "pallet-elections-phragmen/runtime-benchmarks",
     "pallet-state-trie-migration/runtime-benchmarks",
+    "pallet-message-queue/runtime-benchmarks",
 ]
 std = [
     "codec/std",
@@ -239,9 +241,10 @@ std = [
     "pallet-preimage/std",
     "pallet-identity/std",
     "pallet-ema-oracle/std",
-    "pallet-xcm-rate-limiter/std",
     "pallet-state-trie-migration/std",
     "cumulus-primitives-utility/std",
+    "parachains-common/std",
+    "pallet-message-queue/std",
 ]
 try-runtime= [
     "frame-try-runtime",
@@ -293,6 +296,6 @@ try-runtime= [
     "warehouse-liquidity-mining/try-runtime",
     "pallet-ema-oracle/try-runtime",
     "pallet-collator-rewards/try-runtime",
-    "pallet-xcm-rate-limiter/try-runtime",
     "pallet-state-trie-migration/try-runtime",
+    "pallet-message-queue/try-runtime",
 ]
