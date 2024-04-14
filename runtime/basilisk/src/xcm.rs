@@ -21,6 +21,7 @@ use crate::system::WeightToFee;
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
+use frame_support::traits::TransformOrigin;
 use frame_support::{
 	parameter_types,
 	sp_runtime::traits::Convert,
@@ -36,10 +37,12 @@ use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_transaction_multi_payment::DepositAll;
 use pallet_xcm::XcmPassthrough;
+use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_parachain::primitives::{RelayChainBlockNumber, Sibling};
 use polkadot_xcm::v3::{prelude::*, MultiLocation, Weight as XcmWeight};
 use primitives::AssetId;
 use scale_info::TypeInfo;
+use sp_runtime::Perbill;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
 	DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin, FixedWeightBounds, HashedDescription, ParentIsPreset,
@@ -47,8 +50,6 @@ use xcm_builder::{
 	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{Config, XcmExecutor};
-use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
-use sp_runtime::Perbill;
 
 #[derive(Debug, Default, Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct AssetLocation(pub MultiLocation);
@@ -172,30 +173,25 @@ parameter_types! {
 	pub const MaxDeferredMessages: u32 = 20;
 	pub const MaxDeferredBuckets: u32 = 1_000;
 	pub const MaxBucketsProcessed: u32 = 3;
+	pub const MaxInboundSuspended: u32 = 1_000;
 }
 
 impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
-	type ExecuteOverweightOrigin = MajorityTechCommitteeOrRoot;
 	type ControllerOrigin = MajorityTechCommitteeOrRoot;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 	type PriceForSiblingDelivery = ();
 	type WeightInfo = weights::xcmp_queue::BasiliskWeight<Runtime>;
-	type ExecuteDeferredOrigin = EnsureRoot<AccountId>;
-	type MaxDeferredMessages = MaxDeferredMessages;
-	type MaxDeferredBuckets = MaxDeferredBuckets;
-	type MaxBucketsProcessed = MaxBucketsProcessed;
-	type RelayChainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
-	type XcmDeferFilter = XcmRateLimiter;
+	type XcmpQueue = TransformOrigin<MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling>;
+	type MaxInboundSuspended = MaxInboundSuspended;
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type ExecuteOverweightOrigin = MajorityTechCommitteeOrRoot;
+	type DmpSink = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
+	type WeightInfo = ();
 }
 
 parameter_type_with_key! {
@@ -209,16 +205,18 @@ impl orml_xtokens::Config for Runtime {
 	type Balance = Balance;
 	type CurrencyId = AssetId;
 	type CurrencyIdConvert = CurrencyIdConvert;
-	type AccountIdToMultiLocation = AccountIdToMultiLocation;
+	type AccountIdToLocation = AccountIdToMultiLocation;
 	type SelfLocation = SelfLocation;
 	type MinXcmFee = ParachainMinFee;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
-	type MultiLocationsFilter = Everything;
+	type LocationsFilter = Everything;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
 	type BaseXcmWeight = BaseXcmWeight;
 	type UniversalLocation = UniversalLocation;
 	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 	type ReserveProvider = AbsoluteReserveProvider;
+	type RateLimiter = (); //TODO: what do ?
+	type RateLimiterId = (); //TODO: what do ?
 }
 
 impl orml_unknown_tokens::Config for Runtime {
@@ -266,8 +264,6 @@ impl pallet_xcm::Config for Runtime {
 	type SovereignAccountOf = ();
 	type MaxLockers = ConstU32<8>;
 	type WeightInfo = weights::xcm::BasiliskWeight<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type ReachableDest = ReachableDest;
 	type AdminOrigin = SuperMajorityTechCommitteeOrRoot;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
@@ -381,18 +377,6 @@ pub type XcmRouter = (
 	XcmpQueue,
 );
 
-// TODO: Remove after upgrading to `polkadot-v1.2.0` and replace types from xcm-builder.
-pub struct DescribeBodyTerminal;
-impl xcm_builder::DescribeLocation for DescribeBodyTerminal {
-	fn describe_location(l: &MultiLocation) -> Option<Vec<u8>> {
-		match (l.parents, &l.interior) {
-			(0, X1(Plurality { id, part })) => Some((b"Body", id, part).encode()),
-			_ => None,
-		}
-	}
-}
-pub type DescribeAllTerminalAndBody = (DescribeAllTerminal, DescribeBodyTerminal);
-
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
@@ -403,9 +387,8 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
 	AccountId32Aliases<RelayNetwork, AccountId>,
-	// TODO: Replace DescribeAllTerminalAndBody with DescribeAllTerminal after upgrading to `polkadot-v1.2.0`.
 	// Foreign locations alias into accounts according to a hash of their standard description.
-	HashedDescription<AccountId, DescribeFamily<DescribeAllTerminalAndBody>>,
+	HashedDescription<AccountId, DescribeFamily<DescribeAllTerminal>>,
 );
 
 parameter_types! {

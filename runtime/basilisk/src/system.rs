@@ -27,6 +27,8 @@ use primitives::constants::{
 };
 
 use codec::{Decode, Encode, MaxEncodedLen};
+use frame_support::pallet_prelude::Get;
+use frame_support::traits::Defensive;
 use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
@@ -38,13 +40,11 @@ use frame_support::{
 	},
 	PalletId,
 };
-use frame_support::pallet_prelude::Get;
-use frame_support::traits::Defensive;
 use frame_system::{EnsureRoot, EnsureSignedBy};
 use hydradx_adapters::RelayChainBlockNumberProvider;
 use hydradx_traits::evm::InspectEvmAccounts;
-use scale_info::TypeInfo;
 use primitives::constants::time::DAYS;
+use scale_info::TypeInfo;
 
 /// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
 /// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
@@ -239,14 +239,13 @@ impl Get<AssetId> for WethAssetId {
 	}
 }
 
-
 pub struct EvmAccounts;
-impl InspectEvmAccounts<AccountId, sp_core::H160> for EvmAccounts{
+impl InspectEvmAccounts<AccountId, sp_core::H160> for EvmAccounts {
 	fn is_evm_account(_account_id: AccountId) -> bool {
 		false
 	}
 
-	fn evm_address(_account_id: &impl AsRef<[u8; 32]>) -> sp_core::H160{
+	fn evm_address(_account_id: &impl AsRef<[u8; 32]>) -> sp_core::H160 {
 		sp_core::H160::default()
 	}
 
