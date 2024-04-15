@@ -121,7 +121,7 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	}
 	/// Storage: `CollatorSelection::CandidacyBond` (r:0 w:1)
 	/// Proof: `CollatorSelection::CandidacyBond` (`max_values`: Some(1), `max_size`: Some(16), added: 511, mode: `MaxEncodedLen`)
-	fn set_candidacy_bond(_: u32, _:u32) -> Weight {
+	fn set_candidacy_bond(_: u32, _: u32) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`

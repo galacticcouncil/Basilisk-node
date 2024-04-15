@@ -34,9 +34,9 @@ mod tests;
 
 mod benchmarking;
 pub mod migration;
+pub mod traits;
 mod types;
 pub mod weights;
-pub mod traits;
 
 use weights::WeightInfo;
 
@@ -47,8 +47,8 @@ pub use pallet::*;
 
 pub use crate::types::{AssetDetails, AssetMetadata};
 use frame_support::BoundedVec;
-use traits::{CreateRegistry, InspectRegistry, Registry, ShareTokenRegistry};
 use hydradx_traits::{AssetKind, Inspect};
+use traits::{CreateRegistry, InspectRegistry, Registry, ShareTokenRegistry};
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -658,7 +658,7 @@ impl<T: Config<Balance = u128>> Inspect for Pallet<T> {
 	type AssetId = T::AssetId;
 	type Location = T::AssetNativeLocation;
 
-	fn is_sufficient(id: Self::AssetId) -> bool {
+	fn is_sufficient(_id: Self::AssetId) -> bool {
 		true
 	}
 
@@ -674,7 +674,7 @@ impl<T: Config<Balance = u128>> Inspect for Pallet<T> {
 		Self::assets(id).map(|a| a.asset_type.into())
 	}
 
-	fn is_banned(id: Self::AssetId) -> bool {
+	fn is_banned(_id: Self::AssetId) -> bool {
 		false
 	}
 

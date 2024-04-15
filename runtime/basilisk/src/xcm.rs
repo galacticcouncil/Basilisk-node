@@ -39,11 +39,15 @@ use pallet_transaction_multi_payment::DepositAll;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_parachain::primitives::{RelayChainBlockNumber, Sibling};
-use polkadot_xcm::latest::{Asset, Location};
-use polkadot_xcm::prelude::{InteriorLocation};
-use polkadot_xcm::v3::{prelude::{X1, X2, X3, GeneralIndex, Parachain, GlobalConsensus, NetworkId, Here, Concrete, AccountId32}, MultiAsset, MultiLocation, Weight as XcmWeight};
+use polkadot_xcm::latest::{Asset, Junctions, Location};
+use polkadot_xcm::prelude::InteriorLocation;
+use polkadot_xcm::v3::{
+	prelude::{AccountId32, Concrete, GeneralIndex, GlobalConsensus, Here, NetworkId, Parachain, X1, X2, X3},
+	MultiAsset, MultiLocation, Weight as XcmWeight,
+};
 use primitives::AssetId;
 use scale_info::TypeInfo;
+use sp_runtime::traits::MaybeEquivalence;
 use sp_runtime::Perbill;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
@@ -55,6 +59,21 @@ use xcm_executor::{Config, XcmExecutor};
 
 #[derive(Debug, Default, Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct AssetLocation(pub MultiLocation);
+
+impl Into<Option<Location>> for AssetLocation {
+	fn into(self) -> Option<Location> {
+		xcm_builder::V4V3LocationConverter::convert_back(&self.0)
+	}
+}
+
+impl TryFrom<Location> for AssetLocation {
+	type Error = ();
+
+	fn try_from(value: Location) -> Result<Self, Self::Error> {
+		let loc: MultiLocation = value.try_into()?;
+		Ok(AssetLocation(loc.into()))
+	}
+}
 
 pub const RELAY_CHAIN_ASSET_LOCATION: AssetLocation = AssetLocation(MultiLocation {
 	parents: 1,
@@ -314,46 +333,83 @@ impl pallet_message_queue::Config for Runtime {
 pub struct CurrencyIdConvert;
 use primitives::constants::chain::CORE_ASSET_ID;
 
-impl Convert<AssetId, Option<MultiLocation>> for CurrencyIdConvert {
-	fn convert(id: AssetId) -> Option<MultiLocation> {
+impl Convert<AssetId, Option<Location>> for CurrencyIdConvert {
+	fn convert(id: AssetId) -> Option<Location> {
 		match id {
-			CORE_ASSET_ID => Some(MultiLocation::new(
-				1,
-				X2(Parachain(ParachainInfo::get().into()), GeneralIndex(id.into())),
-			)),
-			_ => AssetRegistry::asset_to_location(id).map(|loc| loc.0),
+			CORE_ASSET_ID => Some(Location {
+				parents: 1,
+				interior: [
+					polkadot_xcm::prelude::Parachain(ParachainInfo::get().into()),
+					polkadot_xcm::prelude::GeneralIndex(id.into()),
+				]
+				.into(),
+			}),
+			_ => {
+				let loc = AssetRegistry::asset_to_location(id);
+				if let Some(location) = loc {
+					location.into()
+				} else {
+					None
+				}
+			}
 		}
 	}
 }
 
-impl Convert<MultiLocation, Option<AssetId>> for CurrencyIdConvert {
-	fn convert(location: MultiLocation) -> Option<AssetId> {
+impl Convert<Location, Option<AssetId>> for CurrencyIdConvert {
+	fn convert(location: Location) -> Option<AssetId> {
+		let Location { parents, interior } = location.clone();
+
+		match interior {
+			Junctions::X2(a)
+				if parents == 1
+					&& a.contains(&polkadot_xcm::prelude::GeneralIndex(CORE_ASSET_ID.into()))
+					&& a.contains(&polkadot_xcm::prelude::Parachain(ParachainInfo::get().into())) =>
+			{
+				Some(CORE_ASSET_ID)
+			}
+			Junctions::X1(a)
+				if parents == 0 && a.contains(&polkadot_xcm::prelude::GeneralIndex(CORE_ASSET_ID.into())) =>
+			{
+				Some(CORE_ASSET_ID)
+			}
+			_ => {
+				let location: Option<AssetLocation> = location.try_into().ok();
+				if let Some(location) = location {
+					AssetRegistry::location_to_asset(location)
+				} else {
+					None
+				}
+			}
+		}
+
+		// Note: keeping the original code for reference until tests are successful
+		/*
 		match location {
-			MultiLocation {
-				parents,
-				interior: X2(Parachain(id), GeneralIndex(index)),
-			} if parents == 1 && ParaId::from(id) == ParachainInfo::get() && (index as u32) == CORE_ASSET_ID => {
+			Location {
+				parents: p,
+				interior: [Parachain(id), GeneralIndex(index)].into(),
+			} if p == 1 && ParaId::from(id) == ParachainInfo::get() && (index as u32) == CORE_ASSET_ID => {
 				// Handling native asset for this parachain
 				Some(CORE_ASSET_ID)
 			}
 			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
-			MultiLocation {
+			Location {
 				parents: 0,
-				interior: X1(GeneralIndex(index)),
+				interior: [GeneralIndex(index)].into(),
 			} if (index as u32) == CORE_ASSET_ID => Some(CORE_ASSET_ID),
 			// delegate to asset-registry
 			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
 		}
+
+		 */
 	}
 }
 
-impl Convert<MultiAsset, Option<AssetId>> for CurrencyIdConvert {
-	fn convert(asset: MultiAsset) -> Option<AssetId> {
-		if let MultiAsset {
-			id: Concrete(location), ..
-		} = asset
-		{
-			Self::convert(location)
+impl Convert<Asset, Option<AssetId>> for CurrencyIdConvert {
+	fn convert(asset: Asset) -> Option<AssetId> {
+		if let Asset { id: asset_id, .. } = asset {
+			Self::convert(asset_id.0)
 		} else {
 			None
 		}
@@ -361,26 +417,17 @@ impl Convert<MultiAsset, Option<AssetId>> for CurrencyIdConvert {
 }
 
 pub struct AccountIdToMultiLocation;
-impl Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
-	fn convert(account: AccountId) -> MultiLocation {
-		X1(AccountId32 {
-			network: None,
-			id: account.into(),
-		})
-		.into()
-	}
-}
 impl Convert<AccountId, Location> for AccountIdToMultiLocation {
 	fn convert(account: AccountId) -> Location {
 		[polkadot_xcm::prelude::AccountId32 {
 			network: None,
 			id: account.into(),
 		}]
-			.into()
+		.into()
 	}
 }
 
-
+/*
 impl Convert<polkadot_xcm::latest::Location, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(location: polkadot_xcm::latest::Location) -> Option<AssetId> {
 		let polkadot_xcm::latest::Location { parents, interior } = location.clone();
@@ -420,27 +467,7 @@ impl Convert<polkadot_xcm::latest::Location, Option<AssetId>> for CurrencyIdConv
 	}
 }
 
-impl Convert<Asset, Option<AssetId>> for CurrencyIdConvert {
-	fn convert(asset: Asset) -> Option<AssetId> {
-		if let Asset { id: asset_id, .. } = asset {
-			Self::convert(asset_id.0)
-		} else {
-			None
-		}
-	}
-}
-
-impl Convert<AssetId, Option<Location>> for CurrencyIdConvert {
-	fn convert(id: AssetId) -> Option<Location> {
-		match id {
-			CORE_ASSET_ID => Some(Location {
-				parents: 1,
-				interior: [polkadot_xcm::prelude::Parachain(ParachainInfo::get().into()), polkadot_xcm::prelude::GeneralIndex(id.into())].into(),
-			}),
-			_ => AssetRegistry::asset_to_location(id).map(|loc| loc.0.into()),
-		}
-	}
-}
+ */
 
 /// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
