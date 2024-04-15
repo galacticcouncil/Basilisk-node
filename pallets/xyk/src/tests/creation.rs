@@ -1,7 +1,7 @@
 pub use super::mock::*;
 use crate::{Error, Event};
 use frame_support::{assert_noop, assert_ok, BoundedVec};
-use hydradx_traits::Registry;
+use pallet_asset_registry::traits::Registry;
 use hydradx_traits::AMM as AmmPool;
 use orml_traits::MultiCurrency;
 use pallet_asset_registry::AssetType;

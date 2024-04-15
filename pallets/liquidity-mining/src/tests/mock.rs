@@ -22,7 +22,8 @@ use crate::Config;
 use crate::{self as liq_mining, types::DefaultPriceAdjustment};
 use frame_support::{parameter_types, traits::Contains, traits::Everything, PalletId};
 use frame_system as system;
-use hydradx_traits::{pools::DustRemovalAccountWhitelist, registry::Registry, AssetKind, AMM};
+use hydradx_traits::{pools::DustRemovalAccountWhitelist, AssetKind, AMM};
+use pallet_asset_registry::traits::Registry;
 use orml_traits::GetByKey;
 use sp_core::H256;
 use sp_runtime::{
@@ -145,6 +146,7 @@ impl system::Config for Test {
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
+	type RuntimeTask = RuntimeTask;
 	type Nonce = u64;
 	type Block = Block;
 	type Hash = H256;
@@ -349,8 +351,8 @@ impl pallet_balances::Config for Test {
 	type ReserveIdentifier = ReserveIdentifier;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
-	type MaxHolds = ();
 	type RuntimeHoldReason = ();
+	type RuntimeFreezeReason = ();
 }
 
 impl orml_tokens::Config for Test {
