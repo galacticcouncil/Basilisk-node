@@ -39,6 +39,7 @@ use pallet_transaction_multi_payment::DepositAll;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_parachain::primitives::{RelayChainBlockNumber, Sibling};
+use polkadot_xcm::latest::Asset;
 use polkadot_xcm::v3::{prelude::*, MultiLocation, Weight as XcmWeight};
 use primitives::AssetId;
 use scale_info::TypeInfo;
@@ -365,6 +366,56 @@ impl Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
 			id: account.into(),
 		})
 		.into()
+	}
+}
+
+
+impl Convert<polkadot_xcm::latest::Location, Option<AssetId>> for CurrencyIdConvert {
+	fn convert(location: polkadot_xcm::latest::Location) -> Option<AssetId> {
+		let polkadot_xcm::latest::Location { parents, interior } = location.clone();
+
+		match interior {
+			polkadot_xcm::latest::Junctions::X2(a)
+			if parents == 1
+				&& a.contains(&polkadot_xcm::prelude::GeneralIndex(CORE_ASSET_ID.into()))
+				&& a.contains(&polkadot_xcm::prelude::Parachain(ParachainInfo::get().into())) =>
+				{
+					Some(CORE_ASSET_ID)
+				}
+			polkadot_xcm::latest::Junctions::X1(a) if parents == 0 && a.contains(&polkadot_xcm::prelude::GeneralIndex(CORE_ASSET_ID.into())) => Some(CORE_ASSET_ID),
+			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
+		}
+
+		// Note: keeping the original code for reference until tests are successful
+		/*
+		match location {
+			Location {
+				parents: p,
+				interior: [Parachain(id), GeneralIndex(index)].into(),
+			} if p == 1 && ParaId::from(id) == ParachainInfo::get() && (index as u32) == CORE_ASSET_ID => {
+				// Handling native asset for this parachain
+				Some(CORE_ASSET_ID)
+			}
+			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
+			Location {
+				parents: 0,
+				interior: [GeneralIndex(index)].into(),
+			} if (index as u32) == CORE_ASSET_ID => Some(CORE_ASSET_ID),
+			// delegate to asset-registry
+			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
+		}
+
+		 */
+	}
+}
+
+impl Convert<Asset, Option<AssetId>> for CurrencyIdConvert {
+	fn convert(asset: Asset) -> Option<AssetId> {
+		if let Asset { id: asset_id, .. } = asset {
+			Self::convert(asset_id.0)
+		} else {
+			None
+		}
 	}
 }
 

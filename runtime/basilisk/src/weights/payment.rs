@@ -98,4 +98,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Minimum execution time: 96_786_000 picoseconds.
 		Weight::from_parts(97_647_000, 27510).saturating_add(T::DbWeight::get().reads(11_u64))
 	}
+
+	fn reset_payment_currency() -> Weight {
+		todo!()
+	}
 }

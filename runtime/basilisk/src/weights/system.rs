@@ -147,4 +147,12 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(p.into())))
 			.saturating_add(Weight::from_parts(0, 70).saturating_mul(p.into()))
 	}
+
+	fn authorize_upgrade() -> Weight {
+		todo!()
+	}
+
+	fn apply_authorized_upgrade() -> Weight {
+		todo!()
+	}
 }

@@ -52,6 +52,14 @@ use pallet_ema_oracle::weights::WeightInfo;
 pub struct BasiliskWeight<T>(PhantomData<T>);
 
 impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
+	fn add_oracle() -> Weight {
+		todo!()
+	}
+
+	fn remove_oracle() -> Weight {
+		todo!()
+	}
+
 	/// Storage: `EmaOracle::Accumulator` (r:1 w:0)
 	/// Proof: `EmaOracle::Accumulator` (`max_values`: Some(1), `max_size`: Some(4441), added: 4936, mode: `MaxEncodedLen`)
 	fn on_finalize_no_entry() -> Weight {

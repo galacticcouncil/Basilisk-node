@@ -137,4 +137,20 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes((3_u64).saturating_mul(p.into())))
 			.saturating_add(Weight::from_parts(0, 5206).saturating_mul(p.into()))
 	}
+
+	fn spend_local() -> Weight {
+		todo!()
+	}
+
+	fn payout() -> Weight {
+		todo!()
+	}
+
+	fn check_status() -> Weight {
+		todo!()
+	}
+
+	fn void_spend() -> Weight {
+		todo!()
+	}
 }

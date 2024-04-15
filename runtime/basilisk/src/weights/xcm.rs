@@ -89,6 +89,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		// Minimum execution time: 32_094_000 picoseconds.
 		Weight::from_parts(32_796_000, 1489).saturating_add(T::DbWeight::get().reads(1_u64))
 	}
+
+	fn transfer_assets() -> Weight {
+		todo!()
+	}
+
 	fn execute() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
@@ -263,5 +268,13 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 		Weight::from_parts(52_527_000, 11144)
 			.saturating_add(T::DbWeight::get().reads(9_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
+	}
+
+	fn new_query() -> Weight {
+		todo!()
+	}
+
+	fn take_response() -> Weight {
+		todo!()
 	}
 }
