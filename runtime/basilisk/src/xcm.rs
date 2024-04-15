@@ -39,8 +39,9 @@ use pallet_transaction_multi_payment::DepositAll;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_parachain::primitives::{RelayChainBlockNumber, Sibling};
-use polkadot_xcm::latest::Asset;
-use polkadot_xcm::v3::{prelude::*, MultiLocation, Weight as XcmWeight};
+use polkadot_xcm::latest::{Asset, Location};
+use polkadot_xcm::prelude::{InteriorLocation};
+use polkadot_xcm::v3::{prelude::{X1, X2, X3, GeneralIndex, Parachain, GlobalConsensus, NetworkId, Here, Concrete, AccountId32}, MultiAsset, MultiLocation, Weight as XcmWeight};
 use primitives::AssetId;
 use scale_info::TypeInfo;
 use sp_runtime::Perbill;
@@ -82,7 +83,7 @@ pub type Barrier = (
 );
 
 parameter_types! {
-	pub SelfLocation: MultiLocation = MultiLocation::new(1, X1(Parachain(ParachainInfo::get().into())));
+	pub SelfLocation: Location = Location::here();
 }
 
 parameter_types! {
@@ -119,7 +120,7 @@ parameter_types! {
 	pub const BaseXcmWeight: XcmWeight = XcmWeight::from_parts(100_000_000, 0);
 	pub const MaxInstructions: u32 = 100;
 	pub const MaxAssetsForTransfer: usize = 2;
-	pub UniversalLocation: InteriorMultiLocation = X2(GlobalConsensus(RelayNetwork::get()), Parachain(ParachainInfo::parachain_id().into()));
+	pub UniversalLocation: InteriorLocation = [polkadot_xcm::v4::prelude::GlobalConsensus(RelayNetwork::get().into()), polkadot_xcm::v4::prelude::Parachain(ParachainInfo::parachain_id().into())].into();
 }
 
 pub struct XcmConfig;
@@ -163,6 +164,7 @@ impl Config for XcmConfig {
 	type CallDispatcher = RuntimeCall;
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
+	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -183,7 +185,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type VersionWrapper = PolkadotXcm;
 	type ControllerOrigin = MajorityTechCommitteeOrRoot;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
-	type PriceForSiblingDelivery = ();
+	type PriceForSiblingDelivery = polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery<ParaId>;
 	type WeightInfo = weights::xcmp_queue::BasiliskWeight<Runtime>;
 	type XcmpQueue = TransformOrigin<MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling>;
 	type MaxInboundSuspended = MaxInboundSuspended;
@@ -196,7 +198,7 @@ impl cumulus_pallet_dmp_queue::Config for Runtime {
 }
 
 parameter_type_with_key! {
-	pub ParachainMinFee: |_location: MultiLocation| -> Option<u128> {
+	pub ParachainMinFee: |_location: Location| -> Option<u128> {
 		None
 	};
 }
@@ -368,6 +370,15 @@ impl Convert<AccountId, MultiLocation> for AccountIdToMultiLocation {
 		.into()
 	}
 }
+impl Convert<AccountId, Location> for AccountIdToMultiLocation {
+	fn convert(account: AccountId) -> Location {
+		[polkadot_xcm::prelude::AccountId32 {
+			network: None,
+			id: account.into(),
+		}]
+			.into()
+	}
+}
 
 
 impl Convert<polkadot_xcm::latest::Location, Option<AssetId>> for CurrencyIdConvert {
@@ -383,7 +394,7 @@ impl Convert<polkadot_xcm::latest::Location, Option<AssetId>> for CurrencyIdConv
 					Some(CORE_ASSET_ID)
 				}
 			polkadot_xcm::latest::Junctions::X1(a) if parents == 0 && a.contains(&polkadot_xcm::prelude::GeneralIndex(CORE_ASSET_ID.into())) => Some(CORE_ASSET_ID),
-			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
+			_ => AssetRegistry::location_to_asset(AssetLocation(location.into())),
 		}
 
 		// Note: keeping the original code for reference until tests are successful
@@ -415,6 +426,18 @@ impl Convert<Asset, Option<AssetId>> for CurrencyIdConvert {
 			Self::convert(asset_id.0)
 		} else {
 			None
+		}
+	}
+}
+
+impl Convert<AssetId, Option<Location>> for CurrencyIdConvert {
+	fn convert(id: AssetId) -> Option<Location> {
+		match id {
+			CORE_ASSET_ID => Some(Location {
+				parents: 1,
+				interior: [polkadot_xcm::prelude::Parachain(ParachainInfo::get().into()), polkadot_xcm::prelude::GeneralIndex(id.into())].into(),
+			}),
+			_ => AssetRegistry::asset_to_location(id).map(|loc| loc.0.into()),
 		}
 	}
 }

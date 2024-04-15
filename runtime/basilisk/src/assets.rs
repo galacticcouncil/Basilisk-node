@@ -92,8 +92,8 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = ();
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
-	type RuntimeHoldReason = ();
-	type RuntimeFreezeReason = ();
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
 pub struct CurrencyHooks;

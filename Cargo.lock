@@ -999,7 +999,7 @@ dependencies = [
  "pallet-ema-oracle",
  "pallet-identity",
  "pallet-lbp",
- "pallet-liquidity-mining",
+ "pallet-liquidity-mining 4.2.5",
  "pallet-marketplace",
  "pallet-message-queue",
  "pallet-multisig",
@@ -1027,6 +1027,7 @@ dependencies = [
  "parachains-common",
  "parity-scale-codec",
  "polkadot-parachain-primitives",
+ "polkadot-runtime-common",
  "primitive-types",
  "primitives 6.6.0",
  "scale-info",
@@ -4463,7 +4464,7 @@ dependencies = [
  "pallet-dynamic-fees",
  "pallet-ema-oracle",
  "pallet-lbp",
- "pallet-liquidity-mining",
+ "pallet-liquidity-mining 4.3.1",
  "pallet-omnipool",
  "pallet-omnipool-liquidity-mining",
  "pallet-referrals",
@@ -7503,6 +7504,32 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
+version = "4.2.5"
+dependencies = [
+ "fixed",
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math",
+ "hydradx-traits",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-asset-registry 2.3.3",
+ "pallet-balances",
+ "parity-scale-codec",
+ "pretty_assertions",
+ "proptest",
+ "rand",
+ "scale-info",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.7.2)",
+ "test-utils",
+]
+
+[[package]]
+name = "pallet-liquidity-mining"
 version = "4.3.1"
 source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#886520874528213bdcea7cd506b12af540e4b042"
 dependencies = [
@@ -7774,7 +7801,7 @@ dependencies = [
  "orml-traits",
  "pallet-balances",
  "pallet-ema-oracle",
- "pallet-liquidity-mining",
+ "pallet-liquidity-mining 4.3.1",
  "pallet-omnipool",
  "parity-scale-codec",
  "primitive-types",
@@ -8415,7 +8442,7 @@ dependencies = [
  "orml-tokens",
  "orml-traits",
  "pallet-balances",
- "pallet-liquidity-mining",
+ "pallet-liquidity-mining 4.2.5",
  "pallet-nft",
  "pallet-xyk",
  "parity-scale-codec",
@@ -8442,7 +8469,7 @@ dependencies = [
  "pallet-asset-registry 2.3.3",
  "pallet-balances",
  "pallet-duster",
- "pallet-liquidity-mining",
+ "pallet-liquidity-mining 4.2.5",
  "pallet-nft",
  "pallet-uniques",
  "pallet-xyk",

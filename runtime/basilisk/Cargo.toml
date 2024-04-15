@@ -88,6 +88,7 @@ xcm-builder = { workspace = true }
 pallet-xcm = { workspace = true }
 xcm-executor = { workspace = true }
 polkadot-xcm = { workspace = true }
+polkadot-runtime-common= { workspace = true }
 
 # Substrate dependencies
 primitive-types = { workspace = true }
@@ -245,6 +246,7 @@ std = [
     "cumulus-primitives-utility/std",
     "parachains-common/std",
     "pallet-message-queue/std",
+    "polkadot-runtime-common/std",
 ]
 try-runtime= [
     "frame-try-runtime",

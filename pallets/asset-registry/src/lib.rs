@@ -48,7 +48,7 @@ pub use pallet::*;
 pub use crate::types::{AssetDetails, AssetMetadata};
 use frame_support::BoundedVec;
 use traits::{CreateRegistry, InspectRegistry, Registry, ShareTokenRegistry};
-use hydradx_traits::AssetKind;
+use hydradx_traits::{AssetKind, Inspect};
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -651,5 +651,42 @@ impl<T: Config> InspectRegistry<T::AssetId> for Pallet<T> {
 	fn asset_symbol(asset_id: T::AssetId) -> Option<Vec<u8>> {
 		let asset_metadata = AssetMetadataMap::<T>::get(asset_id)?;
 		Some(asset_metadata.symbol.into_inner())
+	}
+}
+
+impl<T: Config<Balance = u128>> Inspect for Pallet<T> {
+	type AssetId = T::AssetId;
+	type Location = T::AssetNativeLocation;
+
+	fn is_sufficient(id: Self::AssetId) -> bool {
+		true
+	}
+
+	fn exists(id: Self::AssetId) -> bool {
+		Assets::<T>::contains_key(id)
+	}
+
+	fn decimals(id: Self::AssetId) -> Option<u8> {
+		Self::asset_metadata(id).and_then(|a| Some(a.decimals))
+	}
+
+	fn asset_type(id: Self::AssetId) -> Option<AssetKind> {
+		Self::assets(id).map(|a| a.asset_type.into())
+	}
+
+	fn is_banned(id: Self::AssetId) -> bool {
+		false
+	}
+
+	fn asset_name(id: Self::AssetId) -> Option<Vec<u8>> {
+		Self::assets(id).and_then(|a| Some(a.name.to_vec()))
+	}
+
+	fn asset_symbol(id: Self::AssetId) -> Option<Vec<u8>> {
+		Self::asset_metadata(id).and_then(|a| Some(a.symbol.to_vec()))
+	}
+
+	fn existential_deposit(id: Self::AssetId) -> Option<u128> {
+		Self::assets(id).map(|a| a.existential_deposit)
 	}
 }

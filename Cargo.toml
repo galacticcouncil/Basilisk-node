@@ -8,6 +8,7 @@ members = [
   'pallets/marketplace',
   'pallets/xyk',
   'pallets/asset-registry',
+  'pallets/liquidity-mining',
   'pallets/xyk-liquidity-mining',
   'pallets/xyk-liquidity-mining/benchmarking',
   'integration-tests',
@@ -25,6 +26,8 @@ pallet-marketplace = { path = "pallets/marketplace", default-features = false}
 pallet-xyk = { path = "pallets/xyk", default-features = false}
 pallet-asset-registry = { path = "pallets/asset-registry", default-features = false}
 pallet-xyk-liquidity-mining = { path = "pallets/xyk-liquidity-mining", default-features = false}
+warehouse-liquidity-mining = { package = "pallet-liquidity-mining", path = "pallets/liquidity-mining", default-features = false}
+pallet-liquidity-mining = { path = "pallets/liquidity-mining", default-features = false}
 pallet-xyk-liquidity-mining-benchmarking = { path = "pallets/xyk-liquidity-mining/benchmarking", default-features = false}
 
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
@@ -36,8 +39,6 @@ pallet-nft = { git = "https://github.com/galacticcouncil/HydraDX-node", branch =
 pallet-currencies = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
 pallet-transaction-pause = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
 pallet-route-executor = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
-pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
-warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
 pallet-ema-oracle = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
 pallet-duster = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
 pallet-collator-rewards = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
