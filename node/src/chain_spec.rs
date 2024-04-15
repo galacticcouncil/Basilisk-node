@@ -184,6 +184,7 @@ pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "kusama".into(),
 			para_id: PARA_ID,
 		},
+		vec![].as_slice(),
 	))
 }
 
@@ -265,6 +266,7 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "westend".into(),
 			para_id: PARA_ID,
 		},
+		vec![].as_slice(),
 	))
 }
 
@@ -336,6 +338,7 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo-dev".into(),
 			para_id: PARA_ID,
 		},
+		vec![].as_slice(),
 	))
 }
 
@@ -412,6 +415,7 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo".into(),
 			para_id: PARA_ID,
 		},
+		vec![].as_slice(),
 	))
 }
 
@@ -484,6 +488,7 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "kusama-local".into(),
 			para_id: PARA_ID,
 		},
+		vec![].as_slice(),
 	))
 }
 
@@ -554,6 +559,7 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo-dev".into(),
 			para_id: PARA_ID,
 		},
+		vec![].as_slice(),
 	))
 }
 
@@ -633,6 +639,7 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo-local".into(),
 			para_id: PARA_ID,
 		},
+		vec![].as_slice(),
 	))
 }
 
@@ -647,7 +654,6 @@ fn parachain_genesis(
 	RuntimeGenesisConfig {
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
-			code: wasm_binary.to_vec(),
 			..Default::default()
 		},
 		balances: BalancesConfig {
@@ -756,7 +762,6 @@ fn testnet_parachain_genesis(
 	RuntimeGenesisConfig {
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
-			code: wasm_binary.to_vec(),
 			..Default::default()
 		},
 		balances: BalancesConfig {
