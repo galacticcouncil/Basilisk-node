@@ -11,7 +11,7 @@ use hydradx_traits::router::AssetPair;
 use hydradx_traits::router::PoolType;
 use hydradx_traits::router::Trade;
 use orml_traits::currency::MultiCurrency;
-use polkadot_xcm::{latest::prelude::*, VersionedXcm};
+use polkadot_xcm::{v3::prelude::*, VersionedXcm};
 use pretty_assertions::assert_eq;
 use primitives::constants::chain::CORE_ASSET_ID;
 use sp_runtime::FixedU128;
@@ -262,7 +262,7 @@ fn craft_exchange_asset_xcm<M: Into<MultiAssets>, RC: Decode + GetDispatchInfo>(
 	want: M,
 	is_sell: bool,
 ) -> VersionedXcm<RC> {
-	use kusama_runtime::xcm_config::BaseXcmWeight;
+	use rococo_runtime::xcm_config::BaseXcmWeight;
 	use xcm_builder::FixedWeightBounds;
 	use xcm_executor::traits::WeightBounds;
 

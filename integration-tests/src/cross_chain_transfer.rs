@@ -4,7 +4,7 @@ use crate::kusama_test_net::*;
 
 use frame_support::{assert_noop, assert_ok};
 
-use polkadot_xcm::{latest::prelude::*, VersionedMultiAssets, VersionedXcm};
+use polkadot_xcm::{v3::prelude::*, VersionedAssets,VersionedXcm};
 
 use cumulus_primitives_core::ParaId;
 use frame_support::weights::Weight;
@@ -19,7 +19,7 @@ fn determine_hash<M>(origin: &MultiLocation, assets: M) -> H256
 where
 	M: Into<MultiAssets>,
 {
-	let versioned = VersionedMultiAssets::from(assets.into());
+	let versioned = VersionedAssets::from(assets.into());
 	BlakeTwo256::hash_of(&(origin, &versioned))
 }
 
@@ -33,16 +33,16 @@ fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 		));
 	});
 	Kusama::execute_with(|| {
-		assert_ok!(kusama_runtime::XcmPallet::reserve_transfer_assets(
-			kusama_runtime::RuntimeOrigin::signed(ALICE.into()),
+		assert_ok!(rococo_runtime::XcmPallet::reserve_transfer_assets(
+			rococo_runtime::RuntimeOrigin::signed(ALICE.into()),
 			Box::new(Parachain(BASILISK_PARA_ID).into_versioned()),
-			Box::new(Junction::AccountId32 { id: BOB, network: None }.into()),
+			Box::new(Junction::AccountId32 { id: BOB, network: None }.into_versioned()),
 			Box::new((Here, 300 * UNITS).into()),
 			0,
 		));
 
 		assert_eq!(
-			kusama_runtime::Balances::free_balance(AccountIdConversion::<AccountId>::into_account_truncating(
+			rococo_runtime::Balances::free_balance(AccountIdConversion::<AccountId>::into_account_truncating(
 				&ParaId::from(BASILISK_PARA_ID)
 			)),
 			310 * UNITS
@@ -85,7 +85,7 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 
 	Kusama::execute_with(|| {
 		assert_eq!(
-			kusama_runtime::Balances::free_balance(AccountId::from(BOB)),
+			rococo_runtime::Balances::free_balance(AccountId::from(BOB)),
 			2999918220455 // 3 * BSX - fee
 		);
 	});
@@ -118,7 +118,7 @@ fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 						Junction::AccountId32 { id: BOB, network: None }
 					)
 				)
-				.into()
+				.into_versioned()
 			),
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));

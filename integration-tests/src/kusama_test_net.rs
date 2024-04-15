@@ -48,7 +48,7 @@ use frame_support::assert_ok;
 use frame_support::traits::OnInitialize;
 use pallet_transaction_multi_payment::Price;
 pub use pallet_xyk::types::AssetPair;
-use polkadot_primitives::v5::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
+use polkadot_primitives::v6::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;
 use primitives::{AssetId, Balance};
@@ -57,22 +57,21 @@ use sp_runtime::{traits::AccountIdConversion, BuildStorage};
 
 use primitives::constants::chain::CORE_ASSET_ID;
 pub use xcm_emulator::Network;
-use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains, DefaultMessageProcessor};
+use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains ,TestExt};
 
 decl_test_relay_chains! {
 	#[api_version(5)]
 	pub struct Kusama {
 		genesis = kusama::genesis(),
 		on_init = (),
-		runtime = kusama_runtime,
+		runtime = rococo_runtime,
 		core = {
-			MessageProcessor: DefaultMessageProcessor<Kusama>,
-			SovereignAccountOf: kusama_runtime::xcm_config::SovereignAccountOf,
+			SovereignAccountOf: rococo_runtime::xcm_config::LocationConverter,
 		},
 		pallets = {
-			XcmPallet: kusama_runtime::XcmPallet,
-			Balances: kusama_runtime::Balances,
-			Hrmp: kusama_runtime::Hrmp,
+			XcmPallet: rococo_runtime::XcmPallet,
+			Balances: rococo_runtime::Balances,
+			Hrmp: rococo_runtime::Hrmp,
 		}
 	}
 }
@@ -88,9 +87,9 @@ decl_test_parachains! {
 		runtime = basilisk_runtime,
 		core = {
 			XcmpMessageHandler: basilisk_runtime::XcmpQueue,
-			DmpMessageHandler: basilisk_runtime::DmpQueue,
 			LocationToAccountId: basilisk_runtime::xcm::LocationToAccountId,
 			ParachainInfo: basilisk_runtime::ParachainInfo,
+			MessageOrigin: cumulus_primitives_core::AggregateMessageOrigin,
 		},
 		pallets = {
 			PolkadotXcm: basilisk_runtime::PolkadotXcm,
@@ -107,9 +106,9 @@ decl_test_parachains! {
 		runtime = basilisk_runtime,
 		core = {
 			XcmpMessageHandler: basilisk_runtime::XcmpQueue,
-			DmpMessageHandler: basilisk_runtime::DmpQueue,
 			LocationToAccountId: basilisk_runtime::LocationToAccountId,
 			ParachainInfo: basilisk_runtime::ParachainInfo,
+			MessageOrigin: cumulus_primitives_core::AggregateMessageOrigin,
 		},
 		pallets = {
 			PolkadotXcm: basilisk_runtime::PolkadotXcm,
@@ -191,8 +190,8 @@ pub mod kusama {
 		para_assignment: AssignmentId,
 		authority_discovery: AuthorityDiscoveryId,
 		beefy: BeefyId,
-	) -> kusama_runtime::SessionKeys {
-		kusama_runtime::SessionKeys {
+	) -> rococo_runtime::SessionKeys {
+		rococo_runtime::SessionKeys {
 			babe,
 			grandpa,
 			im_online,
@@ -217,14 +216,14 @@ pub mod kusama {
 	}
 
 	pub fn genesis() -> Storage {
-		let genesis_config = kusama_runtime::RuntimeGenesisConfig {
-			balances: kusama_runtime::BalancesConfig {
+		let genesis_config = rococo_runtime::RuntimeGenesisConfig {
+			balances: rococo_runtime::BalancesConfig {
 				balances: vec![
 					(AccountId::from(ALICE), 2002 * UNITS),
 					(ParaId::from(BASILISK_PARA_ID).into_account_truncating(), 10 * UNITS),
 				],
 			},
-			session: kusama_runtime::SessionConfig {
+			session: rococo_runtime::SessionConfig {
 				keys: initial_authorities()
 					.iter()
 					.map(|x| {
@@ -244,16 +243,16 @@ pub mod kusama {
 					})
 					.collect::<Vec<_>>(),
 			},
-			babe: kusama_runtime::BabeConfig {
+			babe: rococo_runtime::BabeConfig {
 				authorities: Default::default(),
-				epoch_config: Some(kusama_runtime::BABE_GENESIS_EPOCH_CONFIG),
+				epoch_config: Some(rococo_runtime::BABE_GENESIS_EPOCH_CONFIG),
 				..Default::default()
 			},
-			configuration: kusama_runtime::ConfigurationConfig {
+			configuration: rococo_runtime::ConfigurationConfig {
 				config: get_host_configuration(),
 			},
 
-			xcm_pallet: kusama_runtime::XcmPalletConfig {
+			xcm_pallet: rococo_runtime::XcmPalletConfig {
 				safe_xcm_version: Some(3),
 				..Default::default()
 			},
@@ -517,10 +516,10 @@ pub fn set_relaychain_block_number(number: BlockNumber) {
 pub fn kusama_run_to_block(to: BlockNumber) {
 	use frame_support::traits::OnFinalize;
 
-	while kusama_runtime::System::block_number() < to {
-		let b = kusama_runtime::System::block_number();
-		kusama_runtime::System::on_finalize(b);
-		kusama_runtime::System::on_initialize(b + 1);
-		kusama_runtime::System::set_block_number(b + 1);
+	while rococo_runtime::System::block_number() < to {
+		let b = rococo_runtime::System::block_number();
+		rococo_runtime::System::on_finalize(b);
+		rococo_runtime::System::on_initialize(b + 1);
+		rococo_runtime::System::set_block_number(b + 1);
 	}
 }

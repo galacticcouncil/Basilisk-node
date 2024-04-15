@@ -107,6 +107,7 @@ polkadot-primitives = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 
 basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
+rococo-runtime = {workspace = true}
 cumulus-test-relay-sproof-builder = { workspace = true }
 
 [dev-dependencies]
@@ -184,6 +185,7 @@ std = [
     "pallet-authorship/std",
     "basilisk-runtime/std",
     "hydradx-traits/std",
+    "rococo-runtime/std",
 ]
 
 runtime-benchmarks = [

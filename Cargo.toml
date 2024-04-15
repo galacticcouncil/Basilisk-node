@@ -182,7 +182,7 @@ pallet-mmr = { git = "https://github.com/paritytech/polkadot-sdk", branch ="rele
 sp-mmr-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 substrate-state-trie-migration-rpc = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2" }
 
-kusama-runtime = { package = "staging-kusama-runtime", git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
+#kusama-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 pallet-xcm = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 polkadot-cli = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
@@ -200,6 +200,7 @@ polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot-sd
 polkadot-service = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 polkadot-statement-table = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 rococo-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
+rococo-emulated-chain = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 westend-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 xcm = { package = "staging-xcm", git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 polkadot-xcm = { package = "staging-xcm", git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }

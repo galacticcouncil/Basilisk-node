@@ -1494,9 +1494,9 @@ dependencies = [
 
 [[package]]
 name = "chrono"
-version = "0.4.37"
+version = "0.4.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a0d04d43504c61aa6c7531f1871dd0d418d91130162063b789da00fd7057a5e"
+checksum = "a21f936df1771bf62b77f047b726c4625ff2e8aa607c01ec06e5a05bd8463401"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
@@ -10858,6 +10858,7 @@ dependencies = [
  "polkadot-service",
  "pretty_assertions",
  "primitives 6.6.0",
+ "rococo-runtime",
  "sc-consensus-grandpa",
  "sp-api",
  "sp-arithmetic",
@@ -16070,6 +16071,11 @@ dependencies = [
 ]
 
 [[patch.unused]]
+name = "orml-currencies"
+version = "0.8.0"
+source = "git+https://github.com/galacticcouncil/open-runtime-module-library?branch=polkadot-v1.7.2#c1fbd5a34168830e3614a1cd4724135e7a3c1236"
+
+[[patch.unused]]
 name = "sp-core-hashing"
 version = "15.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.7.2#0d7ca59fd4b4d15f9400971f32bc6a51b2fe837f"
@@ -16078,8 +16084,3 @@ source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot
 name = "sp-crypto-ec-utils"
 version = "0.10.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.7.2#0d7ca59fd4b4d15f9400971f32bc6a51b2fe837f"
-
-[[patch.unused]]
-name = "orml-currencies"
-version = "0.8.0"
-source = "git+https://github.com/galacticcouncil/open-runtime-module-library?branch=polkadot-v1.7.2#c1fbd5a34168830e3614a1cd4724135e7a3c1236"
