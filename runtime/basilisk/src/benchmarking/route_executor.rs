@@ -25,9 +25,9 @@ use frame_support::{assert_ok, ensure};
 use frame_system::RawOrigin;
 use hydradx_traits::router::AssetPair;
 use hydradx_traits::router::{PoolType, RouterT, Trade};
-use hydradx_traits::Registry;
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
+use pallet_asset_registry::traits::Registry;
 use primitives::constants::currency::UNITS;
 use sp_std::vec;
 

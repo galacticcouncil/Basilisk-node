@@ -67,7 +67,7 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
-use frame_support::{construct_runtime, weights::Weight};
+use frame_support::{construct_runtime, parameter_types, weights::Weight};
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -102,7 +102,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 112,
+	spec_version: 113,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -201,7 +201,7 @@ construct_runtime!(
 		PolkadotXcm: pallet_xcm = 52,
 		CumulusXcm: cumulus_pallet_xcm = 53,
 		XcmpQueue: cumulus_pallet_xcmp_queue exclude_parts { Call } = 54,
-		DmpQueue: cumulus_pallet_dmp_queue = 55,
+		// 55 was used by DmpQueue which is now replaced by MessageQueue
 		MessageQueue: pallet_message_queue = 56,
 
 		// Basilisk - runtime module index for basilisk's pallets starts at 100
@@ -265,10 +265,14 @@ pub type Executive = frame_executive::Executive<
 	Runtime,
 	AllPalletsWithSystem,
 	(
+		frame_support::migrations::RemovePallet<DmpQueuePalletName, <Runtime as frame_system::Config>::DbWeight>,
 		migrations::OnRuntimeUpgradeMigration,
-		pallet_transaction_pause::migration::v1::Migration<Runtime>,
 	),
 >;
+
+parameter_types! {
+	pub const DmpQueuePalletName: &'static str = "DmpQueue";
+}
 
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
@@ -445,11 +449,14 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_scheduler, Scheduler);
 			list_benchmark!(list, extra, pallet_utility, Utility);
 			list_benchmark!(list, extra, pallet_tips, Tips);
+			list_benchmark!(list, extra, pallet_identity, Identity);
 			list_benchmark!(list, extra, pallet_collective, TechnicalCommittee);
 			list_benchmark!(list, extra, pallet_state_trie_migration, StateTrieMigration);
+			list_benchmark!(list, extra, pallet_preimage, Preimage);
 
 			list_benchmark!(list, extra, cumulus_pallet_xcmp_queue, XcmpQueue);
-			list_benchmark!(list, extra, pallet_xcm, PolkadotXcm);
+			list_benchmark!(list, extra, pallet_message_queue, MessageQueue);
+			//list_benchmark!(list, extra, pallet_xcm, PolkadotXcm);
 
 			orml_list_benchmark!(list, extra, pallet_currencies, benchmarking::currencies);
 			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
@@ -525,11 +532,14 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_scheduler, Scheduler);
 			add_benchmark!(params, batches, pallet_utility, Utility);
 			add_benchmark!(params, batches, pallet_tips, Tips);
+			add_benchmark!(params, batches, pallet_identity, Identity);
 			add_benchmark!(params, batches, pallet_collective, TechnicalCommittee);
 			add_benchmark!(params, batches, pallet_state_trie_migration, StateTrieMigration);
+			add_benchmark!(params, batches, pallet_preimage, Preimage);
 
 			add_benchmark!(params, batches, cumulus_pallet_xcmp_queue, XcmpQueue);
-			add_benchmark!(params, batches, pallet_xcm, PolkadotXcm);
+			add_benchmark!(params, batches, pallet_message_queue, MessageQueue);
+			//add_benchmark!(params, batches, pallet_xcm, PolkadotXcm);
 
 			orml_add_benchmark!(params, batches, pallet_currencies, benchmarking::currencies);
 			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);

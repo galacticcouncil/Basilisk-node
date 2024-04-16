@@ -190,4 +190,5 @@ std = [
 
 runtime-benchmarks = [
     "basilisk-runtime/runtime-benchmarks",
+    "rococo-runtime/runtime-benchmarks",
 ]

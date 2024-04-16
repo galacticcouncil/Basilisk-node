@@ -210,12 +210,6 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type MaxInboundSuspended = MaxInboundSuspended;
 }
 
-impl cumulus_pallet_dmp_queue::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type DmpSink = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
-	type WeightInfo = ();
-}
-
 parameter_type_with_key! {
 	pub ParachainMinFee: |_location: Location| -> Option<u128> {
 		None
@@ -248,11 +242,6 @@ impl orml_unknown_tokens::Config for Runtime {
 impl orml_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type SovereignOrigin = SuperMajorityCouncilOrRoot;
-}
-
-#[cfg(feature = "runtime-benchmarks")]
-parameter_types! {
-	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
 }
 
 parameter_types! {
