@@ -266,12 +266,14 @@ pub type Executive = frame_executive::Executive<
 	AllPalletsWithSystem,
 	(
 		frame_support::migrations::RemovePallet<DmpQueuePalletName, <Runtime as frame_system::Config>::DbWeight>,
+		frame_support::migrations::RemovePallet<XcmRateLimiterPalletName, <Runtime as frame_system::Config>::DbWeight>,
 		migrations::OnRuntimeUpgradeMigration,
 	),
 >;
 
 parameter_types! {
 	pub const DmpQueuePalletName: &'static str = "DmpQueue";
+	pub const XcmRateLimiterPalletName: &'static str = "XcmRateLimiter";
 }
 
 impl_runtime_apis! {
