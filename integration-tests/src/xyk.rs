@@ -6,8 +6,9 @@ use basilisk_runtime::{DustRemovalWhitelist, RuntimeOrigin, XYK};
 use hydradx_traits::AMM;
 use pallet_xyk::types::AssetId;
 use xcm_emulator::TestExt;
-
+use frame_support::assert_noop;
 use frame_support::{assert_ok, traits::Contains};
+use basilisk_runtime::Currencies;
 
 fn pair_account(asset_a: AssetId, asset_b: AssetId) -> AccountId {
 	let asset_pair = AssetPair {
@@ -125,5 +126,71 @@ fn share_asset_id_should_be_offset() {
 		let offset = <basilisk_runtime::Runtime as pallet_asset_registry::Config>::SequentialIdStartAt::get();
 		//assert
 		assert!(share_token >= offset);
+	});
+}
+
+#[test]
+fn creating_xyk_pool_should_fail_when_asset_is_pool_share_asset() {
+	TestNet::reset();
+	let asset_a = 1;
+	let asset_b = 2;
+
+	Basilisk::execute_with(|| {
+		assert_ok!(Currencies::update_balance(
+			RuntimeOrigin::root(),
+			ALICE.into(),
+			asset_a,
+			1000 * UNITS as i128,
+		));
+
+		assert_ok!(Currencies::update_balance(
+			RuntimeOrigin::root(),
+			ALICE.into(),
+			asset_b,
+			1000 * UNITS as i128,
+		));
+
+		assert_ok!(
+			XYK::create_pool(
+				RuntimeOrigin::signed(ALICE.into()),
+				asset_a,
+				100 * UNITS,
+				asset_b,
+				200 * UNITS,
+			)
+		);
+
+		let share_token = XYK::get_share_token(AssetPair {
+			asset_in: asset_a,
+			asset_out: asset_b,
+		});
+		assert_ok!(Currencies::update_balance(
+			RuntimeOrigin::root(),
+			ALICE.into(),
+			share_token,
+			1000 * UNITS as i128,
+		));
+
+		assert_noop!(
+			XYK::create_pool(
+				RuntimeOrigin::signed(ALICE.into()),
+				share_token,
+				100 * UNITS,
+				asset_b,
+				200 * UNITS,
+			),
+			pallet_xyk::Error::<basilisk_runtime::Runtime>::CannotCreatePool
+		);
+
+		assert_noop!(
+			XYK::create_pool(
+				RuntimeOrigin::signed(ALICE.into()),
+				asset_a,
+				100 * UNITS,
+				share_token,
+				200 * UNITS,
+			),
+			pallet_xyk::Error::<basilisk_runtime::Runtime>::CannotCreatePool
+		);
 	});
 }
