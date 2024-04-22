@@ -41,6 +41,8 @@ pub fn parachain_reserve_account() -> AccountId {
 	polkadot_parachain::primitives::Sibling::from(OTHER_PARA_ID).into_account_truncating()
 }
 
+use polkadot_primitives::runtime_api::runtime_decl_for_parachain_host::ParachainHostV10;
+
 pub use basilisk_runtime::{AccountId, VestingPalletId};
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
@@ -59,9 +61,24 @@ use primitives::constants::chain::CORE_ASSET_ID;
 pub use xcm_emulator::Network;
 use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains ,TestExt};
 
+pub type Kusama = KusamaRelayChain<TestNet>;
+pub type Basilisk = BasiliskParachain<TestNet>;
+pub type OtherParachain = OtherPara<TestNet>;
+
+decl_test_networks! {
+	pub struct TestNet {
+		relay_chain = KusamaRelayChain,
+		parachains = vec![
+			OtherPara,
+			BasiliskParachain,
+		],
+		bridge = ()
+	},
+}
+
 decl_test_relay_chains! {
-	#[api_version(5)]
-	pub struct Kusama {
+	#[api_version(10)]
+	pub struct KusamaRelayChain {
 		genesis = kusama::genesis(),
 		on_init = (),
 		runtime = rococo_runtime,
@@ -77,7 +94,7 @@ decl_test_relay_chains! {
 }
 
 decl_test_parachains! {
-	pub struct Basilisk {
+	pub struct BasiliskParachain {
 		genesis = basilisk::genesis(),
 		on_init = {
 			basilisk_runtime::System::set_block_number(1);
@@ -96,7 +113,7 @@ decl_test_parachains! {
 			Balances: basilisk_runtime::Balances,
 		}
 	},
-	pub struct OtherParachain {
+	pub struct OtherPara {
 		genesis = other_parachain::genesis(),
 		on_init = {
 			basilisk_runtime::System::set_block_number(1);
@@ -115,17 +132,6 @@ decl_test_parachains! {
 			Balances: basilisk_runtime::Balances,
 		}
 	}
-}
-
-decl_test_networks! {
-	pub struct TestNet {
-		relay_chain = Kusama,
-		parachains = vec![
-			OtherParachain,
-			Basilisk,
-		],
-		bridge = ()
-	},
 }
 
 pub mod kusama {
@@ -185,7 +191,6 @@ pub mod kusama {
 	fn session_keys(
 		babe: BabeId,
 		grandpa: GrandpaId,
-		im_online: ImOnlineId,
 		para_validator: ValidatorId,
 		para_assignment: AssignmentId,
 		authority_discovery: AuthorityDiscoveryId,
@@ -194,7 +199,6 @@ pub mod kusama {
 		rococo_runtime::SessionKeys {
 			babe,
 			grandpa,
-			im_online,
 			para_validator,
 			para_assignment,
 			authority_discovery,
@@ -207,12 +211,14 @@ pub mod kusama {
 		AccountId,
 		BabeId,
 		GrandpaId,
-		ImOnlineId,
 		ValidatorId,
 		AssignmentId,
 		AuthorityDiscoveryId,
+		BeefyId
 	)> {
-		vec![get_authority_keys_from_seed_no_beefy("Alice")]
+		let no_beefy =get_authority_keys_from_seed_no_beefy("Alice");
+		let with_beefy = (no_beefy.0, no_beefy.1, no_beefy.2, no_beefy.3, no_beefy.4, no_beefy.5, no_beefy.6, get_from_seed::<BeefyId>("Alice"));
+		vec![with_beefy]
 	}
 
 	pub fn genesis() -> Storage {
@@ -237,7 +243,6 @@ pub mod kusama {
 								x.5.clone(),
 								x.6.clone(),
 								x.7.clone(),
-								get_from_seed::<BeefyId>("Alice"),
 							),
 						)
 					})
@@ -522,4 +527,27 @@ pub fn kusama_run_to_block(to: BlockNumber) {
 		rococo_runtime::System::on_initialize(b + 1);
 		rococo_runtime::System::set_block_number(b + 1);
 	}
+}
+
+use cumulus_pallet_dmp_queue::Event;
+use xcm_emulator::pallet_message_queue;
+
+pub fn assert_xcm_message_processing_failed() {
+	assert!(basilisk_runtime::System::events().iter().any(|r| matches!(
+			r.event,
+			 basilisk_runtime::RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed {
+				success: false,
+				..
+			})
+		)));
+}
+
+pub fn assert_xcm_message_processing_passed() {
+	assert!(basilisk_runtime::System::events().iter().any(|r| matches!(
+			r.event,
+			 basilisk_runtime::RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed {
+				success: true,
+				..
+			})
+		)));
 }

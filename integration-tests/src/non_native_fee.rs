@@ -15,6 +15,7 @@ use frame_support::{
 	weights::Weight,
 };
 use hydradx_traits::AMM;
+use hydradx_traits::router::{PoolType, Trade};
 use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;
@@ -25,12 +26,12 @@ pub fn basilisk_run_to_next_block() {
 	let b = basilisk_runtime::System::block_number();
 
 	basilisk_runtime::System::on_finalize(b);
-	basilisk_runtime::MultiTransactionPayment::on_finalize(b);
 	basilisk_runtime::EmaOracle::on_finalize(b);
+	basilisk_runtime::MultiTransactionPayment::on_finalize(b);
 
 	basilisk_runtime::System::on_initialize(b + 1);
-	basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
 	basilisk_runtime::EmaOracle::on_initialize(b + 1);
+	basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
 
 	basilisk_runtime::System::set_block_number(b + 1);
 }
@@ -64,6 +65,10 @@ fn non_native_fee_payment_works_with_configured_price() {
 	});
 }
 
+use hydradx_traits::registry::{AssetKind, Create};
+
+//TODO: it will only work once we had OracleWhiteList properly set, as we don't have oracle data for the BSX/NET_TOKEN,
+// so no new price is calculated in on_init of multi-payment-pallet
 #[test]
 fn non_native_fee_payment_works_with_oracle_price_based_on_onchain_route() {
 	TestNet::reset();
@@ -153,6 +158,20 @@ fn non_native_fee_payment_works_with_oracle_price_based_on_onchain_route() {
 			1_000 * UNITS,
 			false,
 		));
+
+		let route = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: BSX,
+			asset_out: NEW_TOKEN
+		}];
+
+		let route_asset_pair = hydradx_traits::router::AssetPair {
+			asset_in: BSX,
+			asset_out: NEW_TOKEN,
+		};
+		//assert!(basilisk_runtime::Router::get_route(route_asset_pair).is_some());
+
+		//assert_ok!(basilisk_runtime::Router::set_route(basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),route_asset_pair, route ));
 
 		basilisk_run_to_next_block();
 

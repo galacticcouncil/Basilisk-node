@@ -82,7 +82,7 @@ mod router_different_pools_tests {
 			assert_trader_non_native_balance!(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance!(amount_out, KSM);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: AUSD,
 				asset_out: KSM,
 				amount_in: amount_to_sell,
@@ -142,7 +142,7 @@ mod router_different_pools_tests {
 			assert_trader_non_native_balance!(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance!(amount_to_buy, KSM);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: AUSD,
 				asset_out: KSM,
 				amount_in,
@@ -200,7 +200,7 @@ mod xyk_router_tests {
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE - amount_to_sell);
 			assert_trader_non_native_balance!(amount_out, KSM);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: KSM,
 				amount_in: amount_to_sell,
@@ -262,7 +262,7 @@ mod xyk_router_tests {
 			assert_trader_non_native_balance!(BOB_INITIAL_AUSD_BALANCE, AUSD);
 			assert_trader_non_native_balance!(0, MOVR);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: KSM,
 				amount_in: amount_to_sell,
@@ -484,7 +484,7 @@ mod xyk_router_tests {
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE - amount_in);
 			assert_trader_non_native_balance!(amount_to_buy, KSM);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: KSM,
 				amount_in,
@@ -539,7 +539,7 @@ mod xyk_router_tests {
 			assert_trader_non_native_balance!(BOB_INITIAL_AUSD_BALANCE + amount_to_buy, AUSD);
 			assert_trader_non_native_balance!(0, KSM);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: AUSD,
 				amount_in,
@@ -602,7 +602,7 @@ mod xyk_router_tests {
 			assert_trader_non_native_balance!(0, MOVR);
 			assert_trader_non_native_balance!(0, KSM);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: AUSD,
 				amount_in,
@@ -840,7 +840,7 @@ mod lbp_router_tests {
 				NEW_BOOTSTRAPPED_TOKEN
 			);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in: amount_to_sell,
@@ -887,7 +887,7 @@ mod lbp_router_tests {
 			);
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE + amount_out);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: NEW_BOOTSTRAPPED_TOKEN,
 				asset_out: BSX,
 				amount_in: amount_to_sell,
@@ -940,7 +940,7 @@ mod lbp_router_tests {
 			assert_trader_non_native_balance!(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance!(amount_out, KSM);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: KSM,
 				amount_in: amount_to_sell,
@@ -993,7 +993,7 @@ mod lbp_router_tests {
 			assert_trader_non_native_balance!(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance!(amount_out, KSM);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: KSM,
 				amount_in: amount_to_sell,
@@ -1040,7 +1040,7 @@ mod lbp_router_tests {
 				NEW_BOOTSTRAPPED_TOKEN
 			);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in: amount_to_sell,
@@ -1112,7 +1112,7 @@ mod lbp_router_tests {
 				NEW_BOOTSTRAPPED_TOKEN
 			);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in,
@@ -1159,7 +1159,7 @@ mod lbp_router_tests {
 				NEW_BOOTSTRAPPED_TOKEN
 			);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: NEW_BOOTSTRAPPED_TOKEN,
 				asset_out: BSX,
 				amount_in,
@@ -1212,7 +1212,7 @@ mod lbp_router_tests {
 			assert_trader_non_native_balance!(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance!(amount_to_buy, KSM);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: KSM,
 				amount_in,
@@ -1265,7 +1265,7 @@ mod lbp_router_tests {
 			assert_trader_non_native_balance!(BOB_INITIAL_NEW_BOOTSTRAPPED_TOKEN_BALANCE, NEW_BOOTSTRAPPED_TOKEN);
 			assert_trader_non_native_balance!(amount_to_buy, KSM);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: KSM,
 				amount_in,
@@ -1312,7 +1312,7 @@ mod lbp_router_tests {
 				NEW_BOOTSTRAPPED_TOKEN
 			);
 
-			expect_basilisk_events(vec![pallet_route_executor::Event::RouteExecuted {
+			expect_basilisk_events(vec![pallet_route_executor::Event::Executed {
 				asset_in: BSX,
 				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in: spent_amount_in,

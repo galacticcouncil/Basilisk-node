@@ -101,8 +101,9 @@ pub type Barrier = (
 	>,
 );
 
+use sp_std::sync::Arc;
 parameter_types! {
-	pub SelfLocation: Location = Location::here();
+	pub SelfLocation: Location = Location::new(1, cumulus_primitives_core::Junctions::X1(Arc::new([cumulus_primitives_core::Junction::Parachain(ParachainInfo::get().into());1])));
 }
 
 parameter_types! {

@@ -4,7 +4,7 @@ use crate::kusama_test_net::*;
 
 use frame_support::{assert_noop, assert_ok};
 
-use polkadot_xcm::{v3::prelude::*, VersionedAssets,VersionedXcm};
+use polkadot_xcm::{v4::prelude::*, VersionedAssets, VersionedLocation, VersionedXcm};
 
 use cumulus_primitives_core::ParaId;
 use frame_support::weights::Weight;
@@ -13,13 +13,20 @@ use orml_traits::currency::MultiCurrency;
 use sp_core::H256;
 use sp_runtime::traits::{AccountIdConversion, BlakeTwo256, Hash};
 use xcm_emulator::TestExt;
+use polkadot_xcm::opaque::lts::Assets;
+use polkadot_xcm::opaque::v3::MultiLocation;
+use polkadot_xcm::opaque::v3::MultiAssets;
+use polkadot_xcm::opaque::v3::Junctions::{X1, X2};
+use polkadot_xcm::opaque::v3::Junction;
+use polkadot_xcm::opaque::v3::MultiAsset;
+use polkadot_xcm::opaque::v3;
+
+use sp_std::sync::Arc;
 
 // Determine the hash for assets expected to be have been trapped.
-fn determine_hash<M>(origin: &MultiLocation, assets: M) -> H256
-where
-	M: Into<MultiAssets>,
+fn determine_hash(origin: &MultiLocation, assets: Vec<Asset>) -> H256
 {
-	let versioned = VersionedAssets::from(assets.into());
+	let versioned = VersionedAssets::from(Assets::from(assets));
 	BlakeTwo256::hash_of(&(origin, &versioned))
 }
 
@@ -29,7 +36,7 @@ fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::RuntimeOrigin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::parent())
+			basilisk_runtime::AssetLocation(MultiLocation::parent().into())
 		));
 	});
 	Kusama::execute_with(|| {
@@ -70,11 +77,13 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 			basilisk_runtime::AssetLocation(MultiLocation::parent())
 		));
 
+		let dest = MultiLocation::new(1, X1(Junction::AccountId32 { id: BOB, network: None })).into_versioned();
+
 		assert_ok!(basilisk_runtime::XTokens::transfer(
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			1,
 			3 * UNITS,
-			Box::new(MultiLocation::new(1, X1(Junction::AccountId32 { id: BOB, network: None })).into()),
+			Box::new(dest),
 			WeightLimit::Limited(Weight::from_parts(4_600_000_000, 10_000))
 		));
 		assert_eq!(
@@ -86,7 +95,7 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 	Kusama::execute_with(|| {
 		assert_eq!(
 			rococo_runtime::Balances::free_balance(AccountId::from(BOB)),
-			2999918220455 // 3 * BSX - fee
+			2999989698923 // 3 * BSX - fee
 		);
 	});
 }
@@ -101,7 +110,7 @@ fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::RuntimeOrigin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0))).into())
 		));
 	});
 
@@ -151,7 +160,7 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::RuntimeOrigin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Junction::Parachain(BASILISK_PARA_ID), Junction::GeneralIndex(0))))
 		));
 	});
 
@@ -173,7 +182,7 @@ fn other_parachain_should_receive_asset_when_sent_from_basilisk() {
 						Junction::AccountId32 { id: BOB, network: None }
 					)
 				)
-				.into()
+				.into_versioned()
 			),
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
@@ -207,7 +216,7 @@ fn transfer_from_other_parachain_and_back() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::RuntimeOrigin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0))))
 		));
 	});
 
@@ -224,7 +233,7 @@ fn transfer_from_other_parachain_and_back() {
 						Junction::AccountId32 { id: BOB, network: None }
 					)
 				)
-				.into()
+				.into_versioned()
 			),
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
@@ -266,7 +275,7 @@ fn transfer_from_other_parachain_and_back() {
 						}
 					)
 				)
-				.into()
+				.into_versioned()
 			),
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
@@ -296,7 +305,7 @@ fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amoun
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::RuntimeOrigin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0))))
 		));
 	});
 
@@ -320,7 +329,7 @@ fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amoun
 							Junction::AccountId32 { id: BOB, network: None }
 						)
 					)
-					.into()
+					.into_versioned()
 				),
 				WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 			),
@@ -341,7 +350,6 @@ fn other_parachain_should_fail_to_send_asset_to_basilisk_when_insufficient_amoun
 		);
 	});
 }
-
 #[test]
 fn fee_currency_set_on_xcm_transfer() {
 	TestNet::reset();
@@ -354,7 +362,7 @@ fn fee_currency_set_on_xcm_transfer() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::RuntimeOrigin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0))))
 		));
 
 		// fee currency is not set before XCM transfer
@@ -380,7 +388,7 @@ fn fee_currency_set_on_xcm_transfer() {
 						}
 					)
 				)
-				.into()
+				.into_versioned()
 			),
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
@@ -425,7 +433,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 						Junction::AccountId32 { id: BOB, network: None }
 					)
 				)
-				.into()
+				.into_versioned()
 			),
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
@@ -436,23 +444,12 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 	});
 
 	Basilisk::execute_with(|| {
-		expect_basilisk_events(vec![
-			cumulus_pallet_xcmp_queue::Event::Fail {
-				message_hash: hex!["30291d1dfb68ae6f66d4c841facb78f44e7611ab2a25c84f4fb7347f448d2944"],
-				message_id: hex!["30291d1dfb68ae6f66d4c841facb78f44e7611ab2a25c84f4fb7347f448d2944"],
-				error: XcmError::AssetNotFound,
-				weight: Weight::from_parts(300_000_000, 0),
-			}
-			.into(),
-			pallet_relaychain_info::Event::CurrentBlockNumbers {
-				parachain_block_number: 3,
-				relaychain_block_number: 5,
-			}
-			.into(),
-		]);
-		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
-		let loc = MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0)));
-		let asset: MultiAsset = (loc, 30 * UNITS).into();
+		assert_xcm_message_processing_failed();
+		let origin = MultiLocation::new(1, X1(Junction::Parachain(OTHER_PARA_ID)));
+		let asset: Asset = Asset {
+			id: cumulus_primitives_core::AssetId(Location::new(1, cumulus_primitives_core::Junctions::X2(Arc::new(vec![cumulus_primitives_core::Junction::Parachain(OTHER_PARA_ID), cumulus_primitives_core::Junction::GeneralIndex(0)].try_into().unwrap())))),
+			fun:  Fungible(30 * UNITS)
+		};
 		let hash = determine_hash(&origin, vec![asset]);
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 1);
 	});
@@ -470,11 +467,18 @@ fn claim_trapped_asset_should_work() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::RuntimeOrigin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(1, X2(Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0))))
 		));
 	});
 
-	claim_asset(asset.clone(), BOB);
+	let bob_loc = Location::new(
+		0,
+		cumulus_primitives_core::Junctions::X1(Arc::new(vec![
+			cumulus_primitives_core::Junction::AccountId32 { id: BOB, network: None }].try_into().unwrap()
+		))
+	);
+
+	claim_asset(asset.clone(), bob_loc);
 
 	Basilisk::execute_with(|| {
 		assert_eq!(
@@ -482,13 +486,13 @@ fn claim_trapped_asset_should_work() {
 			1000 * UNITS + 29_999_992_361_112u128
 		);
 
-		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
+		let origin = MultiLocation::new(1, X1(Junction::Parachain(OTHER_PARA_ID)));
 		let hash = determine_hash(&origin, vec![asset]);
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 0);
 	});
 }
 
-fn trap_asset() -> MultiAsset {
+fn trap_asset() -> Asset {
 	OtherParachain::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(AccountId::from(ALICE)),
@@ -506,7 +510,7 @@ fn trap_asset() -> MultiAsset {
 						Junction::AccountId32 { id: BOB, network: None }
 					)
 				)
-				.into()
+				.into_versioned()
 			),
 			WeightLimit::Limited(Weight::from_parts(399_600_000_000, 0))
 		));
@@ -516,43 +520,26 @@ fn trap_asset() -> MultiAsset {
 		);
 	});
 
-	let loc = MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0)));
-	let asset: MultiAsset = (loc, 30 * UNITS).into();
+	let asset: Asset = Asset {
+		id: cumulus_primitives_core::AssetId(Location::new(1, cumulus_primitives_core::Junctions::X2(Arc::new(vec![cumulus_primitives_core::Junction::Parachain(OTHER_PARA_ID), cumulus_primitives_core::Junction::GeneralIndex(0)].try_into().unwrap())))),
+		fun:  Fungible(30 * UNITS)
+	};
+
 
 	Basilisk::execute_with(|| {
-		expect_basilisk_events(vec![
-			cumulus_pallet_xcmp_queue::Event::Fail {
-				message_hash: hex!["30291d1dfb68ae6f66d4c841facb78f44e7611ab2a25c84f4fb7347f448d2944"],
-				message_id: hex!["30291d1dfb68ae6f66d4c841facb78f44e7611ab2a25c84f4fb7347f448d2944"],
-				error: XcmError::AssetNotFound,
-				weight: Weight::from_parts(300_000_000, 0),
-			}
-			.into(),
-			pallet_relaychain_info::Event::CurrentBlockNumbers {
-				parachain_block_number: 3,
-				relaychain_block_number: 5,
-			}
-			.into(),
-		]);
-		let origin = MultiLocation::new(1, X1(Parachain(OTHER_PARA_ID)));
-		let loc = MultiLocation::new(1, X2(Parachain(OTHER_PARA_ID), GeneralIndex(0)));
-		let asset: MultiAsset = (loc, 30 * UNITS).into();
-		let hash = determine_hash(&origin, vec![asset]);
+		assert_xcm_message_processing_failed();
+		let origin = MultiLocation::new(1, X1(Junction::Parachain(OTHER_PARA_ID)));
+		let hash = determine_hash(&origin, vec![asset.clone()]);
 		assert_eq!(basilisk_runtime::PolkadotXcm::asset_trap(hash), 1);
 	});
 
 	asset
 }
 
-fn claim_asset(asset: MultiAsset, recipient: [u8; 32]) {
+
+fn claim_asset(asset: Asset, recipient: Location) {
+
 	OtherParachain::execute_with(|| {
-		let recipient = MultiLocation::new(
-			0,
-			X1(Junction::AccountId32 {
-				network: None,
-				id: recipient,
-			}),
-		);
 		let xcm_msg = Xcm(vec![
 			ClaimAsset {
 				assets: vec![asset.clone()].into(),
@@ -569,7 +556,7 @@ fn claim_asset(asset: MultiAsset, recipient: [u8; 32]) {
 		]);
 		assert_ok!(basilisk_runtime::PolkadotXcm::send(
 			basilisk_runtime::RuntimeOrigin::root(),
-			Box::new(MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))).into()),
+			Box::new(MultiLocation::new(1, X1(Junction::Parachain(BASILISK_PARA_ID))).into_versioned()),
 			Box::new(VersionedXcm::from(xcm_msg))
 		));
 	});
@@ -580,19 +567,20 @@ fn polkadot_xcm_execute_extrinsic_should_not_be_allowed() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
-		let message = VersionedXcm::V3(Xcm(vec![
+
+		let xcm_msg = Xcm(vec![
 			WithdrawAsset((Here, 410000000000u128).into()),
 			BuyExecution {
 				fees: (Here, 400000000000u128).into(),
 				weight_limit: Unlimited,
 			},
 			ClearError,
-		]));
+		]);
 
 		assert_noop!(
 			basilisk_runtime::PolkadotXcm::execute(
 				basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
-				Box::new(message),
+				Box::new(VersionedXcm::from(xcm_msg)),
 				Weight::from_parts(400_000_000_000, 0)
 			),
 			pallet_xcm::Error::<basilisk_runtime::Runtime>::Filtered

@@ -65,26 +65,30 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	}
 
 	fn enqueue_xcmp_message() -> Weight {
-		todo!()
+		//TODO:THIS WEIGHT IS ADDED FOR TESTING PURPOSES, ADD PROPER WEIGHT
+		Weight::from_parts(9999999, 9999)
 	}
 
 	fn suspend_channel() -> Weight {
-		todo!()
-	}
+		//TODO:THIS WEIGHT IS ADDED FOR TESTING PURPOSES, ADD PROPER WEIGHT
+		Weight::from_parts(9999999, 9999)	}
 
 	fn resume_channel() -> Weight {
-		todo!()
+		//TODO:THIS WEIGHT IS ADDED FOR TESTING PURPOSES, ADD PROPER WEIGHT
+		Weight::from_parts(9999999, 9999)
 	}
 
 	fn take_first_concatenated_xcm() -> Weight {
-		todo!()
+		//TODO:THIS WEIGHT IS ADDED FOR TESTING PURPOSES, ADD PROPER WEIGHT
+		Weight::from_parts(9999999, 9999)
 	}
 
 	fn on_idle_good_msg() -> Weight {
-		todo!()
-	}
+		//TODO:THIS WEIGHT IS ADDED FOR TESTING PURPOSES, ADD PROPER WEIGHT
+		Weight::from_parts(9999999, 9999)	}
 
 	fn on_idle_large_msg() -> Weight {
-		todo!()
+		//TODO:THIS WEIGHT IS ADDED FOR TESTING PURPOSES, ADD PROPER WEIGHT
+		Weight::from_parts(9999999, 9999)
 	}
 }
