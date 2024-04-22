@@ -272,6 +272,7 @@ impl pallet_lbp::Config for Runtime {
 
 #[cfg(feature = "runtime-benchmarks")]
 use codec::Decode;
+use frame_support::traits::Everything;
 
 pub struct RootAsVestingPallet;
 impl EnsureOrigin<RuntimeOrigin> for RootAsVestingPallet {
@@ -658,7 +659,7 @@ impl pallet_ema_oracle::Config for Runtime {
 	type AuthorityOrigin = SuperMajorityTechCommitteeOrRoot;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type SupportedPeriods = SupportedPeriods;
-	type OracleWhitelist = (); // TODO: What do here ?
+	type OracleWhitelist = Everything;
 	type MaxUniqueEntries = MaxUniqueOracleEntries;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = (); //TODO: implement helper
