@@ -1,21 +1,14 @@
 #![cfg(test)]
 use crate::kusama_test_net::*;
 
-use frame_support::{assert_ok, dispatch::GetDispatchInfo, weights::Weight};
-use frame_support::traits::ProcessMessageError;
+use frame_support::{assert_ok, dispatch::GetDispatchInfo};
 use sp_runtime::codec::Encode;
 
 //use polkadot_xcm::v3::prelude::*;
-use polkadot_xcm::{v4::prelude::*, VersionedAssets, VersionedLocation, VersionedXcm};
+use polkadot_xcm::{v4::prelude::*};
 
-use xcm_emulator::{pallet_message_queue, TestExt};
+use xcm_emulator::{TestExt};
 
-use polkadot_xcm::opaque::lts::Assets;
-use polkadot_xcm::opaque::v3::MultiLocation;
-use polkadot_xcm::opaque::v3::MultiAssets;
-use polkadot_xcm::opaque::v3::Junctions::{X1, X2};
-use polkadot_xcm::opaque::v3::Junction;
-use polkadot_xcm::opaque::v3::MultiAsset;
 use sp_std::sync::Arc;
 #[test]
 fn allowed_transact_call_should_pass_filter() {

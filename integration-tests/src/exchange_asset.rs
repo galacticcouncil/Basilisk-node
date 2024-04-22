@@ -5,7 +5,6 @@ use basilisk_runtime::Currencies;
 use basilisk_runtime::RuntimeOrigin;
 use basilisk_runtime::XYK;
 use frame_support::dispatch::GetDispatchInfo;
-use frame_support::weights::Weight;
 use frame_support::{assert_ok, pallet_prelude::*};
 use hydradx_traits::router::AssetPair;
 use hydradx_traits::router::PoolType;
@@ -16,16 +15,12 @@ use primitives::constants::chain::CORE_ASSET_ID;
 use sp_runtime::FixedU128;
 use xcm_emulator::TestExt;
 
-use polkadot_xcm::{v4::prelude::*, VersionedAssets, VersionedLocation, VersionedXcm};
+use polkadot_xcm::{v4::prelude::*,  VersionedXcm};
 
-use xcm_emulator::{pallet_message_queue};
 
-use polkadot_xcm::opaque::lts::Assets;
 use polkadot_xcm::opaque::v3::MultiLocation;
-use polkadot_xcm::opaque::v3::MultiAssets;
-use polkadot_xcm::opaque::v3::Junctions::{X1, X2};
+use polkadot_xcm::opaque::v3::Junctions::{ X2};
 use polkadot_xcm::opaque::v3::Junction;
-use polkadot_xcm::opaque::v3::MultiAsset;
 use sp_std::sync::Arc;
 
 pub const SELL: bool = true;
@@ -264,8 +259,6 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 }
 
 fn register_kar() {
-	let kar_loc = Location::new(1, cumulus_primitives_core::Junctions::X2(Arc::new(vec![cumulus_primitives_core::Junction::Parachain(OTHER_PARA_ID), cumulus_primitives_core::Junction::GeneralIndex(0)].try_into().unwrap())));
-
 	assert_ok!(basilisk_runtime::AssetRegistry::register(
 		basilisk_runtime::RuntimeOrigin::root(),
 		b"KAR".to_vec(),

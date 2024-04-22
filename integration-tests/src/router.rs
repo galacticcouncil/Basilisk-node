@@ -23,7 +23,7 @@ pub const SALE_END: Option<BlockNumber> = Some(40);
 mod router_different_pools_tests {
 	use crate::kusama_test_net::*;
 
-	use basilisk_runtime::{Router, RuntimeOrigin};
+	use basilisk_runtime::{Router};
 	use xcm_emulator::TestExt;
 
 	use frame_support::assert_ok;
@@ -156,7 +156,7 @@ mod router_different_pools_tests {
 mod xyk_router_tests {
 	use crate::kusama_test_net::*;
 
-	use basilisk_runtime::{Router, RuntimeOrigin};
+	use basilisk_runtime::{Router};
 	use xcm_emulator::TestExt;
 
 	use frame_support::{assert_noop, assert_ok};
@@ -794,7 +794,7 @@ mod xyk_router_tests {
 mod lbp_router_tests {
 	use crate::kusama_test_net::*;
 
-	use basilisk_runtime::{Router, RuntimeOrigin, LBP};
+	use basilisk_runtime::{Router};
 	use xcm_emulator::TestExt;
 
 	use frame_support::assert_ok;

@@ -41,8 +41,6 @@ pub fn parachain_reserve_account() -> AccountId {
 	polkadot_parachain::primitives::Sibling::from(OTHER_PARA_ID).into_account_truncating()
 }
 
-use polkadot_primitives::runtime_api::runtime_decl_for_parachain_host::ParachainHostV10;
-
 pub use basilisk_runtime::{AccountId, VestingPalletId};
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
@@ -59,7 +57,7 @@ use sp_runtime::{traits::AccountIdConversion, BuildStorage};
 
 use primitives::constants::chain::CORE_ASSET_ID;
 pub use xcm_emulator::Network;
-use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains ,TestExt};
+use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains};
 
 pub type Kusama = KusamaRelayChain<TestNet>;
 pub type Basilisk = BasiliskParachain<TestNet>;
@@ -171,7 +169,6 @@ pub mod kusama {
 		}
 	}
 
-	use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 	use polkadot_primitives::{AssignmentId, ValidatorId};
 	use polkadot_service::chain_spec::get_authority_keys_from_seed_no_beefy;
 	use sc_consensus_grandpa::AuthorityId as GrandpaId;
@@ -474,10 +471,12 @@ pub fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::RuntimeEvent> {
 		.collect()
 }
 
+#[allow(dead_code)]
 pub fn expect_basilisk_events(e: Vec<basilisk_runtime::RuntimeEvent>) {
 	assert_eq!(last_basilisk_events(e.len()), e);
 }
 
+#[allow(dead_code)]
 pub fn last_parachain_events(n: usize) -> Vec<basilisk_runtime::RuntimeEvent> {
 	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
 		.into_iter()
@@ -529,7 +528,6 @@ pub fn kusama_run_to_block(to: BlockNumber) {
 	}
 }
 
-use cumulus_pallet_dmp_queue::Event;
 use xcm_emulator::pallet_message_queue;
 
 pub fn assert_xcm_message_processing_failed() {

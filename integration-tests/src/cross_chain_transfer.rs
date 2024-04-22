@@ -4,22 +4,16 @@ use crate::kusama_test_net::*;
 
 use frame_support::{assert_noop, assert_ok};
 
-use polkadot_xcm::{v4::prelude::*, VersionedAssets, VersionedLocation, VersionedXcm};
+use polkadot_xcm::{v4::prelude::*, VersionedAssets, VersionedXcm};
 
 use cumulus_primitives_core::ParaId;
-use frame_support::weights::Weight;
-use hex_literal::hex;
 use orml_traits::currency::MultiCurrency;
 use sp_core::H256;
 use sp_runtime::traits::{AccountIdConversion, BlakeTwo256, Hash};
 use xcm_emulator::TestExt;
-use polkadot_xcm::opaque::lts::Assets;
 use polkadot_xcm::opaque::v3::MultiLocation;
-use polkadot_xcm::opaque::v3::MultiAssets;
 use polkadot_xcm::opaque::v3::Junctions::{X1, X2};
 use polkadot_xcm::opaque::v3::Junction;
-use polkadot_xcm::opaque::v3::MultiAsset;
-use polkadot_xcm::opaque::v3;
 
 use sp_std::sync::Arc;
 
