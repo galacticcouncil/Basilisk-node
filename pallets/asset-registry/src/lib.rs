@@ -47,7 +47,7 @@ pub use pallet::*;
 
 pub use crate::types::{AssetDetails, AssetMetadata};
 use frame_support::BoundedVec;
-use hydradx_traits::{AssetKind, Inspect};
+use hydradx_traits::{AssetKind, Create, Inspect};
 use traits::{CreateRegistry, InspectRegistry, Registry, ShareTokenRegistry};
 
 #[frame_support::pallet]
@@ -602,6 +602,7 @@ impl<T: Config> ShareTokenRegistry<T::AssetId, Vec<u8>, T::Balance, DispatchErro
 
 use orml_traits::GetByKey;
 use sp_arithmetic::traits::Bounded;
+use crate::types::{Name, Symbol};
 
 // Return Existential deposit of an asset
 impl<T: Config> GetByKey<T::AssetId, T::Balance> for Pallet<T> {
@@ -688,5 +689,64 @@ impl<T: Config<Balance = u128>> Inspect for Pallet<T> {
 
 	fn existential_deposit(id: Self::AssetId) -> Option<u128> {
 		Self::assets(id).map(|a| a.existential_deposit)
+	}
+}
+
+/// Default value of existential deposit. This value is used if existential deposit wasn't
+/// provided.
+pub const DEFAULT_ED: u128 = 1;
+
+// Dev note: this comes from new version of asset registry, but in order to support new xyk, we need to implement it here
+// but we can ignore the new fields for now
+impl<T: Config<Balance = u128>> Create<T::Balance> for Pallet<T>{
+	type Error = DispatchError;
+	type Name = Name<T::StringLimit>;
+	type Symbol = Symbol<T::StringLimit>;
+
+	fn register_asset(
+		asset_id: Option<Self::AssetId>,
+		name: Option<Self::Name>,
+		kind: AssetKind,
+		existential_deposit: Option<T::Balance>,
+		_symbol: Option<Self::Symbol>,
+		_decimals: Option<u8>,
+		_location: Option<Self::Location>,
+		xcm_rate_limit: Option<T::Balance>,
+		_is_sufficient: bool,
+	) -> Result<Self::AssetId, Self::Error> {
+		let Some(asset_name) = name else {
+			return Err(Error::<T>::TooLong.into());
+		};
+
+		Self::register_asset(asset_name,
+							 kind.into(),
+							 existential_deposit.unwrap_or(DEFAULT_ED),
+							 asset_id,
+							 xcm_rate_limit,
+		)
+
+	}
+
+	fn get_or_register_asset(
+		name: Self::Name,
+		kind: AssetKind,
+		existential_deposit: Option<T::Balance>,
+		_symbol: Option<Self::Symbol>,
+		_decimals: Option<u8>,
+		_location: Option<Self::Location>,
+		xcm_rate_limit: Option<T::Balance>,
+		_is_sufficient: bool,
+	) -> Result<Self::AssetId, Self::Error> {
+		match Self::asset_ids(&name) {
+			Some(id) => Ok(id),
+			None => {
+				Self::register_asset(name,
+									 kind.into(),
+									 existential_deposit.unwrap_or(DEFAULT_ED),
+									 None,
+									 xcm_rate_limit,
+				)
+			}
+		}
 	}
 }

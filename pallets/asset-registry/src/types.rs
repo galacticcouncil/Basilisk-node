@@ -23,6 +23,10 @@ use hydradx_traits::AssetKind;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
+
+pub type Name<L> = BoundedVec<u8, L>;
+pub type Symbol<L> = BoundedVec<u8, L>;
+
 #[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum AssetType<AssetId> {

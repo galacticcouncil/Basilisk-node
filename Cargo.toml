@@ -6,9 +6,9 @@ members = [
   'node',
   'runtime/basilisk',
   'pallets/marketplace',
-  'pallets/xyk',
+  #'pallets/xyk',
   'pallets/asset-registry',
-  'pallets/liquidity-mining',
+  #'pallets/liquidity-mining',
   'pallets/xyk-liquidity-mining',
   'pallets/xyk-liquidity-mining/benchmarking',
   'integration-tests',
@@ -23,11 +23,11 @@ log = "0.4.20"
 basilisk-runtime = { path = "runtime/basilisk", default-features = false }
 
 pallet-marketplace = { path = "pallets/marketplace", default-features = false}
-pallet-xyk = { path = "pallets/xyk", default-features = false}
+#pallet-xyk = { path = "pallets/xyk", default-features = false}
 pallet-asset-registry = { path = "pallets/asset-registry", default-features = false}
 pallet-xyk-liquidity-mining = { path = "pallets/xyk-liquidity-mining", default-features = false}
-warehouse-liquidity-mining = { package = "pallet-liquidity-mining", path = "pallets/liquidity-mining", default-features = false}
-pallet-liquidity-mining = { path = "pallets/liquidity-mining", default-features = false}
+#warehouse-liquidity-mining = { package = "pallet-liquidity-mining", path = "pallets/liquidity-mining", default-features = false}
+#pallet-liquidity-mining = { path = "pallets/liquidity-mining", default-features = false}
 pallet-xyk-liquidity-mining-benchmarking = { path = "pallets/xyk-liquidity-mining/benchmarking", default-features = false}
 
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
@@ -44,6 +44,9 @@ pallet-duster = { git = "https://github.com/galacticcouncil/HydraDX-node", branc
 pallet-collator-rewards = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
 test-utils = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
 pallet-lbp = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
+pallet-xyk = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
+pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
+warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
 hydra-dx-build-script-utils = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2" }
 
 frame-benchmarking = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
