@@ -23,7 +23,6 @@ pub fn basilisk_run_to_next_block() {
 	basilisk_runtime::System::set_block_number(b + 1);
 }
 
-//TODO: this will only work once we have have OracleWhiteList properly set
 #[test]
 fn xyk_trades_are_ingested_into_oracle() {
 	TestNet::reset();
