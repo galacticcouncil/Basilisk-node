@@ -71,7 +71,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 
 	fn suspend_channel() -> Weight {
 		//TODO:THIS WEIGHT IS ADDED FOR TESTING PURPOSES, ADD PROPER WEIGHT
-		Weight::from_parts(9999999, 9999)	}
+		Weight::from_parts(9999999, 9999)
+	}
 
 	fn resume_channel() -> Weight {
 		//TODO:THIS WEIGHT IS ADDED FOR TESTING PURPOSES, ADD PROPER WEIGHT
@@ -85,7 +86,8 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 
 	fn on_idle_good_msg() -> Weight {
 		//TODO:THIS WEIGHT IS ADDED FOR TESTING PURPOSES, ADD PROPER WEIGHT
-		Weight::from_parts(9999999, 9999)	}
+		Weight::from_parts(9999999, 9999)
+	}
 
 	fn on_idle_large_msg() -> Weight {
 		//TODO:THIS WEIGHT IS ADDED FOR TESTING PURPOSES, ADD PROPER WEIGHT

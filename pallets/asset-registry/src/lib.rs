@@ -600,9 +600,9 @@ impl<T: Config> ShareTokenRegistry<T::AssetId, Vec<u8>, T::Balance, DispatchErro
 	}
 }
 
+use crate::types::{Name, Symbol};
 use orml_traits::GetByKey;
 use sp_arithmetic::traits::Bounded;
-use crate::types::{Name, Symbol};
 
 // Return Existential deposit of an asset
 impl<T: Config> GetByKey<T::AssetId, T::Balance> for Pallet<T> {
@@ -698,7 +698,7 @@ pub const DEFAULT_ED: u128 = 1;
 
 // Dev note: this comes from new version of asset registry, but in order to support new xyk, we need to implement it here
 // but we can ignore the new fields for now
-impl<T: Config<Balance = u128>> Create<T::Balance> for Pallet<T>{
+impl<T: Config<Balance = u128>> Create<T::Balance> for Pallet<T> {
 	type Error = DispatchError;
 	type Name = Name<T::StringLimit>;
 	type Symbol = Symbol<T::StringLimit>;
@@ -718,13 +718,13 @@ impl<T: Config<Balance = u128>> Create<T::Balance> for Pallet<T>{
 			return Err(Error::<T>::TooLong.into());
 		};
 
-		Self::register_asset(asset_name,
-							 kind.into(),
-							 existential_deposit.unwrap_or(DEFAULT_ED),
-							 asset_id,
-							 xcm_rate_limit,
+		Self::register_asset(
+			asset_name,
+			kind.into(),
+			existential_deposit.unwrap_or(DEFAULT_ED),
+			asset_id,
+			xcm_rate_limit,
 		)
-
 	}
 
 	fn get_or_register_asset(
@@ -739,14 +739,13 @@ impl<T: Config<Balance = u128>> Create<T::Balance> for Pallet<T>{
 	) -> Result<Self::AssetId, Self::Error> {
 		match Self::asset_ids(&name) {
 			Some(id) => Ok(id),
-			None => {
-				Self::register_asset(name,
-									 kind.into(),
-									 existential_deposit.unwrap_or(DEFAULT_ED),
-									 None,
-									 xcm_rate_limit,
-				)
-			}
+			None => Self::register_asset(
+				name,
+				kind.into(),
+				existential_deposit.unwrap_or(DEFAULT_ED),
+				None,
+				xcm_rate_limit,
+			),
 		}
 	}
 }

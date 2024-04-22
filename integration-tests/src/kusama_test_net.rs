@@ -211,10 +211,19 @@ pub mod kusama {
 		ValidatorId,
 		AssignmentId,
 		AuthorityDiscoveryId,
-		BeefyId
+		BeefyId,
 	)> {
-		let no_beefy =get_authority_keys_from_seed_no_beefy("Alice");
-		let with_beefy = (no_beefy.0, no_beefy.1, no_beefy.2, no_beefy.3, no_beefy.4, no_beefy.5, no_beefy.6, get_from_seed::<BeefyId>("Alice"));
+		let no_beefy = get_authority_keys_from_seed_no_beefy("Alice");
+		let with_beefy = (
+			no_beefy.0,
+			no_beefy.1,
+			no_beefy.2,
+			no_beefy.3,
+			no_beefy.4,
+			no_beefy.5,
+			no_beefy.6,
+			get_from_seed::<BeefyId>("Alice"),
+		);
 		vec![with_beefy]
 	}
 
@@ -532,20 +541,14 @@ use xcm_emulator::pallet_message_queue;
 
 pub fn assert_xcm_message_processing_failed() {
 	assert!(basilisk_runtime::System::events().iter().any(|r| matches!(
-			r.event,
-			 basilisk_runtime::RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed {
-				success: false,
-				..
-			})
-		)));
+		r.event,
+		basilisk_runtime::RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed { success: false, .. })
+	)));
 }
 
 pub fn assert_xcm_message_processing_passed() {
 	assert!(basilisk_runtime::System::events().iter().any(|r| matches!(
-			r.event,
-			 basilisk_runtime::RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed {
-				success: true,
-				..
-			})
-		)));
+		r.event,
+		basilisk_runtime::RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed { success: true, .. })
+	)));
 }

@@ -31,12 +31,12 @@ use sc_cli::{
 use sc_executor::{sp_wasm_interface::ExtendedHostFunctions, NativeExecutionDispatch};
 use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
-use sp_runtime::traits::{AccountIdConversion, Zero};
 use sp_runtime::traits::Block as BlockT;
-use sp_runtime::traits::Header as HeaderT;
 use sp_runtime::traits::Hash as HashT;
-use std::io::Write;
+use sp_runtime::traits::Header as HeaderT;
+use sp_runtime::traits::{AccountIdConversion, Zero};
 use sp_storage::StateVersion;
+use std::io::Write;
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
@@ -475,10 +475,8 @@ pub fn generate_genesis_block<Block: BlockT>(
 		genesis_state_version,
 	);
 
-	let extrinsics_root = <<<Block as BlockT>::Header as HeaderT>::Hashing as HashT>::trie_root(
-		Vec::new(),
-		genesis_state_version,
-	);
+	let extrinsics_root =
+		<<<Block as BlockT>::Header as HeaderT>::Hashing as HashT>::trie_root(Vec::new(), genesis_state_version);
 
 	Ok(Block::new(
 		<<Block as BlockT>::Header as HeaderT>::new(

@@ -267,6 +267,8 @@ pub type Executive = frame_executive::Executive<
 	(
 		frame_support::migrations::RemovePallet<DmpQueuePalletName, <Runtime as frame_system::Config>::DbWeight>,
 		frame_support::migrations::RemovePallet<XcmRateLimiterPalletName, <Runtime as frame_system::Config>::DbWeight>,
+		cumulus_pallet_xcmp_queue::migration::v4::MigrationToV4<Runtime>,
+		pallet_identity::migration::versioned::V0ToV1<Runtime, { 200u64 }>,
 		migrations::OnRuntimeUpgradeMigration,
 	),
 >;

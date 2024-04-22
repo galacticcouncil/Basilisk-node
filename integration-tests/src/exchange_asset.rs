@@ -15,12 +15,11 @@ use primitives::constants::chain::CORE_ASSET_ID;
 use sp_runtime::FixedU128;
 use xcm_emulator::TestExt;
 
-use polkadot_xcm::{v4::prelude::*,  VersionedXcm};
+use polkadot_xcm::{v4::prelude::*, VersionedXcm};
 
-
-use polkadot_xcm::opaque::v3::MultiLocation;
-use polkadot_xcm::opaque::v3::Junctions::{ X2};
 use polkadot_xcm::opaque::v3::Junction;
+use polkadot_xcm::opaque::v3::Junctions::X2;
+use polkadot_xcm::opaque::v3::MultiLocation;
 use sp_std::sync::Arc;
 
 pub const SELL: bool = true;
@@ -41,20 +40,30 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_sell() {
 
 	OtherParachain::execute_with(|| {
 		let sell_amount: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(0, cumulus_primitives_core::Junctions::X1(Arc::new(vec![cumulus_primitives_core::Junction::GeneralIndex(0)].try_into().unwrap())))),
-			fun:  Fungible(5 * UNITS)
+			id: cumulus_primitives_core::AssetId(Location::new(
+				0,
+				cumulus_primitives_core::Junctions::X1(Arc::new(
+					vec![cumulus_primitives_core::Junction::GeneralIndex(0)]
+						.try_into()
+						.unwrap(),
+				)),
+			)),
+			fun: Fungible(5 * UNITS),
 		};
 
 		let min_amount_out: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(0, cumulus_primitives_core::Junctions::X1(Arc::new(vec![cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())].try_into().unwrap())))),
-			fun:  Fungible(2 * UNITS)
+			id: cumulus_primitives_core::AssetId(Location::new(
+				0,
+				cumulus_primitives_core::Junctions::X1(Arc::new(
+					vec![cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())]
+						.try_into()
+						.unwrap(),
+				)),
+			)),
+			fun: Fungible(2 * UNITS),
 		};
 
-		let xcm = craft_exchange_asset_xcm::<_, basilisk_runtime::RuntimeCall>(
-			sell_amount,
-			min_amount_out,
-			SELL,
-		);
+		let xcm = craft_exchange_asset_xcm::<_, basilisk_runtime::RuntimeCall>(sell_amount, min_amount_out, SELL);
 		//Act
 		let res = basilisk_runtime::PolkadotXcm::execute(
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
@@ -92,7 +101,6 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_sell() {
 	});
 }
 
-
 #[test]
 fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 	//Arrange
@@ -116,20 +124,30 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 	let amount_out = 20 * UNITS;
 	OtherParachain::execute_with(|| {
 		let max_amount_in: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(0, cumulus_primitives_core::Junctions::X1(Arc::new(vec![cumulus_primitives_core::Junction::GeneralIndex(0)].try_into().unwrap())))),
-			fun:  Fungible(70 * UNITS)
+			id: cumulus_primitives_core::AssetId(Location::new(
+				0,
+				cumulus_primitives_core::Junctions::X1(Arc::new(
+					vec![cumulus_primitives_core::Junction::GeneralIndex(0)]
+						.try_into()
+						.unwrap(),
+				)),
+			)),
+			fun: Fungible(70 * UNITS),
 		};
 
 		let amount_out_asset: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(0, cumulus_primitives_core::Junctions::X1(Arc::new(vec![cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())].try_into().unwrap())))),
-			fun:  Fungible(amount_out)
+			id: cumulus_primitives_core::AssetId(Location::new(
+				0,
+				cumulus_primitives_core::Junctions::X1(Arc::new(
+					vec![cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())]
+						.try_into()
+						.unwrap(),
+				)),
+			)),
+			fun: Fungible(amount_out),
 		};
 
-		let xcm = craft_exchange_asset_xcm::<_, basilisk_runtime::RuntimeCall>(
-			max_amount_in,
-			amount_out_asset,
-			BUY,
-		);
+		let xcm = craft_exchange_asset_xcm::<_, basilisk_runtime::RuntimeCall>(max_amount_in, amount_out_asset, BUY);
 		//Act
 		let res = basilisk_runtime::PolkadotXcm::execute(
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
@@ -153,7 +171,7 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 	});
 
 	Basilisk::execute_with(|| {
-		let fees = 	basilisk_runtime::Tokens::free_balance(KAR, &basilisk_runtime::Treasury::account_id());
+		let fees = basilisk_runtime::Tokens::free_balance(KAR, &basilisk_runtime::Treasury::account_id());
 		assert!(fees > 0, "Fees are not sent to treasury");
 
 		assert_eq!(
@@ -178,7 +196,10 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::RuntimeOrigin::root(),
 			KSM,
-			basilisk_runtime::AssetLocation(MultiLocation::new(0, polkadot_xcm::opaque::v3::Junctions::X1(polkadot_xcm::opaque::v3::Junction::GeneralIndex(3))))
+			basilisk_runtime::AssetLocation(MultiLocation::new(
+				0,
+				polkadot_xcm::opaque::v3::Junctions::X1(polkadot_xcm::opaque::v3::Junction::GeneralIndex(3))
+			))
 		));
 
 		//Register onchain route from KAR to KSM
@@ -204,20 +225,30 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 
 	OtherParachain::execute_with(|| {
 		let amount_in: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(0, cumulus_primitives_core::Junctions::X1(Arc::new(vec![cumulus_primitives_core::Junction::GeneralIndex(0)].try_into().unwrap())))),
-			fun:  Fungible(5 * UNITS)
+			id: cumulus_primitives_core::AssetId(Location::new(
+				0,
+				cumulus_primitives_core::Junctions::X1(Arc::new(
+					vec![cumulus_primitives_core::Junction::GeneralIndex(0)]
+						.try_into()
+						.unwrap(),
+				)),
+			)),
+			fun: Fungible(5 * UNITS),
 		};
 
 		let min_amount_out: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(0, cumulus_primitives_core::Junctions::X1(Arc::new(vec![cumulus_primitives_core::Junction::GeneralIndex(KSM.into())].try_into().unwrap())))),
-			fun:  Fungible(2 * UNITS)
+			id: cumulus_primitives_core::AssetId(Location::new(
+				0,
+				cumulus_primitives_core::Junctions::X1(Arc::new(
+					vec![cumulus_primitives_core::Junction::GeneralIndex(KSM.into())]
+						.try_into()
+						.unwrap(),
+				)),
+			)),
+			fun: Fungible(2 * UNITS),
 		};
 
-		let xcm = craft_exchange_asset_xcm::<_, basilisk_runtime::RuntimeCall>(
-			amount_in,
-			min_amount_out,
-			SELL,
-		);
+		let xcm = craft_exchange_asset_xcm::<_, basilisk_runtime::RuntimeCall>(amount_in, min_amount_out, SELL);
 		//Act
 		let res = basilisk_runtime::PolkadotXcm::execute(
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
@@ -285,7 +316,6 @@ fn add_currency_price(asset_id: u32, price: FixedU128) {
 	basilisk_runtime::MultiTransactionPayment::on_initialize(basilisk_runtime::System::block_number());
 }
 
-
 fn craft_exchange_asset_xcm<M: Into<Assets>, RC: Decode + GetDispatchInfo>(
 	give: Asset,
 	want: M,
@@ -299,26 +329,45 @@ fn craft_exchange_asset_xcm<M: Into<Assets>, RC: Decode + GetDispatchInfo>(
 
 	let dest = Location::new(
 		1,
-		cumulus_primitives_core::Junctions::X1(Arc::new(vec![
-			cumulus_primitives_core::Junction::Parachain(BASILISK_PARA_ID)].try_into().unwrap()
-		))
+		cumulus_primitives_core::Junctions::X1(Arc::new(
+			vec![cumulus_primitives_core::Junction::Parachain(BASILISK_PARA_ID)]
+				.try_into()
+				.unwrap(),
+		)),
 	);
 
 	let beneficiary = Location::new(
 		0,
-		cumulus_primitives_core::Junctions::X1(Arc::new(vec![
-			cumulus_primitives_core::Junction::AccountId32 { id: BOB, network: None }].try_into().unwrap()
-		))
+		cumulus_primitives_core::Junctions::X1(Arc::new(
+			vec![cumulus_primitives_core::Junction::AccountId32 { id: BOB, network: None }]
+				.try_into()
+				.unwrap(),
+		)),
 	);
 
 	let assets: Assets = Asset {
-		id: cumulus_primitives_core::AssetId(Location::new(0, cumulus_primitives_core::Junctions::X1(Arc::new(vec![cumulus_primitives_core::Junction::GeneralIndex(0)].try_into().unwrap())))),
-		fun:  Fungible(100 * UNITS)
-	}.into();
+		id: cumulus_primitives_core::AssetId(Location::new(
+			0,
+			cumulus_primitives_core::Junctions::X1(Arc::new(
+				vec![cumulus_primitives_core::Junction::GeneralIndex(0)]
+					.try_into()
+					.unwrap(),
+			)),
+		)),
+		fun: Fungible(100 * UNITS),
+	}
+	.into();
 
 	//let assets: MultiAssets = MultiAsset::from((cumulus_primitives_core::Junction::GeneralIndex(0), 100 * UNITS)).into(); // hardcoded
 	let max_assets = assets.len() as u32 + 1;
-	let context = cumulus_primitives_core::Junctions::X2(Arc::new(vec![cumulus_primitives_core::Junction::GlobalConsensus(NetworkId::Polkadot), cumulus_primitives_core::Junction::Parachain(OTHER_PARA_ID)].try_into().unwrap()));
+	let context = cumulus_primitives_core::Junctions::X2(Arc::new(
+		vec![
+			cumulus_primitives_core::Junction::GlobalConsensus(NetworkId::Polkadot),
+			cumulus_primitives_core::Junction::Parachain(OTHER_PARA_ID),
+		]
+		.try_into()
+		.unwrap(),
+	));
 
 	let fees = assets
 		.get(0)
