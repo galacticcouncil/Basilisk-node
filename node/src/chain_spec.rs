@@ -184,7 +184,7 @@ pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "kusama".into(),
 			para_id: PARA_ID,
 		},
-		vec![].as_slice(),
+		wasm_binary,
 	))
 }
 
@@ -266,7 +266,7 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "westend".into(),
 			para_id: PARA_ID,
 		},
-		vec![].as_slice(),
+		wasm_binary,
 	))
 }
 
@@ -338,7 +338,7 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo-dev".into(),
 			para_id: PARA_ID,
 		},
-		vec![].as_slice(),
+		wasm_binary,
 	))
 }
 
@@ -415,7 +415,7 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo".into(),
 			para_id: PARA_ID,
 		},
-		vec![].as_slice(),
+		wasm_binary,
 	))
 }
 
@@ -488,7 +488,7 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "kusama-local".into(),
 			para_id: PARA_ID,
 		},
-		vec![].as_slice(),
+		wasm_binary,
 	))
 }
 
@@ -559,7 +559,7 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo-dev".into(),
 			para_id: PARA_ID,
 		},
-		vec![].as_slice(),
+		wasm_binary,
 	))
 }
 
@@ -639,7 +639,7 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo-local".into(),
 			para_id: PARA_ID,
 		},
-		vec![].as_slice(),
+		wasm_binary,
 	))
 }
 

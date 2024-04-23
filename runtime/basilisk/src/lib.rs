@@ -435,7 +435,7 @@ impl_runtime_apis! {
 
 			let mut list = Vec::<BenchmarkList>::new();
 
-			list_benchmark!(list, extra, pallet_xyk, XYK);
+			//list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
 			list_benchmark!(list, extra, pallet_nft, NFT);
 			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
@@ -456,7 +456,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_identity, Identity);
 			list_benchmark!(list, extra, pallet_collective, TechnicalCommittee);
 			list_benchmark!(list, extra, pallet_state_trie_migration, StateTrieMigration);
-			list_benchmark!(list, extra, pallet_preimage, Preimage);
+			//list_benchmark!(list, extra, pallet_preimage, Preimage);
 
 			list_benchmark!(list, extra, cumulus_pallet_xcmp_queue, XcmpQueue);
 			list_benchmark!(list, extra, pallet_message_queue, MessageQueue);
@@ -517,7 +517,7 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 
 			// Basilisk pallets
-			add_benchmark!(params, batches, pallet_xyk, XYK);
+			//add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_nft, NFT);
 			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
@@ -539,7 +539,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_identity, Identity);
 			add_benchmark!(params, batches, pallet_collective, TechnicalCommittee);
 			add_benchmark!(params, batches, pallet_state_trie_migration, StateTrieMigration);
-			add_benchmark!(params, batches, pallet_preimage, Preimage);
+			//add_benchmark!(params, batches, pallet_preimage, Preimage);
 
 			add_benchmark!(params, batches, cumulus_pallet_xcmp_queue, XcmpQueue);
 			add_benchmark!(params, batches, pallet_message_queue, MessageQueue);
