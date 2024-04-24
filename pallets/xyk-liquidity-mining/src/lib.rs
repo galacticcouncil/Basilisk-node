@@ -51,6 +51,7 @@ use hydradx_traits::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMu
 use pallet_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 use pallet_xyk::types::{AssetId, AssetPair, Balance};
 
+pub use crate::weights::WeightInfo;
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::{ensure_signed, pallet_prelude::OriginFor};
 use hydradx_traits::{
@@ -73,7 +74,6 @@ type PeriodOf<T> = BlockNumberFor<T>;
 #[allow(clippy::too_many_arguments)]
 pub mod pallet {
 	use super::*;
-	use crate::weights::WeightInfo;
 	use frame_system::pallet_prelude::BlockNumberFor;
 	use hydradx_traits::pools::DustRemovalAccountWhitelist;
 

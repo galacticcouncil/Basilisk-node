@@ -22,8 +22,8 @@ use primitives::constants::{
 };
 
 use frame_support::traits::fungible::HoldConsideration;
-use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
-use frame_support::traits::LinearStoragePrice;
+use frame_support::traits::tokens::{Pay, PayFromAccount, PaymentStatus, Preservation, UnityAssetBalanceConversion};
+use frame_support::traits::{fungible, LinearStoragePrice};
 use frame_support::{
 	parameter_types,
 	sp_runtime::{Perbill, Percent, Permill},
@@ -33,6 +33,7 @@ use frame_support::{
 use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_collective::EnsureProportionAtLeast;
 use sp_runtime::traits::IdentityLookup;
+use sp_runtime::DispatchError;
 use sp_staking::currency_to_vote::U128CurrencyToVote;
 
 pub type MajorityCouncilOrRoot =
@@ -63,7 +64,7 @@ parameter_types! {
 }
 
 impl pallet_democracy::Config for Runtime {
-	type WeightInfo = weights::democracy::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_democracy::BasiliskWeight<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
 	type Scheduler = Scheduler;
 	type Preimages = Preimage;
@@ -139,7 +140,7 @@ impl pallet_elections_phragmen::Config for Runtime {
 	type MaxCandidates = MaxElectionCandidates;
 	type MaxVoters = MaxElectionVoters;
 	type MaxVotesPerVoter = MaxVotesPerVoter;
-	type WeightInfo = weights::elections::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_elections_phragmen::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -158,7 +159,7 @@ impl pallet_collective::Config<CouncilCollective> for Runtime {
 	type MaxProposals = CouncilMaxProposals;
 	type MaxMembers = CouncilMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = weights::collective::BasiliskWeight<Runtime>; // use the weights from TechnicalCommittee because we are not able to benchmark both pallets
+	type WeightInfo = weights::pallet_collective::BasiliskWeight<Runtime>; // use the weights from TechnicalCommittee because we are not able to benchmark both pallets
 	type MaxProposalWeight = MaxProposalWeight;
 	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
@@ -178,7 +179,7 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type MaxProposals = TechnicalMaxProposals;
 	type MaxMembers = TechnicalMaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type WeightInfo = weights::collective::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_collective::BasiliskWeight<Runtime>;
 	type MaxProposalWeight = MaxProposalWeight;
 	type SetMembersOrigin = EnsureRoot<AccountId>;
 }
@@ -202,7 +203,7 @@ impl pallet_tips::Config for Runtime {
 	type TipReportDepositBase = TipReportDepositBase;
 	type MaxTipAmount = MaxTipAmount;
 	type Tippers = Elections;
-	type WeightInfo = weights::tips::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_tips::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -239,7 +240,7 @@ impl pallet_scheduler::Config for Runtime {
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type MaxScheduledPerBlock = MaxScheduledPerBlock;
-	type WeightInfo = weights::scheduler::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_scheduler::BasiliskWeight<Runtime>;
 	type Preimages = Preimage;
 }
 
@@ -253,6 +254,58 @@ parameter_types! {
 	pub const MaxApprovals: u32 =  100;
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 	pub const TreasuryPayoutPeriod: u32 = 30 * DAYS;
+
+	#[cfg(feature = "runtime-benchmarks")]
+	pub const BenchmarkMaxBalance: Balance = Balance::max_value();
+}
+
+pub struct PayFromTreasuryAccount;
+
+impl Pay for PayFromTreasuryAccount {
+	type Balance = Balance;
+	type Beneficiary = AccountId;
+	type AssetKind = ();
+	type Id = ();
+	type Error = DispatchError;
+
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	fn pay(
+		who: &Self::Beneficiary,
+		_asset_kind: Self::AssetKind,
+		amount: Self::Balance,
+	) -> Result<Self::Id, Self::Error> {
+		let r =
+			<Balances as fungible::Mutate<_>>::transfer(&TreasuryAccount::get(), who, amount, Preservation::Expendable);
+		Ok(())
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn pay(
+		who: &Self::Beneficiary,
+		_asset_kind: Self::AssetKind,
+		amount: Self::Balance,
+	) -> Result<Self::Id, Self::Error> {
+		// In case of benchmarks, we adjust the value by multiplying it by 1_000_000_000_000, otherwise it fails with BelowMinimum limit error, because
+		// treasury benchmarks uses only 100 as the amount.
+		let r = <Balances as fungible::Mutate<_>>::transfer(
+			&TreasuryAccount::get(),
+			who,
+			amount * 1_000_000_000_000,
+			Preservation::Expendable,
+		);
+		Ok(())
+	}
+
+	fn check_payment(_id: Self::Id) -> PaymentStatus {
+		PaymentStatus::Success
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn ensure_successful(_: &Self::Beneficiary, _: Self::AssetKind, amount: Self::Balance) {
+		<Balances as fungible::Mutate<_>>::mint_into(&TreasuryAccount::get(), amount * 1_000_000_000_000).unwrap();
+	}
+	#[cfg(feature = "runtime-benchmarks")]
+	fn ensure_concluded(_: Self::Id) {}
 }
 
 impl pallet_treasury::Config for Runtime {
@@ -268,16 +321,19 @@ impl pallet_treasury::Config for Runtime {
 	type Burn = Burn;
 	type PalletId = TreasuryPalletId;
 	type BurnDestination = ();
-	type WeightInfo = weights::treasury::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_treasury::BasiliskWeight<Runtime>;
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
-	type SpendOrigin = NeverEnsureOrigin<Balance>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type SpendOrigin = NeverEnsureOrigin<Balance>; // Disabled, no spending
+	#[cfg(feature = "runtime-benchmarks")]
+	type SpendOrigin = frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, BenchmarkMaxBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;
-	type Paymaster = PayFromAccount<Balances, TreasuryAccount>; // TODO: check what this means
-	type BalanceConverter = UnityAssetBalanceConversion; //TODO: check this
+	type Paymaster = PayFromTreasuryAccount;
+	type BalanceConverter = UnityAssetBalanceConversion;
 	type PayoutPeriod = TreasuryPayoutPeriod;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = (); //TODO: implement helper!
+	type BenchmarkHelper = benchmarking::BenchmarkHelper;
 }

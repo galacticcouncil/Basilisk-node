@@ -155,7 +155,7 @@ impl frame_system::Config for Runtime {
 	/// What to do if an account is fully reaped from the system.
 	type OnKilledAccount = ();
 	/// Weight information for the extrinsics of this pallet.
-	type SystemWeightInfo = weights::system::BasiliskWeight<Runtime>;
+	type SystemWeightInfo = weights::frame_system::BasiliskWeight<Runtime>;
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
@@ -171,7 +171,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = ();
 	type MinimumPeriod = MinimumPeriod;
-	type WeightInfo = weights::timestamp::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_timestamp::BasiliskWeight<Runtime>;
 }
 
 pub struct WeightToFee;
@@ -272,7 +272,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type Currencies = Currencies;
 	type RouteProvider = Router;
 	type OraclePriceProvider = adapter::OraclePriceProvider<AssetId, EmaOracle>;
-	type WeightInfo = weights::payment::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_transaction_multi_payment::BasiliskWeight<Runtime>;
 	type WeightToFee = WeightToFee;
 	type NativeAssetId = NativeAssetId;
 	type EvmAssetId = WethAssetId;
@@ -366,7 +366,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>; // TODO: what to set here ?!
-	type WeightInfo = ();
+	type WeightInfo = (); //TODO: add benchmarks
 }
 
 parameter_types! {
@@ -384,7 +384,7 @@ impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type PalletsOrigin = OriginCaller;
-	type WeightInfo = weights::utility::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_utility::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -414,7 +414,7 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorId = <Self as frame_system::Config>::AccountId;
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
-	type WeightInfo = weights::collator_selection::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::collator_selection::BasiliskWeight<Runtime>; //TODO: do benchmakrs
 	type MinEligibleCollators = ConstU32<4>;
 }
 
@@ -449,7 +449,7 @@ impl pallet_relaychain_info::Config for Runtime {
 impl pallet_transaction_pause::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type UpdateOrigin = MajorityTechCommitteeOrRoot;
-	type WeightInfo = weights::transaction_pause::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_transaction_pause::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -505,7 +505,7 @@ impl pallet_identity::Config for Runtime {
 	type PendingUsernameExpiration = PendingUserNameExpiration;
 	type MaxSuffixLength = MaxSuffixLength;
 	type MaxUsernameLength = MaxUsernameLength;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_identity::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -547,5 +547,5 @@ impl pallet_state_trie_migration::Config for Runtime {
 	type MaxKeyLen = MaxKeyLen;
 	type SignedDepositPerItem = MigrationSignedDepositPerItem;
 	type SignedDepositBase = MigrationSignedDepositBase;
-	type WeightInfo = weights::state_trie::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::state_trie::BasiliskWeight<Runtime>; //TODO: do benchmarks
 }

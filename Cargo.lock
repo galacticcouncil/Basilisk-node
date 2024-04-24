@@ -663,8 +663,8 @@ dependencies = [
  "futures-io",
  "futures-lite 2.3.0",
  "parking",
- "polling 3.6.0",
- "rustix 0.38.33",
+ "polling 3.7.0",
+ "rustix 0.38.34",
  "slab",
  "tracing",
  "windows-sys 0.52.0",
@@ -714,7 +714,7 @@ dependencies = [
  "cfg-if",
  "event-listener 3.1.0",
  "futures-lite 1.13.0",
- "rustix 0.38.33",
+ "rustix 0.38.34",
  "windows-sys 0.48.0",
 ]
 
@@ -730,7 +730,7 @@ dependencies = [
  "cfg-if",
  "futures-core",
  "futures-io",
- "rustix 0.38.33",
+ "rustix 0.38.34",
  "signal-hook-registry",
  "slab",
  "windows-sys 0.52.0",
@@ -3400,9 +3400,9 @@ dependencies = [
 
 [[package]]
 name = "fiat-crypto"
-version = "0.2.7"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c007b1ae3abe1cb6f85a16305acd418b7ca6343b953633fee2b76d8f108b830f"
+checksum = "38793c55593b33412e3ae40c2c9781ffaa6f438f6f8c10f24e71846fbd7ae01e"
 
 [[package]]
 name = "file-per-thread-logger"
@@ -3519,7 +3519,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#5d6bf0c78d1d325d4eea6f9593e9a11da18a1ea8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#ea9becfa1885a4ce7d63558620b5367cbc4e9289"
 dependencies = [
  "hex",
  "impl-serde",
@@ -3538,7 +3538,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#5d6bf0c78d1d325d4eea6f9593e9a11da18a1ea8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#ea9becfa1885a4ce7d63558620b5367cbc4e9289"
 dependencies = [
  "evm",
  "frame-support",
@@ -3873,7 +3873,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29f9df8a11882c4e3335eb2d18a0137c505d9ca927470b0cac9c6f0ae07d28f7"
 dependencies = [
- "rustix 0.38.33",
+ "rustix 0.38.34",
  "windows-sys 0.48.0",
 ]
 
@@ -4379,7 +4379,7 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 [[package]]
 name = "hydra-dx-build-script-utils"
 version = "1.0.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "cargo-lock",
  "platforms 1.1.0",
@@ -4388,7 +4388,7 @@ dependencies = [
 [[package]]
 name = "hydra-dx-math"
 version = "8.0.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "fixed",
  "num-traits",
@@ -4403,7 +4403,7 @@ dependencies = [
 [[package]]
 name = "hydradx-adapters"
 version = "1.3.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -4451,7 +4451,7 @@ dependencies = [
 [[package]]
 name = "hydradx-traits"
 version = "3.2.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -4795,9 +4795,9 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 
 [[package]]
 name = "jobserver"
-version = "0.1.30"
+version = "0.1.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "685a7d121ee3f65ae4fddd72b25a04bb36b6af81bc0828f7d5434c0fe60fa3a2"
+checksum = "d2b099aaa34a9751c5bf0878add70444e1ed2dd73f347be99003d4577277de6e"
 dependencies = [
  "libc",
 ]
@@ -5776,7 +5776,7 @@ version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b2cffa4ad52c6f791f4f8b15f0c05f9824b2ced1160e88cc393d64fff9a8ac64"
 dependencies = [
- "rustix 0.38.33",
+ "rustix 0.38.34",
 ]
 
 [[package]]
@@ -6697,7 +6697,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "3.2.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6908,7 +6908,7 @@ dependencies = [
 [[package]]
 name = "pallet-bonds"
 version = "2.2.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6984,7 +6984,7 @@ dependencies = [
 [[package]]
 name = "pallet-circuit-breaker"
 version = "1.1.21"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7000,7 +7000,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-rewards"
 version = "1.0.6"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7072,7 +7072,7 @@ dependencies = [
 [[package]]
 name = "pallet-currencies"
 version = "2.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7089,7 +7089,7 @@ dependencies = [
 [[package]]
 name = "pallet-democracy"
 version = "4.1.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7123,7 +7123,7 @@ dependencies = [
 [[package]]
 name = "pallet-duster"
 version = "3.2.4"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7142,7 +7142,7 @@ dependencies = [
 [[package]]
 name = "pallet-dynamic-fees"
 version = "1.0.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7214,7 +7214,7 @@ dependencies = [
 [[package]]
 name = "pallet-ema-oracle"
 version = "1.3.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7234,7 +7234,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#5d6bf0c78d1d325d4eea6f9593e9a11da18a1ea8"
+source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-v1.7.2#ea9becfa1885a4ce7d63558620b5367cbc4e9289"
 dependencies = [
  "environmental",
  "evm",
@@ -7356,7 +7356,7 @@ dependencies = [
 [[package]]
 name = "pallet-lbp"
 version = "4.7.4"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7378,7 +7378,7 @@ dependencies = [
 [[package]]
 name = "pallet-liquidity-mining"
 version = "4.3.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7488,7 +7488,7 @@ dependencies = [
 [[package]]
 name = "pallet-nft"
 version = "7.1.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7614,7 +7614,7 @@ dependencies = [
 [[package]]
 name = "pallet-omnipool"
 version = "4.1.5"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "bitflags 1.3.2",
  "frame-benchmarking",
@@ -7638,7 +7638,7 @@ dependencies = [
 [[package]]
 name = "pallet-omnipool-liquidity-mining"
 version = "2.1.4"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7748,7 +7748,7 @@ dependencies = [
 [[package]]
 name = "pallet-referrals"
 version = "1.2.3"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7766,7 +7766,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.3.4"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -7796,7 +7796,7 @@ dependencies = [
 [[package]]
 name = "pallet-route-executor"
 version = "2.2.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7888,7 +7888,7 @@ dependencies = [
 [[package]]
 name = "pallet-stableswap"
 version = "3.5.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "bitflags 1.3.2",
  "frame-support",
@@ -7907,7 +7907,7 @@ dependencies = [
 [[package]]
 name = "pallet-staking"
 version = "3.0.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8051,7 +8051,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "9.5.0"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8073,7 +8073,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-pause"
 version = "1.0.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8254,7 +8254,7 @@ dependencies = [
 [[package]]
 name = "pallet-xyk"
 version = "6.4.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9781,15 +9781,15 @@ dependencies = [
 
 [[package]]
 name = "polling"
-version = "3.6.0"
+version = "3.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0c976a60b2d7e99d6f229e414670a9b85d13ac305cc6d1e9c134de58c5aaaf6"
+checksum = "645493cf344456ef24219d02a768cf1fb92ddf8c92161679ae3d91b91a637be3"
 dependencies = [
  "cfg-if",
  "concurrent-queue",
  "hermit-abi",
  "pin-project-lite 0.2.14",
- "rustix 0.38.33",
+ "rustix 0.38.34",
  "tracing",
  "windows-sys 0.52.0",
 ]
@@ -9922,7 +9922,7 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "6.0.2"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-support",
  "hex-literal 0.3.4",
@@ -10880,9 +10880,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "0.38.33"
+version = "0.38.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3cc72858054fcff6d7dea32df2aeaee6a7c24227366d7ea429aada2f26b16ad"
+checksum = "70dc5ec042f7a43c4a73241207cecc9873a06d45debb38b329f8541d85c2730f"
 dependencies = [
  "bitflags 2.5.0",
  "errno",
@@ -12990,7 +12990,7 @@ dependencies = [
 [[package]]
 name = "sp-crypto-ec-utils"
 version = "0.10.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#253778c94dd64e6bc174ed1e03ac7e0b43990129"
+source = "git+https://github.com/paritytech/polkadot-sdk#8dc0b337889ef0d227c0a95681b340ee0e80a297"
 dependencies = [
  "ark-bls12-377",
  "ark-bls12-377-ext",
@@ -13052,7 +13052,7 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#253778c94dd64e6bc174ed1e03ac7e0b43990129"
+source = "git+https://github.com/paritytech/polkadot-sdk#8dc0b337889ef0d227c0a95681b340ee0e80a297"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -13073,7 +13073,7 @@ dependencies = [
 [[package]]
 name = "sp-externalities"
 version = "0.25.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#253778c94dd64e6bc174ed1e03ac7e0b43990129"
+source = "git+https://github.com/paritytech/polkadot-sdk#8dc0b337889ef0d227c0a95681b340ee0e80a297"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -13291,7 +13291,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "24.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#253778c94dd64e6bc174ed1e03ac7e0b43990129"
+source = "git+https://github.com/paritytech/polkadot-sdk#8dc0b337889ef0d227c0a95681b340ee0e80a297"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
@@ -13323,7 +13323,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "17.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#253778c94dd64e6bc174ed1e03ac7e0b43990129"
+source = "git+https://github.com/paritytech/polkadot-sdk#8dc0b337889ef0d227c0a95681b340ee0e80a297"
 dependencies = [
  "Inflector",
  "expander 2.1.0",
@@ -13416,7 +13416,7 @@ source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot
 [[package]]
 name = "sp-std"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#253778c94dd64e6bc174ed1e03ac7e0b43990129"
+source = "git+https://github.com/paritytech/polkadot-sdk#8dc0b337889ef0d227c0a95681b340ee0e80a297"
 
 [[package]]
 name = "sp-storage"
@@ -13434,7 +13434,7 @@ dependencies = [
 [[package]]
 name = "sp-storage"
 version = "19.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#253778c94dd64e6bc174ed1e03ac7e0b43990129"
+source = "git+https://github.com/paritytech/polkadot-sdk#8dc0b337889ef0d227c0a95681b340ee0e80a297"
 dependencies = [
  "impl-serde",
  "parity-scale-codec",
@@ -13471,7 +13471,7 @@ dependencies = [
 [[package]]
 name = "sp-tracing"
 version = "16.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#253778c94dd64e6bc174ed1e03ac7e0b43990129"
+source = "git+https://github.com/paritytech/polkadot-sdk#8dc0b337889ef0d227c0a95681b340ee0e80a297"
 dependencies = [
  "parity-scale-codec",
  "tracing",
@@ -13571,7 +13571,7 @@ dependencies = [
 [[package]]
 name = "sp-wasm-interface"
 version = "20.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#253778c94dd64e6bc174ed1e03ac7e0b43990129"
+source = "git+https://github.com/paritytech/polkadot-sdk#8dc0b337889ef0d227c0a95681b340ee0e80a297"
 dependencies = [
  "impl-trait-for-tuples",
  "log",
@@ -14006,7 +14006,7 @@ checksum = "85b77fafb263dd9d05cbeac119526425676db3784113aa9295c88498cbf8bff1"
 dependencies = [
  "cfg-if",
  "fastrand 2.0.2",
- "rustix 0.38.33",
+ "rustix 0.38.34",
  "windows-sys 0.52.0",
 ]
 
@@ -14025,7 +14025,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21bebf2b7c9e0a515f6e0f8c51dc0f8e4696391e6f1ff30379559f8365fb0df7"
 dependencies = [
- "rustix 0.38.33",
+ "rustix 0.38.34",
  "windows-sys 0.48.0",
 ]
 
@@ -14071,7 +14071,7 @@ dependencies = [
 [[package]]
 name = "test-utils"
 version = "1.1.1"
-source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#3754130b70aa34e7b97d8b31f20903c5b1eeaa1d"
+source = "git+https://github.com/galacticcouncil/HydraDX-node?branch=polkadot-v1.7.2#54a0f9f8aefdad43f3b165e43f6a0c8130779c7a"
 dependencies = [
  "frame-system",
  "pretty_assertions",
@@ -15447,7 +15447,7 @@ dependencies = [
  "either",
  "home",
  "once_cell",
- "rustix 0.38.33",
+ "rustix 0.38.34",
 ]
 
 [[package]]
@@ -15484,11 +15484,11 @@ checksum = "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6"
 
 [[package]]
 name = "winapi-util"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f29e6f9198ba0d26b4c9f07dbe6f9ed633e1f3d5b8b414090084349e46a52596"
+checksum = "134306a13c5647ad6453e8deaec55d3a44d6021970129e6188735e74bf546697"
 dependencies = [
- "winapi",
+ "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -15974,13 +15974,3 @@ dependencies = [
 name = "sp-core-hashing"
 version = "15.0.0"
 source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.7.2#0d7ca59fd4b4d15f9400971f32bc6a51b2fe837f"
-
-[[patch.unused]]
-name = "sp-crypto-ec-utils"
-version = "0.10.0"
-source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.7.2#0d7ca59fd4b4d15f9400971f32bc6a51b2fe837f"
-
-[[patch.unused]]
-name = "orml-currencies"
-version = "0.8.0"
-source = "git+https://github.com/galacticcouncil/open-runtime-module-library?branch=polkadot-v1.7.2#c1fbd5a34168830e3614a1cd4724135e7a3c1236"

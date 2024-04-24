@@ -435,6 +435,8 @@ impl_runtime_apis! {
 
 			let mut list = Vec::<BenchmarkList>::new();
 
+			// Mising: XYK, uniques, primage,  proxy, cumulus parachain system , collator selection, session, multisig,	state trie, palle-xcm
+
 			//list_benchmark!(list, extra, pallet_xyk, XYK);
 			list_benchmark!(list, extra, pallet_lbp, LBP);
 			list_benchmark!(list, extra, pallet_nft, NFT);
@@ -445,7 +447,7 @@ impl_runtime_apis! {
 
 			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
 			list_benchmark!(list, extra, pallet_balances, Balances);
-			list_benchmark!(list, extra, pallet_collator_selection, CollatorSelection);
+			//list_benchmark!(list, extra, pallet_collator_selection, CollatorSelection);
 			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
 			list_benchmark!(list, extra, pallet_democracy, Democracy);
 			list_benchmark!(list, extra, pallet_elections_phragmen, Elections);
@@ -455,7 +457,7 @@ impl_runtime_apis! {
 			list_benchmark!(list, extra, pallet_tips, Tips);
 			list_benchmark!(list, extra, pallet_identity, Identity);
 			list_benchmark!(list, extra, pallet_collective, TechnicalCommittee);
-			list_benchmark!(list, extra, pallet_state_trie_migration, StateTrieMigration);
+			//list_benchmark!(list, extra, pallet_state_trie_migration, StateTrieMigration);
 			//list_benchmark!(list, extra, pallet_preimage, Preimage);
 
 			list_benchmark!(list, extra, cumulus_pallet_xcmp_queue, XcmpQueue);
@@ -528,7 +530,7 @@ impl_runtime_apis! {
 			// Substrate pallets
 			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
 			add_benchmark!(params, batches, pallet_balances, Balances);
-			add_benchmark!(params, batches, pallet_collator_selection, CollatorSelection);
+			//add_benchmark!(params, batches, pallet_collator_selection, CollatorSelection);
 			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
 			add_benchmark!(params, batches, pallet_democracy, Democracy);
 			add_benchmark!(params, batches, pallet_elections_phragmen, Elections);
@@ -538,7 +540,7 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_tips, Tips);
 			add_benchmark!(params, batches, pallet_identity, Identity);
 			add_benchmark!(params, batches, pallet_collective, TechnicalCommittee);
-			add_benchmark!(params, batches, pallet_state_trie_migration, StateTrieMigration);
+			//add_benchmark!(params, batches, pallet_state_trie_migration, StateTrieMigration);
 			//add_benchmark!(params, batches, pallet_preimage, Preimage);
 
 			add_benchmark!(params, batches, cumulus_pallet_xcmp_queue, XcmpQueue);

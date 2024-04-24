@@ -6,9 +6,7 @@ members = [
   'node',
   'runtime/basilisk',
   'pallets/marketplace',
-  #'pallets/xyk',
   'pallets/asset-registry',
-  #'pallets/liquidity-mining',
   'pallets/xyk-liquidity-mining',
   'pallets/xyk-liquidity-mining/benchmarking',
   'integration-tests',
@@ -23,11 +21,8 @@ log = "0.4.20"
 basilisk-runtime = { path = "runtime/basilisk", default-features = false }
 
 pallet-marketplace = { path = "pallets/marketplace", default-features = false}
-#pallet-xyk = { path = "pallets/xyk", default-features = false}
 pallet-asset-registry = { path = "pallets/asset-registry", default-features = false}
 pallet-xyk-liquidity-mining = { path = "pallets/xyk-liquidity-mining", default-features = false}
-#warehouse-liquidity-mining = { package = "pallet-liquidity-mining", path = "pallets/liquidity-mining", default-features = false}
-#pallet-liquidity-mining = { path = "pallets/liquidity-mining", default-features = false}
 pallet-xyk-liquidity-mining-benchmarking = { path = "pallets/xyk-liquidity-mining/benchmarking", default-features = false}
 
 hydra-dx-math = { git = "https://github.com/galacticcouncil/HydraDX-node", branch ="polkadot-v1.7.2", default-features = false }
@@ -185,7 +180,6 @@ pallet-mmr = { git = "https://github.com/paritytech/polkadot-sdk", branch ="rele
 sp-mmr-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 substrate-state-trie-migration-rpc = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2" }
 
-#kusama-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 pallet-xcm = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 polkadot-cli = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
@@ -251,7 +245,6 @@ orml-xtokens = { git = "https://github.com/galacticcouncil/open-runtime-module-l
 [patch."https://github.com/moonbeam-foundation/open-runtime-module-library"]
 # ORML dependencies
 orml-benchmarking = { git = "https://github.com/galacticcouncil/open-runtime-module-library", branch = "polkadot-v1.7.2"}
-orml-currencies = { git = "https://github.com/galacticcouncil/open-runtime-module-library", branch = "polkadot-v1.7.2"}
 orml-tokens = { git = "https://github.com/galacticcouncil/open-runtime-module-library", branch = "polkadot-v1.7.2"}
 orml-traits = { git = "https://github.com/galacticcouncil/open-runtime-module-library", branch = "polkadot-v1.7.2"}
 orml-utilities = { git = "https://github.com/galacticcouncil/open-runtime-module-library", branch = "polkadot-v1.7.2"}
@@ -328,7 +321,6 @@ sc-utils = { git = "https://github.com/paritytech/polkadot-sdk", branch = "relea
 sp-state-machine = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 sp-weights = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2"}
 sp-crypto-hashing= {  git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2"}
-sp-crypto-ec-utils= {   git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2"}
 sp-core-hashing = {   git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2"}
 
 # Substrate Pallets
@@ -393,14 +385,12 @@ polkadot-cli = { git = "https://github.com/paritytech/polkadot-sdk", branch = "r
 polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 polkadot-parachain = { package = "polkadot-parachain-primitives", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2"}
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
-#polkadot-runtime = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 polkadot-runtime-parachains = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 polkadot-service = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 xcm = { package = "staging-xcm", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2"  }
 
-#kusama-runtime = { package = "staging-kusama-runtime", git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 polkadot-node-core-pvf = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 polkadot-node-network-protocol = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 polkadot-node-primitives = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }

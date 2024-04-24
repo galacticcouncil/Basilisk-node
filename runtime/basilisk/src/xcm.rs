@@ -206,7 +206,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type ControllerOrigin = MajorityTechCommitteeOrRoot;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 	type PriceForSiblingDelivery = polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery<ParaId>;
-	type WeightInfo = weights::xcmp_queue::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::cumulus_pallet_xcmp_queue::BasiliskWeight<Runtime>;
 	type XcmpQueue = TransformOrigin<MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling>;
 	type MaxInboundSuspended = MaxInboundSuspended;
 }
@@ -275,7 +275,7 @@ impl pallet_xcm::Config for Runtime {
 	type TrustedLockers = ();
 	type SovereignAccountOf = ();
 	type MaxLockers = ConstU32<8>;
-	type WeightInfo = weights::xcm::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::xcm::BasiliskWeight<Runtime>; //TODO: add benchmarks
 	type AdminOrigin = SuperMajorityTechCommitteeOrRoot;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
@@ -310,7 +310,11 @@ parameter_types! {
 
 impl pallet_message_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_message_queue::BasiliskWeight<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type MessageProcessor =
+		pallet_message_queue::mock_helpers::NoopMessageProcessor<cumulus_primitives_core::AggregateMessageOrigin>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type MessageProcessor = xcm_builder::ProcessXcmMessage<AggregateMessageOrigin, XcmExecutor<XcmConfig>, RuntimeCall>;
 	type Size = u32;
 	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;

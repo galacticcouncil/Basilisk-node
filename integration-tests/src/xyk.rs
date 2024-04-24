@@ -2,13 +2,13 @@
 
 use crate::kusama_test_net::*;
 
+use basilisk_runtime::Currencies;
 use basilisk_runtime::{DustRemovalWhitelist, RuntimeOrigin, XYK};
+use frame_support::assert_noop;
+use frame_support::{assert_ok, traits::Contains};
 use hydradx_traits::AMM;
 use pallet_xyk::types::AssetId;
 use xcm_emulator::TestExt;
-use frame_support::assert_noop;
-use frame_support::{assert_ok, traits::Contains};
-use basilisk_runtime::Currencies;
 
 fn pair_account(asset_a: AssetId, asset_b: AssetId) -> AccountId {
 	let asset_pair = AssetPair {
@@ -150,15 +150,13 @@ fn creating_xyk_pool_should_fail_when_asset_is_pool_share_asset() {
 			1000 * UNITS as i128,
 		));
 
-		assert_ok!(
-			XYK::create_pool(
-				RuntimeOrigin::signed(ALICE.into()),
-				asset_a,
-				100 * UNITS,
-				asset_b,
-				200 * UNITS,
-			)
-		);
+		assert_ok!(XYK::create_pool(
+			RuntimeOrigin::signed(ALICE.into()),
+			asset_a,
+			100 * UNITS,
+			asset_b,
+			200 * UNITS,
+		));
 
 		let share_token = XYK::get_share_token(AssetPair {
 			asset_in: asset_a,

@@ -37,24 +37,12 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for `{{pallet}}`.
-pub trait WeightInfo {
-	{{#each benchmarks as |benchmark|}}
-	fn {{benchmark.name~}}
-	(
-		{{~#each benchmark.components as |c| ~}}
-		{{c.name}}: u32, {{/each~}}
-	) -> Weight;
-	{{/each}}
-}
+/// Weights for `{{pallet}}`.
+pub struct WeightInfo<T>(PhantomData<T>);
 
 /// Weights for `{{pallet}}` using the Basilisk node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
-{{#if (eq pallet "frame_system")}}
-impl<T: crate::Config> WeightInfo for BasiliskWeight<T> {
-{{else}}
-impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
-{{/if}}
+impl<T: frame_system::Config> {{pallet}}::WeightInfo for BasiliskWeight<T> {
 	{{#each benchmarks as |benchmark|}}
 	{{#each benchmark.comments as |comment|}}
 	/// {{comment}}
