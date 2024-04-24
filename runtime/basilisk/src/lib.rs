@@ -519,6 +519,7 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 
 			// Basilisk pallets
+			/*
 			//add_benchmark!(params, batches, pallet_xyk, XYK);
 			add_benchmark!(params, batches, pallet_lbp, LBP);
 			add_benchmark!(params, batches, pallet_nft, NFT);
@@ -547,6 +548,8 @@ impl_runtime_apis! {
 			add_benchmark!(params, batches, pallet_message_queue, MessageQueue);
 			//add_benchmark!(params, batches, pallet_xcm, PolkadotXcm);
 
+			 */
+
 			orml_add_benchmark!(params, batches, pallet_currencies, benchmarking::currencies);
 			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
 			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
@@ -559,6 +562,33 @@ impl_runtime_apis! {
 			Ok(batches)
 		}
 	}
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+mod benches {
+	frame_benchmarking::define_benchmarks!(
+		[pallet_lbp, LBP]
+		[pallet_nft, NFT]
+		[pallet_asset_registry, AssetRegistry]
+		[allet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>]
+		[pallet_transaction_pause, TransactionPause]
+		[pallet_ema_oracle, EmaOracle]
+		[frame_system, SystemBench::<Runtime>]
+		[pallet_balances, Balances]
+		[pallet_timestamp, Timestamp]
+		[pallet_democracy, Democracy]
+		[pallet_elections_phragmen, Elections]
+		[pallet_treasury, Treasury]
+		[pallet_scheduler, Scheduler]
+		[pallet_utility, Utility]
+		[pallet_tips, Tips]
+		[pallet_identity, Identity]
+		[pallet_collective, TechnicalCommittee]
+		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_message_queue, MessageQueue]
+		//[pallet_preimage, Preimage]
+		//[pallet_multisig, Multisig]
+	);
 }
 
 struct CheckInherents;
