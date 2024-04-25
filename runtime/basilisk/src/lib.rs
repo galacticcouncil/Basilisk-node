@@ -33,7 +33,6 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 mod tests;
 
 mod benchmarking;
-mod migrations;
 pub mod weights;
 
 mod adapter;
@@ -270,7 +269,6 @@ pub type Executive = frame_executive::Executive<
 		frame_support::migrations::RemovePallet<XcmRateLimiterPalletName, <Runtime as frame_system::Config>::DbWeight>,
 		cumulus_pallet_xcmp_queue::migration::v4::MigrationToV4<Runtime>,
 		pallet_identity::migration::versioned::V0ToV1<Runtime, 200u64>, // We have currently 89 identities in basllisk, so limit of 200 should be enough
-		migrations::OnRuntimeUpgradeMigration,
 	),
 >;
 
@@ -549,6 +547,9 @@ impl_runtime_apis! {
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
+	frame_support::parameter_types! {
+		pub const BenchmarkMaxBalance: crate::Balance = crate::Balance::max_value();
+	}
 	frame_benchmarking::define_benchmarks!(
 		[pallet_lbp, LBP]
 		[pallet_nft, NFT]

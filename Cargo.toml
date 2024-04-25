@@ -320,8 +320,7 @@ sc-sysinfo = { git = "https://github.com/paritytech/polkadot-sdk", branch = "rel
 sc-utils = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 sp-state-machine = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 sp-weights = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2"}
-sp-crypto-hashing= {  git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2"}
-sp-core-hashing = {   git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2"}
+sp-crypto-hashing = {  git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2"}
 
 # Substrate Pallets
 pallet-aura = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }

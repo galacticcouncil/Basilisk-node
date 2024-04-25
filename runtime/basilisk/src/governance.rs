@@ -22,7 +22,7 @@ use primitives::constants::{
 };
 
 use frame_support::traits::fungible::HoldConsideration;
-use frame_support::traits::tokens::{Pay, PayFromAccount, PaymentStatus, Preservation, UnityAssetBalanceConversion};
+use frame_support::traits::tokens::{Pay, PaymentStatus, Preservation, UnityAssetBalanceConversion};
 use frame_support::traits::{fungible, LinearStoragePrice};
 use frame_support::{
 	parameter_types,
@@ -254,9 +254,6 @@ parameter_types! {
 	pub const MaxApprovals: u32 =  100;
 	pub TreasuryAccount: AccountId = Treasury::account_id();
 	pub const TreasuryPayoutPeriod: u32 = 30 * DAYS;
-
-	#[cfg(feature = "runtime-benchmarks")]
-	pub const BenchmarkMaxBalance: Balance = Balance::max_value();
 }
 
 pub struct PayFromTreasuryAccount;
@@ -274,8 +271,12 @@ impl Pay for PayFromTreasuryAccount {
 		_asset_kind: Self::AssetKind,
 		amount: Self::Balance,
 	) -> Result<Self::Id, Self::Error> {
-		let r =
-			<Balances as fungible::Mutate<_>>::transfer(&TreasuryAccount::get(), who, amount, Preservation::Expendable);
+		let _ = <Balances as fungible::Mutate<_>>::transfer(
+			&TreasuryAccount::get(),
+			who,
+			amount,
+			Preservation::Expendable,
+		)?;
 		Ok(())
 	}
 
@@ -287,12 +288,12 @@ impl Pay for PayFromTreasuryAccount {
 	) -> Result<Self::Id, Self::Error> {
 		// In case of benchmarks, we adjust the value by multiplying it by 1_000_000_000_000, otherwise it fails with BelowMinimum limit error, because
 		// treasury benchmarks uses only 100 as the amount.
-		let r = <Balances as fungible::Mutate<_>>::transfer(
+		let _ = <Balances as fungible::Mutate<_>>::transfer(
 			&TreasuryAccount::get(),
 			who,
 			amount * 1_000_000_000_000,
 			Preservation::Expendable,
-		);
+		)?;
 		Ok(())
 	}
 
@@ -327,7 +328,8 @@ impl pallet_treasury::Config for Runtime {
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type SpendOrigin = NeverEnsureOrigin<Balance>; // Disabled, no spending
 	#[cfg(feature = "runtime-benchmarks")]
-	type SpendOrigin = frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, BenchmarkMaxBalance>;
+	type SpendOrigin =
+		frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, crate::benches::BenchmarkMaxBalance>;
 	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<AccountId>;

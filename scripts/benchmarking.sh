@@ -62,8 +62,7 @@ function bench {
         --heap-pages 4096 \
         --steps "${STEPS}" \
         --repeat "${REPEAT}" \
-        --template=.maintain/pallet-weight-template-no-back.hbs \
-        --json-file raw.json \
+        --template=scripts/pallet-weight-template.hbs \
         --output "${OUTPUT}"
 }
 

@@ -28,7 +28,6 @@ use frame_support::{
 	traits::{Contains, Everything, Get, Nothing},
 	PalletId,
 };
-use frame_system::EnsureRoot;
 use hydradx_adapters::xcm_exchange::XcmAssetExchanger;
 use hydradx_adapters::xcm_execute_filter::AllowTransferAndSwap;
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
@@ -42,8 +41,8 @@ use polkadot_parachain::primitives::{RelayChainBlockNumber, Sibling};
 use polkadot_xcm::latest::{Asset, Junctions, Location};
 use polkadot_xcm::prelude::InteriorLocation;
 use polkadot_xcm::v3::{
-	prelude::{AccountId32, Concrete, GeneralIndex, GlobalConsensus, Here, NetworkId, Parachain, X1, X2, X3},
-	MultiAsset, MultiLocation, Weight as XcmWeight,
+	prelude::{Here, NetworkId, Parachain},
+	MultiLocation, Weight as XcmWeight,
 };
 use primitives::AssetId;
 use scale_info::TypeInfo;
@@ -376,37 +375,13 @@ impl Convert<Location, Option<AssetId>> for CurrencyIdConvert {
 				}
 			}
 		}
-
-		// Note: keeping the original code for reference until tests are successful
-		/*
-		match location {
-			Location {
-				parents: p,
-				interior: [Parachain(id), GeneralIndex(index)].into(),
-			} if p == 1 && ParaId::from(id) == ParachainInfo::get() && (index as u32) == CORE_ASSET_ID => {
-				// Handling native asset for this parachain
-				Some(CORE_ASSET_ID)
-			}
-			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
-			Location {
-				parents: 0,
-				interior: [GeneralIndex(index)].into(),
-			} if (index as u32) == CORE_ASSET_ID => Some(CORE_ASSET_ID),
-			// delegate to asset-registry
-			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
-		}
-
-		 */
 	}
 }
 
 impl Convert<Asset, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(asset: Asset) -> Option<AssetId> {
-		if let Asset { id: asset_id, .. } = asset {
-			Self::convert(asset_id.0)
-		} else {
-			None
-		}
+		let Asset { id: asset_id, .. } = asset;
+		Self::convert(asset_id.0)
 	}
 }
 
@@ -420,48 +395,6 @@ impl Convert<AccountId, Location> for AccountIdToMultiLocation {
 		.into()
 	}
 }
-
-/*
-impl Convert<polkadot_xcm::latest::Location, Option<AssetId>> for CurrencyIdConvert {
-	fn convert(location: polkadot_xcm::latest::Location) -> Option<AssetId> {
-		let polkadot_xcm::latest::Location { parents, interior } = location.clone();
-
-		match interior {
-			polkadot_xcm::latest::Junctions::X2(a)
-			if parents == 1
-				&& a.contains(&polkadot_xcm::prelude::GeneralIndex(CORE_ASSET_ID.into()))
-				&& a.contains(&polkadot_xcm::prelude::Parachain(ParachainInfo::get().into())) =>
-				{
-					Some(CORE_ASSET_ID)
-				}
-			polkadot_xcm::latest::Junctions::X1(a) if parents == 0 && a.contains(&polkadot_xcm::prelude::GeneralIndex(CORE_ASSET_ID.into())) => Some(CORE_ASSET_ID),
-			_ => AssetRegistry::location_to_asset(AssetLocation(location.into())),
-		}
-
-		// Note: keeping the original code for reference until tests are successful
-		/*
-		match location {
-			Location {
-				parents: p,
-				interior: [Parachain(id), GeneralIndex(index)].into(),
-			} if p == 1 && ParaId::from(id) == ParachainInfo::get() && (index as u32) == CORE_ASSET_ID => {
-				// Handling native asset for this parachain
-				Some(CORE_ASSET_ID)
-			}
-			// handle reanchor canonical location: https://github.com/paritytech/polkadot/pull/4470
-			Location {
-				parents: 0,
-				interior: [GeneralIndex(index)].into(),
-			} if (index as u32) == CORE_ASSET_ID => Some(CORE_ASSET_ID),
-			// delegate to asset-registry
-			_ => AssetRegistry::location_to_asset(AssetLocation(location)),
-		}
-
-		 */
-	}
-}
-
- */
 
 /// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
