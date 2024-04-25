@@ -30,7 +30,7 @@
 // pallet
 // --wasm-execution=compiled
 // --pallet
-// *
+// pallet-ema-oracle
 // --extrinsic
 // *
 // --heap-pages
@@ -43,7 +43,7 @@
 // --json-file
 // raw.json
 // --output
-// weights/
+// weights.rs
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]
@@ -65,8 +65,8 @@ impl<T: frame_system::Config> pallet_ema_oracle::WeightInfo for BasiliskWeight<T
 		// Proof Size summary in bytes:
 		//  Measured:  `601`
 		//  Estimated: `1966`
-		// Minimum execution time: 11_410_000 picoseconds.
-		Weight::from_parts(12_141_000, 1966)
+		// Minimum execution time: 11_340_000 picoseconds.
+		Weight::from_parts(11_590_000, 1966)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -80,8 +80,8 @@ impl<T: frame_system::Config> pallet_ema_oracle::WeightInfo for BasiliskWeight<T
 		// Proof Size summary in bytes:
 		//  Measured:  `617`
 		//  Estimated: `5926`
-		// Minimum execution time: 33_310_000 picoseconds.
-		Weight::from_parts(33_860_000, 5926)
+		// Minimum execution time: 32_650_000 picoseconds.
+		Weight::from_parts(33_240_000, 5926)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(7_u64))
 	}
@@ -91,8 +91,8 @@ impl<T: frame_system::Config> pallet_ema_oracle::WeightInfo for BasiliskWeight<T
 		// Proof Size summary in bytes:
 		//  Measured:  `109`
 		//  Estimated: `5926`
-		// Minimum execution time: 2_430_000 picoseconds.
-		Weight::from_parts(2_700_000, 5926)
+		// Minimum execution time: 2_380_000 picoseconds.
+		Weight::from_parts(2_610_000, 5926)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 	}
 	/// Storage: `EmaOracle::Accumulator` (r:1 w:1)
@@ -104,10 +104,10 @@ impl<T: frame_system::Config> pallet_ema_oracle::WeightInfo for BasiliskWeight<T
 		// Proof Size summary in bytes:
 		//  Measured:  `204 + b * (933 ±0)`
 		//  Estimated: `5926 + b * (13260 ±0)`
-		// Minimum execution time: 58_501_000 picoseconds.
-		Weight::from_parts(5_331_364, 5926)
-			// Standard Error: 76_489
-			.saturating_add(Weight::from_parts(52_540_652, 0).saturating_mul(b.into()))
+		// Minimum execution time: 55_461_000 picoseconds.
+		Weight::from_parts(8_211_787, 5926)
+			// Standard Error: 41_351
+			.saturating_add(Weight::from_parts(50_255_356, 0).saturating_mul(b.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().reads((5_u64).saturating_mul(b.into())))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
@@ -121,10 +121,10 @@ impl<T: frame_system::Config> pallet_ema_oracle::WeightInfo for BasiliskWeight<T
 		// Proof Size summary in bytes:
 		//  Measured:  `204 + b * (148 ±0)`
 		//  Estimated: `5926`
-		// Minimum execution time: 5_890_000 picoseconds.
-		Weight::from_parts(5_893_940, 5926)
-			// Standard Error: 1_929
-			.saturating_add(Weight::from_parts(372_840, 0).saturating_mul(b.into()))
+		// Minimum execution time: 5_400_000 picoseconds.
+		Weight::from_parts(5_610_876, 5926)
+			// Standard Error: 2_255
+			.saturating_add(Weight::from_parts(381_655, 0).saturating_mul(b.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -135,10 +135,10 @@ impl<T: frame_system::Config> pallet_ema_oracle::WeightInfo for BasiliskWeight<T
 		// Proof Size summary in bytes:
 		//  Measured:  `204 + b * (148 ±0)`
 		//  Estimated: `5926`
-		// Minimum execution time: 5_680_000 picoseconds.
-		Weight::from_parts(5_870_806, 5926)
-			// Standard Error: 4_384
-			.saturating_add(Weight::from_parts(373_807, 0).saturating_mul(b.into()))
+		// Minimum execution time: 5_321_000 picoseconds.
+		Weight::from_parts(5_633_092, 5926)
+			// Standard Error: 2_398
+			.saturating_add(Weight::from_parts(379_579, 0).saturating_mul(b.into()))
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -148,8 +148,8 @@ impl<T: frame_system::Config> pallet_ema_oracle::WeightInfo for BasiliskWeight<T
 		// Proof Size summary in bytes:
 		//  Measured:  `609`
 		//  Estimated: `6294`
-		// Minimum execution time: 15_170_000 picoseconds.
-		Weight::from_parts(15_520_000, 6294)
+		// Minimum execution time: 14_130_000 picoseconds.
+		Weight::from_parts(14_790_000, 6294)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 	}
 }

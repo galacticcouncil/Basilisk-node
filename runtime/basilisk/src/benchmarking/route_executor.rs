@@ -342,9 +342,7 @@ mod tests {
 			.unwrap();
 
 		pallet_asset_registry::GenesisConfig::<crate::Runtime> {
-			registered_assets: vec![
-				(b"DAI".to_vec(), 1_000, Some(2)),
-			],
+			registered_assets: vec![(b"DAI".to_vec(), 1_000, Some(2))],
 			native_asset_name: b"HDX".to_vec().try_into().unwrap(),
 			native_existential_deposit: NativeExistentialDeposit::get(),
 		}

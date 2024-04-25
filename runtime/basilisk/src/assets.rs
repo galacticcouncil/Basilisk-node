@@ -662,7 +662,7 @@ impl pallet_ema_oracle::Config for Runtime {
 	type OracleWhitelist = Everything;
 	type MaxUniqueEntries = MaxUniqueOracleEntries;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = (); //TODO: implement helper
+	type BenchmarkHelper = benchmarking::BenchmarkHelper; //TODO: implement helper
 }
 
 parameter_types! {
