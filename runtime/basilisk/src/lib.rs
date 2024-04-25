@@ -575,7 +575,7 @@ mod benches {
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[pallet_state_trie_migration, StateTrieMigration]
 		[pallet_collator_selection, CollatorSelection]
-		//[pallet_xcm, PalletXcmExtrinsiscsBenchmark::<Runtime>]
+		[pallet_xcm, PalletXcmExtrinsiscsBenchmark::<Runtime>]
 	);
 }
 

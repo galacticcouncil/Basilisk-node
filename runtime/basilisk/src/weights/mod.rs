@@ -29,6 +29,6 @@ pub mod pallet_transaction_multi_payment;
 pub mod pallet_transaction_pause;
 pub mod pallet_treasury;
 pub mod pallet_utility;
+pub mod pallet_xcm;
 pub mod pallet_xyk;
 pub mod pallet_xyk_liquidity_mining;
-pub mod xcm;

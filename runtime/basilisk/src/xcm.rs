@@ -275,7 +275,7 @@ impl pallet_xcm::Config for Runtime {
 	type TrustedLockers = ();
 	type SovereignAccountOf = ();
 	type MaxLockers = ConstU32<8>;
-	type WeightInfo = weights::xcm::BasiliskWeight<Runtime>; //TODO: add benchmarks
+	type WeightInfo = weights::pallet_xcm::BasiliskWeight<Runtime>;
 	type AdminOrigin = SuperMajorityTechCommitteeOrRoot;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();

@@ -34,7 +34,7 @@
 // --heap-pages=4096
 // --template=.maintain/pallet-weight-template-no-back.hbs
 // --pallet=pallet-xcm
-// --output=weights-1.1.0/xcm.rs
+// --output=weights-1.1.0/pallet_xcm.rs
 // --extrinsic=*
 
 #![allow(unused_parens)]
@@ -91,7 +91,11 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	}
 
 	fn transfer_assets() -> Weight {
-		todo!()
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 18_446_744_073_709_551_000 picoseconds.
+		Weight::from_parts(18_446_744_073_709_551_000, 0)
 	}
 
 	fn execute() -> Weight {
@@ -271,10 +275,22 @@ impl<T: frame_system::Config> WeightInfo for BasiliskWeight<T> {
 	}
 
 	fn new_query() -> Weight {
-		todo!()
+		// Proof Size summary in bytes:
+		//  Measured:  `69`
+		//  Estimated: `1554`
+		// Minimum execution time: 4_930_000 picoseconds.
+		Weight::from_parts(5_220_000, 1554)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
 
 	fn take_response() -> Weight {
-		todo!()
+		// Proof Size summary in bytes:
+		//  Measured:  `7706`
+		//  Estimated: `11171`
+		// Minimum execution time: 32_740_000 picoseconds.
+		Weight::from_parts(33_280_000, 11171)
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 }
