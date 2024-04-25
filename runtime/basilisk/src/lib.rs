@@ -580,6 +580,7 @@ mod benches {
 		[pallet_multisig, Multisig]
 		[pallet_proxy, Proxy]
 		[cumulus_pallet_parachain_system, ParachainSystem]
+		[pallet_state_trie_migration, StateTrieMigration]
 		//[pallet_xcm, PalletXcmExtrinsiscsBenchmark::<Runtime>]
 	);
 }

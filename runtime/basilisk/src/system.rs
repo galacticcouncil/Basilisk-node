@@ -538,8 +538,14 @@ parameter_types! {
 	pub const MaxKeyLen: u32 = 512;	// 144, but use the default value
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+use frame_system::EnsureSigned;
+
 impl pallet_state_trie_migration::Config for Runtime {
 	type ControlOrigin = SuperMajorityTechCommitteeOrRoot;
+	#[cfg(feature = "runtime-benchmarks")]
+	type SignedFilter = EnsureSigned<AccountId>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type SignedFilter = EnsureSignedBy<TechCommAccounts, AccountId>;
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
