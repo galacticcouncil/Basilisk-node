@@ -668,7 +668,7 @@ impl<T: Config<Balance = u128>> Inspect for Pallet<T> {
 	}
 
 	fn decimals(id: Self::AssetId) -> Option<u8> {
-		Self::asset_metadata(id).and_then(|a| Some(a.decimals))
+		Self::asset_metadata(id).map(|a| a.decimals)
 	}
 
 	fn asset_type(id: Self::AssetId) -> Option<AssetKind> {
@@ -680,11 +680,11 @@ impl<T: Config<Balance = u128>> Inspect for Pallet<T> {
 	}
 
 	fn asset_name(id: Self::AssetId) -> Option<Vec<u8>> {
-		Self::assets(id).and_then(|a| Some(a.name.to_vec()))
+		Self::assets(id).map(|a| a.name.to_vec())
 	}
 
 	fn asset_symbol(id: Self::AssetId) -> Option<Vec<u8>> {
-		Self::asset_metadata(id).and_then(|a| Some(a.symbol.to_vec()))
+		Self::asset_metadata(id).map(|a| a.symbol.to_vec())
 	}
 
 	fn existential_deposit(id: Self::AssetId) -> Option<u128> {
