@@ -208,7 +208,7 @@ impl pallet_xyk::Config for Runtime {
 	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::pallet_xyk::BasiliskWeight<Runtime>; //TODO: add benchmakrs
+	type WeightInfo = weights::pallet_xyk::BasiliskWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
@@ -662,7 +662,7 @@ impl pallet_ema_oracle::Config for Runtime {
 	type OracleWhitelist = Everything;
 	type MaxUniqueEntries = MaxUniqueOracleEntries;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = benchmarking::BenchmarkHelper; //TODO: implement helper
+	type BenchmarkHelper = benchmarking::BenchmarkHelper;
 }
 
 parameter_types! {

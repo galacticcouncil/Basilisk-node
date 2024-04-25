@@ -276,7 +276,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type WeightToFee = WeightToFee;
 	type NativeAssetId = NativeAssetId;
 	type EvmAssetId = WethAssetId;
-	type InspectEvmAccounts = EvmAccounts; //TODO: this does not really work here but needed to set it to something
+	type InspectEvmAccounts = EvmAccounts;
 }
 
 /// The type used to represent the kinds of proxying allowed.
