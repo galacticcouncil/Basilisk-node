@@ -432,11 +432,12 @@ impl_runtime_apis! {
 
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
+			use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsiscsBenchmark;
 
 			let mut list = Vec::<BenchmarkList>::new();
 			list_benchmarks!(list, extra);
 
-			// Mising: XYK, uniques, primage,  proxy, cumulus parachain system , collator selection, session, multisig,	state trie, palle-xcm
+			// Mising: collator selection, state trie, palle-xcm
 			orml_list_benchmark!(list, extra, pallet_currencies, benchmarking::currencies);
 			orml_list_benchmark!(list, extra, pallet_xyk, benchmarking::xyk);
 			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
@@ -460,6 +461,7 @@ impl_runtime_apis! {
 
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
+			use pallet_xcm::benchmarking::Pallet as PalletXcmExtrinsiscsBenchmark;
 
 			impl frame_system_benchmarking::Config for Runtime {
 				fn setup_set_code_requirements(code: &sp_std::vec::Vec<u8>) -> Result<(), BenchmarkError> {
@@ -471,6 +473,46 @@ impl_runtime_apis! {
 					System::assert_last_event(cumulus_pallet_parachain_system::Event::<Runtime>::ValidationFunctionStored.into());
 				}
 			}
+
+			parameter_types! {
+				pub const RandomParaId: ParaId = ParaId::new(22222222);
+				pub const ExistentialDeposit: u128= 0;
+			}
+
+			use cumulus_primitives_core::ParaId;
+			use polkadot_xcm::latest::prelude::{
+						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
+						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent
+			};
+
+			impl pallet_xcm::benchmarking::Config for Runtime {
+						fn reachable_dest() -> Option<Location> {
+							Some(Parent.into())
+						}
+
+						fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {
+							// Relay/native token can be teleported between AH and Relay.
+							Some((
+								Asset {
+									fun: Fungible(ExistentialDeposit::get()),
+									id: AssetId(Parent.into())
+								},
+								Parent.into(),
+							))
+						}
+
+						fn reserve_transferable_asset_and_dest() -> Option<(Asset, Location)> {
+							Some((
+								Asset {
+									fun: Fungible(ExistentialDeposit::get()),
+									id: AssetId(Parent.into())
+								},
+								// AH can reserve transfer native token to some random parachain.
+								ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
+							))
+						}
+					}
+
 			impl pallet_xyk_liquidity_mining_benchmarking::Config for Runtime {}
 
 			let whitelist: Vec<TrackedStorageKey> = vec![
@@ -534,8 +576,11 @@ mod benches {
 		[pallet_collective, TechnicalCommittee]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[pallet_message_queue, MessageQueue]
-		//[pallet_preimage, Preimage]
-		//[pallet_multisig, Multisig]
+		[pallet_preimage, Preimage]
+		[pallet_multisig, Multisig]
+		[pallet_proxy, Proxy]
+		[cumulus_pallet_parachain_system, ParachainSystem]
+		//[pallet_xcm, PalletXcmExtrinsiscsBenchmark::<Runtime>]
 	);
 }
 

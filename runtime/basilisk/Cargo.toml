@@ -155,6 +155,7 @@ runtime-benchmarks = [
     "pallet-tips/runtime-benchmarks",
     "pallet-proxy/runtime-benchmarks",
     "pallet-multisig/runtime-benchmarks",
+    "pallet-preimage/runtime-benchmarks",
     "pallet-xyk-liquidity-mining-benchmarking/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
     "orml-benchmarking",
@@ -165,6 +166,7 @@ runtime-benchmarks = [
     "pallet-elections-phragmen/runtime-benchmarks",
     "pallet-state-trie-migration/runtime-benchmarks",
     "pallet-message-queue/runtime-benchmarks",
+    "cumulus-pallet-parachain-system/runtime-benchmarks",
 ]
 std = [
     "codec/std",
