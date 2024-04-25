@@ -1,4 +1,3 @@
-pub mod collator_selection;
 pub mod cumulus_pallet_xcmp_queue;
 pub mod frame_system;
 pub mod orml_tokens;
@@ -25,6 +24,11 @@ pub mod pallet_transaction_pause;
 pub mod pallet_treasury;
 pub mod pallet_utility;
 pub mod pallet_xyk_liquidity_mining;
-pub mod state_trie;
 pub mod xcm;
-pub mod xyk;
+pub mod pallet_xyk;
+pub mod pallet_preimage;
+pub mod pallet_multisig;
+pub mod pallet_state_trie_migration;
+pub mod pallet_proxy;
+pub mod cumulus_pallet_parachain_system;
+pub mod pallet_collator_selection;

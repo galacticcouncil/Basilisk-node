@@ -344,7 +344,7 @@ impl pallet_proxy::Config for Runtime {
 	type ProxyDepositBase = ProxyDepositBase;
 	type ProxyDepositFactor = ProxyDepositFactor;
 	type MaxProxies = MaxProxies;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_proxy::BasiliskWeight<Runtime>;
 	type MaxPending = MaxPending;
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
@@ -365,8 +365,8 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
-	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>; // TODO: what to set here ?!
-	type WeightInfo = (); //TODO: add benchmarks
+	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
+	type WeightInfo = weights::cumulus_pallet_parachain_system::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -414,7 +414,10 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorId = <Self as frame_system::Config>::AccountId;
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
-	type WeightInfo = weights::collator_selection::BasiliskWeight<Runtime>; //TODO: do benchmakrs
+	#[cfg(feature = "runtime-benchmarks")]
+	type WeightInfo = ();
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type WeightInfo = weights::pallet_collator_selection::BasiliskWeight<Runtime>;
 	type MinEligibleCollators = ConstU32<4>;
 }
 
@@ -521,7 +524,7 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_multisig::BasiliskWeight<Runtime>;
 }
 
 pub struct TechCommAccounts;
@@ -553,5 +556,5 @@ impl pallet_state_trie_migration::Config for Runtime {
 	type MaxKeyLen = MaxKeyLen;
 	type SignedDepositPerItem = MigrationSignedDepositPerItem;
 	type SignedDepositBase = MigrationSignedDepositBase;
-	type WeightInfo = weights::state_trie::BasiliskWeight<Runtime>; //TODO: do benchmarks
+	type WeightInfo = weights::pallet_state_trie_migration::BasiliskWeight<Runtime>;
 }

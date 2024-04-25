@@ -208,7 +208,7 @@ impl pallet_xyk::Config for Runtime {
 	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>; //TODO: add benchmakrs
+	type WeightInfo = weights::pallet_xyk::BasiliskWeight<Runtime>; //TODO: add benchmakrs
 	type GetExchangeFee = ExchangeFee;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
@@ -452,7 +452,7 @@ impl RouterWeightInfo {
 
 		let set_route_overweight = weights::pallet_route_executor::BasiliskWeight::<Runtime>::set_route_for_xyk();
 
-		set_route_overweight.saturating_sub(weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(
+		set_route_overweight.saturating_sub(weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_sell(
 			number_of_times_calculate_sell_amounts_executed,
 			number_of_times_execute_sell_amounts_executed,
 		))
@@ -470,7 +470,7 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(0, 1));
 
 			let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e);
-			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+			let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
 				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
 
 			let amm_weight = match trade.pool {
@@ -494,7 +494,7 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(0, 1));
 
 			let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
-			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+			let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
 				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
 
 			let amm_weight = match trade.pool {
@@ -518,7 +518,7 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(1, 0));
 
 			let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
-			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+			let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
 				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
 
 			let amm_weight = match trade.pool {
@@ -542,7 +542,7 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(1, 1));
 
 			let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e);
-			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+			let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
 				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
 
 			let amm_weight = match trade.pool {
@@ -566,7 +566,7 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(2, 1));
 
 			let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
-			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+			let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
 				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
 
 			let amm_weight = match trade.pool {
@@ -597,7 +597,7 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 			.checked_mul(pallet_route_executor::MAX_NUMBER_OF_TRADES.into());
 
 		let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
-		let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
+		let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
 
 		//Calculate sell amounts for the new route
 		for trade in route {

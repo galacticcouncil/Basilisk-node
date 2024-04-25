@@ -179,9 +179,10 @@ construct_runtime!(
 		Proxy: pallet_proxy = 12,
 		Tips: pallet_tips = 13,
 
+		// The order of next 4 is important, and it cannot change.
 		Authorship: pallet_authorship = 14,
 		CollatorSelection: pallet_collator_selection = 15,
-		Session: pallet_session = 16, // Session must be after collator and before aura
+		Session: pallet_session = 16,
 		Aura: pallet_aura = 17,
 		AuraExt: cumulus_pallet_aura_ext exclude_parts { Storage } = 18,
 		Preimage: pallet_preimage = 19,
@@ -268,7 +269,7 @@ pub type Executive = frame_executive::Executive<
 		frame_support::migrations::RemovePallet<DmpQueuePalletName, <Runtime as frame_system::Config>::DbWeight>,
 		frame_support::migrations::RemovePallet<XcmRateLimiterPalletName, <Runtime as frame_system::Config>::DbWeight>,
 		cumulus_pallet_xcmp_queue::migration::v4::MigrationToV4<Runtime>,
-		pallet_identity::migration::versioned::V0ToV1<Runtime, { 200u64 }>,
+		pallet_identity::migration::versioned::V0ToV1<Runtime, 200u64>, // We have currently 89 identities in basllisk, so limit of 200 should be enough
 		migrations::OnRuntimeUpgradeMigration,
 	),
 >;
@@ -437,14 +438,13 @@ impl_runtime_apis! {
 			let mut list = Vec::<BenchmarkList>::new();
 			list_benchmarks!(list, extra);
 
-			// Mising: collator selection, state trie, palle-xcm
 			orml_list_benchmark!(list, extra, pallet_currencies, benchmarking::currencies);
 			orml_list_benchmark!(list, extra, pallet_xyk, benchmarking::xyk);
 			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
 			orml_list_benchmark!(list, extra, orml_vesting, benchmarking::vesting);
 			orml_list_benchmark!(list, extra, pallet_duster, benchmarking::duster);
 			orml_list_benchmark!(list, extra, pallet_transaction_multi_payment, benchmarking::multi_payment);
-			orml_list_benchmark!(list, extra, pallet_route_executor, benchmarking::route_executor);
+			//orml_list_benchmark!(list, extra, pallet_route_executor, benchmarking::route_executor);
 			orml_list_benchmark!(list, extra, pallet_marketplace, benchmarking::marketplace);
 			let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -486,32 +486,30 @@ impl_runtime_apis! {
 			};
 
 			impl pallet_xcm::benchmarking::Config for Runtime {
-						fn reachable_dest() -> Option<Location> {
-							Some(Parent.into())
-						}
+				fn reachable_dest() -> Option<Location> {
+					Some(Parent.into())
+				}
 
-						fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {
-							// Relay/native token can be teleported between AH and Relay.
-							Some((
-								Asset {
-									fun: Fungible(ExistentialDeposit::get()),
-									id: AssetId(Parent.into())
-								},
-								Parent.into(),
-							))
-						}
+				fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {
+					Some((
+						Asset {
+							fun: Fungible(ExistentialDeposit::get()),
+							id: AssetId(Parent.into())
+						},
+						Parent.into(),
+					))
+				}
 
-						fn reserve_transferable_asset_and_dest() -> Option<(Asset, Location)> {
-							Some((
-								Asset {
-									fun: Fungible(ExistentialDeposit::get()),
-									id: AssetId(Parent.into())
-								},
-								// AH can reserve transfer native token to some random parachain.
-								ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
-							))
-						}
-					}
+				fn reserve_transferable_asset_and_dest() -> Option<(Asset, Location)> {
+					Some((
+						Asset {
+							fun: Fungible(ExistentialDeposit::get()),
+							id: AssetId(Parent.into())
+						},
+						ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
+					))
+				}
+			}
 
 			impl pallet_xyk_liquidity_mining_benchmarking::Config for Runtime {}
 
@@ -534,14 +532,13 @@ impl_runtime_apis! {
 			let params = (&config, &whitelist);
 			add_benchmarks!(params, batches);
 
-			// Basilisk pallets
 			orml_add_benchmark!(params, batches, pallet_xyk, benchmarking::xyk);
 			orml_add_benchmark!(params, batches, pallet_currencies, benchmarking::currencies);
 			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
 			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
 			orml_add_benchmark!(params, batches, pallet_duster, benchmarking::duster);
 			orml_add_benchmark!(params, batches, pallet_transaction_multi_payment, benchmarking::multi_payment);
-			orml_add_benchmark!(params, batches, pallet_route_executor, benchmarking::route_executor);
+			//orml_add_benchmark!(params, batches, pallet_route_executor, benchmarking::route_executor);
 			orml_add_benchmark!(params, batches, pallet_marketplace, benchmarking::marketplace);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
@@ -551,16 +548,12 @@ impl_runtime_apis! {
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-#[macro_use]
-extern crate orml_benchmarking;
-
-#[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	frame_benchmarking::define_benchmarks!(
 		[pallet_lbp, LBP]
 		[pallet_nft, NFT]
 		[pallet_asset_registry, AssetRegistry]
-		[allet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>]
+		[pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>]
 		[pallet_transaction_pause, TransactionPause]
 		[pallet_ema_oracle, EmaOracle]
 		[frame_system, SystemBench::<Runtime>]
@@ -581,6 +574,7 @@ mod benches {
 		[pallet_proxy, Proxy]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[pallet_state_trie_migration, StateTrieMigration]
+		[pallet_collator_selection, CollatorSelection]
 		//[pallet_xcm, PalletXcmExtrinsiscsBenchmark::<Runtime>]
 	);
 }
