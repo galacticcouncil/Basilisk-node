@@ -59,6 +59,7 @@ function bench {
         --wasm-execution=compiled \
         --pallet "${1}" \
         --extrinsic "${2}" \
+        --heap-pages 4096 \
         --steps "${STEPS}" \
         --repeat "${REPEAT}" \
         --template=.maintain/pallet-weight-template-no-back.hbs \
