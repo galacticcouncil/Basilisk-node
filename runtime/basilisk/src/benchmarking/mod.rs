@@ -8,6 +8,7 @@ pub mod multi_payment;
 pub mod route_executor;
 pub mod tokens;
 pub mod vesting;
+pub mod xyk;
 
 pub use helper::BenchmarkHelper;
 

@@ -434,44 +434,17 @@ impl_runtime_apis! {
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
 
 			let mut list = Vec::<BenchmarkList>::new();
+			list_benchmarks!(list, extra);
 
 			// Mising: XYK, uniques, primage,  proxy, cumulus parachain system , collator selection, session, multisig,	state trie, palle-xcm
-
-			//list_benchmark!(list, extra, pallet_xyk, XYK);
-			list_benchmark!(list, extra, pallet_lbp, LBP);
-			list_benchmark!(list, extra, pallet_nft, NFT);
-			list_benchmark!(list, extra, pallet_asset_registry, AssetRegistry);
-			list_benchmark!(list, extra, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
-			list_benchmark!(list, extra, pallet_transaction_pause, TransactionPause);
-			list_benchmark!(list, extra, pallet_ema_oracle, EmaOracle);
-
-			list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
-			list_benchmark!(list, extra, pallet_balances, Balances);
-			//list_benchmark!(list, extra, pallet_collator_selection, CollatorSelection);
-			list_benchmark!(list, extra, pallet_timestamp, Timestamp);
-			list_benchmark!(list, extra, pallet_democracy, Democracy);
-			list_benchmark!(list, extra, pallet_elections_phragmen, Elections);
-			list_benchmark!(list, extra, pallet_treasury, Treasury);
-			list_benchmark!(list, extra, pallet_scheduler, Scheduler);
-			list_benchmark!(list, extra, pallet_utility, Utility);
-			list_benchmark!(list, extra, pallet_tips, Tips);
-			list_benchmark!(list, extra, pallet_identity, Identity);
-			list_benchmark!(list, extra, pallet_collective, TechnicalCommittee);
-			//list_benchmark!(list, extra, pallet_state_trie_migration, StateTrieMigration);
-			//list_benchmark!(list, extra, pallet_preimage, Preimage);
-
-			list_benchmark!(list, extra, cumulus_pallet_xcmp_queue, XcmpQueue);
-			list_benchmark!(list, extra, pallet_message_queue, MessageQueue);
-			//list_benchmark!(list, extra, pallet_xcm, PolkadotXcm);
-
 			orml_list_benchmark!(list, extra, pallet_currencies, benchmarking::currencies);
+			orml_list_benchmark!(list, extra, pallet_xyk, benchmarking::xyk);
 			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
 			orml_list_benchmark!(list, extra, orml_vesting, benchmarking::vesting);
 			orml_list_benchmark!(list, extra, pallet_duster, benchmarking::duster);
 			orml_list_benchmark!(list, extra, pallet_transaction_multi_payment, benchmarking::multi_payment);
 			orml_list_benchmark!(list, extra, pallet_route_executor, benchmarking::route_executor);
 			orml_list_benchmark!(list, extra, pallet_marketplace, benchmarking::marketplace);
-
 			let storage_info = AllPalletsWithSystem::storage_info();
 
 			(list, storage_info)
@@ -517,39 +490,10 @@ impl_runtime_apis! {
 
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
+			add_benchmarks!(params, batches);
 
 			// Basilisk pallets
-			/*
-			//add_benchmark!(params, batches, pallet_xyk, XYK);
-			add_benchmark!(params, batches, pallet_lbp, LBP);
-			add_benchmark!(params, batches, pallet_nft, NFT);
-			add_benchmark!(params, batches, pallet_asset_registry, AssetRegistry);
-			add_benchmark!(params, batches, pallet_xyk_liquidity_mining, XYKLiquidityMiningBench::<Runtime>);
-			add_benchmark!(params, batches, pallet_transaction_pause, TransactionPause);
-			add_benchmark!(params, batches, pallet_ema_oracle, EmaOracle);
-
-			// Substrate pallets
-			add_benchmark!(params, batches, frame_system, SystemBench::<Runtime>);
-			add_benchmark!(params, batches, pallet_balances, Balances);
-			//add_benchmark!(params, batches, pallet_collator_selection, CollatorSelection);
-			add_benchmark!(params, batches, pallet_timestamp, Timestamp);
-			add_benchmark!(params, batches, pallet_democracy, Democracy);
-			add_benchmark!(params, batches, pallet_elections_phragmen, Elections);
-			add_benchmark!(params, batches, pallet_treasury, Treasury);
-			add_benchmark!(params, batches, pallet_scheduler, Scheduler);
-			add_benchmark!(params, batches, pallet_utility, Utility);
-			add_benchmark!(params, batches, pallet_tips, Tips);
-			add_benchmark!(params, batches, pallet_identity, Identity);
-			add_benchmark!(params, batches, pallet_collective, TechnicalCommittee);
-			//add_benchmark!(params, batches, pallet_state_trie_migration, StateTrieMigration);
-			//add_benchmark!(params, batches, pallet_preimage, Preimage);
-
-			add_benchmark!(params, batches, cumulus_pallet_xcmp_queue, XcmpQueue);
-			add_benchmark!(params, batches, pallet_message_queue, MessageQueue);
-			//add_benchmark!(params, batches, pallet_xcm, PolkadotXcm);
-
-			 */
-
+			orml_add_benchmark!(params, batches, pallet_xyk, benchmarking::xyk);
 			orml_add_benchmark!(params, batches, pallet_currencies, benchmarking::currencies);
 			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
 			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
@@ -563,6 +507,10 @@ impl_runtime_apis! {
 		}
 	}
 }
+
+#[cfg(feature = "runtime-benchmarks")]
+#[macro_use]
+extern crate orml_benchmarking;
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
