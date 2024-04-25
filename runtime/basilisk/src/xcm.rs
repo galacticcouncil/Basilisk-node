@@ -70,7 +70,7 @@ impl TryFrom<Location> for AssetLocation {
 
 	fn try_from(value: Location) -> Result<Self, Self::Error> {
 		let loc: MultiLocation = value.try_into()?;
-		Ok(AssetLocation(loc.into()))
+		Ok(AssetLocation(loc))
 	}
 }
 

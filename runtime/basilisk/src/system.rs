@@ -232,10 +232,7 @@ impl pallet_transaction_payment::Config for Runtime {
 pub struct WethAssetId;
 impl Get<AssetId> for WethAssetId {
 	fn get() -> AssetId {
-		let invalid_id =
-			pallet_asset_registry::Pallet::<crate::Runtime>::next_asset_id().defensive_unwrap_or(AssetId::MAX);
-
-		invalid_id
+		pallet_asset_registry::Pallet::<crate::Runtime>::next_asset_id().defensive_unwrap_or(AssetId::MAX)
 	}
 }
 
