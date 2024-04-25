@@ -27,7 +27,7 @@ use frame_support::traits::{fungible, LinearStoragePrice};
 use frame_support::{
 	parameter_types,
 	sp_runtime::{Perbill, Percent, Permill},
-	traits::{EitherOfDiverse, EqualPrivilegeOnly, LockIdentifier, NeverEnsureOrigin},
+	traits::{EitherOfDiverse, EqualPrivilegeOnly, LockIdentifier},
 	PalletId,
 };
 use frame_system::{EnsureRoot, EnsureSigned};
@@ -308,6 +308,9 @@ impl Pay for PayFromTreasuryAccount {
 	#[cfg(feature = "runtime-benchmarks")]
 	fn ensure_concluded(_: Self::Id) {}
 }
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+use frame_support::traits::NeverEnsureOrigin;
 
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;

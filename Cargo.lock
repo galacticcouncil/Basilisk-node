@@ -871,7 +871,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "11.1.0"
+version = "13.1.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -903,7 +903,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-primitives",
  "polkadot-service",
- "primitives 6.6.0",
+ "primitives 6.6.1",
  "sc-basic-authorship",
  "sc-block-builder",
  "sc-chain-spec",
@@ -1027,7 +1027,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
  "primitive-types",
- "primitives 6.6.0",
+ "primitives 6.6.1",
  "scale-info",
  "serde",
  "smallvec",
@@ -7394,7 +7394,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "5.0.17"
+version = "5.0.18"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7404,7 +7404,7 @@ dependencies = [
  "pallet-uniques",
  "parity-scale-codec",
  "pretty_assertions",
- "primitives 6.6.0",
+ "primitives 6.6.1",
  "scale-info",
  "serde",
  "sp-arithmetic",
@@ -8276,7 +8276,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining"
-version = "1.1.10"
+version = "1.1.11"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8291,7 +8291,7 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec",
  "pretty_assertions",
- "primitives 6.6.0",
+ "primitives 6.6.1",
  "scale-info",
  "sp-arithmetic",
  "sp-core",
@@ -8302,7 +8302,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.16"
+version = "1.0.17"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8319,7 +8319,7 @@ dependencies = [
  "pallet-xyk",
  "pallet-xyk-liquidity-mining",
  "parity-scale-codec",
- "primitives 6.6.0",
+ "primitives 6.6.1",
  "scale-info",
  "sp-arithmetic",
  "sp-core",
@@ -9937,7 +9937,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.6.0"
+version = "6.6.1"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -10784,7 +10784,7 @@ dependencies = [
  "polkadot-runtime-parachains",
  "polkadot-service",
  "pretty_assertions",
- "primitives 6.6.0",
+ "primitives 6.6.1",
  "rococo-runtime",
  "sc-consensus-grandpa",
  "sp-api",

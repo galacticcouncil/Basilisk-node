@@ -425,7 +425,7 @@ impl_runtime_apis! {
 			Vec<frame_benchmarking::BenchmarkList>,
 			Vec<frame_support::traits::StorageInfo>,
 		) {
-			use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
+			use frame_benchmarking::{Benchmarking, BenchmarkList};
 			use frame_support::traits::StorageInfoTrait;
 			use orml_benchmarking::list_benchmark as orml_list_benchmark;
 
@@ -452,7 +452,7 @@ impl_runtime_apis! {
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-			use frame_benchmarking::{BenchmarkError, Benchmarking, BenchmarkBatch, add_benchmark};
+			use frame_benchmarking::{BenchmarkError, Benchmarking, BenchmarkBatch};
 			use frame_support::traits::TrackedStorageKey;
 
 			use orml_benchmarking::add_benchmark as orml_add_benchmark;
@@ -478,10 +478,7 @@ impl_runtime_apis! {
 			}
 
 			use cumulus_primitives_core::ParaId;
-			use polkadot_xcm::latest::prelude::{
-						GeneralIndex, Junction, Junctions, Location, Response, NetworkId, AssetId,
-						Assets as XcmAssets, Fungible, Asset, ParentThen, Parachain, Parent
-			};
+			use polkadot_xcm::latest::prelude::{Location, AssetId, Fungible, Asset, ParentThen, Parachain, Parent};
 
 			impl pallet_xcm::benchmarking::Config for Runtime {
 				fn reachable_dest() -> Option<Location> {

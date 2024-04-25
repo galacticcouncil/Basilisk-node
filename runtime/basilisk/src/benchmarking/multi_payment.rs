@@ -22,7 +22,6 @@ use frame_benchmarking::BenchmarkError;
 use frame_support::traits::{OnFinalize, OnInitialize};
 use frame_support::{assert_ok, parameter_types};
 use frame_system::RawOrigin;
-use hydradx_traits::evm::InspectEvmAccounts;
 use hydradx_traits::router::PoolType;
 use hydradx_traits::router::RouteProvider;
 use hydradx_traits::PriceOracle;
@@ -30,7 +29,6 @@ use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrencyExtended;
 use pallet_route_executor::MAX_NUMBER_OF_TRADES;
 use primitives::{BlockNumber, Price};
-use sp_core::Get;
 use sp_runtime::traits::SaturatedConversion;
 use sp_runtime::{FixedPointNumber, FixedU128};
 

@@ -40,7 +40,7 @@ use frame_support::{
 	},
 	PalletId,
 };
-use frame_system::{EnsureRoot, EnsureSignedBy};
+use frame_system::EnsureRoot;
 use hydradx_adapters::RelayChainBlockNumberProvider;
 use hydradx_traits::evm::InspectEvmAccounts;
 use primitives::constants::time::DAYS;
@@ -543,6 +543,9 @@ parameter_types! {
 
 #[cfg(feature = "runtime-benchmarks")]
 use frame_system::EnsureSigned;
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+use frame_system::EnsureSignedBy;
 
 impl pallet_state_trie_migration::Config for Runtime {
 	type ControlOrigin = SuperMajorityTechCommitteeOrRoot;
