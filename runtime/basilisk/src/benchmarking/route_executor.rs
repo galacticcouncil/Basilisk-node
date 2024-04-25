@@ -228,18 +228,7 @@ runtime_benchmarks! {
 		create_xyk_pool(asset_3, asset_4);
 		create_xyk_pool(asset_4, asset_5);
 		create_xyk_pool(asset_5, asset_6);
-		create_xyk_pool(HDX, asset_6);
 
-		//INIT OMNIPOOL
-		/*let acc = Omnipool::protocol_account();
-		crate::benchmarking::omnipool::init()?;
-		// Create account for token provider and set balance
-		let owner: AccountId = account("owner", 0, 1);
-		let token_price = FixedU128::from((5,1));
-		let token_amount = 100000 * UNITS;
-		update_balance(asset_6, &acc, token_amount);
-		// Add the token to the pool
-		Omnipool::add_token(RawOrigin::Root.into(), asset_6, token_price, Permill::from_percent(100), owner)?;*/
 
 		let route = vec![Trade {
 			pool: PoolType::XYK,
@@ -262,11 +251,14 @@ runtime_benchmarks! {
 			asset_in: asset_5,
 			asset_out: asset_6
 		}];
+
 		Router::set_route(
 			RawOrigin::Signed(caller.clone()).into(),
 			AssetPair::new(HDX, asset_6),
 			route,
 		)?;
+
+		create_xyk_pool(HDX, asset_6);
 
 		let better_route = vec![Trade {
 			pool: PoolType::XYK,
@@ -351,29 +343,10 @@ mod tests {
 
 		pallet_asset_registry::GenesisConfig::<crate::Runtime> {
 			registered_assets: vec![
-				(
-					Some(1),
-					Some(b"LRNA".to_vec().try_into().unwrap()),
-					1_000u128,
-					None,
-					None,
-					None,
-					true,
-				),
-				(
-					Some(2),
-					Some(b"DAI".to_vec().try_into().unwrap()),
-					1_000u128,
-					None,
-					None,
-					None,
-					true,
-				),
+				(b"DAI".to_vec(), 1_000, Some(2)),
 			],
 			native_asset_name: b"HDX".to_vec().try_into().unwrap(),
 			native_existential_deposit: NativeExistentialDeposit::get(),
-			native_decimals: 12,
-			native_symbol: b"HDX".to_vec().try_into().unwrap(),
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
