@@ -37,29 +37,12 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_sell() {
 	});
 
 	OtherParachain::execute_with(|| {
-		let sell_amount: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(
-				0,
-				cumulus_primitives_core::Junctions::X1(Arc::new(
-					vec![cumulus_primitives_core::Junction::GeneralIndex(0)]
-						.try_into()
-						.unwrap(),
-				)),
-			)),
-			fun: Fungible(5 * UNITS),
-		};
+		let sell_amount: Asset = Asset::from((cumulus_primitives_core::Junction::GeneralIndex(0), 5 * UNITS));
 
-		let min_amount_out: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(
-				0,
-				cumulus_primitives_core::Junctions::X1(Arc::new(
-					vec![cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())]
-						.try_into()
-						.unwrap(),
-				)),
-			)),
-			fun: Fungible(2 * UNITS),
-		};
+		let min_amount_out = Asset::from((
+			cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into()),
+			2 * UNITS,
+		));
 
 		let xcm = craft_exchange_asset_xcm::<_, basilisk_runtime::RuntimeCall>(sell_amount, min_amount_out, SELL);
 		//Act
@@ -121,29 +104,11 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 
 	let amount_out = 20 * UNITS;
 	OtherParachain::execute_with(|| {
-		let max_amount_in: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(
-				0,
-				cumulus_primitives_core::Junctions::X1(Arc::new(
-					vec![cumulus_primitives_core::Junction::GeneralIndex(0)]
-						.try_into()
-						.unwrap(),
-				)),
-			)),
-			fun: Fungible(70 * UNITS),
-		};
-
-		let amount_out_asset: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(
-				0,
-				cumulus_primitives_core::Junctions::X1(Arc::new(
-					vec![cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())]
-						.try_into()
-						.unwrap(),
-				)),
-			)),
-			fun: Fungible(amount_out),
-		};
+		let max_amount_in: Asset = Asset::from((cumulus_primitives_core::Junction::GeneralIndex(0), 70 * UNITS));
+		let amount_out_asset: Asset = Asset::from((
+			cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into()),
+			amount_out,
+		));
 
 		let xcm = craft_exchange_asset_xcm::<_, basilisk_runtime::RuntimeCall>(max_amount_in, amount_out_asset, BUY);
 		//Act
@@ -222,29 +187,9 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 	});
 
 	OtherParachain::execute_with(|| {
-		let amount_in: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(
-				0,
-				cumulus_primitives_core::Junctions::X1(Arc::new(
-					vec![cumulus_primitives_core::Junction::GeneralIndex(0)]
-						.try_into()
-						.unwrap(),
-				)),
-			)),
-			fun: Fungible(5 * UNITS),
-		};
-
-		let min_amount_out: Asset = Asset {
-			id: cumulus_primitives_core::AssetId(Location::new(
-				0,
-				cumulus_primitives_core::Junctions::X1(Arc::new(
-					vec![cumulus_primitives_core::Junction::GeneralIndex(KSM.into())]
-						.try_into()
-						.unwrap(),
-				)),
-			)),
-			fun: Fungible(2 * UNITS),
-		};
+		let amount_in: Asset = Asset::from((cumulus_primitives_core::Junction::GeneralIndex(0), 5 * UNITS));
+		let min_amount_out: Asset =
+			Asset::from((cumulus_primitives_core::Junction::GeneralIndex(KSM.into()), 2 * UNITS));
 
 		let xcm = craft_exchange_asset_xcm::<_, basilisk_runtime::RuntimeCall>(amount_in, min_amount_out, SELL);
 		//Act
