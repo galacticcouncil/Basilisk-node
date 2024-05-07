@@ -8,9 +8,11 @@ use polkadot_xcm::{v4::prelude::*, VersionedAssets, VersionedXcm};
 
 use cumulus_primitives_core::ParaId;
 use orml_traits::currency::MultiCurrency;
-use polkadot_xcm::opaque::v3::Junction;
-use polkadot_xcm::opaque::v3::Junctions::{X1, X2};
-use polkadot_xcm::opaque::v3::MultiLocation;
+use polkadot_xcm::opaque::v3::{
+	Junction,
+	Junctions::{X1, X2},
+	MultiLocation,
+};
 use sp_core::H256;
 use sp_runtime::traits::{AccountIdConversion, BlakeTwo256, Hash};
 use xcm_emulator::TestExt;

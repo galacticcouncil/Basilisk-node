@@ -17,9 +17,7 @@ use xcm_emulator::TestExt;
 
 use polkadot_xcm::{v4::prelude::*, VersionedXcm};
 
-use polkadot_xcm::opaque::v3::Junction;
-use polkadot_xcm::opaque::v3::Junctions::X2;
-use polkadot_xcm::opaque::v3::MultiLocation;
+use polkadot_xcm::opaque::v3::{Junction, Junctions::X2, MultiLocation};
 use sp_std::sync::Arc;
 
 pub const SELL: bool = true;
