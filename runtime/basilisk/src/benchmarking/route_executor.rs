@@ -38,7 +38,7 @@ const HDX: AssetId = 0;
 parameter_types! {
 	//NOTE: This should always be > 1 otherwise we will payout more than we collected as ED for
 	//insufficient assets.
-	pub InsufficientEDinHDX: Balance = FixedU128::from_rational(11, 10)
+	pub InsufficientEDinBSX: Balance = FixedU128::from_rational(11, 10)
 		.saturating_mul_int(<Runtime as pallet_balances::Config>::ExistentialDeposit::get());
 }
 
@@ -114,7 +114,7 @@ fn create_xyk_pool(asset_a: u32, asset_b: u32) {
 		RawOrigin::Root.into(),
 		caller.clone(),
 		0_u32,
-		InsufficientEDinHDX::get() as i128,
+		InsufficientEDinBSX::get() as i128,
 	));
 
 	let amount = 100000 * UNITS;
