@@ -380,8 +380,7 @@ impl Convert<Location, Option<AssetId>> for CurrencyIdConvert {
 
 impl Convert<Asset, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(asset: Asset) -> Option<AssetId> {
-		let Asset { id: asset_id, .. } = asset;
-		Self::convert(asset_id.0)
+		Self::convert(asset.id.0)
 	}
 }
 
