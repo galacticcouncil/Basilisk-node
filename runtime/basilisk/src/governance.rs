@@ -17,7 +17,7 @@
 
 use super::*;
 use primitives::constants::{
-	currency::{deposit, CENTS, DOLLARS},
+	currency::{deposit, CENTS, DOLLARS, UNITS},
 	time::{DAYS, HOURS},
 };
 
@@ -191,7 +191,7 @@ parameter_types! {
 	pub const TipReportDepositBase: Balance = 10 * DOLLARS;
 	pub const TipReportDepositPerByte: Balance = CENTS;
 	pub const MaximumReasonLength: u32 = 1024;
-	pub const MaxTipAmount: u128 = 200_000_000 * 1_000_000_000_000;
+	pub const MaxTipAmount: u128 = 200_000_000 * UNITS;
 }
 
 impl pallet_tips::Config for Runtime {
