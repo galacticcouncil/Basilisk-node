@@ -288,20 +288,11 @@ fn craft_exchange_asset_xcm<M: Into<Assets>, RC: Decode + GetDispatchInfo>(
 		)),
 	);
 
-	let assets: Assets = Asset {
-		id: cumulus_primitives_core::AssetId(Location::new(
-			0,
-			cumulus_primitives_core::Junctions::X1(Arc::new(
-				vec![cumulus_primitives_core::Junction::GeneralIndex(0)]
-					.try_into()
-					.unwrap(),
-			)),
-		)),
-		fun: Fungible(100 * UNITS),
-	}
-	.into();
+	let assets: Assets = Assets::from(Asset::from((
+		cumulus_primitives_core::Junction::GeneralIndex(0),
+		100 * UNITS,
+	)));
 
-	//let assets: MultiAssets = MultiAsset::from((cumulus_primitives_core::Junction::GeneralIndex(0), 100 * UNITS)).into(); // hardcoded
 	let max_assets = assets.len() as u32 + 1;
 	let context = cumulus_primitives_core::Junctions::X2(Arc::new(
 		vec![
