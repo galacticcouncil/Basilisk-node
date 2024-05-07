@@ -164,17 +164,10 @@ fn blocked_transact_calls_should_not_pass_filter() {
 			},
 		]);
 
-		let dest_basilisk = Location::new(
-			1,
-			cumulus_primitives_core::Junctions::X1(Arc::new(
-				vec![cumulus_primitives_core::Junction::Parachain(BASILISK_PARA_ID)]
-					.try_into()
-					.unwrap(),
-			)),
-		);
+		let dest = basilisk_location();
 
 		// Act
-		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(Here, dest_basilisk, message));
+		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(Here, dest, message));
 	});
 
 	Basilisk::execute_with(|| {
@@ -247,19 +240,23 @@ fn safe_call_filter_should_respect_runtime_call_filter() {
 			},
 		]);
 
-		let dest_basilisk = Location::new(
-			1,
-			cumulus_primitives_core::Junctions::X1(Arc::new(
-				vec![cumulus_primitives_core::Junction::Parachain(BASILISK_PARA_ID)]
-					.try_into()
-					.unwrap(),
-			)),
-		);
+		let dest = basilisk_location();
 
 		// Act
-		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(Here, dest_basilisk, message));
+		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(Here, dest, message));
 	});
 
 	//Assert
 	Basilisk::execute_with(|| assert_xcm_message_processing_failed());
+}
+
+fn basilisk_location() -> Location {
+	Location::new(
+		1,
+		cumulus_primitives_core::Junctions::X1(Arc::new(
+			vec![cumulus_primitives_core::Junction::Parachain(BASILISK_PARA_ID)]
+				.try_into()
+				.unwrap(),
+		)),
+	)
 }
