@@ -1,5 +1,5 @@
 #![cfg(test)]
-use crate::kusama_test_net::Kusama;
+use crate::kusama_test_net::Rococo;
 use crate::kusama_test_net::*;
 
 use frame_support::{assert_noop, assert_ok};
@@ -34,7 +34,7 @@ fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 			basilisk_runtime::AssetLocation(MultiLocation::parent().into())
 		));
 	});
-	Kusama::execute_with(|| {
+	Rococo::execute_with(|| {
 		assert_ok!(rococo_runtime::XcmPallet::reserve_transfer_assets(
 			rococo_runtime::RuntimeOrigin::signed(ALICE.into()),
 			Box::new(Parachain(BASILISK_PARA_ID).into_versioned()),
@@ -87,7 +87,7 @@ fn relaychain_should_receive_asset_when_transferred_from_basilisk() {
 		);
 	});
 
-	Kusama::execute_with(|| {
+	Rococo::execute_with(|| {
 		assert_eq!(
 			rococo_runtime::Balances::free_balance(AccountId::from(BOB)),
 			2999989698923 // 3 * BSX - fee

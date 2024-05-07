@@ -59,13 +59,13 @@ use primitives::constants::chain::CORE_ASSET_ID;
 pub use xcm_emulator::Network;
 use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains};
 
-pub type Kusama = KusamaRelayChain<TestNet>;
+pub type Rococo = RococoRelayChain<TestNet>;
 pub type Basilisk = BasiliskParachain<TestNet>;
 pub type OtherParachain = OtherPara<TestNet>;
 
 decl_test_networks! {
 	pub struct TestNet {
-		relay_chain = KusamaRelayChain,
+		relay_chain = RococoRelayChain,
 		parachains = vec![
 			OtherPara,
 			BasiliskParachain,
@@ -76,8 +76,8 @@ decl_test_networks! {
 
 decl_test_relay_chains! {
 	#[api_version(10)]
-	pub struct KusamaRelayChain {
-		genesis = kusama::genesis(),
+	pub struct RococoRelayChain {
+		genesis = rococo::genesis(),
 		on_init = (),
 		runtime = rococo_runtime,
 		core = {
@@ -132,7 +132,7 @@ decl_test_parachains! {
 	}
 }
 
-pub mod kusama {
+pub mod rococo {
 	use super::*;
 
 	fn get_host_configuration() -> HostConfiguration<BlockNumber> {
@@ -504,7 +504,7 @@ pub fn set_relaychain_block_number(number: BlockNumber) {
 	use basilisk_runtime::ParachainSystem;
 	use basilisk_runtime::RuntimeOrigin;
 
-	kusama_run_to_block(number); //We need to set block number this way as well because tarpaulin code coverage tool does not like the way how we set the block number with `cumulus-test-relay-sproof-builder` package
+	rococo_run_to_block(number); //We need to set block number this way as well because tarpaulin code coverage tool does not like the way how we set the block number with `cumulus-test-relay-sproof-builder` package
 
 	ParachainSystem::on_initialize(number);
 
@@ -526,7 +526,7 @@ pub fn set_relaychain_block_number(number: BlockNumber) {
 	));
 }
 
-pub fn kusama_run_to_block(to: BlockNumber) {
+pub fn rococo_run_to_block(to: BlockNumber) {
 	use frame_support::traits::OnFinalize;
 
 	while rococo_runtime::System::block_number() < to {
