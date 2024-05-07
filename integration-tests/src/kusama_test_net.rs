@@ -485,6 +485,18 @@ pub fn expect_basilisk_events(e: Vec<basilisk_runtime::RuntimeEvent>) {
 	assert_eq!(last_basilisk_events(e.len()), e);
 }
 
+pub fn expect_basilisk_event(e: basilisk_runtime::RuntimeEvent) {
+	let last_10_events = last_basilisk_events(10);
+	let mut found = false;
+	for event in last_10_events {
+		if event == e {
+			found = true;
+			break;
+		}
+	}
+	assert!(found, "Event not found in the last 10 basilisk events");
+}
+
 #[allow(dead_code)]
 pub fn last_parachain_events(n: usize) -> Vec<basilisk_runtime::RuntimeEvent> {
 	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
