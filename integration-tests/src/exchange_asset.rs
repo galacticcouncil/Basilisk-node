@@ -10,15 +10,16 @@ use hydradx_traits::router::AssetPair;
 use hydradx_traits::router::PoolType;
 use hydradx_traits::router::Trade;
 use orml_traits::currency::MultiCurrency;
+use polkadot_xcm::{
+	opaque::v3::{Junction, Junctions::X2, MultiLocation},
+	v4::prelude::*,
+	VersionedXcm,
+};
 use pretty_assertions::assert_eq;
 use primitives::constants::chain::CORE_ASSET_ID;
 use sp_runtime::FixedU128;
-use xcm_emulator::TestExt;
-
-use polkadot_xcm::{v4::prelude::*, VersionedXcm};
-
-use polkadot_xcm::opaque::v3::{Junction, Junctions::X2, MultiLocation};
 use sp_std::sync::Arc;
+use xcm_emulator::TestExt;
 
 pub const SELL: bool = true;
 pub const BUY: bool = false;
