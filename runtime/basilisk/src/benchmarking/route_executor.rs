@@ -1,4 +1,4 @@
-// This file is part of HydraDX-node
+// This file is part of Basilisk-node
 
 // Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
