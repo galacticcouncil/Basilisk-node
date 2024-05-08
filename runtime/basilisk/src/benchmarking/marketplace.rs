@@ -9,8 +9,8 @@ use frame_support::{
 	BoundedVec,
 };
 use frame_system::RawOrigin;
-use hydradx_traits::registry::Registry;
 use orml_benchmarking::runtime_benchmarks;
+use pallet_asset_registry::traits::Registry;
 use pallet_nft::BoundedVecOfUnq;
 use primitives::{constants::currency::UNITS, CollectionId, ItemId};
 use sp_std::convert::TryInto;

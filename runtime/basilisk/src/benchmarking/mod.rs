@@ -2,11 +2,15 @@
 
 pub mod currencies;
 pub mod duster;
+mod helper;
 pub mod marketplace;
 pub mod multi_payment;
 pub mod route_executor;
 pub mod tokens;
 pub mod vesting;
+pub mod xyk;
+
+pub use helper::BenchmarkHelper;
 
 use crate::AssetRegistry;
 

@@ -32,7 +32,7 @@ use sp_runtime::{
 use sp_std::convert::TryInto;
 
 use types::*;
-use weights::WeightInfo;
+pub use weights::WeightInfo;
 
 mod types;
 pub mod weights;

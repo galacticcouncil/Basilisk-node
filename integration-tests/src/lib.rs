@@ -13,5 +13,4 @@ mod oracle;
 mod router;
 mod transact_call_filter;
 mod vesting;
-mod xcm_rate_limiter;
 mod xyk;

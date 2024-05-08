@@ -114,6 +114,7 @@ pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
 	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
 
+	#[allow(deprecated)]
 	Ok(ChainSpec::from_genesis(
 		// Name
 		"Basilisk",
@@ -122,7 +123,6 @@ pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 		ChainType::Live,
 		move || {
 			parachain_genesis(
-				wasm_binary,
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -184,6 +184,7 @@ pub fn kusama_staging_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "kusama".into(),
 			para_id: PARA_ID,
 		},
+		wasm_binary,
 	))
 }
 
@@ -193,6 +194,7 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
 	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
 
+	#[allow(deprecated)]
 	Ok(ChainSpec::from_genesis(
 		// Name
 		"Basilisk Egg",
@@ -201,7 +203,6 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 		ChainType::Live,
 		move || {
 			testnet_parachain_genesis(
-				wasm_binary,
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -265,6 +266,7 @@ pub fn testnet_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "westend".into(),
 			para_id: PARA_ID,
 		},
+		wasm_binary,
 	))
 }
 
@@ -274,6 +276,7 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
 	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
 
+	#[allow(deprecated)]
 	Ok(ChainSpec::from_genesis(
 		// Name
 		"Basilisk Development",
@@ -282,7 +285,6 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 		ChainType::Development,
 		move || {
 			testnet_parachain_genesis(
-				wasm_binary,
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -336,6 +338,7 @@ pub fn parachain_development_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo-dev".into(),
 			para_id: PARA_ID,
 		},
+		wasm_binary,
 	))
 }
 
@@ -345,6 +348,7 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
 	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
 
+	#[allow(deprecated)]
 	Ok(ChainSpec::from_genesis(
 		// Name
 		"Basilisk testnet",
@@ -353,7 +357,6 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 		ChainType::Live,
 		move || {
 			testnet_parachain_genesis(
-				wasm_binary,
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -412,6 +415,7 @@ pub fn rococo_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo".into(),
 			para_id: PARA_ID,
 		},
+		wasm_binary,
 	))
 }
 
@@ -421,6 +425,7 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
 	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
 
+	#[allow(deprecated)]
 	Ok(ChainSpec::from_genesis(
 		// Name
 		"Basilisk testnet",
@@ -429,7 +434,6 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 		ChainType::Live,
 		move || {
 			testnet_parachain_genesis(
-				wasm_binary,
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -484,6 +488,7 @@ pub fn karura_testnet_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "kusama-local".into(),
 			para_id: PARA_ID,
 		},
+		wasm_binary,
 	))
 }
 
@@ -495,6 +500,7 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
 	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
 
+	#[allow(deprecated)]
 	Ok(ChainSpec::from_genesis(
 		// Name
 		"Basilisk Benchmarks",
@@ -503,7 +509,6 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 		ChainType::Development,
 		move || {
 			testnet_parachain_genesis(
-				wasm_binary,
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -554,6 +559,7 @@ pub fn benchmarks_development_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo-dev".into(),
 			para_id: PARA_ID,
 		},
+		wasm_binary,
 	))
 }
 
@@ -564,6 +570,7 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 	properties.insert("tokenDecimals".into(), TOKEN_DECIMALS.into());
 	properties.insert("tokenSymbol".into(), TOKEN_SYMBOL.into());
 
+	#[allow(deprecated)]
 	Ok(ChainSpec::from_genesis(
 		// Name
 		"Basilisk Local Testnet",
@@ -572,7 +579,6 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 		ChainType::Local,
 		move || {
 			testnet_parachain_genesis(
-				wasm_binary,
 				//initial authorities & invulnerables
 				vec![
 					(
@@ -633,12 +639,12 @@ pub fn local_parachain_config() -> Result<ChainSpec, String> {
 			relay_chain: "rococo-local".into(),
 			para_id: PARA_ID,
 		},
+		wasm_binary,
 	))
 }
 
 /// Configure initial storage state for FRAME modules.
 fn parachain_genesis(
-	wasm_binary: &[u8],
 	initial_authorities: Vec<(AccountId, AuraId)>,
 	_endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
@@ -647,7 +653,6 @@ fn parachain_genesis(
 	RuntimeGenesisConfig {
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
-			code: wasm_binary.to_vec(),
 			..Default::default()
 		},
 		balances: BalancesConfig {
@@ -741,7 +746,6 @@ fn parachain_genesis(
 }
 
 fn testnet_parachain_genesis(
-	wasm_binary: &[u8],
 	initial_authorities: Vec<(AccountId, AuraId)>,
 	endowed_accounts: Vec<AccountId>,
 	_enable_println: bool,
@@ -756,7 +760,6 @@ fn testnet_parachain_genesis(
 	RuntimeGenesisConfig {
 		system: SystemConfig {
 			// Add Wasm runtime to storage.
-			code: wasm_binary.to_vec(),
 			..Default::default()
 		},
 		balances: BalancesConfig {

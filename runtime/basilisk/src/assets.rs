@@ -86,14 +86,14 @@ impl pallet_balances::Config for Runtime {
 	/// The ubiquitous event type.
 	type ExistentialDeposit = NativeExistentialDeposit;
 	type AccountStore = System;
-	type WeightInfo = weights::balances::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_balances::BasiliskWeight<Runtime>;
 	type MaxLocks = MaxLocks;
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = ();
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
-	type MaxHolds = ();
-	type RuntimeHoldReason = ();
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
 pub struct CurrencyHooks;
@@ -120,7 +120,7 @@ impl orml_tokens::Config for Runtime {
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
-	type WeightInfo = weights::tokens::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::orml_tokens::BasiliskWeight<Runtime>;
 	type ExistentialDeposits = AssetRegistry;
 	type CurrencyHooks = CurrencyHooks;
 	type MaxLocks = MaxLocks;
@@ -137,7 +137,7 @@ impl pallet_currencies::Config for Runtime {
 	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type GetNativeCurrencyId = NativeAssetId;
-	type WeightInfo = weights::currencies::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_currencies::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -152,7 +152,7 @@ impl pallet_asset_registry::Config for Runtime {
 	type StringLimit = RegistryStrLimit;
 	type SequentialIdStartAt = SequentialIdOffset;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::asset_registry::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_asset_registry::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -169,7 +169,7 @@ impl pallet_duster::Config for Runtime {
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
 	type BlacklistUpdateOrigin = MajorityTechCommitteeOrRoot;
-	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_duster::BasiliskWeight<Runtime>;
 }
 
 pub struct AssetPairAccountId<T: frame_system::Config>(PhantomData<T>);
@@ -208,14 +208,14 @@ impl pallet_xyk::Config for Runtime {
 	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
-	type WeightInfo = weights::xyk::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_xyk::BasiliskWeight<Runtime>;
 	type GetExchangeFee = ExchangeFee;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type OracleSource = XYKOracleSourceIdentifier;
-	type CanCreatePool = pallet_lbp::DisallowWhenLBPPoolRunning<Runtime>;
+	type CanCreatePool = hydradx_adapters::xyk::AllowPoolCreation<Runtime, AssetRegistry>;
 	type AMMHandler = pallet_ema_oracle::OnActivityHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
@@ -262,7 +262,7 @@ impl pallet_lbp::Config for Runtime {
 	type CreatePoolOrigin = SuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
-	type WeightInfo = weights::lbp::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_lbp::BasiliskWeight<Runtime>;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
@@ -272,6 +272,7 @@ impl pallet_lbp::Config for Runtime {
 
 #[cfg(feature = "runtime-benchmarks")]
 use codec::Decode;
+use frame_support::traits::Everything;
 
 pub struct RootAsVestingPallet;
 impl EnsureOrigin<RuntimeOrigin> for RootAsVestingPallet {
@@ -303,7 +304,7 @@ impl orml_vesting::Config for Runtime {
 	type Currency = Balances;
 	type MinVestedTransfer = MinVestedTransfer;
 	type VestedTransferOrigin = RootAsVestingPallet;
-	type WeightInfo = weights::vesting::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::orml_vesting::BasiliskWeight<Runtime>;
 	type MaxVestingSchedules = MaxVestingSchedules;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
@@ -316,7 +317,7 @@ parameter_types! {
 impl pallet_marketplace::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = KusamaCurrency;
-	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_marketplace::BasiliskWeight<Runtime>;
 	type MinimumOfferAmount = MinimumOfferAmount;
 	type RoyaltyBondAmount = RoyaltyBondAmount;
 }
@@ -380,7 +381,7 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type NFTHandler = NFT;
 	type LiquidityMiningHandler = XYKWarehouseLM;
 	type NonDustableWhitelistHandler = Duster;
-	type WeightInfo = weights::xyk_liquidity_mining::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_xyk_liquidity_mining::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
@@ -418,8 +419,8 @@ impl RouterWeightInfo {
 		num_of_calc_sell: u32,
 		num_of_execute_sell: u32,
 	) -> Weight {
-		weights::route_executor::BasiliskWeight::<Runtime>::calculate_and_execute_sell_in_lbp(num_of_calc_sell)
-			.saturating_sub(weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(
+		weights::pallet_route_executor::BasiliskWeight::<Runtime>::calculate_and_execute_sell_in_lbp(num_of_calc_sell)
+			.saturating_sub(weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_sell(
 				num_of_calc_sell.saturating_add(num_of_execute_sell),
 				num_of_execute_sell,
 			))
@@ -429,15 +430,15 @@ impl RouterWeightInfo {
 		num_of_calc_buy: u32,
 		num_of_execute_buy: u32,
 	) -> Weight {
-		let router_weight = weights::route_executor::BasiliskWeight::<Runtime>::calculate_and_execute_buy_in_lbp(
+		let router_weight = weights::pallet_route_executor::BasiliskWeight::<Runtime>::calculate_and_execute_buy_in_lbp(
 			num_of_calc_buy,
 			num_of_execute_buy,
 		);
 		// Handle this case separately. router_execution_buy provides incorrect weight for the case when only calculate_buy is executed.
 		let lbp_weight = if (num_of_calc_buy, num_of_execute_buy) == (1, 0) {
-			weights::lbp::BasiliskWeight::<Runtime>::calculate_buy()
+			weights::pallet_lbp::BasiliskWeight::<Runtime>::calculate_buy()
 		} else {
-			weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(
+			weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_buy(
 				num_of_calc_buy.saturating_add(num_of_execute_buy),
 				num_of_execute_buy,
 			)
@@ -449,9 +450,9 @@ impl RouterWeightInfo {
 		let number_of_times_calculate_sell_amounts_executed = 5; //4 calculations + in the validation
 		let number_of_times_execute_sell_amounts_executed = 0; //We do have it once executed in the validation of the route, but it is without writing to database (as rolled back), and since we pay back successful set_route, we just keep this overhead
 
-		let set_route_overweight = weights::route_executor::BasiliskWeight::<Runtime>::set_route_for_xyk();
+		let set_route_overweight = weights::pallet_route_executor::BasiliskWeight::<Runtime>::set_route_for_xyk();
 
-		set_route_overweight.saturating_sub(weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(
+		set_route_overweight.saturating_sub(weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_sell(
 			number_of_times_calculate_sell_amounts_executed,
 			number_of_times_execute_sell_amounts_executed,
 		))
@@ -468,8 +469,8 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		for trade in route {
 			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(0, 1));
 
-			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e);
-			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+			let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e);
+			let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
 				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
 
 			let amm_weight = match trade.pool {
@@ -492,8 +493,8 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		for trade in route {
 			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(0, 1));
 
-			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
-			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+			let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
+			let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
 				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
 
 			let amm_weight = match trade.pool {
@@ -516,8 +517,8 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		for trade in route {
 			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(1, 0));
 
-			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
-			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+			let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
+			let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
 				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
 
 			let amm_weight = match trade.pool {
@@ -540,8 +541,8 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		for trade in route {
 			weight.saturating_accrue(Self::sell_and_calculate_sell_trade_amounts_overhead_weight(1, 1));
 
-			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e);
-			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
+			let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_sell(c, e);
+			let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_sell(c, e)
 				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
 
 			let amm_weight = match trade.pool {
@@ -564,8 +565,8 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		for trade in route {
 			weight.saturating_accrue(Self::buy_and_calculate_buy_trade_amounts_overhead_weight(2, 1));
 
-			let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
-			let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
+			let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_buy(c, e);
+			let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_buy(c, e)
 				.saturating_add(<Runtime as pallet_xyk::Config>::AMMHandler::on_trade_weight());
 
 			let amm_weight = match trade.pool {
@@ -592,11 +593,11 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 
 		//For the stored route we expect a worst case with max number of trades in the most expensive pool which is LBP
 		//We have have two sell calculation for that, normal and inverse
-		weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(2, 0)
+		weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_sell(2, 0)
 			.checked_mul(pallet_route_executor::MAX_NUMBER_OF_TRADES.into());
 
-		let lbp_weight = weights::lbp::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
-		let xyk_weight = weights::xyk::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
+		let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
+		let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
 
 		//Calculate sell amounts for the new route
 		for trade in route {
@@ -620,6 +621,11 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 
 		weight
 	}
+
+	fn force_insert_route_weight() -> Weight {
+		//Since we don't have any AMM specific thing in the extrinsic, we just return the plain weight
+		weights::pallet_route_executor::BasiliskWeight::<Runtime>::force_insert_route()
+	}
 }
 
 parameter_types! {
@@ -634,6 +640,8 @@ impl pallet_route_executor::Config for Runtime {
 	type NativeAssetId = NativeAssetId;
 	type DefaultRoutePoolType = DefaultRoutePoolType;
 	type WeightInfo = RouterWeightInfo;
+	type InspectRegistry = AssetRegistry;
+	type TechnicalOrigin = SuperMajorityTechCommitteeOrRoot;
 }
 
 parameter_types! {
@@ -647,10 +655,14 @@ parameter_types! {
 
 impl pallet_ema_oracle::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = weights::ema_oracle::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_ema_oracle::BasiliskWeight<Runtime>;
+	type AuthorityOrigin = SuperMajorityTechCommitteeOrRoot;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type SupportedPeriods = SupportedPeriods;
+	type OracleWhitelist = Everything;
 	type MaxUniqueEntries = MaxUniqueOracleEntries;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = benchmarking::BenchmarkHelper;
 }
 
 parameter_types! {
@@ -659,7 +671,7 @@ parameter_types! {
 
 impl pallet_nft::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = weights::nft::BasiliskWeight<Runtime>;
+	type WeightInfo = weights::pallet_nft::BasiliskWeight<Runtime>;
 	type NftCollectionId = CollectionId;
 	type NftItemId = ItemId;
 	type CollectionType = pallet_nft::CollectionType;

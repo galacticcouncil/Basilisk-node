@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "1.0.1"
+version = "1.0.2"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -21,7 +21,7 @@ pallet-duster = { workspace = true }
 pallet-xyk = { workspace = true }
 pallet-lbp = { workspace = true }
 
-pallet-marketplace = { path = '../pallets/marketplace', default-features = false }
+pallet-marketplace = { workspace = true}
 
 primitives = { default-features = false, path = "../primitives" }
 
@@ -56,7 +56,7 @@ cumulus-primitives-core = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
 cumulus-primitives-parachain-inherent = { workspace = true }
 cumulus-primitives-timestamp = { workspace = true }
-parachain-info = { workspace = true }
+staging-parachain-info = { workspace = true }
 
 # Polkadot dependencies
 polkadot-parachain = { workspace = true }
@@ -107,7 +107,7 @@ polkadot-primitives = { workspace = true }
 polkadot-runtime-parachains = { workspace = true }
 
 basilisk-runtime = { path = "../runtime/basilisk", default-features = false}
-kusama-runtime = { workspace = true, features = ["try-runtime"] }
+rococo-runtime = {workspace = true}
 cumulus-test-relay-sproof-builder = { workspace = true }
 
 [dev-dependencies]
@@ -142,7 +142,7 @@ std = [
     "xcm-builder/std",
     "xcm-executor/std",
     "pallet-xcm/std",
-    "parachain-info/std",
+    "staging-parachain-info/std",
     "pallet-xyk/std",
     "pallet-duster/std",
     "pallet-asset-registry/std",
@@ -183,12 +183,12 @@ std = [
     "pallet-tips/std",
     "pallet-collator-selection/std",
     "pallet-authorship/std",
-    "kusama-runtime/std",
     "basilisk-runtime/std",
     "hydradx-traits/std",
+    "rococo-runtime/std",
 ]
 
 runtime-benchmarks = [
     "basilisk-runtime/runtime-benchmarks",
-    "kusama-runtime/runtime-benchmarks",
+    "rococo-runtime/runtime-benchmarks",
 ]
