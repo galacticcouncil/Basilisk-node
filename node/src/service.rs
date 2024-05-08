@@ -269,6 +269,8 @@ async fn start_node_impl(
 
 	if let Some(hwbench) = hwbench {
 		sc_sysinfo::print_hwbench(&hwbench);
+		//TODO: need?
+		/*
 		// Here you can check whether the hardware meets your chains' requirements. Putting a link
 		// in there and swapping out the requirements for your own are probably a good idea. The
 		// requirements for a para-chain are dictated by its relay-chain.
@@ -278,6 +280,8 @@ async fn start_node_impl(
 			https://wiki.polkadot.network/docs/maintain-guides-how-to-validate-polkadot#reference-hardware"
 			);
 		}
+
+		 */
 
 		if let Some(ref mut telemetry) = telemetry {
 			let telemetry_handle = telemetry.handle();
@@ -429,6 +433,7 @@ fn start_consensus(
 		collator_service,
 		// Very limited proposal time.
 		authoring_duration: Duration::from_millis(500),
+		collation_request_receiver: None,
 	};
 
 	let fut = basic_aura::run::<Block, sp_consensus_aura::sr25519::AuthorityPair, _, _, _, _, _, _, _>(params);

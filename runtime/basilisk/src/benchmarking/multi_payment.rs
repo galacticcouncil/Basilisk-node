@@ -1,6 +1,6 @@
 // This file is part of Basilisk-node
 
-// Copyright (C) 2020-2022  Intergalactic, Limited (GIB).
+// Copyright (C) 2020-2021  Intergalactic, Limited (GIB).
 // SPDX-License-Identifier: Apache-2.0
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,27 +17,46 @@
 
 use super::*;
 use crate::{AccountId, AssetId, Balance, Currencies, EmaOracle, Runtime, System};
-use hydradx_traits::{
-	router::{AssetPair, PoolType, RouteProvider, Trade},
-	OraclePeriod, PriceOracle,
-};
-use pallet_route_executor::MAX_NUMBER_OF_TRADES;
-use primitives::{constants::currency::UNITS, BlockNumber, Price};
-
-use frame_benchmarking::{account, BenchmarkError};
-use frame_support::{
-	assert_ok,
-	traits::{OnFinalize, OnInitialize},
-};
+use frame_benchmarking::account;
+use frame_benchmarking::BenchmarkError;
+use frame_support::traits::{OnFinalize, OnInitialize};
+use frame_support::{assert_ok, parameter_types};
 use frame_system::RawOrigin;
+use hydradx_traits::router::PoolType;
+use hydradx_traits::router::RouteProvider;
+use hydradx_traits::PriceOracle;
 use orml_benchmarking::runtime_benchmarks;
-use sp_runtime::FixedU128;
+use orml_traits::MultiCurrencyExtended;
+use pallet_route_executor::MAX_NUMBER_OF_TRADES;
+use primitives::{BlockNumber, Price};
+use sp_runtime::traits::SaturatedConversion;
+use sp_runtime::{FixedPointNumber, FixedU128};
 
 type MultiPaymentPallet<T> = pallet_transaction_multi_payment::Pallet<T>;
 type XykPallet<T> = pallet_xyk::Pallet<T>;
 type Router<T> = pallet_route_executor::Pallet<T>;
+use hydradx_traits::router::AssetPair;
+use hydradx_traits::router::Trade;
+use hydradx_traits::OraclePeriod;
+
+parameter_types! {
+	//NOTE: This should always be > 1 otherwise we will payout more than we collected as ED for
+	//insufficient assets.
+	pub InsufficientEDinBSX: Balance = FixedU128::from_rational(11, 10)
+		.saturating_mul_int(<Runtime as pallet_balances::Config>::ExistentialDeposit::get());
+}
 
 const SEED: u32 = 1;
+
+const UNITS: Balance = 1_000_000_000_000;
+
+pub fn update_balance(currency_id: AssetId, who: &AccountId, balance: Balance) {
+	assert_ok!(<Currencies as MultiCurrencyExtended<_>>::update_balance(
+		currency_id,
+		who,
+		balance.saturated_into()
+	));
+}
 
 runtime_benchmarks! {
 	{ Runtime, pallet_transaction_multi_payment}
@@ -59,6 +78,7 @@ runtime_benchmarks! {
 	set_currency {
 		let maker: AccountId = account("maker", 0, SEED);
 		let caller: AccountId = account("caller", 0, SEED);
+		let fallback_account: AccountId = account("fallback_account", 1, SEED);
 
 		let asset_id = register_asset(b"TST".to_vec(), 100u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 
@@ -140,6 +160,13 @@ runtime_benchmarks! {
 	verify{
 		assert!(_price.is_some());
 	}
+
+	reset_payment_currency {
+		let caller: AccountId = account("caller", 0, SEED);
+	}: { MultiPaymentPallet::<Runtime>::reset_payment_currency(RawOrigin::Root.into(), caller.clone())? }
+	verify{
+		assert_eq!(MultiPaymentPallet::<Runtime>::get_currency(caller), None);
+	}
 }
 
 fn create_xyk_pool<T: pallet_xyk::Config>(asset_a: AssetId, amount_a: Balance, asset_b: AssetId, amount_b: Balance)
@@ -147,6 +174,13 @@ where
 	<T as frame_system::Config>::RuntimeOrigin: core::convert::From<frame_system::RawOrigin<sp_runtime::AccountId32>>,
 {
 	let maker: AccountId = account("xyk-maker", 0, SEED);
+
+	assert_ok!(Currencies::update_balance(
+		RawOrigin::Root.into(),
+		maker.clone(),
+		0_u32,
+		InsufficientEDinBSX::get() as i128,
+	));
 
 	assert_ok!(Currencies::update_balance(
 		RawOrigin::Root.into(),

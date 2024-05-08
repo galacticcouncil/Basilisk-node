@@ -1,63 +1,72 @@
 #![cfg(test)]
 use crate::kusama_test_net::*;
 
-use frame_support::{assert_ok, dispatch::GetDispatchInfo, weights::Weight};
+use frame_support::{assert_ok, dispatch::GetDispatchInfo};
 use sp_runtime::codec::Encode;
 
-use polkadot_xcm::latest::prelude::*;
+use polkadot_xcm::v4::prelude::*;
+
 use xcm_emulator::TestExt;
 
+use sp_std::sync::Arc;
 #[test]
 fn allowed_transact_call_should_pass_filter() {
 	// Arrange
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
-		assert_ok!(basilisk_runtime::Balances::transfer(
+		assert_ok!(basilisk_runtime::Currencies::transfer(
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			parachain_reserve_account(),
+			BSX,
 			1_000 * UNITS,
 		));
 	});
 
 	OtherParachain::execute_with(|| {
 		// allowed by SafeCallFilter and the runtime call filter
-		let call = pallet_balances::Call::<basilisk_runtime::Runtime>::transfer {
+		let call = pallet_currencies::Call::<basilisk_runtime::Runtime>::transfer {
 			dest: BOB.into(),
-			value: UNITS,
+			currency_id: 0,
+			amount: UNITS,
 		};
+		let bsx_loc = Location::new(
+			1,
+			cumulus_primitives_core::Junctions::X2(Arc::new(
+				vec![
+					cumulus_primitives_core::Junction::Parachain(BASILISK_PARA_ID),
+					cumulus_primitives_core::Junction::GeneralIndex(0),
+				]
+				.try_into()
+				.unwrap(),
+			)),
+		);
+		let asset_to_withdraw: Asset = Asset {
+			id: cumulus_primitives_core::AssetId(bsx_loc.clone()),
+			fun: Fungible(900 * UNITS),
+		};
+
+		let asset_for_buy_execution: Asset = Asset {
+			id: cumulus_primitives_core::AssetId(bsx_loc),
+			fun: Fungible(800 * UNITS),
+		};
+
 		let message = Xcm(vec![
-			WithdrawAsset(
-				(
-					MultiLocation {
-						parents: 1,
-						interior: X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0)),
-					},
-					900 * UNITS,
-				)
-					.into(),
-			),
+			WithdrawAsset(asset_to_withdraw.into()),
 			BuyExecution {
-				fees: (
-					MultiLocation {
-						parents: 1,
-						interior: X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0)),
-					},
-					800 * UNITS,
-				)
-					.into(),
+				fees: asset_for_buy_execution.into(),
 				weight_limit: Unlimited,
 			},
 			Transact {
 				require_weight_at_most: call.get_dispatch_info().weight,
 				origin_kind: OriginKind::SovereignAccount,
-				call: basilisk_runtime::RuntimeCall::Balances(call).encode().into(),
+				call: basilisk_runtime::RuntimeCall::Currencies(call).encode().into(),
 			},
 			ExpectTransactStatus(MaybeErrorCode::Success),
 			RefundSurplus,
 			DepositAsset {
 				assets: All.into(),
-				beneficiary: Junction::AccountId32 {
+				beneficiary: cumulus_primitives_core::Junction::AccountId32 {
 					id: parachain_reserve_account().into(),
 					network: None,
 				}
@@ -66,19 +75,25 @@ fn allowed_transact_call_should_pass_filter() {
 		]);
 
 		// Act
+		let dest = Location::new(
+			1,
+			cumulus_primitives_core::Junctions::X1(Arc::new(
+				vec![cumulus_primitives_core::Junction::Parachain(BASILISK_PARA_ID)]
+					.try_into()
+					.unwrap(),
+			)),
+		);
+
 		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(
-			Here,
-			MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))),
+			cumulus_primitives_core::Junctions::Here,
+			dest,
 			message
 		));
 	});
 
+	// Assert
 	Basilisk::execute_with(|| {
-		// Assert
-		assert!(basilisk_runtime::System::events().iter().any(|r| matches!(
-			r.event,
-			basilisk_runtime::RuntimeEvent::XcmpQueue(cumulus_pallet_xcmp_queue::Event::Success { .. })
-		)));
+		assert_xcm_message_processing_passed();
 		assert_eq!(
 			basilisk_runtime::Balances::free_balance(AccountId::from(BOB)),
 			BOB_INITIAL_BSX_BALANCE + UNITS
@@ -92,9 +107,10 @@ fn blocked_transact_calls_should_not_pass_filter() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
-		assert_ok!(basilisk_runtime::Balances::transfer(
+		assert_ok!(basilisk_runtime::Currencies::transfer(
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			parachain_reserve_account(),
+			BSX,
 			1_000 * UNITS,
 		));
 	});
@@ -105,26 +121,30 @@ fn blocked_transact_calls_should_not_pass_filter() {
 			reason: vec![0, 10],
 			who: BOB.into(),
 		};
+		let bsx_loc = Location::new(
+			1,
+			cumulus_primitives_core::Junctions::X2(Arc::new(
+				vec![
+					cumulus_primitives_core::Junction::Parachain(BASILISK_PARA_ID),
+					cumulus_primitives_core::Junction::GeneralIndex(0),
+				]
+				.try_into()
+				.unwrap(),
+			)),
+		);
+		let asset_to_withdraw: Asset = Asset {
+			id: cumulus_primitives_core::AssetId(bsx_loc.clone()),
+			fun: Fungible(900 * UNITS),
+		};
+
+		let asset_for_buy_execution: Asset = Asset {
+			id: cumulus_primitives_core::AssetId(bsx_loc),
+			fun: Fungible(800 * UNITS),
+		};
 		let message = Xcm(vec![
-			WithdrawAsset(
-				(
-					MultiLocation {
-						parents: 1,
-						interior: X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0)),
-					},
-					900 * UNITS,
-				)
-					.into(),
-			),
+			WithdrawAsset(asset_to_withdraw.into()),
 			BuyExecution {
-				fees: (
-					MultiLocation {
-						parents: 1,
-						interior: X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0)),
-					},
-					800 * UNITS,
-				)
-					.into(),
+				fees: asset_for_buy_execution,
 				weight_limit: Unlimited,
 			},
 			Transact {
@@ -136,7 +156,7 @@ fn blocked_transact_calls_should_not_pass_filter() {
 			RefundSurplus,
 			DepositAsset {
 				assets: All.into(),
-				beneficiary: Junction::AccountId32 {
+				beneficiary: cumulus_primitives_core::Junction::AccountId32 {
 					id: parachain_reserve_account().into(),
 					network: None,
 				}
@@ -144,23 +164,15 @@ fn blocked_transact_calls_should_not_pass_filter() {
 			},
 		]);
 
+		let dest = basilisk_location();
+
 		// Act
-		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(
-			Here,
-			MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))),
-			message
-		));
+		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(Here, dest, message));
 	});
 
 	Basilisk::execute_with(|| {
 		// Assert
-		assert!(basilisk_runtime::System::events().iter().any(|r| matches!(
-			r.event,
-			basilisk_runtime::RuntimeEvent::XcmpQueue(cumulus_pallet_xcmp_queue::Event::Fail {
-				error: cumulus_primitives_core::XcmError::NoPermission,
-				..
-			})
-		)));
+		assert_xcm_message_processing_failed()
 	});
 }
 
@@ -170,9 +182,10 @@ fn safe_call_filter_should_respect_runtime_call_filter() {
 	TestNet::reset();
 
 	Basilisk::execute_with(|| {
-		assert_ok!(basilisk_runtime::Balances::transfer(
+		assert_ok!(basilisk_runtime::Currencies::transfer(
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			parachain_reserve_account(),
+			BSX,
 			1_000 * UNITS,
 		));
 	});
@@ -183,26 +196,31 @@ fn safe_call_filter_should_respect_runtime_call_filter() {
 			collection: 1u128,
 			admin: ALICE.into(),
 		};
+		let bsx_loc = Location::new(
+			1,
+			cumulus_primitives_core::Junctions::X2(Arc::new(
+				vec![
+					cumulus_primitives_core::Junction::Parachain(BASILISK_PARA_ID),
+					cumulus_primitives_core::Junction::GeneralIndex(0),
+				]
+				.try_into()
+				.unwrap(),
+			)),
+		);
+		let asset_to_withdraw: Asset = Asset {
+			id: cumulus_primitives_core::AssetId(bsx_loc.clone()),
+			fun: Fungible(900 * UNITS),
+		};
+
+		let asset_for_buy_execution: Asset = Asset {
+			id: cumulus_primitives_core::AssetId(bsx_loc),
+			fun: Fungible(800 * UNITS),
+		};
+
 		let message = Xcm(vec![
-			WithdrawAsset(
-				(
-					MultiLocation {
-						parents: 1,
-						interior: X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0)),
-					},
-					900 * UNITS,
-				)
-					.into(),
-			),
+			WithdrawAsset(asset_to_withdraw.into()),
 			BuyExecution {
-				fees: (
-					MultiLocation {
-						parents: 1,
-						interior: X2(Parachain(BASILISK_PARA_ID), GeneralIndex(0)),
-					},
-					800 * UNITS,
-				)
-					.into(),
+				fees: asset_for_buy_execution,
 				weight_limit: Unlimited,
 			},
 			Transact {
@@ -214,7 +232,7 @@ fn safe_call_filter_should_respect_runtime_call_filter() {
 			RefundSurplus,
 			DepositAsset {
 				assets: All.into(),
-				beneficiary: Junction::AccountId32 {
+				beneficiary: cumulus_primitives_core::Junction::AccountId32 {
 					id: parachain_reserve_account().into(),
 					network: None,
 				}
@@ -222,22 +240,23 @@ fn safe_call_filter_should_respect_runtime_call_filter() {
 			},
 		]);
 
+		let dest = basilisk_location();
+
 		// Act
-		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(
-			Here,
-			MultiLocation::new(1, X1(Parachain(BASILISK_PARA_ID))),
-			message
-		));
+		assert_ok!(basilisk_runtime::PolkadotXcm::send_xcm(Here, dest, message));
 	});
 
-	Basilisk::execute_with(|| {
-		// Assert
-		assert!(basilisk_runtime::System::events().iter().any(|r| matches!(
-			r.event,
-			basilisk_runtime::RuntimeEvent::XcmpQueue(cumulus_pallet_xcmp_queue::Event::Fail {
-				error: cumulus_primitives_core::XcmError::NoPermission,
-				..
-			})
-		)));
-	});
+	//Assert
+	Basilisk::execute_with(|| assert_xcm_message_processing_failed());
+}
+
+fn basilisk_location() -> Location {
+	Location::new(
+		1,
+		cumulus_primitives_core::Junctions::X1(Arc::new(
+			vec![cumulus_primitives_core::Junction::Parachain(BASILISK_PARA_ID)]
+				.try_into()
+				.unwrap(),
+		)),
+	)
 }

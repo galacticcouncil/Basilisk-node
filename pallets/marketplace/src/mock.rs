@@ -6,7 +6,6 @@ use frame_support::{
 };
 use frame_system as system;
 use pallet_nft::{CollectionType, NftPermissions};
-pub use primitives::{Amount, AssetId};
 use sp_core::storage::Storage;
 use sp_core::{crypto::AccountId32, H256};
 use sp_runtime::{
@@ -14,13 +13,7 @@ use sp_runtime::{
 	BuildStorage,
 };
 use sp_std::convert::{TryFrom, TryInto};
-use std::borrow::Borrow;
 use system::EnsureRoot;
-
-mod marketplace {
-	// Re-export needed for `impl_outer_event!`.
-	pub use super::super::*;
-}
 
 type Block = frame_system::mocking::MockBlock<Test>;
 type AccountId = AccountId32;
@@ -89,8 +82,8 @@ impl pallet_balances::Config for Test {
 	type ReserveIdentifier = ();
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
-	type MaxHolds = ();
 	type RuntimeHoldReason = ();
+	type RuntimeFreezeReason = ();
 }
 
 impl system::Config for Test {
@@ -100,6 +93,7 @@ impl system::Config for Test {
 	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
+	type RuntimeTask = RuntimeTask;
 	type Nonce = u64;
 	type Block = Block;
 	type Hash = H256;
@@ -210,7 +204,7 @@ impl ExtBuilder {
 				.endowed_accounts
 				.clone()
 				.iter()
-				.flat_map(|(x, asset)| vec![(x.borrow().clone(), *asset)])
+				.flat_map(|(x, asset)| vec![(x.clone(), *asset)])
 				.collect(),
 		}
 		.assimilate_storage(t)

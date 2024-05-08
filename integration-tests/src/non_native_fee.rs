@@ -25,12 +25,12 @@ pub fn basilisk_run_to_next_block() {
 	let b = basilisk_runtime::System::block_number();
 
 	basilisk_runtime::System::on_finalize(b);
-	basilisk_runtime::MultiTransactionPayment::on_finalize(b);
 	basilisk_runtime::EmaOracle::on_finalize(b);
+	basilisk_runtime::MultiTransactionPayment::on_finalize(b);
 
 	basilisk_runtime::System::on_initialize(b + 1);
-	basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
 	basilisk_runtime::EmaOracle::on_initialize(b + 1);
+	basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
 
 	basilisk_runtime::System::set_block_number(b + 1);
 }

@@ -48,7 +48,7 @@ use frame_support::assert_ok;
 use frame_support::traits::OnInitialize;
 use pallet_transaction_multi_payment::Price;
 pub use pallet_xyk::types::AssetPair;
-use polkadot_primitives::v5::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
+use polkadot_primitives::v6::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;
 use primitives::{AssetId, Balance};
@@ -57,28 +57,42 @@ use sp_runtime::{traits::AccountIdConversion, BuildStorage};
 
 use primitives::constants::chain::CORE_ASSET_ID;
 pub use xcm_emulator::Network;
-use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains, DefaultMessageProcessor};
+use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains};
+
+pub type Rococo = RococoRelayChain<TestNet>;
+pub type Basilisk = BasiliskParachain<TestNet>;
+pub type OtherParachain = OtherPara<TestNet>;
+
+decl_test_networks! {
+	pub struct TestNet {
+		relay_chain = RococoRelayChain,
+		parachains = vec![
+			OtherPara,
+			BasiliskParachain,
+		],
+		bridge = ()
+	},
+}
 
 decl_test_relay_chains! {
-	#[api_version(5)]
-	pub struct Kusama {
-		genesis = kusama::genesis(),
+	#[api_version(10)]
+	pub struct RococoRelayChain {
+		genesis = rococo::genesis(),
 		on_init = (),
-		runtime = kusama_runtime,
+		runtime = rococo_runtime,
 		core = {
-			MessageProcessor: DefaultMessageProcessor<Kusama>,
-			SovereignAccountOf: kusama_runtime::xcm_config::SovereignAccountOf,
+			SovereignAccountOf: rococo_runtime::xcm_config::LocationConverter,
 		},
 		pallets = {
-			XcmPallet: kusama_runtime::XcmPallet,
-			Balances: kusama_runtime::Balances,
-			Hrmp: kusama_runtime::Hrmp,
+			XcmPallet: rococo_runtime::XcmPallet,
+			Balances: rococo_runtime::Balances,
+			Hrmp: rococo_runtime::Hrmp,
 		}
 	}
 }
 
 decl_test_parachains! {
-	pub struct Basilisk {
+	pub struct BasiliskParachain {
 		genesis = basilisk::genesis(),
 		on_init = {
 			basilisk_runtime::System::set_block_number(1);
@@ -88,16 +102,16 @@ decl_test_parachains! {
 		runtime = basilisk_runtime,
 		core = {
 			XcmpMessageHandler: basilisk_runtime::XcmpQueue,
-			DmpMessageHandler: basilisk_runtime::DmpQueue,
 			LocationToAccountId: basilisk_runtime::xcm::LocationToAccountId,
 			ParachainInfo: basilisk_runtime::ParachainInfo,
+			MessageOrigin: cumulus_primitives_core::AggregateMessageOrigin,
 		},
 		pallets = {
 			PolkadotXcm: basilisk_runtime::PolkadotXcm,
 			Balances: basilisk_runtime::Balances,
 		}
 	},
-	pub struct OtherParachain {
+	pub struct OtherPara {
 		genesis = other_parachain::genesis(),
 		on_init = {
 			basilisk_runtime::System::set_block_number(1);
@@ -107,9 +121,9 @@ decl_test_parachains! {
 		runtime = basilisk_runtime,
 		core = {
 			XcmpMessageHandler: basilisk_runtime::XcmpQueue,
-			DmpMessageHandler: basilisk_runtime::DmpQueue,
 			LocationToAccountId: basilisk_runtime::LocationToAccountId,
 			ParachainInfo: basilisk_runtime::ParachainInfo,
+			MessageOrigin: cumulus_primitives_core::AggregateMessageOrigin,
 		},
 		pallets = {
 			PolkadotXcm: basilisk_runtime::PolkadotXcm,
@@ -118,18 +132,7 @@ decl_test_parachains! {
 	}
 }
 
-decl_test_networks! {
-	pub struct TestNet {
-		relay_chain = Kusama,
-		parachains = vec![
-			OtherParachain,
-			Basilisk,
-		],
-		bridge = ()
-	},
-}
-
-pub mod kusama {
+pub mod rococo {
 	use super::*;
 
 	fn get_host_configuration() -> HostConfiguration<BlockNumber> {
@@ -166,7 +169,6 @@ pub mod kusama {
 		}
 	}
 
-	use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 	use polkadot_primitives::{AssignmentId, ValidatorId};
 	use polkadot_service::chain_spec::get_authority_keys_from_seed_no_beefy;
 	use sc_consensus_grandpa::AuthorityId as GrandpaId;
@@ -186,16 +188,14 @@ pub mod kusama {
 	fn session_keys(
 		babe: BabeId,
 		grandpa: GrandpaId,
-		im_online: ImOnlineId,
 		para_validator: ValidatorId,
 		para_assignment: AssignmentId,
 		authority_discovery: AuthorityDiscoveryId,
 		beefy: BeefyId,
-	) -> kusama_runtime::SessionKeys {
-		kusama_runtime::SessionKeys {
+	) -> rococo_runtime::SessionKeys {
+		rococo_runtime::SessionKeys {
 			babe,
 			grandpa,
-			im_online,
 			para_validator,
 			para_assignment,
 			authority_discovery,
@@ -208,23 +208,34 @@ pub mod kusama {
 		AccountId,
 		BabeId,
 		GrandpaId,
-		ImOnlineId,
 		ValidatorId,
 		AssignmentId,
 		AuthorityDiscoveryId,
+		BeefyId,
 	)> {
-		vec![get_authority_keys_from_seed_no_beefy("Alice")]
+		let no_beefy = get_authority_keys_from_seed_no_beefy("Alice");
+		let with_beefy = (
+			no_beefy.0,
+			no_beefy.1,
+			no_beefy.2,
+			no_beefy.3,
+			no_beefy.4,
+			no_beefy.5,
+			no_beefy.6,
+			get_from_seed::<BeefyId>("Alice"),
+		);
+		vec![with_beefy]
 	}
 
 	pub fn genesis() -> Storage {
-		let genesis_config = kusama_runtime::RuntimeGenesisConfig {
-			balances: kusama_runtime::BalancesConfig {
+		let genesis_config = rococo_runtime::RuntimeGenesisConfig {
+			balances: rococo_runtime::BalancesConfig {
 				balances: vec![
 					(AccountId::from(ALICE), 2002 * UNITS),
 					(ParaId::from(BASILISK_PARA_ID).into_account_truncating(), 10 * UNITS),
 				],
 			},
-			session: kusama_runtime::SessionConfig {
+			session: rococo_runtime::SessionConfig {
 				keys: initial_authorities()
 					.iter()
 					.map(|x| {
@@ -238,22 +249,21 @@ pub mod kusama {
 								x.5.clone(),
 								x.6.clone(),
 								x.7.clone(),
-								get_from_seed::<BeefyId>("Alice"),
 							),
 						)
 					})
 					.collect::<Vec<_>>(),
 			},
-			babe: kusama_runtime::BabeConfig {
+			babe: rococo_runtime::BabeConfig {
 				authorities: Default::default(),
-				epoch_config: Some(kusama_runtime::BABE_GENESIS_EPOCH_CONFIG),
+				epoch_config: Some(rococo_runtime::BABE_GENESIS_EPOCH_CONFIG),
 				..Default::default()
 			},
-			configuration: kusama_runtime::ConfigurationConfig {
+			configuration: rococo_runtime::ConfigurationConfig {
 				config: get_host_configuration(),
 			},
 
-			xcm_pallet: kusama_runtime::XcmPalletConfig {
+			xcm_pallet: rococo_runtime::XcmPalletConfig {
 				safe_xcm_version: Some(3),
 				..Default::default()
 			},
@@ -470,10 +480,24 @@ pub fn last_basilisk_events(n: usize) -> Vec<basilisk_runtime::RuntimeEvent> {
 		.collect()
 }
 
+#[allow(dead_code)]
 pub fn expect_basilisk_events(e: Vec<basilisk_runtime::RuntimeEvent>) {
 	assert_eq!(last_basilisk_events(e.len()), e);
 }
 
+pub fn expect_basilisk_event(e: basilisk_runtime::RuntimeEvent) {
+	let last_10_events = last_basilisk_events(10);
+	let mut found = false;
+	for event in last_10_events {
+		if event == e {
+			found = true;
+			break;
+		}
+	}
+	assert!(found, "Event not found in the last 10 basilisk events");
+}
+
+#[allow(dead_code)]
 pub fn last_parachain_events(n: usize) -> Vec<basilisk_runtime::RuntimeEvent> {
 	frame_system::Pallet::<basilisk_runtime::Runtime>::events()
 		.into_iter()
@@ -492,7 +516,7 @@ pub fn set_relaychain_block_number(number: BlockNumber) {
 	use basilisk_runtime::ParachainSystem;
 	use basilisk_runtime::RuntimeOrigin;
 
-	kusama_run_to_block(number); //We need to set block number this way as well because tarpaulin code coverage tool does not like the way how we set the block number with `cumulus-test-relay-sproof-builder` package
+	rococo_run_to_block(number); //We need to set block number this way as well because tarpaulin code coverage tool does not like the way how we set the block number with `cumulus-test-relay-sproof-builder` package
 
 	ParachainSystem::on_initialize(number);
 
@@ -514,13 +538,29 @@ pub fn set_relaychain_block_number(number: BlockNumber) {
 	));
 }
 
-pub fn kusama_run_to_block(to: BlockNumber) {
+pub fn rococo_run_to_block(to: BlockNumber) {
 	use frame_support::traits::OnFinalize;
 
-	while kusama_runtime::System::block_number() < to {
-		let b = kusama_runtime::System::block_number();
-		kusama_runtime::System::on_finalize(b);
-		kusama_runtime::System::on_initialize(b + 1);
-		kusama_runtime::System::set_block_number(b + 1);
+	while rococo_runtime::System::block_number() < to {
+		let b = rococo_runtime::System::block_number();
+		rococo_runtime::System::on_finalize(b);
+		rococo_runtime::System::on_initialize(b + 1);
+		rococo_runtime::System::set_block_number(b + 1);
 	}
+}
+
+use xcm_emulator::pallet_message_queue;
+
+pub fn assert_xcm_message_processing_failed() {
+	assert!(basilisk_runtime::System::events().iter().any(|r| matches!(
+		r.event,
+		basilisk_runtime::RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed { success: false, .. })
+	)));
+}
+
+pub fn assert_xcm_message_processing_passed() {
+	assert!(basilisk_runtime::System::events().iter().any(|r| matches!(
+		r.event,
+		basilisk_runtime::RuntimeEvent::MessageQueue(pallet_message_queue::Event::Processed { success: true, .. })
+	)));
 }

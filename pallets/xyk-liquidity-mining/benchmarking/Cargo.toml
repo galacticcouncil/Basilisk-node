@@ -1,6 +1,6 @@
 [package]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.16"
+version = "1.0.17"
 description = "Liquidity Mining Benchmarking Module"
 authors = ["GalacticCouncil"]
 edition = "2021"
