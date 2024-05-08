@@ -176,7 +176,9 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
+	// TODO origin
 	type ExecuteOverweightOrigin = MajorityTechCommitteeOrRoot;
+	// TODO origin
 	type ControllerOrigin = MajorityTechCommitteeOrRoot;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 	type PriceForSiblingDelivery = ();
@@ -192,6 +194,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 impl cumulus_pallet_dmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
+	// TODO origin
 	type ExecuteOverweightOrigin = MajorityTechCommitteeOrRoot;
 }
 
@@ -224,6 +227,7 @@ impl orml_unknown_tokens::Config for Runtime {
 
 impl orml_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	// TODO origin
 	type SovereignOrigin = SuperMajorityCouncilOrRoot;
 }
 
@@ -265,6 +269,7 @@ impl pallet_xcm::Config for Runtime {
 	type WeightInfo = weights::xcm::BasiliskWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type ReachableDest = ReachableDest;
+	// TODO origin
 	type AdminOrigin = SuperMajorityTechCommitteeOrRoot;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();

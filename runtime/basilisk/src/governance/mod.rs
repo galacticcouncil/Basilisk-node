@@ -36,7 +36,9 @@ parameter_types! {
 
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
+	// TODO origin
 	type ApproveOrigin = SuperMajorityCouncilOrRoot;
+	// TODO origin
 	type RejectOrigin = MajorityCouncilOrRoot;
 	type RuntimeEvent = RuntimeEvent;
 	type OnSlash = Treasury;

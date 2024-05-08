@@ -148,6 +148,7 @@ parameter_types! {
 }
 impl pallet_asset_registry::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	// TODO origin
 	type RegistryOrigin = SuperMajorityTechCommitteeOrRoot;
 	type AssetId = AssetId;
 	type Balance = Balance;
@@ -171,6 +172,7 @@ impl pallet_duster::Config for Runtime {
 	type MinCurrencyDeposits = AssetRegistry;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
+	// TODO origin
 	type BlacklistUpdateOrigin = MajorityTechCommitteeOrRoot;
 	type WeightInfo = weights::duster::BasiliskWeight<Runtime>;
 }
@@ -262,6 +264,7 @@ impl pallet_lbp::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currencies;
 	type LockedBalance = MultiCurrencyLockedBalance<Runtime>;
+	// TODO origin
 	type CreatePoolOrigin = SuperMajorityTechCommitteeOrRoot;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
@@ -351,6 +354,7 @@ impl pallet_uniques::Config for Runtime {
 	type CollectionId = CollectionId;
 	type ItemId = ItemId;
 	type Currency = KusamaCurrency;
+	// TODO origin
 	type ForceOrigin = SuperMajorityCouncilOrRoot;
 	// Standard collection creation is disallowed
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
@@ -377,6 +381,7 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currencies;
 	type AMM = XYK;
+	// TODO origin
 	type CreateOrigin = UnanimousTechCommitteeOrRoot;
 	type PalletId = LMPalletId;
 	type NftCollectionId = LiquidityMiningNftCollectionId;

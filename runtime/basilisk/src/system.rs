@@ -229,6 +229,7 @@ impl pallet_transaction_payment::Config for Runtime {
 
 impl pallet_transaction_multi_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	// TODO origin
 	type AcceptedCurrencyOrigin = MajorityTechCommitteeOrRoot;
 	type Currencies = Currencies;
 	type RouteProvider = Router;
@@ -396,6 +397,7 @@ parameter_types! {
 impl pallet_collator_selection::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
+	// TODO origin
 	type UpdateOrigin = MajorityTechCommitteeOrRoot;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
@@ -439,6 +441,7 @@ impl pallet_relaychain_info::Config for Runtime {
 
 impl pallet_transaction_pause::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	// TODO origin
 	type UpdateOrigin = MajorityTechCommitteeOrRoot;
 	type WeightInfo = weights::transaction_pause::BasiliskWeight<Runtime>;
 }
@@ -485,7 +488,9 @@ impl pallet_identity::Config for Runtime {
 	type MaxAdditionalFields = MaxAdditionalFields;
 	type MaxRegistrars = MaxRegistrars;
 	type Slashed = Treasury;
+	// TODO origin
 	type ForceOrigin = MajorityCouncilOrRoot;
+	// TODO origin
 	type RegistrarOrigin = MajorityCouncilOrRoot;
 	type WeightInfo = ();
 }
@@ -521,6 +526,7 @@ parameter_types! {
 }
 
 impl pallet_state_trie_migration::Config for Runtime {
+	// TODO origin
 	type ControlOrigin = SuperMajorityTechCommitteeOrRoot;
 	type SignedFilter = EnsureSignedBy<TechCommAccounts, AccountId>;
 	type RuntimeEvent = RuntimeEvent;
