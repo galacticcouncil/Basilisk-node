@@ -17,8 +17,18 @@
 
 use super::*;
 use crate::old::{MajorityCouncilOrRoot, SuperMajorityCouncilOrRoot};
-use frame_support::{parameter_types, sp_runtime::Permill, traits::NeverEnsureOrigin, PalletId};
+use frame_support::{
+	parameter_types,
+	sp_runtime::Permill,
+	traits::{
+		fungible,
+		tokens::{Pay, PaymentStatus, Preservation, UnityAssetBalanceConversion},
+		NeverEnsureOrigin,
+	},
+	PalletId,
+};
 use primitives::constants::{currency::DOLLARS, time::DAYS};
+use sp_runtime::{traits::IdentityLookup, DispatchError};
 
 // Old governance configurations.
 pub mod old;
@@ -53,6 +63,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = weights::pallet_treasury::BasiliskWeight<Runtime>;
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
+	// TODO origin TreasurySpender
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type SpendOrigin = NeverEnsureOrigin<Balance>; // Disabled, no spending
 	#[cfg(feature = "runtime-benchmarks")]

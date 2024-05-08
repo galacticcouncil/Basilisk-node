@@ -36,7 +36,10 @@ use frame_support::{
 	dispatch::DispatchClass,
 	parameter_types,
 	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill, RuntimeDebug},
-	traits::{ConstBool, Contains, EqualPrivilegeOnly, InstanceFilter, SortedMembers},
+	traits::{
+		fungible::HoldConsideration, ConstBool, Contains, EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice,
+		SortedMembers,
+	},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_MICROS},
 		ConstantMultiplier, WeightToFeeCoefficient, WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -366,7 +369,6 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
-
 parameter_types! {
 	pub ProxyDepositBase: Balance = 4 * DOLLARS + 480 * MILLICENTS;
 	pub ProxyDepositFactor: Balance = 1_980 * MILLICENTS;
@@ -587,9 +589,6 @@ parameter_types! {
 
 #[cfg(feature = "runtime-benchmarks")]
 use frame_system::EnsureSigned;
-
-#[cfg(not(feature = "runtime-benchmarks"))]
-use frame_system::EnsureSignedBy;
 
 impl pallet_state_trie_migration::Config for Runtime {
 	// TODO origin

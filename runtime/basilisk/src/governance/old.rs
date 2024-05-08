@@ -18,24 +18,17 @@
 use crate::*;
 
 use primitives::constants::{
-	currency::{CENTS, DOLLARS},
-	currency::{deposit, CENTS, DOLLARS, UNITS},
+	currency::{CENTS, DOLLARS, UNITS},
 	time::{DAYS, HOURS},
 };
 
-use frame_support::traits::fungible::HoldConsideration;
-use frame_support::traits::tokens::{Pay, PaymentStatus, Preservation, UnityAssetBalanceConversion};
-use frame_support::traits::{fungible, LinearStoragePrice};
 use frame_support::{
 	parameter_types,
-	sp_runtime::{Perbill, Percent, Permill},
-	traits::{EitherOfDiverse, EqualPrivilegeOnly, LockIdentifier},
-	PalletId,
+	sp_runtime::{Perbill, Percent},
+	traits::{EitherOfDiverse, LockIdentifier},
 };
 use frame_system::{EnsureRoot, EnsureSigned};
 use pallet_collective::EnsureProportionAtLeast;
-use sp_runtime::traits::IdentityLookup;
-use sp_runtime::DispatchError;
 use sp_staking::currency_to_vote::U128CurrencyToVote;
 
 pub type MajorityCouncilOrRoot =
