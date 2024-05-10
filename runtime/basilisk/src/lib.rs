@@ -101,7 +101,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 113,
+	spec_version: 114,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -454,6 +454,9 @@ impl_runtime_apis! {
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
 			use frame_benchmarking::{BenchmarkError, Benchmarking, BenchmarkBatch};
 			use frame_support::traits::TrackedStorageKey;
+			use sp_core::Get;
+			use sp_std::sync::Arc;
+			use primitives::constants::chain::CORE_ASSET_ID;
 
 			use orml_benchmarking::add_benchmark as orml_add_benchmark;
 
@@ -474,7 +477,12 @@ impl_runtime_apis! {
 
 			parameter_types! {
 				pub const RandomParaId: ParaId = ParaId::new(22222222);
-				pub const ExistentialDeposit: u128= 0;
+				pub const ExistentialDeposit: u128= 1_000_000_000_000;
+				pub AssetLocation: Location = Location::new(1, cumulus_primitives_core::Junctions::X2(
+					Arc::new([cumulus_primitives_core::Junction::Parachain(ParachainInfo::get().into()),
+						cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())
+						])
+				));
 			}
 
 			use cumulus_primitives_core::ParaId;
@@ -489,7 +497,7 @@ impl_runtime_apis! {
 					Some((
 						Asset {
 							fun: Fungible(ExistentialDeposit::get()),
-							id: AssetId(Parent.into())
+							id: AssetId(AssetLocation::get())
 						},
 						Parent.into(),
 					))
@@ -499,7 +507,7 @@ impl_runtime_apis! {
 					Some((
 						Asset {
 							fun: Fungible(ExistentialDeposit::get()),
-							id: AssetId(Parent.into())
+							id: AssetId(AssetLocation::get())
 						},
 						ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
 					))
