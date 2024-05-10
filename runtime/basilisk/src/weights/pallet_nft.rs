@@ -54,6 +54,9 @@ use core::marker::PhantomData;
 /// Weights for `pallet_nft`.
 pub struct WeightInfo<T>(PhantomData<T>);
 
+const CREATE_COLLECTION_OFFSET: u64 = 400;
+const MINT_OFFSET: u64 = 300;
+
 /// Weights for `pallet_nft` using the Basilisk node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_nft::WeightInfo for BasiliskWeight<T> {
@@ -73,6 +76,7 @@ impl<T: frame_system::Config> pallet_nft::WeightInfo for BasiliskWeight<T> {
 		//  Estimated: `4087`
 		// Minimum execution time: 28_516_000 picoseconds.
 		Weight::from_parts(28_938_000, 4087)
+			.saturating_mul(CREATE_COLLECTION_OFFSET)
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
@@ -98,6 +102,7 @@ impl<T: frame_system::Config> pallet_nft::WeightInfo for BasiliskWeight<T> {
 		//  Estimated: `4087`
 		// Minimum execution time: 48_444_000 picoseconds.
 		Weight::from_parts(49_056_000, 4087)
+			.saturating_mul(MINT_OFFSET)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
