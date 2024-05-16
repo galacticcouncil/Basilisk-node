@@ -3,6 +3,7 @@ mock-signature-host: true
 #block: 2734198
 db: ./db.sqlite
 wasm-override: ./basilisk_runtime.compact.compressed.wasm
+#runtime-log-level: 5
 
 import-storage:
   System:
@@ -10,14 +11,20 @@ import-storage:
       -
         -
           - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
-        - data:
-            free: 1000000000000000
+        - providers: 1
+          data:
+            free: "1000000000000000000000"
   Tokens:
     Accounts:
       -
         -
           - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
           - 2
+        - free: '100000000000000000000'
+      -
+        -
+          - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+          - 1
         - free: '100000000000000000000'
   Council:
     Members: [5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY]

@@ -101,7 +101,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 114,
+	spec_version: 115,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -167,6 +167,8 @@ construct_runtime!(
 		Timestamp: pallet_timestamp = 1,
 		Balances: pallet_balances = 2,
 		TransactionPayment: pallet_transaction_payment exclude_parts { Config } = 3,
+		// due to multi payment pallet prices, this needs to be initialized at the very beginning
+		MultiTransactionPayment: pallet_transaction_multi_payment = 106,
 		Treasury: pallet_treasury = 4,
 		Utility: pallet_utility = 5,
 		//NOTE: 6 - is used by Scheduler which must be after cumulus_pallet_parachain_system
@@ -190,13 +192,11 @@ construct_runtime!(
 		Multisig: pallet_multisig = 22,
 		StateTrieMigration: pallet_state_trie_migration = 23,
 
-		// Parachain and XCM - starts at index 50
+		// The order of next 3 pallest is important
+		RelayChainInfo: pallet_relaychain_info = 108,
+		Scheduler: pallet_scheduler = 6,
 		ParachainSystem: cumulus_pallet_parachain_system exclude_parts { Config } = 50,
 		ParachainInfo: staging_parachain_info = 51,
-
-		//NOTE: Scheduler must be after ParachainSystem otherwise RelayChainBlockNumberProvider
-		//will return 0 as current block number when used with Scheduler(democracy).
-		Scheduler: pallet_scheduler = 6,
 
 		PolkadotXcm: pallet_xcm = 52,
 		CumulusXcm: cumulus_pallet_xcm = 53,
@@ -210,8 +210,6 @@ construct_runtime!(
 		Duster: pallet_duster = 102,
 		LBP: pallet_lbp = 104,
 		NFT: pallet_nft = 105,
-		MultiTransactionPayment: pallet_transaction_multi_payment = 106,
-		RelayChainInfo: pallet_relaychain_info = 108,
 		Marketplace: pallet_marketplace = 109,
 		TransactionPause: pallet_transaction_pause = 110,
 		Router: pallet_route_executor = 111,
