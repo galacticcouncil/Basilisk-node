@@ -30,6 +30,8 @@ use frame_support::{
 use primitives::constants::{currency::DOLLARS, time::DAYS};
 use sp_runtime::{traits::IdentityLookup, DispatchError};
 
+mod origins;
+mod tracks;
 // Old governance configurations.
 pub mod old;
 
@@ -131,3 +133,5 @@ impl Pay for PayFromTreasuryAccount {
 	#[cfg(feature = "runtime-benchmarks")]
 	fn ensure_concluded(_: Self::Id) {}
 }
+
+impl origins::pallet_custom_origins::Config for Runtime {}

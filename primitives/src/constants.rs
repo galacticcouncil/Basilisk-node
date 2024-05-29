@@ -21,6 +21,7 @@ pub mod currency {
 	pub const FORTUNE: Balance = u128::MAX;
 	pub const UNITS: Balance = 1_000_000_000_000;
 	pub const DOLLARS: Balance = UNITS * 100; // 100 UNITS ~= 1 $
+	pub const GRAND: Balance = UNITS * 1_000;
 	pub const CENTS: Balance = DOLLARS / 100; // 1 UNITS ~= 1 cent
 	pub const MILLICENTS: Balance = CENTS / 1_000;
 	pub const NATIVE_EXISTENTIAL_DEPOSIT: Balance = CENTS;
