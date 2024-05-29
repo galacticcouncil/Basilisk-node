@@ -37,8 +37,6 @@ pub type UnanimousCouncilOrRoot =
 	EitherOfDiverse<EnsureProportionAtLeast<AccountId, CouncilCollective, 1, 1>, EnsureRoot<AccountId>>;
 pub type SuperMajorityCouncilOrRoot =
 	EitherOfDiverse<EnsureProportionAtLeast<AccountId, CouncilCollective, 2, 3>, EnsureRoot<AccountId>>;
-pub type SuperMajorityTechCommitteeOrRoot =
-	EitherOfDiverse<EnsureProportionAtLeast<AccountId, TechnicalCollective, 2, 3>, EnsureRoot<AccountId>>;
 pub type UnanimousTechCommitteeOrRoot =
 	EitherOfDiverse<EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 1>, EnsureRoot<AccountId>>;
 pub type MajorityTechCommitteeOrRoot =

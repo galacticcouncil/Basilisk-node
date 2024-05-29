@@ -17,7 +17,7 @@
 
 use super::*;
 use crate::governance::{
-	old::{MajorityCouncilOrRoot, MajorityTechCommitteeOrRoot, SuperMajorityTechCommitteeOrRoot},
+	old::MajorityTechCommitteeOrRoot,
 	origins::GeneralAdmin,
 	TreasuryAccount,
 };
@@ -587,7 +587,7 @@ parameter_types! {
 use frame_system::EnsureSigned;
 
 impl pallet_state_trie_migration::Config for Runtime {
-	type ControlOrigin = SuperMajorityTechCommitteeOrRoot;
+	type ControlOrigin = EnsureRoot<Self::AccountId>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type SignedFilter = EnsureSigned<AccountId>;
 	#[cfg(not(feature = "runtime-benchmarks"))]

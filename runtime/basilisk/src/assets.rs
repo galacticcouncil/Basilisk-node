@@ -16,10 +16,6 @@
 // limitations under the License.
 
 use super::*;
-use crate::governance::old::{
-	MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot, SuperMajorityTechCommitteeOrRoot,
-	UnanimousTechCommitteeOrRoot,
-};
 use crate::governance::origins::GeneralAdmin;
 use crate::system::NativeAssetId;
 
@@ -645,7 +641,7 @@ impl pallet_route_executor::Config for Runtime {
 	type DefaultRoutePoolType = DefaultRoutePoolType;
 	type WeightInfo = RouterWeightInfo;
 	type InspectRegistry = AssetRegistry;
-	type TechnicalOrigin = SuperMajorityTechCommitteeOrRoot;
+	type TechnicalOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 }
 
 parameter_types! {
@@ -660,7 +656,7 @@ parameter_types! {
 impl pallet_ema_oracle::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::pallet_ema_oracle::BasiliskWeight<Runtime>;
-	type AuthorityOrigin = SuperMajorityTechCommitteeOrRoot;
+	type AuthorityOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type SupportedPeriods = SupportedPeriods;
 	type OracleWhitelist = Everything;
