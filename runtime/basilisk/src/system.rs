@@ -18,6 +18,7 @@
 use super::*;
 use crate::governance::{
 	old::{MajorityCouncilOrRoot, MajorityTechCommitteeOrRoot, SuperMajorityTechCommitteeOrRoot},
+	origins::GeneralAdmin,
 	TreasuryAccount,
 };
 
@@ -29,15 +30,15 @@ use primitives::constants::{
 	time::{HOURS, SLOT_DURATION},
 };
 
+
 use codec::{Decode, Encode, MaxEncodedLen};
-use frame_support::pallet_prelude::Get;
-use frame_support::traits::Defensive;
 use frame_support::{
 	dispatch::DispatchClass,
+	pallet_prelude::Get,
 	parameter_types,
 	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill, RuntimeDebug},
 	traits::{
-		fungible::HoldConsideration, ConstBool, Contains, EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice,
+		fungible::HoldConsideration, ConstBool, Contains, Defensive, EitherOf, EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice,
 		SortedMembers,
 	},
 	weights::{
@@ -271,8 +272,7 @@ impl InspectEvmAccounts<AccountId, sp_core::H160> for EvmAccounts {
 
 impl pallet_transaction_multi_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	// TODO origin
-	type AcceptedCurrencyOrigin = MajorityTechCommitteeOrRoot;
+	type AcceptedCurrencyOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type Currencies = Currencies;
 	type RouteProvider = Router;
 	type OraclePriceProvider = adapter::OraclePriceProvider<AssetId, EmaOracle>;
@@ -447,8 +447,7 @@ parameter_types! {
 impl pallet_collator_selection::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	// TODO origin
-	type UpdateOrigin = MajorityTechCommitteeOrRoot;
+	type UpdateOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type PotId = PotId;
 	type MaxCandidates = MaxCandidates;
 	type MaxInvulnerables = MaxInvulnerables;
@@ -494,7 +493,6 @@ impl pallet_relaychain_info::Config for Runtime {
 
 impl pallet_transaction_pause::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	// TODO origin
 	type UpdateOrigin = MajorityTechCommitteeOrRoot;
 	type WeightInfo = weights::pallet_transaction_pause::BasiliskWeight<Runtime>;
 }
@@ -544,10 +542,8 @@ impl pallet_identity::Config for Runtime {
 	type IdentityInformation = pallet_identity::legacy::IdentityInfo<MaxAdditionalFields>;
 	type MaxRegistrars = MaxRegistrars;
 	type Slashed = Treasury;
-	// TODO origin
-	type ForceOrigin = MajorityCouncilOrRoot;
-	// TODO origin
-	type RegistrarOrigin = MajorityCouncilOrRoot;
+	type ForceOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type RegistrarOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type OffchainSignature = Signature;
 	type SigningPublicKey = <Signature as sp_runtime::traits::Verify>::Signer;
 	type UsernameAuthorityOrigin = EnsureRoot<AccountId>;
@@ -591,7 +587,6 @@ parameter_types! {
 use frame_system::EnsureSigned;
 
 impl pallet_state_trie_migration::Config for Runtime {
-	// TODO origin
 	type ControlOrigin = SuperMajorityTechCommitteeOrRoot;
 	#[cfg(feature = "runtime-benchmarks")]
 	type SignedFilter = EnsureSigned<AccountId>;

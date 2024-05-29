@@ -106,7 +106,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 9]
 	(
 		5,
 		pallet_referenda::TrackInfo {
-			name: "protocol_committee_admin",
+			name: "tech_fellowship_admin",
 			max_deciding: 10,
 			decision_deposit: 50_000_000 * UNITS,
 			prepare_period: 60 * MINUTES,
@@ -180,7 +180,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				origins::Origin::ReferendumCanceller => Ok(2),
 				origins::Origin::ReferendumKiller => Ok(3),
 				origins::Origin::GeneralAdmin => Ok(4),
-				origins::Origin::ProtocolCommitteeAdmin => Ok(5),
+				origins::Origin::TechFellowshipAdmin => Ok(5),
 				origins::Origin::Treasurer => Ok(6),
 				origins::Origin::Spender => Ok(7),
 				origins::Origin::Tipper => Ok(8),

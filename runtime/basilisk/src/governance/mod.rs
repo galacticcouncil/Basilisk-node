@@ -17,16 +17,15 @@
 
 use super::*;
 use crate::governance::tracks::TracksInfo;
-use crate::old::{MajorityCouncilOrRoot, SuperMajorityCouncilOrRoot};
-use crate::origins::{Spender, ReferendumCanceller, ReferendumKiller, WhitelistedCaller};
+use crate::origins::{Spender, ReferendumCanceller, ReferendumKiller, Treasurer, WhitelistedCaller};
 use frame_support::{
 	parameter_types,
 	sp_runtime::Permill,
 	traits::{
 		EitherOf,
+		EitherOfDiverse,
 		fungible,
 		tokens::{Pay, PaymentStatus, Preservation, UnityAssetBalanceConversion},
-		NeverEnsureOrigin,
 	},
 	PalletId,
 };
@@ -66,13 +65,10 @@ impl pallet_whitelist::Config for Runtime {
 	type WeightInfo = weights::pallet_whitelist::WeightInfo<Self>;
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
-	// TODO WhitelistOrigin
-	// EitherOfDiverse<.., EnsureXcm<IsVoiceOfBody<CollectivesLocation, FellowsBodyId>>,
 	type WhitelistOrigin = EnsureRoot<Self::AccountId>;
 	type DispatchWhitelistedOrigin = EitherOf<EnsureRoot<Self::AccountId>, WhitelistedCaller>;
 	type Preimages = Preimage;
 }
-
 
 parameter_types! {
 	pub const AlarmInterval: BlockNumber = 1;
@@ -114,10 +110,8 @@ parameter_types! {
 
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
-	// TODO origin
-	type ApproveOrigin = SuperMajorityCouncilOrRoot;
-	// TODO origin
-	type RejectOrigin = MajorityCouncilOrRoot;
+	type ApproveOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
+	type RejectOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
 	type RuntimeEvent = RuntimeEvent;
 	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
@@ -130,9 +124,8 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = weights::pallet_treasury::BasiliskWeight<Runtime>;
 	type SpendFunds = ();
 	type MaxApprovals = MaxApprovals;
-	// TODO origin TreasurySpender
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type SpendOrigin = NeverEnsureOrigin<Balance>; // Disabled, no spending
+	type SpendOrigin = TreasurySpender;
 	#[cfg(feature = "runtime-benchmarks")]
 	type SpendOrigin =
 		frame_system::EnsureWithSuccess<EnsureRoot<AccountId>, AccountId, crate::benches::BenchmarkMaxBalance>;
