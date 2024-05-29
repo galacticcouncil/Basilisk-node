@@ -43,6 +43,7 @@ pub mod xcm;
 
 pub use assets::*;
 pub use governance::*;
+pub use governance::origins::pallet_custom_origins;
 pub use system::*;
 pub use xcm::*;
 
@@ -189,6 +190,12 @@ construct_runtime!(
 		Identity: pallet_identity = 21,
 		Multisig: pallet_multisig = 22,
 		StateTrieMigration: pallet_state_trie_migration = 23,
+
+		// OpenGov
+		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 24,
+		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 25,
+		Origins: pallet_custom_origins::{Origin} = 26,
+		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 27,
 
 		// Parachain and XCM - starts at index 50
 		ParachainSystem: cumulus_pallet_parachain_system exclude_parts { Config } = 50,
@@ -574,6 +581,9 @@ mod benches {
 		[pallet_state_trie_migration, StateTrieMigration]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_xcm, PalletXcmExtrinsiscsBenchmark::<Runtime>]
+		[pallet_conviction_voting, ConvictionVoting]
+		[pallet_referenda, Referenda]
+		[pallet_whitelist, Whitelist]
 	);
 }
 
