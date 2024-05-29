@@ -16,11 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use crate::governance::{
-	old::MajorityTechCommitteeOrRoot,
-	origins::GeneralAdmin,
-	TreasuryAccount,
-};
+use crate::governance::{old::MajorityTechCommitteeOrRoot, origins::GeneralAdmin, TreasuryAccount};
 
 use pallet_transaction_multi_payment::{DepositAll, TransferFees};
 use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
@@ -30,7 +26,6 @@ use primitives::constants::{
 	time::{HOURS, SLOT_DURATION},
 };
 
-
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	dispatch::DispatchClass,
@@ -38,8 +33,8 @@ use frame_support::{
 	parameter_types,
 	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill, RuntimeDebug},
 	traits::{
-		fungible::HoldConsideration, ConstBool, Contains, Defensive, EitherOf, EqualPrivilegeOnly, InstanceFilter, LinearStoragePrice,
-		SortedMembers,
+		fungible::HoldConsideration, ConstBool, Contains, Defensive, EitherOf, EqualPrivilegeOnly, InstanceFilter,
+		LinearStoragePrice, SortedMembers,
 	},
 	weights::{
 		constants::{BlockExecutionWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_MICROS},

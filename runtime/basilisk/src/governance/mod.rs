@@ -17,15 +17,14 @@
 
 use super::*;
 use crate::governance::tracks::TracksInfo;
-use crate::origins::{Spender, ReferendumCanceller, ReferendumKiller, Treasurer, WhitelistedCaller};
+use crate::origins::{ReferendumCanceller, ReferendumKiller, Spender, Treasurer, WhitelistedCaller};
 use frame_support::{
 	parameter_types,
 	sp_runtime::Permill,
 	traits::{
-		EitherOf,
-		EitherOfDiverse,
 		fungible,
 		tokens::{Pay, PaymentStatus, Preservation, UnityAssetBalanceConversion},
+		EitherOf, EitherOfDiverse,
 	},
 	PalletId,
 };
@@ -48,11 +47,9 @@ impl pallet_conviction_voting::Config for Runtime {
 	type Currency = Balances;
 	type VoteLockingPeriod = VoteLockingPeriod;
 	type MaxVotes = ConstU32<512>;
-	type MaxTurnout =
-		frame_support::traits::tokens::currency::ActiveIssuanceOf<Balances, Self::AccountId>;
+	type MaxTurnout = frame_support::traits::tokens::currency::ActiveIssuanceOf<Balances, Self::AccountId>;
 	type Polls = Referenda;
 }
-
 
 parameter_types! {
 	pub const MaxBalance: Balance = Balance::max_value();
@@ -72,7 +69,7 @@ impl pallet_whitelist::Config for Runtime {
 
 parameter_types! {
 	pub const AlarmInterval: BlockNumber = 1;
-	pub const SubmissionDeposit: Balance = 1 * DOLLARS;
+	pub const SubmissionDeposit: Balance = DOLLARS;
 	pub const UndecidingTimeout: BlockNumber = 14 * DAYS;
 }
 

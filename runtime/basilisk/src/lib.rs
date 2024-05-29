@@ -42,8 +42,8 @@ mod system;
 pub mod xcm;
 
 pub use assets::*;
-pub use governance::*;
 pub use governance::origins::pallet_custom_origins;
+pub use governance::*;
 pub use system::*;
 pub use xcm::*;
 

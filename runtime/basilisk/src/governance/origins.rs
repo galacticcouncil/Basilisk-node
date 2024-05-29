@@ -22,8 +22,8 @@ pub use pallet_custom_origins::*;
 #[frame_support::pallet]
 pub mod pallet_custom_origins {
 	use crate::Balance;
-	use primitives::constants::currency::GRAND;
 	use frame_support::pallet_prelude::*;
+	use primitives::constants::currency::GRAND;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {}
@@ -43,9 +43,9 @@ pub mod pallet_custom_origins {
 		/// Origin for managing general stuff such as the registrar and permissioned HRMP
 		/// channel operations.
 		GeneralAdmin,
-    /// Origin for managing the composition of the fellowship.
-    TechFellowshipAdmin,
-    /// Origin for spending very high amounts of BSX from the treasury as well as generally
+		/// Origin for managing the composition of the fellowship.
+		TechFellowshipAdmin,
+		/// Origin for spending very high amounts of BSX from the treasury as well as generally
 		/// administering it.
 		Treasurer,
 		/// Origin able to spend up to roughly $5,000 from the treasury at once.
