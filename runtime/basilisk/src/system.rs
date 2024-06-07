@@ -581,6 +581,9 @@ parameter_types! {
 #[cfg(feature = "runtime-benchmarks")]
 use frame_system::EnsureSigned;
 
+#[cfg(not(feature = "runtime-benchmarks"))]
+use frame_system::EnsureSignedBy;
+
 impl pallet_state_trie_migration::Config for Runtime {
 	type ControlOrigin = EnsureRoot<Self::AccountId>;
 	#[cfg(feature = "runtime-benchmarks")]
