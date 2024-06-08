@@ -43,8 +43,6 @@ pub mod pallet_custom_origins {
 		/// Origin for managing general stuff such as the registrar and permissioned HRMP
 		/// channel operations.
 		GeneralAdmin,
-		/// Origin for managing the composition of the fellowship.
-		TechFellowshipAdmin,
 		/// Origin for spending very high amounts of BSX from the treasury as well as generally
 		/// administering it.
 		Treasurer,
@@ -86,7 +84,6 @@ pub mod pallet_custom_origins {
 	}
 	decl_unit_ensures!(
 		GeneralAdmin,
-		TechFellowshipAdmin,
 		WhitelistedCaller,
 		ReferendumCanceller,
 		ReferendumKiller,

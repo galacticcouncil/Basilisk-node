@@ -35,7 +35,7 @@ const SUP_RECIP: Curve = Curve::make_reciprocal(5, 7, percent(1), percent(0), pe
 const SUP_FAST_RECIP: Curve = Curve::make_reciprocal(3, 7, percent(1), percent(0), percent(50));
 const SUP_WHITELISTED_CALLER: Curve = Curve::make_reciprocal(1, 28, percent(20), percent(1), percent(50));
 
-const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 9] = [
+const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 8] = [
 	(
 		0,
 		pallet_referenda::TrackInfo {
@@ -109,20 +109,6 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 9]
 	(
 		5,
 		pallet_referenda::TrackInfo {
-			name: "tech_fellowship_admin",
-			max_deciding: 10,
-			decision_deposit: 50_000_000 * UNITS,
-			prepare_period: 60 * MINUTES,
-			decision_period: 7 * DAYS,
-			confirm_period: 24 * HOURS,
-			min_enactment_period: 24 * HOURS,
-			min_approval: APP_LINEAR_FLAT,
-			min_support: SUP_RECIP,
-		},
-	),
-	(
-		6,
-		pallet_referenda::TrackInfo {
 			name: "treasurer",
 			max_deciding: 10,
 			decision_deposit: 50_000_000 * UNITS,
@@ -135,7 +121,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 9]
 		},
 	),
 	(
-		7,
+		6,
 		pallet_referenda::TrackInfo {
 			name: "spender",
 			max_deciding: 10,
@@ -149,7 +135,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 9]
 		},
 	),
 	(
-		8,
+		7,
 		pallet_referenda::TrackInfo {
 			name: "tipper",
 			max_deciding: 10,
@@ -183,10 +169,9 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				origins::Origin::ReferendumCanceller => Ok(2),
 				origins::Origin::ReferendumKiller => Ok(3),
 				origins::Origin::GeneralAdmin => Ok(4),
-				origins::Origin::TechFellowshipAdmin => Ok(5),
-				origins::Origin::Treasurer => Ok(6),
-				origins::Origin::Spender => Ok(7),
-				origins::Origin::Tipper => Ok(8),
+				origins::Origin::Treasurer => Ok(5),
+				origins::Origin::Spender => Ok(6),
+				origins::Origin::Tipper => Ok(7),
 			}
 		} else {
 			Err(())
