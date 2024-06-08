@@ -30,12 +30,34 @@ use frame_support::{
 };
 use frame_system::{EnsureRoot, EnsureRootWithSuccess};
 use primitives::constants::{currency::DOLLARS, time::DAYS};
+use sp_arithmetic::Perbill;
 use sp_runtime::{traits::IdentityLookup, DispatchError};
 
 pub mod origins;
 mod tracks;
 // Old governance configurations.
 pub mod old;
+
+parameter_types! {
+	pub const TechnicalMotionDuration: BlockNumber = 5 * DAYS;
+	pub const TechnicalMaxProposals: u32 = 20;
+	pub const TechnicalMaxMembers: u32 = 10;
+	pub MaxProposalWeight: Weight = Perbill::from_percent(50) * BlockWeights::get().max_block;
+}
+
+type TechnicalCollective = pallet_collective::Instance2;
+impl pallet_collective::Config<TechnicalCollective> for Runtime {
+	type RuntimeOrigin = RuntimeOrigin;
+	type Proposal = RuntimeCall;
+	type RuntimeEvent = RuntimeEvent;
+	type MotionDuration = TechnicalMotionDuration;
+	type MaxProposals = TechnicalMaxProposals;
+	type MaxMembers = TechnicalMaxMembers;
+	type DefaultVote = pallet_collective::PrimeDefaultVote;
+	type WeightInfo = weights::pallet_collective::BasiliskWeight<Runtime>;
+	type MaxProposalWeight = MaxProposalWeight;
+	type SetMembersOrigin = EnsureRoot<AccountId>;
+}
 
 parameter_types! {
 	pub const VoteLockingPeriod: BlockNumber = 7 * DAYS;
