@@ -23,7 +23,7 @@ pub use pallet_custom_origins::*;
 pub mod pallet_custom_origins {
 	use crate::Balance;
 	use frame_support::pallet_prelude::*;
-	use primitives::constants::currency::GRAND;
+	use primitives::constants::currency::UNITS;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {}
@@ -125,9 +125,10 @@ pub mod pallet_custom_origins {
 
 	decl_ensure! {
 		pub type Spender: EnsureOrigin<Success = Balance> {
-			Tipper = 2_500 * GRAND,
-			Spender = 25_000 * GRAND,
-			Treasurer = 2_500_000 * GRAND,
+			// Tipper = 2_500 * 1000 * GRAND,
+			Tipper = 5_000_000 * GRAND, // ~= $500
+			Spender = 50_000_000 * GRAND, // ~= $5,000
+			Treasurer = 5_000_000_000 * GRAND, // ~= $500,000
 		}
 	}
 }
