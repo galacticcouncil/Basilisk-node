@@ -125,10 +125,9 @@ pub mod pallet_custom_origins {
 
 	decl_ensure! {
 		pub type Spender: EnsureOrigin<Success = Balance> {
-			// Tipper = 2_500 * 1000 * GRAND,
-			Tipper = 5_000_000 * GRAND, // ~= $500
-			Spender = 50_000_000 * GRAND, // ~= $5,000
-			Treasurer = 5_000_000_000 * GRAND, // ~= $500,000
+			Tipper = 5_000_000 * UNITS, // ~= $500
+			Spender = 50_000_000 * UNITS, // ~= $5,000
+			Treasurer = 5_000_000_000 * UNITS, // ~= $500,000
 		}
 	}
 }
