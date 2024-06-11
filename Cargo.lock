@@ -903,7 +903,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-primitives",
  "polkadot-service",
- "primitives 6.6.1",
+ "primitives 6.6.2",
  "sc-basic-authorship",
  "sc-block-builder",
  "sc-chain-spec",
@@ -953,7 +953,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "115.0.0"
+version = "116.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
@@ -990,6 +990,7 @@ dependencies = [
  "pallet-collator-rewards",
  "pallet-collator-selection",
  "pallet-collective",
+ "pallet-conviction-voting",
  "pallet-currencies",
  "pallet-democracy 28.0.0",
  "pallet-duster",
@@ -1004,6 +1005,7 @@ dependencies = [
  "pallet-nft",
  "pallet-preimage",
  "pallet-proxy",
+ "pallet-referenda",
  "pallet-relaychain-info",
  "pallet-route-executor",
  "pallet-scheduler",
@@ -1018,6 +1020,7 @@ dependencies = [
  "pallet-treasury",
  "pallet-uniques",
  "pallet-utility",
+ "pallet-whitelist",
  "pallet-xcm",
  "pallet-xyk",
  "pallet-xyk-liquidity-mining",
@@ -1027,11 +1030,12 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
  "primitive-types",
- "primitives 6.6.1",
+ "primitives 6.6.2",
  "scale-info",
  "serde",
  "smallvec",
  "sp-api",
+ "sp-arithmetic",
  "sp-block-builder",
  "sp-consensus-aura",
  "sp-core",
@@ -7404,7 +7408,7 @@ dependencies = [
  "pallet-uniques",
  "parity-scale-codec",
  "pretty_assertions",
- "primitives 6.6.1",
+ "primitives 6.6.2",
  "scale-info",
  "serde",
  "sp-arithmetic",
@@ -8291,7 +8295,7 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec",
  "pretty_assertions",
- "primitives 6.6.1",
+ "primitives 6.6.2",
  "scale-info",
  "sp-arithmetic",
  "sp-core",
@@ -8319,7 +8323,7 @@ dependencies = [
  "pallet-xyk",
  "pallet-xyk-liquidity-mining",
  "parity-scale-codec",
- "primitives 6.6.1",
+ "primitives 6.6.2",
  "scale-info",
  "sp-arithmetic",
  "sp-core",
@@ -9937,7 +9941,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.6.1"
+version = "6.6.2"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -10784,7 +10788,7 @@ dependencies = [
  "polkadot-runtime-parachains",
  "polkadot-service",
  "pretty_assertions",
- "primitives 6.6.1",
+ "primitives 6.6.2",
  "rococo-runtime",
  "sc-consensus-grandpa",
  "sp-api",

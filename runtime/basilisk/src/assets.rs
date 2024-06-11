@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use crate::governance::{SuperMajorityCouncilOrRoot, SuperMajorityTechCommitteeOrRoot, UnanimousTechCommitteeOrRoot};
+use crate::governance::origins::GeneralAdmin;
 use crate::system::NativeAssetId;
 
 use hydradx_traits::{
@@ -38,12 +38,12 @@ use frame_support::{
 	parameter_types,
 	sp_runtime::{app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero},
 	traits::{
-		AsEnsureOriginWithArg, Contains, Currency, Defensive, EnsureOrigin, Get, Imbalance, LockIdentifier,
+		AsEnsureOriginWithArg, Contains, Currency, Defensive, EitherOf, EnsureOrigin, Get, Imbalance, LockIdentifier,
 		NeverEnsureOrigin, OnUnbalanced,
 	},
 	BoundedVec, PalletId,
 };
-use frame_system::RawOrigin;
+use frame_system::{EnsureRoot, RawOrigin};
 use orml_tokens::CurrencyAdapter;
 use orml_traits::currency::MutationHooks;
 
@@ -145,7 +145,7 @@ parameter_types! {
 }
 impl pallet_asset_registry::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type RegistryOrigin = SuperMajorityTechCommitteeOrRoot;
+	type RegistryOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type AssetId = AssetId;
 	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
@@ -168,7 +168,7 @@ impl pallet_duster::Config for Runtime {
 	type MinCurrencyDeposits = AssetRegistry;
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
-	type BlacklistUpdateOrigin = MajorityTechCommitteeOrRoot;
+	type BlacklistUpdateOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type WeightInfo = weights::pallet_duster::BasiliskWeight<Runtime>;
 }
 
@@ -259,7 +259,7 @@ impl pallet_lbp::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currencies;
 	type LockedBalance = MultiCurrencyLockedBalance<Runtime>;
-	type CreatePoolOrigin = SuperMajorityTechCommitteeOrRoot;
+	type CreatePoolOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type LBPWeightFunction = pallet_lbp::LBPWeightFunction;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type WeightInfo = weights::pallet_lbp::BasiliskWeight<Runtime>;
@@ -349,7 +349,7 @@ impl pallet_uniques::Config for Runtime {
 	type CollectionId = CollectionId;
 	type ItemId = ItemId;
 	type Currency = KusamaCurrency;
-	type ForceOrigin = SuperMajorityCouncilOrRoot;
+	type ForceOrigin = EnsureRoot<Self::AccountId>;
 	// Standard collection creation is disallowed
 	type CreateOrigin = AsEnsureOriginWithArg<NeverEnsureOrigin<AccountId>>;
 	type Locker = ();
@@ -375,7 +375,7 @@ impl pallet_xyk_liquidity_mining::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currencies;
 	type AMM = XYK;
-	type CreateOrigin = UnanimousTechCommitteeOrRoot;
+	type CreateOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type PalletId = LMPalletId;
 	type NftCollectionId = LiquidityMiningNftCollectionId;
 	type NFTHandler = NFT;
@@ -641,7 +641,7 @@ impl pallet_route_executor::Config for Runtime {
 	type DefaultRoutePoolType = DefaultRoutePoolType;
 	type WeightInfo = RouterWeightInfo;
 	type InspectRegistry = AssetRegistry;
-	type TechnicalOrigin = SuperMajorityTechCommitteeOrRoot;
+	type TechnicalOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 }
 
 parameter_types! {
@@ -656,7 +656,7 @@ parameter_types! {
 impl pallet_ema_oracle::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::pallet_ema_oracle::BasiliskWeight<Runtime>;
-	type AuthorityOrigin = SuperMajorityTechCommitteeOrRoot;
+	type AuthorityOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type SupportedPeriods = SupportedPeriods;
 	type OracleWhitelist = Everything;

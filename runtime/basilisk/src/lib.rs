@@ -42,6 +42,7 @@ mod system;
 pub mod xcm;
 
 pub use assets::*;
+pub use governance::origins::pallet_custom_origins;
 pub use governance::*;
 pub use system::*;
 pub use xcm::*;
@@ -101,7 +102,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 115,
+	spec_version: 116,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -192,6 +193,13 @@ construct_runtime!(
 		Multisig: pallet_multisig = 22,
 		StateTrieMigration: pallet_state_trie_migration = 23,
 
+		// OpenGov
+		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 24,
+		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 25,
+		Origins: pallet_custom_origins::{Origin} = 26,
+		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 27,
+
+		// Parachain and XCM - starts at index 50
 		// The order of next 3 pallest is important
 		RelayChainInfo: pallet_relaychain_info = 108,
 		Scheduler: pallet_scheduler = 6,
@@ -580,6 +588,9 @@ mod benches {
 		[pallet_state_trie_migration, StateTrieMigration]
 		[pallet_collator_selection, CollatorSelection]
 		[pallet_xcm, PalletXcmExtrinsiscsBenchmark::<Runtime>]
+		[pallet_conviction_voting, ConvictionVoting]
+		[pallet_referenda, Referenda]
+		[pallet_whitelist, Whitelist]
 	);
 }
 

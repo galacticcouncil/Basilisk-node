@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "115.0.0"
+version = "116.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -101,18 +101,22 @@ frame-try-runtime = { workspace = true, optional = true }
 pallet-aura = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-collective = { workspace = true }
+pallet-conviction-voting = { workspace = true }
 pallet-preimage = { workspace = true }
 pallet-session = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-multisig = { workspace = true }
+pallet-referenda = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 pallet-uniques = { workspace = true }
 pallet-utility = { workspace = true }
+pallet-whitelist = { workspace = true }
 pallet-message-queue = { workspace = true }
 
 sp-api = { workspace = true }
+sp-arithmetic = { workspace = true }
 sp-block-builder = { workspace = true }
 sp-consensus-aura = { workspace = true }
 sp-core = { workspace = true }
@@ -165,6 +169,9 @@ runtime-benchmarks = [
     "cumulus-pallet-parachain-system/runtime-benchmarks",
     "pallet-elections-phragmen/runtime-benchmarks",
     "pallet-state-trie-migration/runtime-benchmarks",
+    "pallet-conviction-voting/runtime-benchmarks",
+    "pallet-referenda/runtime-benchmarks",
+    "pallet-whitelist/runtime-benchmarks",
     "pallet-message-queue/runtime-benchmarks",
     "cumulus-pallet-parachain-system/runtime-benchmarks",
 ]
@@ -217,6 +224,7 @@ std = [
     "hydradx-traits/std",
     "hydradx-adapters/std",
     "sp-api/std",
+    "sp-arithmetic/std",
     "sp-block-builder/std",
     "sp-consensus-aura/std",
     "sp-core/std",
@@ -243,10 +251,13 @@ std = [
     "pallet-preimage/std",
     "pallet-identity/std",
     "pallet-ema-oracle/std",
+    "pallet-message-queue/std",
     "pallet-state-trie-migration/std",
+    "pallet-conviction-voting/std",
+    "pallet-referenda/std",
+    "pallet-whitelist/std",
     "cumulus-primitives-utility/std",
     "parachains-common/std",
-    "pallet-message-queue/std",
     "polkadot-runtime-common/std",
 ]
 try-runtime= [
@@ -300,4 +311,7 @@ try-runtime= [
     "pallet-collator-rewards/try-runtime",
     "pallet-state-trie-migration/try-runtime",
     "pallet-message-queue/try-runtime",
+    "pallet-conviction-voting/try-runtime",
+    "pallet-referenda/try-runtime",
+    "pallet-whitelist/try-runtime",
 ]

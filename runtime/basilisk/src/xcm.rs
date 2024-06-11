@@ -16,7 +16,8 @@
 // limitations under the License.
 
 use super::*;
-use crate::governance::{MajorityTechCommitteeOrRoot, SuperMajorityCouncilOrRoot, TreasuryAccount};
+use crate::governance::TreasuryAccount;
+use crate::origins::GeneralAdmin;
 use crate::system::WeightToFee;
 
 use codec::{Decode, Encode, MaxEncodedLen};
@@ -25,9 +26,10 @@ use frame_support::traits::TransformOrigin;
 use frame_support::{
 	parameter_types,
 	sp_runtime::traits::Convert,
-	traits::{Contains, Everything, Get, Nothing},
+	traits::{Contains, EitherOf, Everything, Get, Nothing},
 	PalletId,
 };
+use frame_system::EnsureRoot;
 use hydradx_adapters::xcm_exchange::XcmAssetExchanger;
 use hydradx_adapters::xcm_execute_filter::AllowTransferAndSwap;
 use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
@@ -202,14 +204,13 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
-	type ControllerOrigin = MajorityTechCommitteeOrRoot;
+	type ControllerOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 	type PriceForSiblingDelivery = polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery<ParaId>;
 	type WeightInfo = weights::cumulus_pallet_xcmp_queue::BasiliskWeight<Runtime>;
 	type XcmpQueue = TransformOrigin<MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling>;
 	type MaxInboundSuspended = MaxInboundSuspended;
 }
-
 parameter_type_with_key! {
 	pub ParachainMinFee: |_location: Location| -> Option<u128> {
 		None
@@ -241,7 +242,7 @@ impl orml_unknown_tokens::Config for Runtime {
 
 impl orml_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type SovereignOrigin = SuperMajorityCouncilOrRoot;
+	type SovereignOrigin = EnsureRoot<Self::AccountId>;
 }
 
 parameter_types! {
@@ -275,7 +276,7 @@ impl pallet_xcm::Config for Runtime {
 	type SovereignAccountOf = ();
 	type MaxLockers = ConstU32<8>;
 	type WeightInfo = weights::pallet_xcm::BasiliskWeight<Runtime>;
-	type AdminOrigin = SuperMajorityTechCommitteeOrRoot;
+	type AdminOrigin = EnsureRoot<Self::AccountId>;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
 }
