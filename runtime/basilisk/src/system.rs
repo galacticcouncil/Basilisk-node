@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use crate::governance::{old::MajorityTechCommitteeOrRoot, origins::GeneralAdmin, TreasuryAccount};
+use crate::governance::{origins::GeneralAdmin, TechCommitteeMajority, TreasuryAccount};
 
 use pallet_transaction_multi_payment::{DepositAll, TransferFees};
 use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
@@ -488,7 +488,7 @@ impl pallet_relaychain_info::Config for Runtime {
 
 impl pallet_transaction_pause::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type UpdateOrigin = MajorityTechCommitteeOrRoot;
+	type UpdateOrigin = EitherOf<EnsureRoot<Self::AccountId>, TechCommitteeMajority>;
 	type WeightInfo = weights::pallet_transaction_pause::BasiliskWeight<Runtime>;
 }
 
