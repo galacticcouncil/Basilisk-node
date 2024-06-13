@@ -29,6 +29,7 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::{EnsureRoot, EnsureRootWithSuccess};
+use pallet_collective::EnsureProportionAtLeast;
 use primitives::constants::{currency::DOLLARS, time::DAYS};
 use sp_arithmetic::Perbill;
 use sp_runtime::{traits::IdentityLookup, DispatchError};
@@ -37,6 +38,8 @@ pub mod origins;
 mod tracks;
 // Old governance configurations.
 pub mod old;
+
+pub type TechCommitteeMajority = EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 2>;
 
 parameter_types! {
 	pub const TechnicalMotionDuration: BlockNumber = 5 * DAYS;
@@ -84,7 +87,7 @@ impl pallet_whitelist::Config for Runtime {
 	type WeightInfo = weights::pallet_whitelist::WeightInfo<Self>;
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
-	type WhitelistOrigin = EnsureRoot<Self::AccountId>;
+	type WhitelistOrigin = EitherOf<EnsureRoot<Self::AccountId>, TechCommitteeMajority>;
 	type DispatchWhitelistedOrigin = EitherOf<EnsureRoot<Self::AccountId>, WhitelistedCaller>;
 	type Preimages = Preimage;
 }
