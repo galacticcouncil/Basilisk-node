@@ -55,12 +55,12 @@ use frame_support::sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
+	ApplyExtrinsicResult, ExtrinsicInclusionMode,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use sp_api::impl_runtime_apis;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{ConstU32, OpaqueMetadata};
+use sp_core::{ConstU32, ConstU64, OpaqueMetadata};
 use sp_std::{convert::From, marker::PhantomData, prelude::*, vec};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -140,7 +140,7 @@ impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumb
 	type BlockNumber = BlockNumberFor<T>;
 
 	fn current_block_number() -> Self::BlockNumber {
-		let maybe_data = cumulus_pallet_parachain_system::Pallet::<T>::validation_data();
+		let maybe_data = cumulus_pallet_parachain_system::ValidationData::<T>::get();
 
 		if let Some(data) = maybe_data {
 			data.relay_parent_number.into()
@@ -293,7 +293,7 @@ impl_runtime_apis! {
 			Executive::execute_block(block)
 		}
 
-		fn initialize_block(header: &<Block as BlockT>::Header) {
+		fn initialize_block(header: &<Block as BlockT>::Header) -> ExtrinsicInclusionMode {
 			Executive::initialize_block(header)
 		}
 	}
@@ -367,7 +367,7 @@ impl_runtime_apis! {
 		}
 
 		fn authorities() -> Vec<AuraId> {
-			Aura::authorities().into_inner()
+			pallet_aura::Authorities::<Runtime>::get().into_inner()
 		}
 	}
 
@@ -495,6 +495,8 @@ impl_runtime_apis! {
 			use polkadot_xcm::latest::prelude::{Location, AssetId, Fungible, Asset, ParentThen, Parachain, Parent};
 
 			impl pallet_xcm::benchmarking::Config for Runtime {
+				// TODO:
+				type DeliveryHelper = ();
 				fn reachable_dest() -> Option<Location> {
 					Some(Parent.into())
 				}
@@ -517,6 +519,14 @@ impl_runtime_apis! {
 						},
 						ParentThen(Parachain(RandomParaId::get().into()).into()).into(),
 					))
+				}
+
+				// TODO:
+				fn get_asset() -> Asset {
+					Asset {
+						id: AssetId(Location::here()),
+						fun: Fungible(ExistentialDeposit::get()),
+					}
 				}
 			}
 

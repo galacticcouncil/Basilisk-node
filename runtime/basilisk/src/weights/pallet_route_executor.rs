@@ -143,4 +143,16 @@ impl<T: frame_system::Config> pallet_route_executor::WeightInfo for BasiliskWeig
 		Weight::from_parts(25_247_000, 0)
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
+	fn get_oracle_price_for_xyk() -> Weight {
+		Weight::zero()
+	}
+	fn get_oracle_price_for_omnipool() -> Weight {
+		Weight::zero()
+	}
+	fn get_route() -> Weight {
+		Weight::zero()
+	}
+	fn calculate_spot_price_with_fee_in_lbp() -> Weight {
+		Weight::zero()
+	}
 }

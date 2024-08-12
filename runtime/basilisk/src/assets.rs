@@ -169,6 +169,7 @@ impl pallet_duster::Config for Runtime {
 	type Reward = DustingReward;
 	type NativeCurrencyId = NativeAssetId;
 	type BlacklistUpdateOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type TreasuryAccountId = TreasuryAccount;
 	type WeightInfo = weights::pallet_duster::BasiliskWeight<Runtime>;
 }
 
@@ -407,6 +408,7 @@ impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime 
 	type AssetRegistry = AssetRegistry;
 	type NonDustableWhitelistHandler = Duster;
 	type PriceAdjustment = warehouse_liquidity_mining::DefaultPriceAdjustment;
+	type TreasuryAccountId = TreasuryAccount;
 }
 
 // Provides weight info for the router. Router extrinsics can be executed with different AMMs, so we split the router weights into two parts:
@@ -452,10 +454,24 @@ impl RouterWeightInfo {
 
 		let set_route_overweight = weights::pallet_route_executor::BasiliskWeight::<Runtime>::set_route_for_xyk();
 
-		set_route_overweight.saturating_sub(weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_sell(
-			number_of_times_calculate_sell_amounts_executed,
-			number_of_times_execute_sell_amounts_executed,
-		))
+		// we substract weight of getting oracle price too as we add this back later based on the length of the route
+		set_route_overweight
+			.saturating_sub(weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_sell(
+				number_of_times_calculate_sell_amounts_executed,
+				number_of_times_execute_sell_amounts_executed,
+			))
+			.saturating_sub(weights::pallet_route_executor::BasiliskWeight::<Runtime>::get_oracle_price_for_xyk())
+	}
+
+	pub fn calculate_spot_price_overweight() -> Weight {
+		Weight::from_parts(
+			weights::pallet_route_executor::BasiliskWeight::<Runtime>::calculate_spot_price_with_fee_in_lbp()
+				.ref_time()
+				.saturating_sub(
+					weights::pallet_lbp::BasiliskWeight::<Runtime>::calculate_spot_price_with_fee().ref_time(),
+				),
+			weights::pallet_route_executor::BasiliskWeight::<Runtime>::calculate_spot_price_with_fee_in_lbp().proof_size(),
+		)
 	}
 }
 
@@ -619,6 +635,14 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 			weight.saturating_accrue(amm_weight);
 		}
 
+		// Incorporate oracle price calculation
+		// We use xyk as reference
+		let weight_of_get_oracle_price_for_2_assets =
+			weights::pallet_route_executor::BasiliskWeight::<Runtime>::get_oracle_price_for_xyk();
+		let weight_of_get_oracle_price_for_route =
+			weight_of_get_oracle_price_for_2_assets.saturating_mul(route.len() as u64);
+		weight.saturating_accrue(weight_of_get_oracle_price_for_route);
+
 		weight
 	}
 
@@ -626,11 +650,46 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		//Since we don't have any AMM specific thing in the extrinsic, we just return the plain weight
 		weights::pallet_route_executor::BasiliskWeight::<Runtime>::force_insert_route()
 	}
+
+	// Used in OtcSettlements::settle_otc_order extrinsic
+	fn calculate_spot_price_with_fee_weight(route: &[Trade<AssetId>]) -> Weight {
+		let mut weight = Self::calculate_spot_price_overweight();
+
+		let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::calculate_spot_price_with_fee();
+		let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::calculate_spot_price_with_fee();
+
+		for trade in route {
+			let amm_weight = match trade.pool {
+				PoolType::LBP => lbp_weight,
+				PoolType::XYK => xyk_weight,
+				_ => lbp_weight.max(xyk_weight),
+			};
+			weight.saturating_accrue(amm_weight);
+		}
+
+		weight
+	}
+
+	fn get_route_weight() -> Weight {
+		weights::pallet_route_executor::BasiliskWeight::<Runtime>::get_route()
+	}
 }
 
 parameter_types! {
 	pub DefaultRoutePoolType: PoolType<AssetId> = PoolType::XYK;
+	pub const RouteValidationOraclePeriod: OraclePeriod = OraclePeriod::TenMinutes;
 }
+
+pub struct RefundAndLockedEdCalculator;
+
+use hydradx_traits::router::RefundEdCalculator;
+impl RefundEdCalculator<Balance> for RefundAndLockedEdCalculator {
+	fn calculate() -> Balance {
+		// all assets are sufficient so `RefundAndLockedEdCalculator` is never called.
+		Zero::zero()
+	}
+}
+
 impl pallet_route_executor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
@@ -642,6 +701,9 @@ impl pallet_route_executor::Config for Runtime {
 	type WeightInfo = RouterWeightInfo;
 	type InspectRegistry = AssetRegistry;
 	type TechnicalOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type EdToRefundCalculator = RefundAndLockedEdCalculator;
+	type OraclePriceProvider = hydradx_adapters::OraclePriceProvider<AssetId, EmaOracle, NativeAssetId>;// Use NativeAssetId instead of LRNA. We don't have Omnipool so it's never used.
+	type OraclePeriod = RouteValidationOraclePeriod;
 }
 
 parameter_types! {

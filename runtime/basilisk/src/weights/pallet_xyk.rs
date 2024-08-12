@@ -246,4 +246,7 @@ impl<T: frame_system::Config> pallet_xyk::WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().writes((6_u64).saturating_mul(e.into())))
 			.saturating_add(Weight::from_parts(0, 7749).saturating_mul(e.into()))
 	}
+	fn calculate_spot_price_with_fee() -> Weight {
+		Weight::zero()
+	}
 }

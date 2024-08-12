@@ -31,7 +31,7 @@ fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::RuntimeOrigin::root(),
 			1,
-			basilisk_runtime::AssetLocation(MultiLocation::parent().into())
+			basilisk_runtime::AssetLocation(MultiLocation::parent())
 		));
 	});
 	Rococo::execute_with(|| {
@@ -106,7 +106,7 @@ fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 			basilisk_runtime::RuntimeOrigin::root(),
 			1,
 			basilisk_runtime::AssetLocation(
-				MultiLocation::new(1, X2(Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0))).into()
+				MultiLocation::new(1, X2(Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0)))
 			)
 		));
 	});
@@ -474,7 +474,7 @@ fn assets_should_be_trapped_when_assets_are_unknown() {
 
 		expect_basilisk_event(basilisk_runtime::RuntimeEvent::PolkadotXcm(
 			pallet_xcm::Event::AssetsTrapped {
-				hash: hash,
+				hash,
 				origin: origin.try_into().unwrap(),
 				assets: vec![asset].into(),
 			},
