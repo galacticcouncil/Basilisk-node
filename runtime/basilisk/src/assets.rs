@@ -470,7 +470,8 @@ impl RouterWeightInfo {
 				.saturating_sub(
 					weights::pallet_lbp::BasiliskWeight::<Runtime>::calculate_spot_price_with_fee().ref_time(),
 				),
-			weights::pallet_route_executor::BasiliskWeight::<Runtime>::calculate_spot_price_with_fee_in_lbp().proof_size(),
+			weights::pallet_route_executor::BasiliskWeight::<Runtime>::calculate_spot_price_with_fee_in_lbp()
+				.proof_size(),
 		)
 	}
 }
@@ -702,7 +703,7 @@ impl pallet_route_executor::Config for Runtime {
 	type InspectRegistry = AssetRegistry;
 	type TechnicalOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type EdToRefundCalculator = RefundAndLockedEdCalculator;
-	type OraclePriceProvider = hydradx_adapters::OraclePriceProvider<AssetId, EmaOracle, NativeAssetId>;// Use NativeAssetId instead of LRNA. We don't have Omnipool so it's never used.
+	type OraclePriceProvider = hydradx_adapters::OraclePriceProvider<AssetId, EmaOracle, NativeAssetId>; // Use NativeAssetId instead of LRNA. We don't have Omnipool so it's never used.
 	type OraclePeriod = RouteValidationOraclePeriod;
 }
 

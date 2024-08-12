@@ -57,7 +57,8 @@ type ParachainClient = TFullClient<
 	RuntimeApi,
 	WasmExecutor<(
 		sp_io::SubstrateHostFunctions,
-		frame_benchmarking::benchmarking::HostFunctions)>
+		frame_benchmarking::benchmarking::HostFunctions,
+	)>,
 >;
 
 type ParachainBackend = TFullBackend<Block>;
@@ -165,7 +166,9 @@ async fn start_node_impl(
 
 	let params = new_partial(&parachain_config)?;
 	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
-	let net_config = sc_network::config::FullNetworkConfiguration::<_, _, sc_network::NetworkWorker<Block, Hash>>::new(&parachain_config.network);
+	let net_config = sc_network::config::FullNetworkConfiguration::<_, _, sc_network::NetworkWorker<Block, Hash>>::new(
+		&parachain_config.network,
+	);
 
 	let client = params.client.clone();
 	let backend = params.backend.clone();
@@ -340,7 +343,6 @@ fn build_import_queue(
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 ) -> Result<sc_consensus::DefaultImportQueue<Block>, sc_service::Error> {
-
 	Ok(
 		cumulus_client_consensus_aura::equivocation_import_queue::fully_verifying_import_queue::<
 			sp_consensus_aura::sr25519::AuthorityPair,

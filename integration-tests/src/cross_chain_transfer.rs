@@ -105,9 +105,10 @@ fn basilisk_should_receive_asset_when_sent_from_other_parachain() {
 		assert_ok!(basilisk_runtime::AssetRegistry::set_location(
 			basilisk_runtime::RuntimeOrigin::root(),
 			1,
-			basilisk_runtime::AssetLocation(
-				MultiLocation::new(1, X2(Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0)))
-			)
+			basilisk_runtime::AssetLocation(MultiLocation::new(
+				1,
+				X2(Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0))
+			))
 		));
 	});
 

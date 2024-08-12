@@ -21,9 +21,10 @@ use super::*;
 use crate as liq_mining;
 use crate::Config;
 use frame_support::{
-	parameter_types, PalletId,
+	parameter_types,
 	traits::{Everything, Nothing},
 	weights::RuntimeDbWeight,
+	PalletId,
 };
 
 use frame_system as system;
