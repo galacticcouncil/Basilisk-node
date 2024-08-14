@@ -622,7 +622,13 @@ fn polkadot_xcm_execute_extrinsic_should_not_be_allowed() {
 				Box::new(VersionedXcm::from(xcm_msg)),
 				Weight::from_parts(400_000_000_000, 0)
 			),
-			pallet_xcm::Error::<basilisk_runtime::Runtime>::Filtered
+			sp_runtime::DispatchErrorWithPostInfo {
+				post_info: frame_support::dispatch::PostDispatchInfo {
+					actual_weight: Some(Weight::from_parts(11208000, 0)),
+					pays_fee: frame_support::dispatch::Pays::Yes,
+				},
+				error: pallet_xcm::Error::<basilisk_runtime::Runtime>::Filtered.into()
+			}
 		);
 	});
 }
