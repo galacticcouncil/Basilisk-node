@@ -74,6 +74,7 @@ cumulus-pallet-aura-ext = { workspace = true }
 cumulus-pallet-parachain-system = { workspace = true }
 cumulus-pallet-xcm = { workspace = true }
 cumulus-pallet-xcmp-queue = { workspace = true }
+cumulus-primitives-aura = { workspace = true }
 cumulus-primitives-core = { workspace = true }
 cumulus-primitives-utility = { workspace = true }
 cumulus-primitives-parachain-inherent = { workspace = true }
@@ -198,6 +199,7 @@ std = [
     "cumulus-pallet-aura-ext/std",
     "cumulus-pallet-xcm/std",
     "cumulus-pallet-xcmp-queue/std",
+    "cumulus-primitives-aura/std",
     "cumulus-primitives-core/std",
     "polkadot-xcm/std",
     "xcm-builder/std",
