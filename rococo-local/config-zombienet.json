@@ -5,14 +5,17 @@
   "relaychain": {
     "default_command": "../../polkadot/target/release/polkadot",
     "chain": "rococo-local",
+    "default_args": [
+      "--no-hardware-benchmarks",
+      "-lparachain=debug",
+      "--database=paritydb"
+    ],
     "genesis": {
       "runtimeGenesis": {
         "patch": {
           "configuration": {
             "config": {
-              "scheduler_params": {
-                "scheduling_lookahead": 2
-              },
+              "scheduling_lookahead": 2,
               "async_backing_params": {
                 "max_candidate_depth": 3,
                 "allowed_ancestry_len": 2
@@ -57,12 +60,24 @@
           "name": "alice",
           "command": "../target/release/basilisk",
           "ws_port": 9988,
-          "rpc_port": 9999
+          "rpc_port": 9999,
+          "args": [
+            "--no-hardware-benchmarks",
+            "--force-authoring",
+            "-lparachain=debug",
+            "--database=paritydb"
+          ]
         },
         {
           "name": "bob",
           "command": "../target/release/basilisk",
-          "ws_port": 9989
+          "ws_port": 9989,
+          "args": [
+            "--no-hardware-benchmarks",
+            "--force-authoring",
+            "-lparachain=debug",
+            "--database=paritydb"
+          ]
         }
       ]
     }
