@@ -145,6 +145,31 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 	});
 }
 
+pub fn hydradx_run_to_next_block() {
+	// use frame_support::traits::OnFinalize;
+
+	let b = basilisk_runtime::System::block_number();
+
+	basilisk_runtime::System::on_finalize(b);
+	basilisk_runtime::MultiTransactionPayment::on_finalize(b);
+	basilisk_runtime::EmaOracle::on_finalize(b);
+
+	basilisk_runtime::System::on_initialize(b + 1);
+	basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
+	basilisk_runtime::EmaOracle::on_initialize(b + 1);
+
+	basilisk_runtime::System::set_block_number(b + 1);
+}
+
+pub fn hydradx_run_to_block(to: basilisk_runtime::BlockNumber) {
+	let b = basilisk_runtime::System::block_number();
+	assert!(b <= to, "the current block number {:?} is higher than expected.", b);
+
+	while basilisk_runtime::System::block_number() < to {
+		hydradx_run_to_next_block();
+	}
+}
+
 #[test]
 fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 	//Arrange
@@ -165,6 +190,47 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 				polkadot_xcm::opaque::v3::Junctions::X1(polkadot_xcm::opaque::v3::Junction::GeneralIndex(3))
 			))
 		));
+
+		assert_ok!(basilisk_runtime::EmaOracle::add_oracle(
+			 frame_system::RawOrigin::Root.into(),
+			 basilisk_runtime::XYKOracleSourceIdentifier::get(),
+			 (KAR, BSX))
+		);
+		assert_ok!(basilisk_runtime::EmaOracle::add_oracle(
+			frame_system::RawOrigin::Root.into(),
+			basilisk_runtime::XYKOracleSourceIdentifier::get(),
+			(BSX, KSM))
+		);
+
+		set_relaychain_block_number(5);
+		hydradx_run_to_block(5);
+
+		assert_ok!(basilisk_runtime::Tokens::set_balance(
+			frame_system::RawOrigin::Root.into(),
+			ALICE.into(),
+			KAR,
+			100 * UNITS,
+			0,
+		));
+		assert_ok!(basilisk_runtime::Router::sell(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
+			KAR,
+			KSM,
+			1 * UNITS,
+			0,
+			vec![Trade {
+							pool: PoolType::XYK,
+							asset_in: KAR,
+							asset_out: BSX,
+						},
+			Trade {
+							pool: PoolType::XYK,
+							asset_in: BSX,
+							asset_out: KSM,
+						}]
+		));
+		set_relaychain_block_number(10);
+		hydradx_run_to_block(10);
 
 		//Register onchain route from KAR to KSM
 		assert_ok!(basilisk_runtime::Router::set_route(
