@@ -678,7 +678,7 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 
 parameter_types! {
 	pub DefaultRoutePoolType: PoolType<AssetId> = PoolType::XYK;
-	pub const RouteValidationOraclePeriod: OraclePeriod = OraclePeriod::TenMinutes;
+	pub const RouteValidationOraclePeriod: OraclePeriod = OraclePeriod::Hour;
 }
 
 pub struct RefundAndLockedEdCalculator;
@@ -703,7 +703,7 @@ impl pallet_route_executor::Config for Runtime {
 	type InspectRegistry = AssetRegistry;
 	type TechnicalOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type EdToRefundCalculator = RefundAndLockedEdCalculator;
-	type OraclePriceProvider = hydradx_adapters::OraclePriceProvider<AssetId, EmaOracle, NativeAssetId>; // Use NativeAssetId instead of LRNA. We don't have Omnipool so it's never used.
+	type OraclePriceProvider = adapter::OraclePriceProvider<AssetId, EmaOracle>;
 	type OraclePeriod = RouteValidationOraclePeriod;
 }
 

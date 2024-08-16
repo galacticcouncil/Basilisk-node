@@ -145,31 +145,6 @@ fn basilisk_should_swap_assets_when_receiving_from_otherchain_with_buy() {
 	});
 }
 
-pub fn hydradx_run_to_next_block() {
-	// use frame_support::traits::OnFinalize;
-
-	let b = basilisk_runtime::System::block_number();
-
-	basilisk_runtime::System::on_finalize(b);
-	basilisk_runtime::MultiTransactionPayment::on_finalize(b);
-	basilisk_runtime::EmaOracle::on_finalize(b);
-
-	basilisk_runtime::System::on_initialize(b + 1);
-	basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
-	basilisk_runtime::EmaOracle::on_initialize(b + 1);
-
-	basilisk_runtime::System::set_block_number(b + 1);
-}
-
-pub fn hydradx_run_to_block(to: basilisk_runtime::BlockNumber) {
-	let b = basilisk_runtime::System::block_number();
-	assert!(b <= to, "the current block number {:?} is higher than expected.", b);
-
-	while basilisk_runtime::System::block_number() < to {
-		hydradx_run_to_next_block();
-	}
-}
-
 #[test]
 fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 	//Arrange
@@ -202,9 +177,6 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 			(BSX, KSM))
 		);
 
-		set_relaychain_block_number(5);
-		hydradx_run_to_block(5);
-
 		assert_ok!(basilisk_runtime::Tokens::set_balance(
 			frame_system::RawOrigin::Root.into(),
 			ALICE.into(),
@@ -216,7 +188,7 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
 			KAR,
 			KSM,
-			1 * UNITS,
+			10_000, // make a small swap to not move the price a lot
 			0,
 			vec![Trade {
 							pool: PoolType::XYK,
@@ -229,8 +201,8 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 							asset_out: KSM,
 						}]
 		));
-		set_relaychain_block_number(10);
-		hydradx_run_to_block(10);
+
+		basilisk_run_to_next_block();
 
 		//Register onchain route from KAR to KSM
 		assert_ok!(basilisk_runtime::Router::set_route(
@@ -281,13 +253,13 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 		));
 	});
 
-	let fees = 27_500_000_000_000;
+	let fees = 27_500_000_000_005;
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(KAR, &AccountId::from(BOB)),
 			95000000000000 - fees
 		);
-		let received = 4969548790555;
+		let received = 4969548790553;
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(KSM, &AccountId::from(BOB)),
 			received

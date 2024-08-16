@@ -510,6 +510,22 @@ pub fn vesting_account() -> AccountId {
 	VestingPalletId::get().into_account_truncating()
 }
 
+pub fn basilisk_run_to_next_block() {
+	use frame_support::traits::OnFinalize;
+
+	let b = basilisk_runtime::System::block_number();
+
+	basilisk_runtime::System::on_finalize(b);
+	basilisk_runtime::EmaOracle::on_finalize(b);
+	basilisk_runtime::MultiTransactionPayment::on_finalize(b);
+
+	basilisk_runtime::System::on_initialize(b + 1);
+	basilisk_runtime::EmaOracle::on_initialize(b + 1);
+	basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
+
+	basilisk_runtime::System::set_block_number(b + 1);
+}
+
 pub fn set_relaychain_block_number(number: BlockNumber) {
 	use basilisk_runtime::ParachainSystem;
 	use basilisk_runtime::RuntimeOrigin;
