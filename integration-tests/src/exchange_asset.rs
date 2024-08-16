@@ -167,15 +167,15 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 		));
 
 		assert_ok!(basilisk_runtime::EmaOracle::add_oracle(
-			 frame_system::RawOrigin::Root.into(),
-			 basilisk_runtime::XYKOracleSourceIdentifier::get(),
-			 (KAR, BSX))
-		);
+			frame_system::RawOrigin::Root.into(),
+			basilisk_runtime::XYKOracleSourceIdentifier::get(),
+			(KAR, BSX)
+		));
 		assert_ok!(basilisk_runtime::EmaOracle::add_oracle(
 			frame_system::RawOrigin::Root.into(),
 			basilisk_runtime::XYKOracleSourceIdentifier::get(),
-			(BSX, KSM))
-		);
+			(BSX, KSM)
+		));
 
 		assert_ok!(basilisk_runtime::Tokens::set_balance(
 			frame_system::RawOrigin::Root.into(),
@@ -190,16 +190,18 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 			KSM,
 			10_000, // make a small swap to not move the price a lot
 			0,
-			vec![Trade {
-							pool: PoolType::XYK,
-							asset_in: KAR,
-							asset_out: BSX,
-						},
-			Trade {
-							pool: PoolType::XYK,
-							asset_in: BSX,
-							asset_out: KSM,
-						}]
+			vec![
+				Trade {
+					pool: PoolType::XYK,
+					asset_in: KAR,
+					asset_out: BSX,
+				},
+				Trade {
+					pool: PoolType::XYK,
+					asset_in: BSX,
+					asset_out: KSM,
+				}
+			]
 		));
 
 		basilisk_run_to_next_block();
