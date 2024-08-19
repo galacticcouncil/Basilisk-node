@@ -16,19 +16,23 @@
 // limitations under the License.
 #![allow(clippy::result_large_err)]
 
-use crate::{AccountId, AssetId, Balance, Currencies, Router, Runtime, RuntimeOrigin, System, LBP, XYK};
+use crate::{AccountId, AssetId, Balance, Currencies, EmaOracle, Router, Runtime, RuntimeOrigin, System, LBP, XYK};
 
 use super::*;
 use frame_benchmarking::{account, BenchmarkError};
-use frame_support::dispatch::DispatchResult;
-use frame_support::{assert_ok, ensure, parameter_types};
+use frame_support::{
+	assert_ok, ensure, parameter_types,
+	dispatch::DispatchResult,
+	traits::{OnFinalize, OnInitialize},
+};
 use frame_system::RawOrigin;
-use hydradx_traits::router::inverse_route;
-use hydradx_traits::router::AssetPair;
-use hydradx_traits::router::{PoolType, RouterT, Trade};
+use hydradx_traits::router::{inverse_route, AssetPair, PoolType, RouterT, Trade};
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
-use primitives::constants::currency::UNITS;
+use primitives::{
+	BlockNumber,
+	constants::currency::UNITS,
+};
 use sp_runtime::{FixedPointNumber, FixedU128};
 use sp_std::vec;
 pub const INITIAL_BALANCE: Balance = 10_000_000 * UNITS;
@@ -141,6 +145,20 @@ fn create_xyk_pool(asset_a: u32, asset_b: u32) {
 	));
 }
 
+fn set_period(to: u32) {
+	while System::block_number() < Into::<BlockNumber>::into(to) {
+		let b = System::block_number();
+
+		System::on_finalize(b);
+		EmaOracle::on_finalize(b);
+
+		System::on_initialize(b + 1_u32);
+		EmaOracle::on_initialize(b + 1_u32);
+
+		System::set_block_number(b + 1_u32);
+	}
+}
+
 runtime_benchmarks! {
 	{Runtime, pallet_route_executor}
 
@@ -222,7 +240,7 @@ runtime_benchmarks! {
 		let asset_5 = register_asset(b"AS5".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 		let asset_6 = register_asset(b"AS6".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 
-		let caller: AccountId = funded_account("caller", 0, &[asset_1, asset_2,asset_3]);
+		let caller: AccountId = funded_account("caller", 0, &[asset_1, asset_2, asset_3, asset_4, asset_5, asset_6]);
 		create_xyk_pool(HDX, asset_2);
 		create_xyk_pool(asset_2, asset_3);
 		create_xyk_pool(asset_3, asset_4);
@@ -252,6 +270,17 @@ runtime_benchmarks! {
 			asset_out: asset_6
 		}];
 
+		assert_ok!(Router::sell(
+			RawOrigin::Signed(caller.clone().into()).into(),
+			HDX,
+			asset_6,
+			10_000,
+			0,
+			route.clone()
+		));
+
+		set_period(10);
+
 		Router::set_route(
 			RawOrigin::Signed(caller.clone()).into(),
 			AssetPair::new(HDX, asset_6),
@@ -265,6 +294,17 @@ runtime_benchmarks! {
 			asset_in: HDX,
 			asset_out: asset_6
 		},];
+
+		assert_ok!(Router::sell(
+			RawOrigin::Signed(caller.clone().into()).into(),
+			HDX,
+			asset_6,
+			10_000,
+			0,
+			better_route.clone()
+		));
+
+		set_period(11);
 
 	}: {
 		Router::set_route(

@@ -166,17 +166,6 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 			))
 		));
 
-		assert_ok!(basilisk_runtime::EmaOracle::add_oracle(
-			frame_system::RawOrigin::Root.into(),
-			basilisk_runtime::XYKOracleSourceIdentifier::get(),
-			(KAR, BSX)
-		));
-		assert_ok!(basilisk_runtime::EmaOracle::add_oracle(
-			frame_system::RawOrigin::Root.into(),
-			basilisk_runtime::XYKOracleSourceIdentifier::get(),
-			(BSX, KSM)
-		));
-
 		assert_ok!(basilisk_runtime::Tokens::set_balance(
 			frame_system::RawOrigin::Root.into(),
 			ALICE.into(),
