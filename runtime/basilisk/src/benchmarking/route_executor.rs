@@ -21,18 +21,16 @@ use crate::{AccountId, AssetId, Balance, Currencies, EmaOracle, Router, Runtime,
 use super::*;
 use frame_benchmarking::{account, BenchmarkError};
 use frame_support::{
-	assert_ok, ensure, parameter_types,
+	assert_ok,
 	dispatch::DispatchResult,
+	ensure, parameter_types,
 	traits::{OnFinalize, OnInitialize},
 };
 use frame_system::RawOrigin;
 use hydradx_traits::router::{inverse_route, AssetPair, PoolType, RouterT, Trade};
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
-use primitives::{
-	BlockNumber,
-	constants::currency::UNITS,
-};
+use primitives::{constants::currency::UNITS, BlockNumber};
 use sp_runtime::{FixedPointNumber, FixedU128};
 use sp_std::vec;
 pub const INITIAL_BALANCE: Balance = 10_000_000 * UNITS;
