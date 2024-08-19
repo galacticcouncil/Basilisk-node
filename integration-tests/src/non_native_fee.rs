@@ -11,7 +11,6 @@ use frame_support::{
 		traits::SignedExtension,
 		transaction_validity::{InvalidTransaction, TransactionValidityError},
 	},
-	traits::{OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use hydradx_traits::AMM;

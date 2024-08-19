@@ -271,7 +271,7 @@ runtime_benchmarks! {
 		}];
 
 		assert_ok!(Router::sell(
-			RawOrigin::Signed(caller.clone().into()).into(),
+			RawOrigin::Signed(caller.clone()).into(),
 			HDX,
 			asset_6,
 			10_000,
@@ -296,7 +296,7 @@ runtime_benchmarks! {
 		},];
 
 		assert_ok!(Router::sell(
-			RawOrigin::Signed(caller.clone().into()).into(),
+			RawOrigin::Signed(caller.clone()).into(),
 			HDX,
 			asset_6,
 			10_000,

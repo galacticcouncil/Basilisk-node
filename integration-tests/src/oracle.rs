@@ -5,7 +5,6 @@ use crate::kusama_test_net::*;
 use basilisk_runtime::{EmaOracle, RuntimeOrigin, XYKOracleSourceIdentifier, XYK};
 use frame_support::{
 	assert_ok,
-	traits::{OnFinalize, OnInitialize},
 };
 use hydradx_traits::{AggregatedPriceOracle, OraclePeriod::*};
 use pallet_ema_oracle::OracleError;
