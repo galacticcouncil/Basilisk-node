@@ -16636,13 +16636,3 @@ dependencies = [
  "cc",
  "pkg-config",
 ]
-
-[[patch.unused]]
-name = "substrate-rpc-client"
-version = "0.33.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=release-polkadot-v1.11.0-patch#57ad5f7a2d0250540e2123e79f7690fa2e4dec19"
-
-[[patch.unused]]
-name = "substrate-rpc-client"
-version = "0.33.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=release-polkadot-v1.11.0-patch#57ad5f7a2d0250540e2123e79f7690fa2e4dec19"

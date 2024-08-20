@@ -354,7 +354,6 @@ pallet-message-queue = { git = "https://github.com/galacticcouncil/polkadot-sdk"
 substrate-build-script-utils = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 substrate-frame-rpc-system = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 substrate-prometheus-endpoint = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
-substrate-rpc-client = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 substrate-wasm-builder = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 
 # Cumulus dependencies
@@ -510,7 +509,6 @@ pallet-state-trie-migration = { git = "https://github.com/galacticcouncil/polkad
 substrate-build-script-utils = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 substrate-frame-rpc-system = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 substrate-prometheus-endpoint = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
-substrate-rpc-client = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 substrate-wasm-builder = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 substrate-state-trie-migration-rpc = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 
