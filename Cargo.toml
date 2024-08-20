@@ -409,10 +409,7 @@ cumulus-client-pov-recovery = { git = "https://github.com/galacticcouncil/polkad
 cumulus-pallet-parachain-system-proc-macro = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 cumulus-relay-chain-rpc-interface = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 
-# Check issue: https://github.com/paritytech/arkworks-substrate/issues/9
 [patch."https://github.com/paritytech/polkadot-sdk"]
-sp-crypto-ec-utils = { git = "https://github.com/galacticcouncil//polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
-
 frame-benchmarking = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 frame-benchmarking-cli = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 frame-executive = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
