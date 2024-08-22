@@ -58,7 +58,7 @@ use frame_support::{
 		traits::{AccountIdConversion, BlakeTwo256, Block as BlockT},
 		transaction_validity::{TransactionSource, TransactionValidity},
 		ApplyExtrinsicResult, ExtrinsicInclusionMode,
-	}
+	},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use sp_api::impl_runtime_apis;
