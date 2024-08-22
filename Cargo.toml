@@ -139,6 +139,7 @@ sp-application-crypto = { git = "https://github.com/galacticcouncil/polkadot-sdk
 sp-arithmetic = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 sp-authority-discovery = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false}
 sp-block-builder = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
+sp-genesis-builder = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch", default-features = false }
 sp-blockchain = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 sp-consensus = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 sp-consensus-aura = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
@@ -270,6 +271,7 @@ sp-api = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "re
 sp-arithmetic = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 sp-authority-discovery = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 sp-block-builder = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
+sp-genesis-builder = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 sp-blockchain = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 sp-consensus = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 sp-consensus-aura = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }

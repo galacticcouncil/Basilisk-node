@@ -51,11 +51,14 @@ pub use primitives::{
 	AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index, ItemId, Price, Signature,
 };
 
-use frame_support::sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, ExtrinsicInclusionMode,
+use frame_support::{
+	genesis_builder_helper::{build_state, get_preset},
+	sp_runtime::{
+		create_runtime_str, generic, impl_opaque_keys,
+		traits::{AccountIdConversion, BlakeTwo256, Block as BlockT},
+		transaction_validity::{TransactionSource, TransactionValidity},
+		ApplyExtrinsicResult, ExtrinsicInclusionMode,
+	}
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 use sp_api::impl_runtime_apis;
@@ -417,6 +420,20 @@ impl_runtime_apis! {
 		}
 		fn query_length_to_fee(length: u32) -> Balance {
 			TransactionPayment::length_to_fee(length)
+		}
+	}
+
+	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+		fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+			build_state::<RuntimeGenesisConfig>(config)
+		}
+
+		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+			get_preset::<RuntimeGenesisConfig>(id, |_| None)
+		}
+
+		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+			Default::default()
 		}
 	}
 
