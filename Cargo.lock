@@ -891,7 +891,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "13.0.0"
+version = "14.0.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -923,7 +923,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-primitives",
  "polkadot-service",
- "primitives 6.6.2",
+ "primitives 6.6.3",
  "sc-basic-authorship",
  "sc-block-builder",
  "sc-chain-spec",
@@ -973,7 +973,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "117.0.0"
+version = "118.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
@@ -1003,7 +1003,7 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry 2.3.3",
+ "pallet-asset-registry 2.3.4",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -1050,7 +1050,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
  "primitive-types",
- "primitives 6.6.2",
+ "primitives 6.6.3",
  "scale-info",
  "serde",
  "smallvec",
@@ -6942,7 +6942,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "2.3.3"
+version = "2.3.4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7667,7 +7667,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "5.0.18"
+version = "5.0.19"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7677,7 +7677,7 @@ dependencies = [
  "pallet-uniques",
  "parity-scale-codec",
  "pretty_assertions",
- "primitives 6.6.2",
+ "primitives 6.6.3",
  "scale-info",
  "serde",
  "sp-arithmetic",
@@ -8569,7 +8569,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining"
-version = "1.1.11"
+version = "1.1.12"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8584,7 +8584,7 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec",
  "pretty_assertions",
- "primitives 6.6.2",
+ "primitives 6.6.3",
  "scale-info",
  "sp-arithmetic",
  "sp-core",
@@ -8595,7 +8595,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.17"
+version = "1.0.18"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8603,7 +8603,7 @@ dependencies = [
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
- "pallet-asset-registry 2.3.3",
+ "pallet-asset-registry 2.3.4",
  "pallet-balances",
  "pallet-duster",
  "pallet-liquidity-mining",
@@ -8612,7 +8612,7 @@ dependencies = [
  "pallet-xyk",
  "pallet-xyk-liquidity-mining",
  "parity-scale-codec",
- "primitives 6.6.2",
+ "primitives 6.6.3",
  "scale-info",
  "sp-arithmetic",
  "sp-core",
@@ -10302,7 +10302,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.6.2"
+version = "6.6.3"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -11183,7 +11183,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -11211,7 +11211,7 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry 2.3.3",
+ "pallet-asset-registry 2.3.4",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -11245,7 +11245,7 @@ dependencies = [
  "polkadot-runtime-parachains",
  "polkadot-service",
  "pretty_assertions",
- "primitives 6.6.2",
+ "primitives 6.6.3",
  "rococo-runtime",
  "sc-consensus-grandpa",
  "sp-api",
