@@ -112,7 +112,7 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 
 [dev-dependencies]
 xcm-emulator = { workspace = true }
-hex-literal = "0.4.1"
+hex-literal = { workspace = true }
 pallet-relaychain-info = { workspace = true }
 pretty_assertions = "1.2.1"
 sp-arithmetic = { workspace = true }

@@ -20,7 +20,7 @@ hydra-dx-build-script-utils = { workspace = true }
 
 [dependencies]
 codec = { package = "parity-scale-codec", version = "3.6.1" }
-hex-literal = "0.4.1"
+hex-literal = { workspace = true }
 jsonrpsee = { version = "0.22.5", features = ["server", "macros"] }
 log = "0.4.17"
 serde = { version = "1.0.197", features = ["derive"] }
