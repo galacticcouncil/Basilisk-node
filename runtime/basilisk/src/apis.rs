@@ -217,7 +217,6 @@ impl_runtime_apis! {
 		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
 			use frame_benchmarking::{BenchmarkError, Benchmarking, BenchmarkBatch};
 			use frame_support::traits::TrackedStorageKey;
-			use sp_core::Get;
 			use sp_std::sync::Arc;
 			use primitives::constants::chain::CORE_ASSET_ID;
 
@@ -241,19 +240,19 @@ impl_runtime_apis! {
 			parameter_types! {
 				pub const RandomParaId: ParaId = ParaId::new(22222222);
 				pub const ExistentialDeposit: u128= 1_000_000_000_000;
-				pub AssetLocation: Location = Location::new(1, cumulus_primitives_core::Junctions::X2(
-					Arc::new([cumulus_primitives_core::Junction::Parachain(ParachainInfo::get().into()),
+				pub AssetLocation: Location = Location::new(0, cumulus_primitives_core::Junctions::X1(
+					Arc::new([
 						cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())
 						])
 				));
 			}
 
 			use cumulus_primitives_core::ParaId;
-			use polkadot_xcm::latest::prelude::{Location, AssetId, Fungible, Asset, ParentThen, Parachain, Parent};
+			use polkadot_xcm::latest::prelude::{Location, AssetId, Fungible, Asset, Assets, ParentThen, Parachain, Parent};
 
 			impl pallet_xcm::benchmarking::Config for Runtime {
-				// TODO:
 				type DeliveryHelper = ();
+
 				fn reachable_dest() -> Option<Location> {
 					Some(Parent.into())
 				}
@@ -276,7 +275,40 @@ impl_runtime_apis! {
 					))
 				}
 
-				// TODO:
+				fn set_up_complex_asset_transfer() -> Option<(Assets, u32, Location, Box<dyn FnOnce()>)> {
+					ParachainSystem::open_outbound_hrmp_channel_for_benchmarks_or_tests(
+								RandomParaId::get().into()
+							);
+
+					let destination = ParentThen(Parachain(RandomParaId::get().into()).into()).into();
+
+					let fee_asset: Asset = (
+						   AssetLocation::get(),
+						   ExistentialDeposit::get(),
+					 ).into();
+
+					let who = frame_benchmarking::whitelisted_caller();
+					let balance = 10 * ExistentialDeposit::get();
+					let _ = <Balances as frame_support::traits::Currency<_>>::make_free_balance_be(&who, balance );
+
+					assert_eq!(Balances::free_balance(&who), balance);
+
+					let transfer_asset: Asset = (
+						   AssetLocation::get(),
+						   ExistentialDeposit::get(),
+					 ).into();
+
+					let assets: Assets = vec![fee_asset.clone(), transfer_asset].into();
+
+					let fee_index: u32 = 0;
+
+					let verify: Box<dyn FnOnce()> = Box::new(move || {
+						assert!(Balances::free_balance(&who) <= balance - ExistentialDeposit::get());
+					});
+
+					Some((assets, fee_index, destination, verify))
+			   }
+
 				fn get_asset() -> Asset {
 					Asset {
 						id: AssetId(Location::here()),
