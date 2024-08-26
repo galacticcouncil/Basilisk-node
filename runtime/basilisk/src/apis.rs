@@ -259,16 +259,14 @@ impl_runtime_apis! {
 				}
 
 				fn teleportable_asset_and_dest() -> Option<(Asset, Location)> {
-					Some((
-						Asset {
-							fun: Fungible(ExistentialDeposit::get()),
-							id: AssetId(AssetLocation::get())
-						},
-						Parent.into(),
-					))
+					None
 				}
 
 				fn reserve_transferable_asset_and_dest() -> Option<(Asset, Location)> {
+					ParachainSystem::open_outbound_hrmp_channel_for_benchmarks_or_tests(
+								RandomParaId::get().into()
+							);
+
 					Some((
 						Asset {
 							fun: Fungible(ExistentialDeposit::get()),
