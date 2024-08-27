@@ -52,42 +52,68 @@ pub trait WeightInfo {
 	fn set_location() -> Weight;
 }
 
-/// Weights for lbp using the hack.hydraDX node and recommended hardware.
-pub struct HydraWeight<T>(PhantomData<T>);
-
-impl<T: frame_system::Config> WeightInfo for HydraWeight<T> {
-	fn register() -> Weight {
-		Weight::zero()
-	}
-
-	fn update() -> Weight {
-		Weight::zero()
-	}
-
-	fn set_metadata() -> Weight {
-		Weight::zero()
-	}
-
-	fn set_location() -> Weight {
-		Weight::zero()
-	}
-}
-
 // For backwards compatibility and tests
 impl WeightInfo for () {
+	/// Storage: `AssetRegistry::AssetIds` (r:1 w:1)
+	/// Proof: `AssetRegistry::AssetIds` (`max_values`: None, `max_size`: Some(53), added: 2528, mode: `MaxEncodedLen`)
+	/// Storage: `AssetRegistry::NextAssetId` (r:1 w:1)
+	/// Proof: `AssetRegistry::NextAssetId` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
+	/// Storage: `AssetRegistry::LocationAssets` (r:1 w:1)
+	/// Proof: `AssetRegistry::LocationAssets` (`max_values`: None, `max_size`: Some(622), added: 3097, mode: `MaxEncodedLen`)
+	/// Storage: `AssetRegistry::AssetLocations` (r:0 w:1)
+	/// Proof: `AssetRegistry::AssetLocations` (`max_values`: None, `max_size`: Some(614), added: 3089, mode: `MaxEncodedLen`)
+	/// Storage: `AssetRegistry::AssetMetadataMap` (r:0 w:1)
+	/// Proof: `AssetRegistry::AssetMetadataMap` (`max_values`: None, `max_size`: Some(46), added: 2521, mode: `MaxEncodedLen`)
+	/// Storage: `AssetRegistry::Assets` (r:0 w:1)
+	/// Proof: `AssetRegistry::Assets` (`max_values`: None, `max_size`: Some(87), added: 2562, mode: `MaxEncodedLen`)
 	fn register() -> Weight {
-		Weight::zero()
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `4087`
+		// Minimum execution time: 20_000_000 picoseconds.
+		Weight::from_parts(21_000_000, 4087)
+			.saturating_add(RocksDbWeight::get().reads(3_u64))
+			.saturating_add(RocksDbWeight::get().writes(6_u64))
 	}
-
+	/// Storage: `AssetRegistry::Assets` (r:1 w:1)
+	/// Proof: `AssetRegistry::Assets` (`max_values`: None, `max_size`: Some(87), added: 2562, mode: `MaxEncodedLen`)
+	/// Storage: `AssetRegistry::AssetIds` (r:1 w:2)
+	/// Proof: `AssetRegistry::AssetIds` (`max_values`: None, `max_size`: Some(53), added: 2528, mode: `MaxEncodedLen`)
 	fn update() -> Weight {
-		Weight::zero()
+		// Proof Size summary in bytes:
+		//  Measured:  `89`
+		//  Estimated: `3552`
+		// Minimum execution time: 13_000_000 picoseconds.
+		Weight::from_parts(14_000_000, 3552)
+			.saturating_add(RocksDbWeight::get().reads(2_u64))
+			.saturating_add(RocksDbWeight::get().writes(3_u64))
 	}
-
+	/// Storage: `AssetRegistry::Assets` (r:1 w:0)
+	/// Proof: `AssetRegistry::Assets` (`max_values`: None, `max_size`: Some(87), added: 2562, mode: `MaxEncodedLen`)
+	/// Storage: `AssetRegistry::AssetMetadataMap` (r:0 w:1)
+	/// Proof: `AssetRegistry::AssetMetadataMap` (`max_values`: None, `max_size`: Some(46), added: 2521, mode: `MaxEncodedLen`)
 	fn set_metadata() -> Weight {
-		Weight::zero()
+		// Proof Size summary in bytes:
+		//  Measured:  `102`
+		//  Estimated: `3552`
+		// Minimum execution time: 9_000_000 picoseconds.
+		Weight::from_parts(10_000_000, 3552)
+			.saturating_add(RocksDbWeight::get().reads(1_u64))
+			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
-
+	/// Storage: `AssetRegistry::Assets` (r:1 w:0)
+	/// Proof: `AssetRegistry::Assets` (`max_values`: None, `max_size`: Some(87), added: 2562, mode: `MaxEncodedLen`)
+	/// Storage: `AssetRegistry::LocationAssets` (r:1 w:1)
+	/// Proof: `AssetRegistry::LocationAssets` (`max_values`: None, `max_size`: Some(622), added: 3097, mode: `MaxEncodedLen`)
+	/// Storage: `AssetRegistry::AssetLocations` (r:1 w:1)
+	/// Proof: `AssetRegistry::AssetLocations` (`max_values`: None, `max_size`: Some(614), added: 3089, mode: `MaxEncodedLen`)
 	fn set_location() -> Weight {
-		Weight::zero()
+		// Proof Size summary in bytes:
+		//  Measured:  `76`
+		//  Estimated: `4087`
+		// Minimum execution time: 13_000_000 picoseconds.
+		Weight::from_parts(14_000_000, 4087)
+			.saturating_add(RocksDbWeight::get().reads(3_u64))
+			.saturating_add(RocksDbWeight::get().writes(2_u64))
 	}
 }
