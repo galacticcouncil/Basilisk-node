@@ -29,12 +29,12 @@ use frame_support::{
 };
 use frame_system::RawOrigin;
 use hydradx_traits::{
+	router::{inverse_route, AssetPair, PoolType, RouteProvider, RouteSpotPriceProvider, RouterT, Trade},
 	PriceOracle,
-	router::{inverse_route, AssetPair, PoolType, RouterT, Trade, RouteProvider, RouteSpotPriceProvider}
 };
-use pallet_ema_oracle::OraclePeriod;
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
+use pallet_ema_oracle::OraclePeriod;
 use primitives::{constants::currency::UNITS, BlockNumber};
 use sp_runtime::{FixedPointNumber, FixedU128};
 use sp_std::vec;
