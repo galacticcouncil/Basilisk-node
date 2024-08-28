@@ -263,7 +263,7 @@ impl_runtime_apis! {
 
 				fn reserve_transferable_asset_and_dest() -> Option<(Asset, Location)> {
 					ParachainSystem::open_outbound_hrmp_channel_for_benchmarks_or_tests(
-								RandomParaId::get().into()
+								RandomParaId::get()
 							);
 
 					Some((
@@ -277,7 +277,7 @@ impl_runtime_apis! {
 
 				fn set_up_complex_asset_transfer() -> Option<(Assets, u32, Location, Box<dyn FnOnce()>)> {
 					ParachainSystem::open_outbound_hrmp_channel_for_benchmarks_or_tests(
-								RandomParaId::get().into()
+								RandomParaId::get()
 							);
 
 					let destination = ParentThen(Parachain(RandomParaId::get().into()).into()).into();
