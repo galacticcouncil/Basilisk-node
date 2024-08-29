@@ -35,12 +35,13 @@ fn basilisk_should_receive_asset_when_transferred_from_relaychain() {
 		));
 	});
 	Rococo::execute_with(|| {
-		assert_ok!(rococo_runtime::XcmPallet::reserve_transfer_assets(
+		assert_ok!(rococo_runtime::XcmPallet::limited_reserve_transfer_assets(
 			rococo_runtime::RuntimeOrigin::signed(ALICE.into()),
 			Box::new(Parachain(BASILISK_PARA_ID).into_versioned()),
 			Box::new(Junction::AccountId32 { id: BOB, network: None }.into_versioned()),
 			Box::new((Here, 300 * UNITS).into()),
 			0,
+			WeightLimit::Unlimited,
 		));
 
 		assert_eq!(
@@ -624,7 +625,7 @@ fn polkadot_xcm_execute_extrinsic_should_not_be_allowed() {
 			),
 			sp_runtime::DispatchErrorWithPostInfo {
 				post_info: frame_support::dispatch::PostDispatchInfo {
-					actual_weight: Some(Weight::from_parts(10613000, 0)),
+					actual_weight: Some(Weight::from_parts(10355000, 0)),
 					pays_fee: frame_support::dispatch::Pays::Yes,
 				},
 				error: pallet_xcm::Error::<basilisk_runtime::Runtime>::Filtered.into()
