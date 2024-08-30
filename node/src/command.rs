@@ -42,6 +42,7 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, St
 	Ok(match id {
 		"" => Box::new(chain_spec::basilisk::parachain_config()?),
 		"local" | "dev" => Box::new(chain_spec::local::parachain_config()?),
+		"paseo" => Box::new(chain_spec::paseo::parachain_config()?),
 		"rococo" => Box::new(chain_spec::rococo::parachain_config()?),
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
@@ -78,6 +79,7 @@ impl SubstrateCli for Cli {
 		Ok(match id {
 			"basilisk" => Box::new(chain_spec::basilisk::parachain_config()?),
 			"local" | "dev" => Box::new(chain_spec::local::parachain_config()?),
+			"paseo" => Box::new(chain_spec::paseo::parachain_config()?),
 			"rococo" => Box::new(chain_spec::rococo::parachain_config()?),
 			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})

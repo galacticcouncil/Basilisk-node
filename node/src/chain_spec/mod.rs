@@ -21,6 +21,7 @@
 
 pub mod basilisk;
 pub mod local;
+pub mod paseo;
 pub mod rococo;
 
 const PARA_ID: u32 = 2090;

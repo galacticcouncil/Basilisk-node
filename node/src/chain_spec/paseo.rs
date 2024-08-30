@@ -18,7 +18,6 @@
 use super::*;
 
 const INITIAL_BALANCE: u128 = 10_000;
-const INITIAL_TOKEN_BALANCE: Balance = 1_000 * UNITS;
 
 pub fn parachain_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
@@ -32,12 +31,14 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 		(
 			vec![
 				(
-					get_account_id_from_seed::<sr25519::Public>("Alice"),
-					get_from_seed::<AuraId>("Alice"),
+					// 5CcMLZnK8RNMfurDsRXHwtabSKt8ZmG3ry5G3sAeRXfj4QK2
+					hex!["1822c7a002c35274bd5da15690e9d0027d9d189998990fcefd4458f768109a57"].into(),
+					hex!["1822c7a002c35274bd5da15690e9d0027d9d189998990fcefd4458f768109a57"].unchecked_into(),
 				),
 				(
-					get_account_id_from_seed::<sr25519::Public>("Bob"),
-					get_from_seed::<AuraId>("Bob"),
+					// 5CfHZGU9iFpv2mRd9jBDu1VT6yNPFL3xsjnk971bsGBmuZ8x
+					hex!["1a5fc9b99feaac2b2dcb8473b1b8e5d641296394233685499b7222edceb40327"].into(),
+					hex!["1a5fc9b99feaac2b2dcb8473b1b8e5d641296394233685499b7222edceb40327"].unchecked_into(),
 				),
 			],
 			// candidacy bond
@@ -45,45 +46,23 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 		),
 		// endowed_accounts
 		vec![
-			(get_account_id_from_seed::<sr25519::Public>("Alice"), INITIAL_BALANCE),
-			(get_account_id_from_seed::<sr25519::Public>("Bob"), INITIAL_BALANCE),
-			(get_account_id_from_seed::<sr25519::Public>("Charlie"), INITIAL_BALANCE),
-			(get_account_id_from_seed::<sr25519::Public>("Dave"), INITIAL_BALANCE),
-			(get_account_id_from_seed::<sr25519::Public>("Eve"), INITIAL_BALANCE),
-			(get_account_id_from_seed::<sr25519::Public>("Ferdie"), INITIAL_BALANCE),
 			(
-				get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
+				hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into(),
 				INITIAL_BALANCE,
-			),
+			), // sudo
 			(
-				get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
+				hex!["1822c7a002c35274bd5da15690e9d0027d9d189998990fcefd4458f768109a57"].into(),
 				INITIAL_BALANCE,
-			),
+			), // collator-01
 			(
-				get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
+				hex!["1a5fc9b99feaac2b2dcb8473b1b8e5d641296394233685499b7222edceb40327"].into(),
 				INITIAL_BALANCE,
-			),
-			(
-				get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-				INITIAL_BALANCE,
-			),
-			(
-				get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-				INITIAL_BALANCE,
-			),
-			(
-				get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
-				INITIAL_BALANCE,
-			),
+			), // collator-02
 		],
 		// council_members
 		vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 		// tech_committee_members
-		vec![
-			get_account_id_from_seed::<sr25519::Public>("Alice"),
-			get_account_id_from_seed::<sr25519::Public>("Bob"),
-			get_account_id_from_seed::<sr25519::Public>("Eve"),
-		],
+		vec![hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into()], // same as sudo
 		// registered_assets
 		vec![
 			(b"KSM".to_vec(), 1_000u128, Some(1u32)),
@@ -92,21 +71,9 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 		// accepted_assets
 		vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 		// token_balances
-		vec![
-			(
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				vec![(1, INITIAL_TOKEN_BALANCE), (2, INITIAL_TOKEN_BALANCE)],
-			),
-			(
-				get_account_id_from_seed::<sr25519::Public>("Bob"),
-				vec![(1, INITIAL_TOKEN_BALANCE), (2, INITIAL_TOKEN_BALANCE)],
-			),
-		],
+		vec![],
 		// elections
-		vec![(
-			get_account_id_from_seed::<sr25519::Public>("Alice"),
-			INITIAL_TOKEN_BALANCE,
-		)],
+		vec![],
 		// parachain ID
 		PARA_ID.into(),
 	);
@@ -118,7 +85,7 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 			para_id: PARA_ID,
 		},
 	)
-	.with_name("Basilisk Testnet (Local)")
+	.with_name("Basilisk Testnet (Rococo)")
 	.with_id("testnet_local")
 	.with_chain_type(ChainType::Local)
 	.with_boot_nodes(vec![])
