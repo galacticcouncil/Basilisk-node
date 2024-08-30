@@ -40,14 +40,9 @@ use std::io::Write;
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
-		"" => Box::new(chain_spec::basilisk_parachain_config()?),
-		"dev" => Box::new(chain_spec::parachain_development_config()?),
-		"benchmarks" => Box::new(chain_spec::benchmarks_development_config()?),
-		"testnet" => Box::new(chain_spec::testnet_parachain_config()?),
-		"rococo" => Box::new(chain_spec::rococo_parachain_config()?),
-		"local" => Box::new(chain_spec::local_parachain_config()?),
-		"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
-		"karura-testnet" => Box::new(chain_spec::karura_testnet_parachain_config()?),
+		"" => Box::new(chain_spec::basilisk::parachain_config()?),
+		"local" | "dev" => Box::new(chain_spec::local::parachain_config()?),
+		"rococo" => Box::new(chain_spec::rococo::parachain_config()?),
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
 }
@@ -81,14 +76,9 @@ impl SubstrateCli for Cli {
 		let id = if id.is_empty() { "basilisk" } else { id };
 
 		Ok(match id {
-			"basilisk" => Box::new(chain_spec::basilisk_parachain_config()?),
-			"dev" => Box::new(chain_spec::parachain_development_config()?),
-			"benchmarks" => Box::new(chain_spec::benchmarks_development_config()?),
-			"testnet" => Box::new(chain_spec::testnet_parachain_config()?),
-			"local" => Box::new(chain_spec::local_parachain_config()?),
-			"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
-			"rococo" => Box::new(chain_spec::rococo_parachain_config()?),
-			"karura-testnet" => Box::new(chain_spec::karura_testnet_parachain_config()?),
+			"basilisk" => Box::new(chain_spec::basilisk::parachain_config()?),
+			"local" | "dev" => Box::new(chain_spec::local::parachain_config()?),
+			"rococo" => Box::new(chain_spec::rococo::parachain_config()?),
 			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
 	}

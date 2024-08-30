@@ -148,6 +148,7 @@ sp-consensus-beefy = { git = "https://github.com/paritytech/polkadot-sdk", branc
 sp-core = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 sp-debug-derive = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 sp-externalities = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
+sp-genesis-builder = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2", default-features = false }
 sp-inherents = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 sp-io = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
 sp-keyring = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.7.2", default-features = false }
@@ -277,6 +278,7 @@ sp-consensus-aura = { git = "https://github.com/paritytech/polkadot-sdk", branch
 sp-consensus-babe = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 sp-core = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 sp-externalities = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
+sp-genesis-builder = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 sp-inherents = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 sp-io = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
 sp-keystore = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.7.2" }
