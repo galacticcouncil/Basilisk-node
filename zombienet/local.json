@@ -1,0 +1,65 @@
+{
+  "settings": {
+    "timeout": 1000,
+    "provider": "native"
+  },
+  "relaychain": {
+    "default_command": "../../polkadot/target/release/polkadot",
+    "chain": "rococo-local",
+    "default_args": [
+      "--no-hardware-benchmarks",
+      "-lparachain=debug",
+      "--database=paritydb"
+    ],
+    "nodes": [
+      {
+        "name": "alice",
+        "ws_port": 9944,
+        "validator": true
+      },
+      {
+        "name": "bob",
+        "ws_port": 9955,
+        "validator": true
+      }
+    ]
+  },
+  "parachains": [
+    {
+      "id": 2090,
+      "chain": "local",
+      "collators": [
+        {
+          "name": "alice",
+          "command": "../target/release/basilisk",
+          "ws_port": 9988,
+          "rpc_port": 9999,
+          "args": [
+            "--no-hardware-benchmarks",
+            "--force-authoring",
+            "-lparachain=debug",
+            "--database=paritydb"
+          ]
+        },
+        {
+          "name": "bob",
+          "command": "../target/release/basilisk",
+          "ws_port": 9989,
+          "args": [
+            "--no-hardware-benchmarks",
+            "--force-authoring",
+            "-lparachain=debug",
+            "--database=paritydb"
+          ]
+        }
+      ]
+    }
+  ],
+  "types": {
+    "Header": {
+      "number": "u64",
+      "parent_hash": "Hash",
+      "post_state": "Hash"
+    }
+  }
+}

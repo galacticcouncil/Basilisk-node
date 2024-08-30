@@ -30,6 +30,17 @@ make build
 
 ## Run
 
+### Local Testnet with Zombienet
+Prerequisites:
+* Relay chain repository (polkadot) has to be built in `../polkadot`
+* Grab `zombienet` utility used to start network from [releases](https://github.com/paritytech/zombienet/releases)
+
+
+```
+cd ./zombienet
+zombienet spawn local.json
+```
+
 ### Local Testnet
 
 Relay chain repository [Polkadot](https://github.com/paritytech/polkadot) has to be built in `../polkadot` sibling directory
