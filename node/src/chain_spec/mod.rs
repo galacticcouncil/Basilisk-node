@@ -28,23 +28,19 @@ const TOKEN_DECIMALS: u8 = 12;
 const TOKEN_SYMBOL: &str = "BSX";
 const PROTOCOL_ID: &str = "bsx";
 
-use basilisk_runtime::{
-  AccountId, AuraId, Balance, RuntimeGenesisConfig, Signature, WASM_BINARY,
-};
+use basilisk_runtime::{AccountId, AuraId, Balance, RuntimeGenesisConfig, Signature, WASM_BINARY};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use primitives::{
 	constants::currency::{NATIVE_EXISTENTIAL_DEPOSIT, UNITS},
 	AssetId, Price,
 };
-use serde::{Deserialize, Serialize};
-use serde_json::map::Map;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
+use serde::{Deserialize, Serialize};
+use serde_json::map::Map;
 use sp_core::{crypto::UncheckedInto, sr25519, Pair, Public};
-use sp_runtime::{
-  traits::{IdentifyAccount, Verify},
-};
+use sp_runtime::traits::{IdentifyAccount, Verify};
 
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
@@ -96,90 +92,90 @@ pub fn parachain_genesis(
 	parachain_id: ParaId,
 ) -> serde_json::Value {
 	serde_json::json!({
-	"system": {},
-	"session": {
-		"keys": initial_authorities
-			.0
-			.iter()
-			.cloned()
-			.map(|(acc, aura)| {
-				(
-					acc.clone(),                                   // account id
-					acc,                                           // validator id
-					basilisk_runtime::opaque::SessionKeys { aura }, // session keys
-				)
-			})
-			.collect::<Vec<_>>(),
-	},
-  "assetRegistry": {
-		"registeredAssets": registered_assets.clone(),
-		"nativeAssetName": TOKEN_SYMBOL.as_bytes().to_vec(),
-		"nativeExistentialDeposit": NATIVE_EXISTENTIAL_DEPOSIT,
-	},
-	"aura": {
-		"authorities": Vec::<sp_consensus_aura::sr25519::AuthorityId>::new()
-	},
-  "auraExt": {
-	},
-  "balances": {
-    "balances": endowed_accounts
-      .iter()
-      .cloned()
-      .map(|k| (k.0.clone(), k.1 * UNITS))
-      .collect::<Vec<_>>(),
-  },
-	"collatorSelection": {
-		"invulnerables": initial_authorities.0.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-		"candidacyBond": initial_authorities.1,
-		"desiredCandidates": 0u32,
-	},
-	"council": {
-		"members": council_members,
-	},
-  "duster": {
-    "accountBlacklist": vec![get_account_id_from_seed::<sr25519::Public>("Duster")],
-		"rewardAccount": Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
-		"dustAccount": Some(get_account_id_from_seed::<sr25519::Public>("Duster"))
-	},
-  "elections": {
-    "members": elections,
-	},
-  "emaOracle": {
-	},
-  "multiTransactionPayment": {
-		"currencies": accepted_assets,
-		"accountCurrencies": Vec::<(AccountId, AssetId)>::new(),
-	},
-  "parachainInfo": {
-    "parachainId": parachain_id,
-	},
-  "polkadotXcm": {
-	},
-	"technicalCommittee": {
-		"members": tech_committee_members,
-	},
-	"tokens": {
-		"balances": if registered_assets.is_empty() {
-			vec![]
-		} else {
-			token_balances
+		"system": {},
+		"session": {
+			"keys": initial_authorities
+				.0
 				.iter()
-				.flat_map(|x| {
-					x.1.clone()
-						.into_iter()
-						.map(|(asset_id, amount)| (x.0.clone(), asset_id, amount))
+				.cloned()
+				.map(|(acc, aura)| {
+					(
+						acc.clone(),                                   // account id
+						acc,                                           // validator id
+						basilisk_runtime::opaque::SessionKeys { aura }, // session keys
+					)
 				})
-			.collect::<Vec<_>>()
+				.collect::<Vec<_>>(),
 		},
-	},
-	"treasury": {
-  },
-  "vesting": {
-  },
-	"xykWarehouseLm": {
-  },
-	"xykLiquidityMining": {
-  },
-}
-)
+	  "assetRegistry": {
+			"registeredAssets": registered_assets.clone(),
+			"nativeAssetName": TOKEN_SYMBOL.as_bytes().to_vec(),
+			"nativeExistentialDeposit": NATIVE_EXISTENTIAL_DEPOSIT,
+		},
+		"aura": {
+			"authorities": Vec::<sp_consensus_aura::sr25519::AuthorityId>::new()
+		},
+	  "auraExt": {
+		},
+	  "balances": {
+		"balances": endowed_accounts
+		  .iter()
+		  .cloned()
+		  .map(|k| (k.0.clone(), k.1 * UNITS))
+		  .collect::<Vec<_>>(),
+	  },
+		"collatorSelection": {
+			"invulnerables": initial_authorities.0.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
+			"candidacyBond": initial_authorities.1,
+			"desiredCandidates": 0u32,
+		},
+		"council": {
+			"members": council_members,
+		},
+	  "duster": {
+		"accountBlacklist": vec![get_account_id_from_seed::<sr25519::Public>("Duster")],
+			"rewardAccount": Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
+			"dustAccount": Some(get_account_id_from_seed::<sr25519::Public>("Duster"))
+		},
+	  "elections": {
+		"members": elections,
+		},
+	  "emaOracle": {
+		},
+	  "multiTransactionPayment": {
+			"currencies": accepted_assets,
+			"accountCurrencies": Vec::<(AccountId, AssetId)>::new(),
+		},
+	  "parachainInfo": {
+		"parachainId": parachain_id,
+		},
+	  "polkadotXcm": {
+		},
+		"technicalCommittee": {
+			"members": tech_committee_members,
+		},
+		"tokens": {
+			"balances": if registered_assets.is_empty() {
+				vec![]
+			} else {
+				token_balances
+					.iter()
+					.flat_map(|x| {
+						x.1.clone()
+							.into_iter()
+							.map(|(asset_id, amount)| (x.0.clone(), asset_id, amount))
+					})
+				.collect::<Vec<_>>()
+			},
+		},
+		"treasury": {
+	  },
+	  "vesting": {
+	  },
+		"xykWarehouseLm": {
+	  },
+		"xykLiquidityMining": {
+	  },
+	}
+	)
 }

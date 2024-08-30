@@ -47,9 +47,6 @@ pub use governance::*;
 pub use system::*;
 pub use xcm::*;
 
-pub use primitives::{
-	AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index, ItemId, Price, Signature,
-};
 use frame_support::sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT},
@@ -57,6 +54,9 @@ use frame_support::sp_runtime::{
 	ApplyExtrinsicResult,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
+pub use primitives::{
+	AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index, ItemId, Price, Signature,
+};
 use sp_api::impl_runtime_apis;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{ConstU32, OpaqueMetadata};
@@ -66,7 +66,12 @@ use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
-use frame_support::{construct_runtime, genesis_builder_helper::{build_config, create_default_config}, parameter_types, weights::Weight};
+use frame_support::{
+	construct_runtime,
+	genesis_builder_helper::{build_config, create_default_config},
+	parameter_types,
+	weights::Weight,
+};
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -101,7 +106,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 117,
+	spec_version: 118,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,

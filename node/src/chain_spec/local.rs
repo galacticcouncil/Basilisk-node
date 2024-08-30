@@ -69,13 +69,13 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 		],
 		// registered_assets
 		vec![
-      (b"KSM".to_vec(), 1_000u128, Some(1u32)),
-      (b"KUSD".to_vec(), 1_000u128, Some(2u32)),
-    ],
+			(b"KSM".to_vec(), 1_000u128, Some(1u32)),
+			(b"KUSD".to_vec(), 1_000u128, Some(2u32)),
+		],
 		// accepted_assets
-    vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
-    // token_balances
-    vec![
+		vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
+		// token_balances
+		vec![
 			(
 				get_account_id_from_seed::<sr25519::Public>("Alice"),
 				vec![(1, INITIAL_TOKEN_BALANCE), (2, INITIAL_TOKEN_BALANCE)],
@@ -85,8 +85,11 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 				vec![(1, INITIAL_TOKEN_BALANCE), (2, INITIAL_TOKEN_BALANCE)],
 			),
 		],
-    // elections
-    vec![(get_account_id_from_seed::<sr25519::Public>("Alice"), INITIAL_TOKEN_BALANCE),],
+		// elections
+		vec![(
+			get_account_id_from_seed::<sr25519::Public>("Alice"),
+			INITIAL_TOKEN_BALANCE,
+		)],
 		// parachain ID
 		PARA_ID.into(),
 	);
