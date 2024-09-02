@@ -85,13 +85,13 @@ pub fn _parachain_config_paseo() -> Result<ChainSpec, String> {
 	let chain_spec = ChainSpec::builder(
 		wasm_binary,
 		Extensions {
-			relay_chain: "rococo-local".into(),
+			relay_chain: "paseo".into(),
 			para_id: PARA_ID,
 		},
 	)
-	.with_name("Basilisk Testnet (Rococo)")
-	.with_id("testnet_local")
-	.with_chain_type(ChainType::Local)
+	.with_name("Basilisk Testnet (Paseo)")
+	.with_id("basilisk_paseo")
+	.with_chain_type(ChainType::Live)
 	.with_boot_nodes(vec![])
 	.with_properties(properties)
 	.with_protocol_id(PROTOCOL_ID)
