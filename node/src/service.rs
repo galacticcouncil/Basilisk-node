@@ -56,6 +56,7 @@ type ParachainClient = TFullClient<
 	Block,
 	RuntimeApi,
 	WasmExecutor<(
+		cumulus_primitives_proof_size_hostfunction::storage_proof_size::HostFunctions,
 		sp_io::SubstrateHostFunctions,
 		frame_benchmarking::benchmarking::HostFunctions,
 	)>,
