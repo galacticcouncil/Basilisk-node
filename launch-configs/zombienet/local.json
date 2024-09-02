@@ -4,11 +4,10 @@
     "provider": "native"
   },
   "relaychain": {
-    "default_command": "../../polkadot/target/release/polkadot",
+    "default_command": "../../../polkadot/target/release/polkadot",
     "chain": "rococo-local",
     "default_args": [
       "--no-hardware-benchmarks",
-      "-lparachain=debug",
       "--database=paritydb"
     ],
     "nodes": [
@@ -31,24 +30,22 @@
       "collators": [
         {
           "name": "alice",
-          "command": "../target/release/basilisk",
+          "command": "../../target/release/basilisk",
           "ws_port": 9988,
           "rpc_port": 9999,
           "args": [
             "--no-hardware-benchmarks",
             "--force-authoring",
-            "-lparachain=debug",
             "--database=paritydb"
           ]
         },
         {
           "name": "bob",
-          "command": "../target/release/basilisk",
+          "command": "../../target/release/basilisk",
           "ws_port": 9989,
           "args": [
             "--no-hardware-benchmarks",
             "--force-authoring",
-            "-lparachain=debug",
             "--database=paritydb"
           ]
         }

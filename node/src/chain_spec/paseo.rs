@@ -17,9 +17,13 @@
 
 use super::*;
 
-const INITIAL_BALANCE: u128 = 10_000;
-
 pub fn parachain_config() -> Result<ChainSpec, String> {
+	ChainSpec::from_json_bytes(&include_bytes!("../../res/paseo.json")[..])
+}
+
+pub fn _parachain_config_paseo() -> Result<ChainSpec, String> {
+	const INITIAL_BALANCE: u128 = 10_000;
+
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 
 	let mut properties = Map::new();
