@@ -271,11 +271,6 @@ pub type Executive = frame_executive::Executive<
 	pallet_collator_selection::migration::v2::MigrationToV2<Runtime>,
 >;
 
-parameter_types! {
-	pub const DmpQueuePalletName: &'static str = "DmpQueue";
-	pub const XcmRateLimiterPalletName: &'static str = "XcmRateLimiter";
-}
-
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	frame_support::parameter_types! {
