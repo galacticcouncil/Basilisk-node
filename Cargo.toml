@@ -228,7 +228,6 @@ cumulus-primitives-core = { git = "https://github.com/galacticcouncil/polkadot-s
 cumulus-primitives-parachain-inherent = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 cumulus-primitives-timestamp = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 cumulus-primitives-utility = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
-cumulus-primitives-proof-size-hostfunction = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 cumulus-test-relay-sproof-builder = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 staging-parachain-info = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 cumulus-relay-chain-interface = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
@@ -377,7 +376,6 @@ cumulus-primitives-core = { git = "https://github.com/galacticcouncil/polkadot-s
 cumulus-primitives-parachain-inherent = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 cumulus-primitives-timestamp = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 cumulus-primitives-utility = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
-cumulus-primitives-proof-size-hostfunction = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch" }
 cumulus-relay-chain-inprocess-interface = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 cumulus-relay-chain-interface = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 cumulus-relay-chain-minimal-node = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
@@ -530,7 +528,6 @@ cumulus-primitives-core = { git = "https://github.com/galacticcouncil/polkadot-s
 cumulus-primitives-parachain-inherent = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 cumulus-primitives-timestamp = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 cumulus-primitives-utility = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
-cumulus-primitives-proof-size-hostfunction = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch" }
 cumulus-relay-chain-inprocess-interface = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 cumulus-relay-chain-interface = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 cumulus-relay-chain-minimal-node = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
