@@ -3,7 +3,7 @@
     "provider": "native"
   },
   "relaychain": {
-    "default_command": "../../polkadot/target/release/polkadot",
+    "default_command": "../../polkadot-sdk/target/release/polkadot",
     "chain": "rococo-local",
     "nodes": [
       {
