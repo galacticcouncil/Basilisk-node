@@ -237,9 +237,9 @@ impl_runtime_apis! {
 				}
 			}
 
-			parameter_types! {
-				pub const RandomParaId: ParaId = ParaId::new(22222222);
-				pub const ExistentialDeposit: u128= 1_000_000_000_000;
+			frame_support::parameter_types! {
+				pub const RandomParaId: ParaId = ParaId::new(22_222_222);
+				pub const ExistentialDeposit: u128 = 1_000_000_000_000;
 				pub AssetLocation: Location = Location::new(0, cumulus_primitives_core::Junctions::X1(
 					Arc::new([
 						cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())
