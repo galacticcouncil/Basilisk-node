@@ -17,8 +17,8 @@
 
 use super::*;
 
-const INITIAL_BALANCE: u128 = 1_000_000_000 * UNITS;
-const INITIAL_TOKEN_BALANCE: Balance = 1_000 * UNITS;
+const INITIAL_BALANCE: u128 = 1_000_000_000;
+const INITIAL_TOKEN_BALANCE: Balance = 1_000_000;
 
 pub fn parachain_config() -> Result<ChainSpec, String> {
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;

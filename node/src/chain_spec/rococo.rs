@@ -22,7 +22,7 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 }
 
 pub fn _parachain_config_rococo() -> Result<ChainSpec, String> {
-	const INITIAL_BALANCE: u128 = 1_000_000_000 * UNITS;
+	const INITIAL_BALANCE: u128 = 1_000_000_000;
 	const TELEMETRY_URLS: [&str; 2] = [
 		"wss://telemetry.polkadot.io/submit/",
 		"wss://telemetry.hydradx.io:9000/submit/",
