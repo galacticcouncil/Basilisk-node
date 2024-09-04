@@ -59,9 +59,6 @@ use frame_support::sp_runtime::{
 	ApplyExtrinsicResult,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
-pub use primitives::{
-	AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index, ItemId, Price, Signature,
-};
 use sp_api::impl_runtime_apis;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{ConstU32, OpaqueMetadata};
