@@ -38,11 +38,11 @@ use primitives::{
 };
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
+use sc_telemetry::TelemetryEndpoints;
 use serde::{Deserialize, Serialize};
 use serde_json::map::Map;
 use sp_core::{crypto::UncheckedInto, sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
-
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
 #[serde(deny_unknown_fields)]

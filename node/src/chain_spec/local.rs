@@ -17,7 +17,7 @@
 
 use super::*;
 
-const INITIAL_BALANCE: u128 = 10_000;
+const INITIAL_BALANCE: u128 = 1_000_000_000 * UNITS;
 const INITIAL_TOKEN_BALANCE: Balance = 1_000 * UNITS;
 
 pub fn parachain_config() -> Result<ChainSpec, String> {

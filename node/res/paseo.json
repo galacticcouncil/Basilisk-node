@@ -2,8 +2,25 @@
   "name": "Basilisk Testnet (Paseo)",
   "id": "basilisk_paseo",
   "chainType": "Live",
-  "bootNodes": [],
-  "telemetryEndpoints": null,
+  "bootNodes": [
+    "/ip4/51.89.21.114/tcp/30333/p2p/12D3KooWPnPxuhneTSsRbLPtvgEHzQrBPGgU8AFxdPiHfopZZNm4",
+    "/ip4/198.244.167.50/tcp/30333/p2p/12D3KooWCuE1G21vynHf9vnjhvHR2obsgLJCj6GvrEGcyDTmz1bW",
+    "/ip4/51.79.72.84/tcp/30333/p2p/12D3KooWSdfRNt5ynxwUt72vPSh9gni3BroERBbUQhhni3pFensV",
+    "/ip4/65.108.44.252/tcp/30333/p2p/12D3KooWPr6PPDFpnY3A4mVE1nNfxQcLAzM98g9tVqNbv3ErZoCV",
+    "/ip4/65.21.34.254/tcp/30333/p2p/12D3KooWN39qskQYQkXVHnAdpCbrRQDQTomUTVv9WjnWCagZroY4",
+    "/ip4/65.109.0.92/tcp/30333/p2p/12D3KooWBwKRdSzKapGTTTuBvmLxt63x9Hz1GDzeP71kwygUB1VE",
+    "/ip4/95.217.218.67/tcp/30333/p2p/12D3KooWB5FiyWu8NjyKqy3td1tvaVsALdkMvNEBjQduf8zSuHHM"
+  ],
+  "telemetryEndpoints": [
+    [
+      "/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F",
+      0
+    ],
+    [
+      "/dns/telemetry.hydradx.io/tcp/9000/x-parity-wss/%2Fsubmit%2F",
+      0
+    ]
+  ],
   "protocolId": "bsx",
   "properties": {
     "tokenDecimals": 12,

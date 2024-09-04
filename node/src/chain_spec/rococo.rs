@@ -22,7 +22,11 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 }
 
 pub fn _parachain_config_rococo() -> Result<ChainSpec, String> {
-	const INITIAL_BALANCE: u128 = 10_000;
+	const INITIAL_BALANCE: u128 = 1_000_000_000 * UNITS;
+	const TELEMETRY_URLS: [&str; 2] = [
+		"wss://telemetry.polkadot.io/submit/",
+		"wss://telemetry.hydradx.io:9000/submit/",
+	];
 	let wasm_binary = WASM_BINARY.ok_or("Development wasm binary not available".to_string())?;
 
 	let mut properties = Map::new();
@@ -91,7 +95,36 @@ pub fn _parachain_config_rococo() -> Result<ChainSpec, String> {
 	.with_name("Basilisk Testnet (Rococo)")
 	.with_id("basilisk_rococo")
 	.with_chain_type(ChainType::Live)
-	.with_boot_nodes(vec![])
+	.with_boot_nodes(vec![
+		"/ip4/51.89.21.114/tcp/30333/p2p/12D3KooWPnPxuhneTSsRbLPtvgEHzQrBPGgU8AFxdPiHfopZZNm4"
+			.parse()
+			.unwrap(),
+		"/ip4/198.244.167.50/tcp/30333/p2p/12D3KooWCuE1G21vynHf9vnjhvHR2obsgLJCj6GvrEGcyDTmz1bW"
+			.parse()
+			.unwrap(),
+		"/ip4/51.79.72.84/tcp/30333/p2p/12D3KooWSdfRNt5ynxwUt72vPSh9gni3BroERBbUQhhni3pFensV"
+			.parse()
+			.unwrap(),
+		"/ip4/65.108.44.252/tcp/30333/p2p/12D3KooWPr6PPDFpnY3A4mVE1nNfxQcLAzM98g9tVqNbv3ErZoCV"
+			.parse()
+			.unwrap(),
+		"/ip4/65.21.34.254/tcp/30333/p2p/12D3KooWN39qskQYQkXVHnAdpCbrRQDQTomUTVv9WjnWCagZroY4"
+			.parse()
+			.unwrap(),
+		"/ip4/65.109.0.92/tcp/30333/p2p/12D3KooWBwKRdSzKapGTTTuBvmLxt63x9Hz1GDzeP71kwygUB1VE"
+			.parse()
+			.unwrap(),
+		"/ip4/95.217.218.67/tcp/30333/p2p/12D3KooWB5FiyWu8NjyKqy3td1tvaVsALdkMvNEBjQduf8zSuHHM"
+			.parse()
+			.unwrap(),
+	])
+	.with_telemetry_endpoints(
+		TelemetryEndpoints::new(vec![
+			(TELEMETRY_URLS[0].to_string(), 0),
+			(TELEMETRY_URLS[1].to_string(), 0),
+		])
+		.expect("Telemetry url is valid"),
+	)
 	.with_properties(properties)
 	.with_protocol_id(PROTOCOL_ID)
 	.with_genesis_config_patch(genesis_json)
