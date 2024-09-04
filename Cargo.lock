@@ -871,7 +871,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "13.0.0"
+version = "14.0.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -953,7 +953,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "117.0.0"
+version = "118.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
@@ -1040,6 +1040,7 @@ dependencies = [
  "sp-consensus-aura",
  "sp-core",
  "sp-externalities 0.25.0 (git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.7.2)",
+ "sp-genesis-builder",
  "sp-inherents",
  "sp-io",
  "sp-offchain",

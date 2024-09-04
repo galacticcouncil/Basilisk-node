@@ -30,26 +30,15 @@ make build
 
 ## Run
 
-### Local Testnet
+### Local Testnet with Zombienet
+Prerequisites:
+* Relay chain repository (polkadot) has to be built in `../polkadot`
+* Grab `zombienet` utility used to start network from [releases](https://github.com/paritytech/zombienet/releases)
 
-Relay chain repository [Polkadot](https://github.com/paritytech/polkadot) has to be built in `../polkadot` sibling directory
-Install `polkadot-launch` utility used to start network.
-
-```
-npm install -g polkadot-launch
-```
-
-Start local testnet with 4 relay chain validators and Basilisk as a parachain with 2 collators.
 
 ```
-cd ../rococo-local
-polkadot-launch config.json
-```
-
-Observe Basilisk logs
-
-```
-multitail 99*.log
+cd ./launch-configs/zombienet
+zombienet spawn local.json
 ```
 
 ### Interaction with the node
