@@ -209,6 +209,7 @@ polkadot-xcm = { package = "staging-xcm", git = "https://github.com/galacticcoun
 xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 xcm-emulator = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
+xcm-fee-payment-runtime-api = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch", default-features = false }
 parachains-common = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch", default-features = false }
 
 pallet-collator-selection = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
@@ -396,6 +397,7 @@ polkadot-service = { git = "https://github.com/galacticcouncil/polkadot-sdk", br
 xcm = { package = "staging-xcm", git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch"  }
+xcm-fee-payment-runtime-api = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch"  }
 
 polkadot-node-core-pvf = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 polkadot-node-network-protocol = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
@@ -548,6 +550,7 @@ polkadot-service = { git = "https://github.com/galacticcouncil/polkadot-sdk", br
 xcm = { package = "staging-xcm", git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 xcm-builder = { package = "staging-xcm-builder", git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 xcm-executor = { package = "staging-xcm-executor", git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch"  }
+xcm-fee-payment-runtime-api = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch"  }
 
 polkadot-node-core-pvf = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
 polkadot-node-network-protocol = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "release-polkadot-v1.11.0-patch" }
