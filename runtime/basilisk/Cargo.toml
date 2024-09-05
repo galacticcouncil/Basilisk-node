@@ -15,10 +15,10 @@ substrate-wasm-builder = { workspace = true }
 
 [dependencies]
 hex-literal = { workspace = true }
-serde = { features = ["derive"], optional = true, version = "1.0.136" }
-codec = { package = "parity-scale-codec", version = "3.4.0", default-features = false, features = ["derive"] }
-scale-info = { version = "2.3.1", default-features = false, features = ["derive"] }
-smallvec = "1.9.0"
+serde = { workspace = true, optional = true }
+codec = {  workspace = true }
+scale-info = { workspace = true }
+smallvec = { workspace = true }
 log = { workspace = true }
 
 # local dependencies
