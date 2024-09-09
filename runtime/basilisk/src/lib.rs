@@ -48,15 +48,14 @@ pub use governance::*;
 pub use system::*;
 pub use xcm::*;
 
-pub use primitives::{
-	AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index, ItemId, Price, Signature,
-};
-
 use frame_support::sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
+pub use primitives::{
+	AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index, ItemId, Price, Signature,
+};
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{ConstU32, ConstU64};
 use sp_std::{convert::From, marker::PhantomData, prelude::*, vec};
