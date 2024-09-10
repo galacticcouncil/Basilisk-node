@@ -84,12 +84,10 @@ where
 pub fn parachain_genesis(
 	initial_authorities: (Vec<(AccountId, AuraId)>, Balance), // (initial auths, candidacy bond)
 	endowed_accounts: Vec<(AccountId, Balance)>,
-	council_members: Vec<AccountId>,
 	tech_committee_members: Vec<AccountId>,
 	registered_assets: Vec<(Vec<u8>, Balance, Option<AssetId>)>,
 	accepted_assets: Vec<(AssetId, Price)>, // (Asset id, Fallback price) - asset which fee can be paid with
 	token_balances: Vec<(AccountId, Vec<(AssetId, Balance)>)>,
-	elections: Vec<(AccountId, Balance)>,
 	parachain_id: ParaId,
 ) -> serde_json::Value {
 	serde_json::json!({
@@ -130,16 +128,10 @@ pub fn parachain_genesis(
 			"candidacyBond": initial_authorities.1,
 			"desiredCandidates": 0u32,
 		},
-		"council": {
-			"members": council_members,
-		},
 	  "duster": {
 		"accountBlacklist": vec![get_account_id_from_seed::<sr25519::Public>("Duster")],
 			"rewardAccount": Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 			"dustAccount": Some(get_account_id_from_seed::<sr25519::Public>("Duster"))
-		},
-	  "elections": {
-		"members": elections,
 		},
 	  "emaOracle": {
 		},

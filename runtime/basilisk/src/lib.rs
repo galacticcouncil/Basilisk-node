@@ -177,13 +177,9 @@ construct_runtime!(
 		Treasury: pallet_treasury = 4,
 		Utility: pallet_utility = 5,
 		//NOTE: 6 - is used by Scheduler which must be after cumulus_pallet_parachain_system
-		Democracy: pallet_democracy exclude_parts { Config } = 7,
-		Elections: pallet_elections_phragmen = 8,
-		Council: pallet_collective::<Instance1> = 9,
 		TechnicalCommittee: pallet_collective::<Instance2> = 10,
 		Vesting: orml_vesting = 11,
 		Proxy: pallet_proxy = 12,
-		Tips: pallet_tips = 13,
 
 		// The order of next 4 is important, and it cannot change.
 		Authorship: pallet_authorship = 14,
@@ -585,12 +581,9 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
-		[pallet_democracy, Democracy]
-		[pallet_elections_phragmen, Elections]
 		[pallet_treasury, Treasury]
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]
-		[pallet_tips, Tips]
 		[pallet_identity, Identity]
 		[pallet_collective, TechnicalCommittee]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]

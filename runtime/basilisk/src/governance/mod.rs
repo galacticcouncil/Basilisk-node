@@ -36,8 +36,6 @@ use sp_runtime::{traits::IdentityLookup, DispatchError};
 
 pub mod origins;
 mod tracks;
-// Old governance configurations.
-pub mod old;
 
 pub type TechCommitteeMajority = EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 2>;
 

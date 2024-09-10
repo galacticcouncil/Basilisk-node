@@ -28,10 +28,7 @@ pallet-xyk-liquidity-mining = { workspace = true , default-features = false }
 pallet-xyk-liquidity-mining-benchmarking = { workspace = true, optional = true, default-features = false }
 
 pallet-treasury = { workspace = true }
-pallet-democracy = { workspace = true }
 pallet-scheduler = { workspace = true }
-pallet-elections-phragmen = { workspace = true }
-pallet-tips = { workspace = true }
 pallet-identity = { workspace = true }
 pallet-state-trie-migration = { workspace = true }
 
@@ -153,11 +150,9 @@ runtime-benchmarks = [
     "xcm-builder/runtime-benchmarks",
     "pallet-asset-registry/runtime-benchmarks",
     "pallet-duster/runtime-benchmarks",
-    "pallet-democracy/runtime-benchmarks",
     "pallet-treasury/runtime-benchmarks",
     "pallet-scheduler/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
-    "pallet-tips/runtime-benchmarks",
     "pallet-proxy/runtime-benchmarks",
     "pallet-multisig/runtime-benchmarks",
     "pallet-preimage/runtime-benchmarks",
@@ -168,7 +163,6 @@ runtime-benchmarks = [
     "pallet-ema-oracle/runtime-benchmarks",
     "cumulus-pallet-xcmp-queue/runtime-benchmarks",
     "cumulus-pallet-parachain-system/runtime-benchmarks",
-    "pallet-elections-phragmen/runtime-benchmarks",
     "pallet-state-trie-migration/runtime-benchmarks",
     "pallet-conviction-voting/runtime-benchmarks",
     "pallet-referenda/runtime-benchmarks",
@@ -210,7 +204,6 @@ std = [
     "pallet-asset-registry/std",
     "pallet-aura/std",
     "pallet-balances/std",
-    "pallet-elections-phragmen/std",
     "pallet-nft/std",
     "pallet-marketplace/std",
     "pallet-session/std",
@@ -242,11 +235,9 @@ std = [
     "sp-version/std",
     "pallet-treasury/std",
     "pallet-collective/std",
-    "pallet-democracy/std",
     "pallet-proxy/std",
     "pallet-multisig/std",
     "pallet-scheduler/std",
-    "pallet-tips/std",
     "pallet-collator-selection/std",
     "pallet-authorship/std",
     "pallet-uniques/std",
@@ -279,7 +270,6 @@ try-runtime= [
     "staging-parachain-info/try-runtime",
     "pallet-aura/try-runtime",
     "pallet-balances/try-runtime",
-    "pallet-elections-phragmen/try-runtime",
     "pallet-session/try-runtime",
     "pallet-timestamp/try-runtime",
     "pallet-transaction-payment/try-runtime",
@@ -287,11 +277,9 @@ try-runtime= [
     "pallet-utility/try-runtime",
     "pallet-treasury/try-runtime",
     "pallet-collective/try-runtime",
-    "pallet-democracy/try-runtime",
     "pallet-proxy/try-runtime",
     "pallet-multisig/try-runtime",
     "pallet-scheduler/try-runtime",
-    "pallet-tips/try-runtime",
     "pallet-collator-selection/try-runtime",
     "pallet-authorship/try-runtime",
     "pallet-uniques/try-runtime",
