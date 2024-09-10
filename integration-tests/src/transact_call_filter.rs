@@ -117,10 +117,11 @@ fn blocked_transact_calls_should_not_pass_filter() {
 
 	OtherParachain::execute_with(|| {
 		// filtered by SafeCallFilter
-		let call = pallet_tips::Call::<basilisk_runtime::Runtime>::report_awesome {
-			reason: vec![0, 10],
-			who: BOB.into(),
+		let call = pallet_treasury::Call::<basilisk_runtime::Runtime>::spend_local {
+			amount: UNITS,
+			beneficiary: ALICE.into()
 		};
+
 		let bsx_loc = Location::new(
 			1,
 			cumulus_primitives_core::Junctions::X2(Arc::new(
@@ -150,7 +151,7 @@ fn blocked_transact_calls_should_not_pass_filter() {
 			Transact {
 				require_weight_at_most: Weight::from_parts(10_000_000_000, 0u64),
 				origin_kind: OriginKind::Native,
-				call: basilisk_runtime::RuntimeCall::Tips(call).encode().into(),
+				call: basilisk_runtime::RuntimeCall::Treasury(call).encode().into(),
 			},
 			ExpectTransactStatus(MaybeErrorCode::Success),
 			RefundSurplus,
