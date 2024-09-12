@@ -419,9 +419,11 @@ runtime_benchmarks! {
 	}
 
 	get_oracle_price_for_omnipool {
-	}: {
 		// not used in Basilisk runtime
-		Err(BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX)))?
+		Err(
+			BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX))
+		)?;
+	}: {
 	}
 
 	// Calculates the weight of LBP spot price with fee calculation. Used in the calculation to determine the weight of the overhead.
