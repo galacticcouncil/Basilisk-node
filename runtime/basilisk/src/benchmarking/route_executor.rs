@@ -16,24 +16,32 @@
 // limitations under the License.
 #![allow(clippy::result_large_err)]
 
-use crate::{AccountId, AssetId, Balance, Currencies, Router, Runtime, RuntimeOrigin, System, LBP, XYK};
+use crate::{AccountId, AssetId, Balance, Currencies, EmaOracle, Router, Runtime, RuntimeOrigin, System, LBP, XYK};
 
 use super::*;
-use frame_benchmarking::{account, BenchmarkError};
-use frame_support::dispatch::DispatchResult;
-use frame_support::{assert_ok, ensure, parameter_types};
+use frame_benchmarking::{account, BenchmarkError, BenchmarkResult};
+use frame_support::{
+	assert_ok,
+	dispatch::DispatchResult,
+	ensure, parameter_types,
+	traits::{OnFinalize, OnInitialize},
+	weights::Weight,
+};
 use frame_system::RawOrigin;
-use hydradx_traits::router::inverse_route;
-use hydradx_traits::router::AssetPair;
-use hydradx_traits::router::{PoolType, RouterT, Trade};
+use hydradx_traits::{
+	router::{inverse_route, AssetPair, PoolType, RouteProvider, RouteSpotPriceProvider, RouterT, Trade},
+	PriceOracle,
+};
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
-use primitives::constants::currency::UNITS;
+use pallet_ema_oracle::OraclePeriod;
+use primitives::{constants::currency::UNITS, BlockNumber};
 use sp_runtime::{FixedPointNumber, FixedU128};
 use sp_std::vec;
 pub const INITIAL_BALANCE: Balance = 10_000_000 * UNITS;
 
 const HDX: AssetId = 0;
+const DAI: AssetId = 2;
 
 parameter_types! {
 	//NOTE: This should always be > 1 otherwise we will payout more than we collected as ED for
@@ -141,6 +149,20 @@ fn create_xyk_pool(asset_a: u32, asset_b: u32) {
 	));
 }
 
+fn set_period(to: u32) {
+	while System::block_number() < Into::<BlockNumber>::into(to) {
+		let b = System::block_number();
+
+		System::on_finalize(b);
+		EmaOracle::on_finalize(b);
+
+		System::on_initialize(b + 1_u32);
+		EmaOracle::on_initialize(b + 1_u32);
+
+		System::set_block_number(b + 1_u32);
+	}
+}
+
 runtime_benchmarks! {
 	{Runtime, pallet_route_executor}
 
@@ -222,7 +244,7 @@ runtime_benchmarks! {
 		let asset_5 = register_asset(b"AS5".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 		let asset_6 = register_asset(b"AS6".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 
-		let caller: AccountId = funded_account("caller", 0, &[asset_1, asset_2,asset_3]);
+		let caller: AccountId = funded_account("caller", 0, &[asset_1, asset_2, asset_3, asset_4, asset_5, asset_6]);
 		create_xyk_pool(HDX, asset_2);
 		create_xyk_pool(asset_2, asset_3);
 		create_xyk_pool(asset_3, asset_4);
@@ -252,6 +274,17 @@ runtime_benchmarks! {
 			asset_out: asset_6
 		}];
 
+		assert_ok!(Router::sell(
+			RawOrigin::Signed(caller.clone()).into(),
+			HDX,
+			asset_6,
+			10_000,
+			0,
+			route.clone()
+		));
+
+		set_period(10);
+
 		Router::set_route(
 			RawOrigin::Signed(caller.clone()).into(),
 			AssetPair::new(HDX, asset_6),
@@ -265,6 +298,17 @@ runtime_benchmarks! {
 			asset_in: HDX,
 			asset_out: asset_6
 		},];
+
+		assert_ok!(Router::sell(
+			RawOrigin::Signed(caller.clone()).into(),
+			HDX,
+			asset_6,
+			10_000,
+			0,
+			better_route.clone()
+		));
+
+		set_period(11);
 
 	}: {
 		Router::set_route(
@@ -323,10 +367,87 @@ runtime_benchmarks! {
 		)?;
 	}
 	verify {
-
 		let stored_route = Router::route(AssetPair::new(HDX, asset_6)).unwrap();
 		assert_eq!(inverse_route(stored_route.to_vec()), route);
 	}
+
+	get_route {
+		let route = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: HDX,
+			asset_out: DAI
+		}];
+
+		Router::force_insert_route(
+			RawOrigin::Root.into(),
+			AssetPair::new(HDX, DAI),
+			route,
+		)?;
+	}: {
+		Router::get_route(AssetPair::new(HDX, DAI))
+	}
+
+	//To calculate the overweight properly we use this to substract
+	get_oracle_price_for_xyk {
+		let asset_2 = register_asset(b"AS2".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+
+		let caller: AccountId = funded_account("caller", 0, &[asset_2]);
+		create_xyk_pool(HDX, asset_2);
+
+		let route = vec![Trade {
+			pool: PoolType::XYK,
+			asset_in: HDX,
+			asset_out: asset_2
+		}];
+
+		assert_ok!(Router::sell(
+			RawOrigin::Signed(caller.clone()).into(),
+			HDX,
+			asset_2,
+			10_000,
+			0,
+			route.clone()
+		));
+
+		set_period(10);
+		let price;
+	}: {
+		 price = <Runtime as pallet_route_executor::Config>::OraclePriceProvider::price(&route, OraclePeriod::Short);
+	}
+	verify {
+		assert!(price.is_some());
+	}
+
+	get_oracle_price_for_omnipool {
+		// not used in Basilisk runtime
+		Err(
+			BenchmarkError::Override(BenchmarkResult::from_weight(Weight::MAX))
+		)?;
+	}: {
+	}
+
+	// Calculates the weight of LBP spot price with fee calculation. Used in the calculation to determine the weight of the overhead.
+	calculate_spot_price_with_fee_in_lbp {
+		let asset_in = register_asset(b"FCA".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let asset_out = register_asset(b"FCB".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
+		let caller: AccountId = funded_account("caller", 7, &[asset_in, asset_out]);
+		let seller: AccountId = funded_account("seller", 8, &[asset_in, asset_out]);
+
+		setup_lbp(caller, asset_in, asset_out)?;
+
+		let trades = vec![Trade {
+			pool: PoolType::LBP,
+			asset_in,
+			asset_out
+		}];
+
+	}: {
+		Router::spot_price_with_fee(trades.as_slice());
+	}
+	verify {
+		assert!(Router::spot_price_with_fee(trades.as_slice()).is_some());
+	}
+
 }
 
 #[cfg(test)]
