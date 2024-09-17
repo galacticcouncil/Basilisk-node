@@ -54,6 +54,12 @@ pub const DOT: AssetId = 2;
 
 pub const LIQ_MINING_NFT_COLLECTION: primitives::CollectionId = 1;
 
+const TREASURY: AccountId = 400;
+
+parameter_types! {
+	pub TreasuryAccount: AccountId = TREASURY;
+}
+
 type Block = frame_system::mocking::MockBlock<Test>;
 
 frame_support::construct_runtime!(
@@ -114,6 +120,11 @@ impl system::Config for Test {
 	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 	type RuntimeTask = RuntimeTask;
+	type SingleBlockMigrations = ();
+	type MultiBlockMigrator = ();
+	type PreInherents = ();
+	type PostInherents = ();
+	type PostTransactions = ();
 }
 
 impl crate::Config for Test {}
@@ -140,6 +151,7 @@ impl pallet_liquidity_mining::Config<Instance1> for Test {
 	type NonDustableWhitelistHandler = Duster;
 	type RuntimeEvent = RuntimeEvent;
 	type PriceAdjustment = pallet_liquidity_mining::DefaultPriceAdjustment;
+	type TreasuryAccountId = TreasuryAccount;
 }
 
 parameter_types! {
@@ -170,6 +182,7 @@ impl pallet_duster::Config for Test {
 	type Reward = ();
 	type NativeCurrencyId = BSXAssetId;
 	type BlacklistUpdateOrigin = EnsureRoot<AccountId>;
+	type TreasuryAccountId = TreasuryAccount;
 	type WeightInfo = ();
 }
 
@@ -179,7 +192,7 @@ parameter_types! {
 
 impl pallet_nft::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = pallet_nft::weights::BasiliskWeight<Test>;
+	type WeightInfo = ();
 	type NftCollectionId = primitives::CollectionId;
 	type NftItemId = primitives::ItemId;
 	type CollectionType = CollectionType;

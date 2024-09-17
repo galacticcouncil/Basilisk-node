@@ -54,7 +54,7 @@ fn allowed_transact_call_should_pass_filter() {
 		let message = Xcm(vec![
 			WithdrawAsset(asset_to_withdraw.into()),
 			BuyExecution {
-				fees: asset_for_buy_execution.into(),
+				fees: asset_for_buy_execution,
 				weight_limit: Unlimited,
 			},
 			Transact {
@@ -248,7 +248,7 @@ fn safe_call_filter_should_respect_runtime_call_filter() {
 	});
 
 	//Assert
-	Basilisk::execute_with(|| assert_xcm_message_processing_failed());
+	Basilisk::execute_with(assert_xcm_message_processing_failed);
 }
 
 fn basilisk_location() -> Location {

@@ -63,7 +63,7 @@ pub struct AssetLocation(pub MultiLocation);
 
 impl Into<Option<Location>> for AssetLocation {
 	fn into(self) -> Option<Location> {
-		xcm_builder::V4V3LocationConverter::convert_back(&self.0)
+		xcm_builder::WithLatestLocationConverter::convert_back(&self.0)
 	}
 }
 
@@ -186,6 +186,9 @@ impl Config for XcmConfig {
 	type SafeCallFilter = SafeCallFilter;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = xcm_builder::FrameTransactionalProcessor;
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelClosingHandler = ();
+	type HrmpChannelAcceptedHandler = ();
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -322,6 +325,7 @@ impl pallet_message_queue::Config for Runtime {
 	type HeapSize = MessageQueueHeapSize;
 	type MaxStale = MessageQueueMaxStale;
 	type ServiceWeight = MessageQueueServiceWeight;
+	type IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
 
 pub struct CurrencyIdConvert;

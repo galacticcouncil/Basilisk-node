@@ -36,6 +36,7 @@ mod benchmarking;
 pub mod weights;
 
 mod adapter;
+pub mod apis;
 mod assets;
 mod governance;
 mod system;
@@ -50,28 +51,20 @@ pub use xcm::*;
 use frame_support::sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT},
-	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult,
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 pub use primitives::{
 	AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index, ItemId, Price, Signature,
 };
-use sp_api::impl_runtime_apis;
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{ConstU32, OpaqueMetadata};
+use sp_core::{ConstU32, ConstU64};
 use sp_std::{convert::From, marker::PhantomData, prelude::*, vec};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
 // A few exports that help ease life for downstream crates.
-use frame_support::{
-	construct_runtime,
-	genesis_builder_helper::{build_config, create_default_config},
-	parameter_types,
-	weights::Weight,
-};
+use frame_support::{construct_runtime, weights::Weight};
 
 /// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
 /// the specifics of the runtime. They can then be made to be agnostic over specific formats
@@ -106,9 +99,9 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 118,
+	spec_version: 119,
 	impl_version: 0,
-	apis: RUNTIME_API_VERSIONS,
+	apis: apis::RUNTIME_API_VERSIONS,
 	transaction_version: 1,
 	state_version: 1,
 };
@@ -144,7 +137,7 @@ impl<T: cumulus_pallet_parachain_system::Config + orml_tokens::Config> BlockNumb
 	type BlockNumber = BlockNumberFor<T>;
 
 	fn current_block_number() -> Self::BlockNumber {
-		let maybe_data = cumulus_pallet_parachain_system::Pallet::<T>::validation_data();
+		let maybe_data = cumulus_pallet_parachain_system::ValidationData::<T>::get();
 
 		if let Some(data) = maybe_data {
 			data.relay_parent_number.into()
@@ -324,6 +317,8 @@ pub mod migrations {
 	}
 
 	pub type Migrations = (
+		pallet_collator_selection::migration::v2::MigrationToV2<Runtime>,
+
 		// Unlock/unreserve balances from Gov v1 pallets that hold them
 		// https://github.com/paritytech/polkadot/issues/6749
 		pallet_elections_phragmen::migrations::unlock_and_unreserve_all_funds::UnlockAndUnreserveAllFunds<UnlockConfig>,
