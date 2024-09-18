@@ -60,7 +60,14 @@ impl Contains<RuntimeCall> for BaseFilter {
 	fn contains(call: &RuntimeCall) -> bool {
 		if matches!(
 			call,
-			RuntimeCall::System(_) | RuntimeCall::Timestamp(_) | RuntimeCall::ParachainSystem(_)
+			RuntimeCall::System(_)
+				| RuntimeCall::ConvictionVoting(_)
+				| RuntimeCall::Timestamp(_)
+				| RuntimeCall::ParachainSystem(_)
+				| RuntimeCall::Preimage(_)
+				| RuntimeCall::Referenda(_)
+				| RuntimeCall::TransactionPause(_)
+				| RuntimeCall::Whitelist(_)
 		) {
 			// always allow
 			// Note: this is done to avoid unnecessary check of paused storage.
@@ -308,7 +315,11 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::CancelProxy => matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. })),
 			ProxyType::Governance => matches!(
 				c,
-				RuntimeCall::TechnicalCommittee(..) | RuntimeCall::Treasury(..) | RuntimeCall::Utility(..)
+				RuntimeCall::ConvictionVoting(..)
+					| RuntimeCall::Referenda(..)
+					| RuntimeCall::TechnicalCommittee(..)
+					| RuntimeCall::Treasury(..)
+					| RuntimeCall::Utility(..)
 			),
 			ProxyType::Exchange => matches!(c, RuntimeCall::XYK(..) | RuntimeCall::LBP(..) | RuntimeCall::NFT(..)),
 			// Transfer group doesn't include cross-chain transfers
