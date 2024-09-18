@@ -17,10 +17,11 @@
 
 use crate::chain_spec;
 use crate::cli::{Cli, RelayChainCli, Subcommand};
-use crate::service::{new_partial, BasiliskNativeExecutor};
+use crate::service::new_partial;
 
 use basilisk_runtime::Block;
 use codec::Encode;
+use cumulus_client_service::storage_proof_size::HostFunctions as ReclaimHostFunctions;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 use log::info;
@@ -28,7 +29,6 @@ use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams, NetworkParams, Result,
 	RuntimeVersion, SharedParams, SubstrateCli,
 };
-use sc_executor::{sp_wasm_interface::ExtendedHostFunctions, NativeExecutionDispatch};
 use sc_service::config::{BasePath, PrometheusConfig};
 use sp_core::hexdisplay::HexDisplay;
 use sp_runtime::traits::Block as BlockT;
@@ -40,14 +40,10 @@ use std::io::Write;
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
-		"" => Box::new(chain_spec::basilisk_parachain_config()?),
-		"dev" => Box::new(chain_spec::parachain_development_config()?),
-		"benchmarks" => Box::new(chain_spec::benchmarks_development_config()?),
-		"testnet" => Box::new(chain_spec::testnet_parachain_config()?),
-		"rococo" => Box::new(chain_spec::rococo_parachain_config()?),
-		"local" => Box::new(chain_spec::local_parachain_config()?),
-		"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
-		"karura-testnet" => Box::new(chain_spec::karura_testnet_parachain_config()?),
+		"" => Box::new(chain_spec::basilisk::parachain_config()?),
+		"local" | "dev" => Box::new(chain_spec::local::parachain_config()?),
+		"paseo" => Box::new(chain_spec::paseo::parachain_config()?),
+		"rococo" => Box::new(chain_spec::rococo::parachain_config()?),
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
 }
@@ -81,14 +77,10 @@ impl SubstrateCli for Cli {
 		let id = if id.is_empty() { "basilisk" } else { id };
 
 		Ok(match id {
-			"basilisk" => Box::new(chain_spec::basilisk_parachain_config()?),
-			"dev" => Box::new(chain_spec::parachain_development_config()?),
-			"benchmarks" => Box::new(chain_spec::benchmarks_development_config()?),
-			"testnet" => Box::new(chain_spec::testnet_parachain_config()?),
-			"local" => Box::new(chain_spec::local_parachain_config()?),
-			"staging" => Box::new(chain_spec::kusama_staging_parachain_config()?),
-			"rococo" => Box::new(chain_spec::rococo_parachain_config()?),
-			"karura-testnet" => Box::new(chain_spec::karura_testnet_parachain_config()?),
+			"basilisk" => Box::new(chain_spec::basilisk::parachain_config()?),
+			"local" | "dev" => Box::new(chain_spec::local::parachain_config()?),
+			"paseo" => Box::new(chain_spec::paseo::parachain_config()?),
+			"rococo" => Box::new(chain_spec::rococo::parachain_config()?),
 			path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 		})
 	}
@@ -201,12 +193,7 @@ pub fn run() -> sc_cli::Result<()> {
 			match cmd {
 				BenchmarkCmd::Pallet(cmd) => {
 					if cfg!(feature = "runtime-benchmarks") {
-						runner.sync_run(|config| {
-							cmd.run::<Block, ExtendedHostFunctions<
-								sp_io::SubstrateHostFunctions,
-								<BasiliskNativeExecutor as NativeExecutionDispatch>::ExtendHostFunctions,
-							>>(config)
-						})
+						runner.sync_run(|config| cmd.run_with_spec::<sp_runtime::traits::HashingFor<Block>, ReclaimHostFunctions>(Some(config.chain_spec)))
 					} else {
 						Err("Benchmarking wasn't enabled when building the node. \
 			   You can enable it with `--features runtime-benchmarks`."
@@ -309,7 +296,7 @@ pub fn run() -> sc_cli::Result<()> {
 				let id = ParaId::from(para_id);
 
 				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::v6::AccountId>::into_account_truncating(&id);
+					AccountIdConversion::<polkadot_primitives::v7::AccountId>::into_account_truncating(&id);
 
 				let state_version = Cli::runtime_version().state_version();
 

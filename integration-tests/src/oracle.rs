@@ -3,25 +3,10 @@
 use crate::kusama_test_net::*;
 
 use basilisk_runtime::{EmaOracle, RuntimeOrigin, XYKOracleSourceIdentifier, XYK};
-use frame_support::{
-	assert_ok,
-	traits::{OnFinalize, OnInitialize},
-};
+use frame_support::assert_ok;
 use hydradx_traits::{AggregatedPriceOracle, OraclePeriod::*};
 use pallet_ema_oracle::OracleError;
 use xcm_emulator::TestExt;
-
-pub fn basilisk_run_to_next_block() {
-	let b = basilisk_runtime::System::block_number();
-
-	basilisk_runtime::System::on_finalize(b);
-	basilisk_runtime::EmaOracle::on_finalize(b);
-
-	basilisk_runtime::System::on_initialize(b + 1);
-	basilisk_runtime::EmaOracle::on_initialize(b + 1);
-
-	basilisk_runtime::System::set_block_number(b + 1);
-}
 
 #[test]
 fn xyk_trades_are_ingested_into_oracle() {

@@ -375,7 +375,7 @@ mod xyk_router_tests {
 					0,
 					trades
 				),
-				pallet_route_executor::Error::<basilisk_runtime::Runtime>::InsufficientBalance
+				pallet_xyk::Error::<basilisk_runtime::Runtime>::InsufficientAssetBalance
 			);
 
 			assert_trader_bsx_balance!(BOB_INITIAL_BSX_BALANCE);

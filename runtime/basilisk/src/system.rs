@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use crate::governance::{old::MajorityTechCommitteeOrRoot, origins::GeneralAdmin, TreasuryAccount};
+use crate::governance::{origins::GeneralAdmin, TechCommitteeMajority, TechnicalCollective, TreasuryAccount};
 
 use pallet_transaction_multi_payment::{DepositAll, TransferFees};
 use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
@@ -167,7 +167,12 @@ impl frame_system::Config for Runtime {
 	type SystemWeightInfo = weights::frame_system::BasiliskWeight<Runtime>;
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
-	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type MaxConsumers = ConstU32<16>;
+	type SingleBlockMigrations = ();
+	type MultiBlockMigrator = ();
+	type PreInherents = ();
+	type PostInherents = ();
+	type PostTransactions = ();
 }
 
 parameter_types! {
@@ -283,6 +288,8 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type NativeAssetId = NativeAssetId;
 	type EvmAssetId = WethAssetId;
 	type InspectEvmAccounts = EvmAccounts;
+	type EvmPermit = pallet_transaction_multi_payment::DisabledEvmPermitHandler<Runtime>;
+	type TryCallCurrency<'a> = pallet_transaction_multi_payment::NoCallCurrency<Runtime>;
 }
 
 /// The type used to represent the kinds of proxying allowed.
@@ -420,6 +427,7 @@ impl pallet_aura::Config for Runtime {
 	type MaxAuthorities = MaxAuthorities;
 	type DisabledValidators = ();
 	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type SlotDuration = ConstU64<SLOT_DURATION>;
 }
 
 impl pallet_utility::Config for Runtime {
@@ -493,7 +501,7 @@ impl pallet_relaychain_info::Config for Runtime {
 
 impl pallet_transaction_pause::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type UpdateOrigin = MajorityTechCommitteeOrRoot;
+	type UpdateOrigin = EitherOf<EnsureRoot<Self::AccountId>, TechCommitteeMajority>;
 	type WeightInfo = weights::pallet_transaction_pause::BasiliskWeight<Runtime>;
 }
 
@@ -572,7 +580,7 @@ impl pallet_multisig::Config for Runtime {
 pub struct TechCommAccounts;
 impl SortedMembers<AccountId> for TechCommAccounts {
 	fn sorted_members() -> Vec<AccountId> {
-		TechnicalCommittee::members()
+		pallet_collective::Members::<Runtime, TechnicalCollective>::get()
 	}
 }
 
