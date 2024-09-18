@@ -891,7 +891,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "15.0.0"
+version = "16.0.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -973,7 +973,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "119.0.0"
+version = "120.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
@@ -11178,7 +11178,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",

@@ -119,7 +119,7 @@ fn blocked_transact_calls_should_not_pass_filter() {
 		// filtered by SafeCallFilter
 		let call = pallet_treasury::Call::<basilisk_runtime::Runtime>::spend_local {
 			amount: UNITS,
-			beneficiary: ALICE.into()
+			beneficiary: ALICE.into(),
 		};
 
 		let bsx_loc = Location::new(

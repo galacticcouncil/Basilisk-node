@@ -100,7 +100,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 119,
+	spec_version: 120,
 	impl_version: 0,
 	apis: apis::RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -287,9 +287,7 @@ pub mod migrations {
 	// Special Config for Gov V1 pallets, allowing us to run migrations for them without
 	// implementing their configs on [`Runtime`].
 	pub struct UnlockConfig;
-	impl pallet_elections_phragmen::migrations::unlock_and_unreserve_all_funds::UnlockConfig
-		for UnlockConfig
-	{
+	impl pallet_elections_phragmen::migrations::unlock_and_unreserve_all_funds::UnlockConfig for UnlockConfig {
 		type Currency = Balances;
 		type MaxVotesPerVoter = ConstU32<16>;
 		type PalletId = PhragmenElectionPalletId;
@@ -310,15 +308,16 @@ pub mod migrations {
 
 	pub type Migrations = (
 		pallet_collator_selection::migration::v2::MigrationToV2<Runtime>,
-
 		// Unlock/unreserve balances from Gov v1 pallets that hold them
 		// https://github.com/paritytech/polkadot/issues/6749
 		pallet_elections_phragmen::migrations::unlock_and_unreserve_all_funds::UnlockAndUnreserveAllFunds<UnlockConfig>,
 		pallet_tips::migrations::unreserve_deposits::UnreserveDeposits<UnlockConfig, ()>,
-
 		// Delete storage key/values from all Gov v1 pallets
 		frame_support::migrations::RemovePallet<CouncilPalletName, <Runtime as frame_system::Config>::DbWeight>,
-		frame_support::migrations::RemovePallet<PhragmenElectionPalletName, <Runtime as frame_system::Config>::DbWeight>,
+		frame_support::migrations::RemovePallet<
+			PhragmenElectionPalletName,
+			<Runtime as frame_system::Config>::DbWeight,
+		>,
 		frame_support::migrations::RemovePallet<TipsPalletName, <Runtime as frame_system::Config>::DbWeight>,
 	);
 }

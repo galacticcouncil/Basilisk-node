@@ -307,9 +307,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::CancelProxy => matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. })),
 			ProxyType::Governance => matches!(
 				c,
-				RuntimeCall::TechnicalCommittee(..)
-					| RuntimeCall::Treasury(..)
-					| RuntimeCall::Utility(..)
+				RuntimeCall::TechnicalCommittee(..) | RuntimeCall::Treasury(..) | RuntimeCall::Utility(..)
 			),
 			ProxyType::Exchange => matches!(c, RuntimeCall::XYK(..) | RuntimeCall::LBP(..) | RuntimeCall::NFT(..)),
 			// Transfer group doesn't include cross-chain transfers
