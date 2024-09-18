@@ -891,7 +891,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "15.0.0"
+version = "16.0.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -11178,7 +11178,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",
@@ -11213,9 +11213,7 @@ dependencies = [
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-currencies",
- "pallet-democracy 28.0.0",
  "pallet-duster",
- "pallet-elections-phragmen",
  "pallet-ema-oracle",
  "pallet-im-online",
  "pallet-lbp",
@@ -11226,7 +11224,6 @@ dependencies = [
  "pallet-scheduler",
  "pallet-session",
  "pallet-timestamp",
- "pallet-tips",
  "pallet-transaction-multi-payment",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
