@@ -276,7 +276,7 @@ pub mod migrations {
 	parameter_types! {
 		pub const CouncilPalletName: &'static str = "Council";
 		// pub const TechnicalCommitteePalletName: &'static str = "TechnicalCommittee";
-		pub const PhragmenElectionPalletName: &'static str = "PhragmenElection";
+		pub const PhragmenElectionPalletName: &'static str = "Elections";
 		// pub const TechnicalMembershipPalletName: &'static str = "TechnicalMembership";
 		pub const TipsPalletName: &'static str = "Tips";
 		pub const PhragmenElectionPalletId: LockIdentifier = *b"phrelect";
