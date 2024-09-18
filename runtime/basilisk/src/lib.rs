@@ -171,6 +171,7 @@ construct_runtime!(
 		Treasury: pallet_treasury = 4,
 		Utility: pallet_utility = 5,
 		//NOTE: 6 - is used by Scheduler which must be after cumulus_pallet_parachain_system
+		Democracy: pallet_democracy exclude_parts { Config } = 7,
 		TechnicalCommittee: pallet_collective::<Instance2> = 10,
 		Vesting: orml_vesting = 11,
 		Proxy: pallet_proxy = 12,
@@ -273,7 +274,6 @@ pub mod migrations {
 	use frame_system::pallet_prelude::BlockNumberFor;
 
 	parameter_types! {
-		pub const DemocracyPalletName: &'static str = "Democracy";
 		pub const CouncilPalletName: &'static str = "Council";
 		// pub const TechnicalCommitteePalletName: &'static str = "TechnicalCommittee";
 		pub const PhragmenElectionPalletName: &'static str = "PhragmenElection";
@@ -287,15 +287,6 @@ pub mod migrations {
 	// Special Config for Gov V1 pallets, allowing us to run migrations for them without
 	// implementing their configs on [`Runtime`].
 	pub struct UnlockConfig;
-	impl pallet_democracy::migrations::unlock_and_unreserve_all_funds::UnlockConfig for UnlockConfig {
-		type Currency = Balances;
-		type MaxVotes = ConstU32<100>;
-		type MaxDeposits = ConstU32<100>;
-		type AccountId = AccountId;
-		type BlockNumber = BlockNumberFor<Runtime>;
-		type DbWeight = <Runtime as frame_system::Config>::DbWeight;
-		type PalletName = DemocracyPalletName;
-	}
 	impl pallet_elections_phragmen::migrations::unlock_and_unreserve_all_funds::UnlockConfig
 		for UnlockConfig
 	{
@@ -323,11 +314,9 @@ pub mod migrations {
 		// Unlock/unreserve balances from Gov v1 pallets that hold them
 		// https://github.com/paritytech/polkadot/issues/6749
 		pallet_elections_phragmen::migrations::unlock_and_unreserve_all_funds::UnlockAndUnreserveAllFunds<UnlockConfig>,
-		pallet_democracy::migrations::unlock_and_unreserve_all_funds::UnlockAndUnreserveAllFunds<UnlockConfig>,
 		pallet_tips::migrations::unreserve_deposits::UnreserveDeposits<UnlockConfig, ()>,
 
 		// Delete storage key/values from all Gov v1 pallets
-		frame_support::migrations::RemovePallet<DemocracyPalletName, <Runtime as frame_system::Config>::DbWeight>,
 		frame_support::migrations::RemovePallet<CouncilPalletName, <Runtime as frame_system::Config>::DbWeight>,
 		frame_support::migrations::RemovePallet<PhragmenElectionPalletName, <Runtime as frame_system::Config>::DbWeight>,
 		frame_support::migrations::RemovePallet<TipsPalletName, <Runtime as frame_system::Config>::DbWeight>,
@@ -349,6 +338,7 @@ mod benches {
 		[frame_system, SystemBench::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
+		[pallet_democracy, Democracy]
 		[pallet_treasury, Treasury]
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]

@@ -36,6 +36,8 @@ use sp_runtime::{traits::IdentityLookup, DispatchError};
 
 pub mod origins;
 mod tracks;
+// Old governance pallet, remove once storage is safe to wipe (6mo voting lockup).
+pub mod old;
 
 pub type TechCommitteeMajority = EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 2>;
 
