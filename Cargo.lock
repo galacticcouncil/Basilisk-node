@@ -973,7 +973,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "120.0.0"
+version = "121.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
