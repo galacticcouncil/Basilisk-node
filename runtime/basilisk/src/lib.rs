@@ -48,6 +48,7 @@ pub use governance::*;
 pub use system::*;
 pub use xcm::*;
 
+use frame_support::parameter_types;
 use frame_support::sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT},
@@ -99,7 +100,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 119,
+	spec_version: 120,
 	impl_version: 0,
 	apis: apis::RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -169,14 +170,12 @@ construct_runtime!(
 		MultiTransactionPayment: pallet_transaction_multi_payment = 106,
 		Treasury: pallet_treasury = 4,
 		Utility: pallet_utility = 5,
-		//NOTE: 6 - is used by Scheduler which must be after cumulus_pallet_parachain_system
+		// NOTE: 6 - is used by Scheduler which must be after cumulus_pallet_parachain_system
 		Democracy: pallet_democracy exclude_parts { Config } = 7,
-		Elections: pallet_elections_phragmen = 8,
-		Council: pallet_collective::<Instance1> = 9,
+		// NOTE 7, 8, 9 are retired (used by gov v1)
 		TechnicalCommittee: pallet_collective::<Instance2> = 10,
 		Vesting: orml_vesting = 11,
 		Proxy: pallet_proxy = 12,
-		Tips: pallet_tips = 13,
 
 		// The order of next 4 is important, and it cannot change.
 		Authorship: pallet_authorship = 14,
@@ -267,8 +266,62 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	pallet_collator_selection::migration::v2::MigrationToV2<Runtime>,
+	migrations::Migrations,
 >;
+
+pub mod migrations {
+	use super::*;
+	use frame_support::traits::LockIdentifier;
+	use frame_system::pallet_prelude::BlockNumberFor;
+
+	parameter_types! {
+		pub const CouncilPalletName: &'static str = "Council";
+		// pub const TechnicalCommitteePalletName: &'static str = "TechnicalCommittee";
+		pub const PhragmenElectionPalletName: &'static str = "Elections";
+		// pub const TechnicalMembershipPalletName: &'static str = "TechnicalMembership";
+		pub const TipsPalletName: &'static str = "Tips";
+		pub const PhragmenElectionPalletId: LockIdentifier = *b"phrelect";
+		pub const DataDepositPerByte: Balance = primitives::constants::currency::CENTS;
+		pub const TipReportDepositBase: Balance = 10 * primitives::constants::currency::DOLLARS;
+	}
+
+	// Special Config for Gov V1 pallets, allowing us to run migrations for them without
+	// implementing their configs on [`Runtime`].
+	pub struct UnlockConfig;
+	impl pallet_elections_phragmen::migrations::unlock_and_unreserve_all_funds::UnlockConfig for UnlockConfig {
+		type Currency = Balances;
+		type MaxVotesPerVoter = ConstU32<16>;
+		type PalletId = PhragmenElectionPalletId;
+		type AccountId = AccountId;
+		type DbWeight = <Runtime as frame_system::Config>::DbWeight;
+		type PalletName = PhragmenElectionPalletName;
+	}
+	impl pallet_tips::migrations::unreserve_deposits::UnlockConfig<()> for UnlockConfig {
+		type Currency = Balances;
+		type Hash = Hash;
+		type DataDepositPerByte = DataDepositPerByte;
+		type TipReportDepositBase = TipReportDepositBase;
+		type AccountId = AccountId;
+		type BlockNumber = BlockNumberFor<Runtime>;
+		type DbWeight = <Runtime as frame_system::Config>::DbWeight;
+		type PalletName = TipsPalletName;
+	}
+
+	pub type Migrations = (
+		pallet_collator_selection::migration::v2::MigrationToV2<Runtime>,
+		// Unlock/unreserve balances from Gov v1 pallets that hold them
+		// https://github.com/paritytech/polkadot/issues/6749
+		pallet_elections_phragmen::migrations::unlock_and_unreserve_all_funds::UnlockAndUnreserveAllFunds<UnlockConfig>,
+		pallet_tips::migrations::unreserve_deposits::UnreserveDeposits<UnlockConfig, ()>,
+		// Delete storage key/values from all Gov v1 pallets
+		frame_support::migrations::RemovePallet<CouncilPalletName, <Runtime as frame_system::Config>::DbWeight>,
+		frame_support::migrations::RemovePallet<
+			PhragmenElectionPalletName,
+			<Runtime as frame_system::Config>::DbWeight,
+		>,
+		frame_support::migrations::RemovePallet<TipsPalletName, <Runtime as frame_system::Config>::DbWeight>,
+	);
+}
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
@@ -286,11 +339,9 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
 		[pallet_democracy, Democracy]
-		[pallet_elections_phragmen, Elections]
 		[pallet_treasury, Treasury]
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]
-		[pallet_tips, Tips]
 		[pallet_identity, Identity]
 		[pallet_collective, TechnicalCommittee]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]

@@ -68,8 +68,6 @@ pub fn _parachain_config_paseo() -> Result<ChainSpec, String> {
 				INITIAL_BALANCE,
 			), // collator-02
 		],
-		// council_members
-		vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 		// tech_committee_members
 		vec![hex!["3418b257de81886bef265495f3609def9a083869f32ef5a03f7351956497d41a"].into()], // same as sudo
 		// registered_assets
@@ -80,8 +78,6 @@ pub fn _parachain_config_paseo() -> Result<ChainSpec, String> {
 		// accepted_assets
 		vec![(1, Price::from_float(0.0000212)), (2, Price::from_float(0.000806))],
 		// token_balances
-		vec![],
-		// elections
 		vec![],
 		// parachain ID
 		PARA_ID.into(),
