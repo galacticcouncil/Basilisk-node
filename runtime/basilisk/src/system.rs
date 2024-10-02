@@ -524,7 +524,7 @@ impl pallet_transaction_pause::Config for Runtime {
 }
 
 parameter_types! {
-	pub const RewardPerCollator: Balance = 15_216_000_000_000_000; // 12.68[BSX/block] * 1200[block]
+	pub const RewardPerCollator: Balance = 15_240_000_000_000_000; // 6.35[BSX/block] * 2400[block]
 	//GalacticCouncil collators
 	pub ExcludedCollators: Vec<AccountId> = vec![
 		// bXn5CfJB2qHvqnuMqTpXn6un9Fjch8mwkb9i3JUsGVD4ChLoe
