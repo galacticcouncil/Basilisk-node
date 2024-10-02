@@ -16,7 +16,7 @@
 // limitations under the License.
 
 use super::*;
-use crate::governance::{origins::GeneralAdmin, TechCommitteeMajority, TreasuryAccount};
+use crate::governance::{origins::GeneralAdmin, TechCommitteeMajority, TechnicalCollective, TreasuryAccount};
 
 use pallet_transaction_multi_payment::{DepositAll, TransferFees};
 use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
@@ -70,7 +70,14 @@ impl Contains<RuntimeCall> for BaseFilter {
 	fn contains(call: &RuntimeCall) -> bool {
 		if matches!(
 			call,
-			RuntimeCall::System(_) | RuntimeCall::Timestamp(_) | RuntimeCall::ParachainSystem(_)
+			RuntimeCall::System(_)
+				| RuntimeCall::ConvictionVoting(_)
+				| RuntimeCall::Timestamp(_)
+				| RuntimeCall::ParachainSystem(_)
+				| RuntimeCall::Preimage(_)
+				| RuntimeCall::Referenda(_)
+				| RuntimeCall::TransactionPause(_)
+				| RuntimeCall::Whitelist(_)
 		) {
 			// always allow
 			// Note: this is done to avoid unnecessary check of paused storage.
@@ -86,6 +93,7 @@ impl Contains<RuntimeCall> for BaseFilter {
 			RuntimeCall::Uniques(_) => false,
 			RuntimeCall::PolkadotXcm(_) => false,
 			RuntimeCall::OrmlXcm(_) => false,
+			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			_ => true,
 		}
 	}
@@ -170,7 +178,12 @@ impl frame_system::Config for Runtime {
 	type SystemWeightInfo = weights::frame_system::BasiliskWeight<Runtime>;
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
-	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type MaxConsumers = ConstU32<16>;
+	type SingleBlockMigrations = ();
+	type MultiBlockMigrator = ();
+	type PreInherents = ();
+	type PostInherents = ();
+	type PostTransactions = ();
 }
 
 parameter_types! {
@@ -288,6 +301,8 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type NativeAssetId = NativeAssetId;
 	type EvmAssetId = WethAssetId;
 	type InspectEvmAccounts = EvmAccounts;
+	type EvmPermit = pallet_transaction_multi_payment::DisabledEvmPermitHandler<Runtime>;
+	type TryCallCurrency<'a> = pallet_transaction_multi_payment::NoCallCurrency<Runtime>;
 }
 
 /// The type used to represent the kinds of proxying allowed.
@@ -312,12 +327,10 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::CancelProxy => matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. })),
 			ProxyType::Governance => matches!(
 				c,
-				RuntimeCall::Democracy(..)
-					| RuntimeCall::Council(..)
+				RuntimeCall::ConvictionVoting(..)
+					| RuntimeCall::Referenda(..)
 					| RuntimeCall::TechnicalCommittee(..)
-					| RuntimeCall::Elections(..)
 					| RuntimeCall::Treasury(..)
-					| RuntimeCall::Tips(..)
 					| RuntimeCall::Utility(..)
 			),
 			ProxyType::Exchange => matches!(c, RuntimeCall::XYK(..) | RuntimeCall::LBP(..) | RuntimeCall::NFT(..)),
@@ -589,7 +602,7 @@ impl pallet_multisig::Config for Runtime {
 pub struct TechCommAccounts;
 impl SortedMembers<AccountId> for TechCommAccounts {
 	fn sorted_members() -> Vec<AccountId> {
-		TechnicalCommittee::members()
+		pallet_collective::Members::<Runtime, TechnicalCollective>::get()
 	}
 }
 

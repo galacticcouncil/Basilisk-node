@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "1.0.2"
+version = "1.0.4"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -26,10 +26,7 @@ pallet-marketplace = { workspace = true}
 primitives = { default-features = false, path = "../primitives" }
 
 pallet-treasury = { workspace = true }
-pallet-democracy = { workspace = true }
 pallet-scheduler = { workspace = true }
-pallet-elections-phragmen = { workspace = true }
-pallet-tips = { workspace = true }
 
 # collator support
 pallet-collator-selection = { workspace = true }
@@ -112,11 +109,11 @@ cumulus-test-relay-sproof-builder = { workspace = true }
 
 [dev-dependencies]
 xcm-emulator = { workspace = true }
-hex-literal = "0.4.1"
+hex-literal = { workspace = true }
 pallet-relaychain-info = { workspace = true }
-pretty_assertions = "1.2.1"
+pretty_assertions = { workspace = true }
 sp-arithmetic = { workspace = true }
-test-case = "3.1.0"
+test-case = { workspace = true }
 
 [features]
 default = ["std"]
@@ -148,7 +145,6 @@ std = [
     "pallet-asset-registry/std",
     "pallet-aura/std",
     "pallet-balances/std",
-    "pallet-elections-phragmen/std",
     "pallet-nft/std",
     "pallet-marketplace/std",
     "pallet-session/std",
@@ -178,9 +174,7 @@ std = [
     "sp-version/std",
     "pallet-treasury/std",
     "pallet-collective/std",
-    "pallet-democracy/std",
     "pallet-scheduler/std",
-    "pallet-tips/std",
     "pallet-collator-selection/std",
     "pallet-authorship/std",
     "basilisk-runtime/std",

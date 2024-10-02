@@ -11,7 +11,6 @@ use frame_support::{
 		traits::SignedExtension,
 		transaction_validity::{InvalidTransaction, TransactionValidityError},
 	},
-	traits::{OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use hydradx_traits::AMM;
@@ -20,20 +19,6 @@ use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;
 use primitives::AssetId;
 use xcm_emulator::TestExt;
-
-pub fn basilisk_run_to_next_block() {
-	let b = basilisk_runtime::System::block_number();
-
-	basilisk_runtime::System::on_finalize(b);
-	basilisk_runtime::EmaOracle::on_finalize(b);
-	basilisk_runtime::MultiTransactionPayment::on_finalize(b);
-
-	basilisk_runtime::System::on_initialize(b + 1);
-	basilisk_runtime::EmaOracle::on_initialize(b + 1);
-	basilisk_runtime::MultiTransactionPayment::on_initialize(b + 1);
-
-	basilisk_runtime::System::set_block_number(b + 1);
-}
 
 #[test]
 fn non_native_fee_payment_works_with_configured_price() {

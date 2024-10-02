@@ -166,6 +166,35 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 			))
 		));
 
+		assert_ok!(basilisk_runtime::Tokens::set_balance(
+			frame_system::RawOrigin::Root.into(),
+			ALICE.into(),
+			KAR,
+			100 * UNITS,
+			0,
+		));
+		assert_ok!(basilisk_runtime::Router::sell(
+			basilisk_runtime::RuntimeOrigin::signed(ALICE.into()),
+			KAR,
+			KSM,
+			10_000, // make a small swap to not move the price a lot
+			0,
+			vec![
+				Trade {
+					pool: PoolType::XYK,
+					asset_in: KAR,
+					asset_out: BSX,
+				},
+				Trade {
+					pool: PoolType::XYK,
+					asset_in: BSX,
+					asset_out: KSM,
+				}
+			]
+		));
+
+		basilisk_run_to_next_block();
+
 		//Register onchain route from KAR to KSM
 		assert_ok!(basilisk_runtime::Router::set_route(
 			RuntimeOrigin::signed(CHARLIE.into()),
@@ -215,13 +244,13 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 		));
 	});
 
-	let fees = 27_500_000_000_000;
+	let fees = 27_500_000_000_005;
 	Basilisk::execute_with(|| {
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(KAR, &AccountId::from(BOB)),
 			95000000000000 - fees
 		);
-		let received = 4969548790555;
+		let received = 4969548790553;
 		assert_eq!(
 			basilisk_runtime::Tokens::free_balance(KSM, &AccountId::from(BOB)),
 			received

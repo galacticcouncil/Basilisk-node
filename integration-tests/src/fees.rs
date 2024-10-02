@@ -120,6 +120,8 @@ fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 			format_num(min_multiplier_rust_fees * 10_000 / UNITS, 4),
 		);
 
+		// before trying to fix this test, make sure that CREATE_COLLECTION_OFFSET and MINT_OFFSET
+		// were added to the rebenchmarked weights.
 		assert_eq_approx!(
 			rust_encoded_fees,
 			expected_rust_encoded_fees,
@@ -133,8 +135,8 @@ fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 #[test]
 fn transaction_fees_should_be_as_expected_when_nft_collection_is_created() {
 	Basilisk::execute_with(|| {
-		let expected_rust_encoded_fees = 76_492 * UNITS / 100; //764.92
-		let expected_ui_fees = 76_597 * UNITS / 100; //765.97
+		let expected_rust_encoded_fees = 61_167 * UNITS / 100; //611.67
+		let expected_ui_fees = 61_167 * UNITS / 100; //611.67
 
 		let call = pallet_nft::Call::<basilisk_runtime::Runtime>::create_collection {
 			collection_id: 0,

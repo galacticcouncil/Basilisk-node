@@ -76,8 +76,6 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 				INITIAL_BALANCE,
 			),
 		],
-		// council_members
-		vec![get_account_id_from_seed::<sr25519::Public>("Alice")],
 		// tech_committee_members
 		vec![
 			get_account_id_from_seed::<sr25519::Public>("Alice"),
@@ -102,11 +100,6 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 				vec![(1, INITIAL_TOKEN_BALANCE), (2, INITIAL_TOKEN_BALANCE)],
 			),
 		],
-		// elections
-		vec![(
-			get_account_id_from_seed::<sr25519::Public>("Alice"),
-			INITIAL_TOKEN_BALANCE,
-		)],
 		// parachain ID
 		PARA_ID.into(),
 	);
