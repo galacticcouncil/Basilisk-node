@@ -48,7 +48,6 @@ pub use governance::*;
 pub use system::*;
 pub use xcm::*;
 
-
 use frame_support::parameter_types;
 use frame_support::sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
@@ -102,7 +101,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 121,
+	spec_version: 122,
 	impl_version: 0,
 	apis: apis::RUNTIME_API_VERSIONS,
 	transaction_version: 1,

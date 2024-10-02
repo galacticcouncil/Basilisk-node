@@ -891,7 +891,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "16.0.0"
+version = "17.0.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -923,7 +923,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-primitives",
  "polkadot-service",
- "primitives 6.6.3",
+ "primitives 6.6.4",
  "sc-basic-authorship",
  "sc-block-builder",
  "sc-chain-spec",
@@ -973,7 +973,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "121.0.0"
+version = "122.0.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
@@ -1051,7 +1051,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
  "primitive-types",
- "primitives 6.6.3",
+ "primitives 6.6.4",
  "scale-info",
  "serde",
  "smallvec",
@@ -7673,7 +7673,7 @@ dependencies = [
  "pallet-uniques",
  "parity-scale-codec",
  "pretty_assertions",
- "primitives 6.6.3",
+ "primitives 6.6.4",
  "scale-info",
  "serde",
  "sp-arithmetic",
@@ -8580,7 +8580,7 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec",
  "pretty_assertions",
- "primitives 6.6.3",
+ "primitives 6.6.4",
  "scale-info",
  "sp-arithmetic",
  "sp-core",
@@ -8608,7 +8608,7 @@ dependencies = [
  "pallet-xyk",
  "pallet-xyk-liquidity-mining",
  "parity-scale-codec",
- "primitives 6.6.3",
+ "primitives 6.6.4",
  "scale-info",
  "sp-arithmetic",
  "sp-core",
@@ -10298,7 +10298,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.6.3"
+version = "6.6.4"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -11238,7 +11238,7 @@ dependencies = [
  "polkadot-runtime-parachains",
  "polkadot-service",
  "pretty_assertions",
- "primitives 6.6.3",
+ "primitives 6.6.4",
  "rococo-runtime",
  "sc-consensus-grandpa",
  "sp-api",
