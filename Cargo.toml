@@ -240,7 +240,7 @@ cumulus-pallet-parachain-system = { git = "https://github.com/galacticcouncil/po
 ] }
 cumulus-pallet-xcm = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 cumulus-pallet-xcmp-queue = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
-cumulus-primitives-aura = { git = "https://github.com/paritytech/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
+cumulus-primitives-aura = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 cumulus-primitives-core = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 cumulus-primitives-parachain-inherent = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
 cumulus-primitives-timestamp = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="release-polkadot-v1.11.0-patch", default-features = false }
