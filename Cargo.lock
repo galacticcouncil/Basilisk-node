@@ -11248,6 +11248,7 @@ dependencies = [
  "sp-consensus-aura",
  "sp-consensus-babe",
  "sp-consensus-beefy",
+ "sp-consensus-slots",
  "sp-core",
  "sp-externalities",
  "sp-inherents",
