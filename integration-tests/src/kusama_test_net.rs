@@ -41,8 +41,12 @@ pub fn parachain_reserve_account() -> AccountId {
 	polkadot_parachain::primitives::Sibling::from(OTHER_PARA_ID).into_account_truncating()
 }
 
-pub use basilisk_runtime::{AccountId, VestingPalletId};
+pub use basilisk_runtime::{AccountId, VestingPalletId, ParachainSystem};
+use cumulus_pallet_parachain_system::RelaychainDataProvider;
+use sp_runtime::traits::BlockNumberProvider;
 use cumulus_primitives_core::ParaId;
+use sp_consensus_aura::AURA_ENGINE_ID;
+use sp_consensus_slots::{Slot, SlotDuration};
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use frame_support::assert_ok;
 use frame_support::traits::OnInitialize;
@@ -51,13 +55,13 @@ pub use pallet_xyk::types::AssetPair;
 use polkadot_primitives::v7::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;
-use primitives::{AssetId, Balance};
-use sp_core::storage::Storage;
-use sp_runtime::{traits::AccountIdConversion, BuildStorage};
+use primitives::{AssetId, Balance, constants::time::SLOT_DURATION};
+use sp_core::{Encode, storage::Storage};
+use sp_runtime::{traits::AccountIdConversion, BuildStorage, Digest, DigestItem};
 
 use primitives::constants::chain::CORE_ASSET_ID;
 pub use xcm_emulator::Network;
-use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains};
+use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains, TestExt};
 
 pub type Rococo = RococoRelayChain<TestNet>;
 pub type Basilisk = BasiliskParachain<TestNet>;
@@ -78,7 +82,10 @@ decl_test_relay_chains! {
 	#[api_version(11)]
 	pub struct RococoRelayChain {
 		genesis = rococo::genesis(),
-		on_init = (),
+		on_init = {
+			rococo_runtime::System::on_initialize(1);
+			rococo_runtime::System::set_block_number(1);
+		},
 		runtime = rococo_runtime,
 		core = {
 			SovereignAccountOf: rococo_runtime::xcm_config::LocationConverter,
@@ -95,9 +102,26 @@ decl_test_parachains! {
 	pub struct BasiliskParachain {
 		genesis = basilisk::genesis(),
 		on_init = {
-			basilisk_runtime::System::set_block_number(1);
+			// let slot = Slot::from_timestamp(
+			// 	(pallet_timestamp::Now::<rococo_runtime::Runtime>::get()).into(),
+			// 	SlotDuration::from_millis(SLOT_DURATION),
+			// );
+			// basilisk_runtime::System::initialize(
+			// 	&1,
+            //     &Default::default(),
+            //     &Digest {
+			// 		logs: vec![DigestItem::PreRuntime(
+			// 			AURA_ENGINE_ID,
+            //             slot.encode(),
+            //         )],
+            //     },
+            // );
 			// Make sure the prices are up-to-date.
+			basilisk_runtime::System::set_block_number(1);
 			basilisk_runtime::MultiTransactionPayment::on_initialize(1);
+			basilisk_runtime::System::on_initialize(1);
+			set_slot_info(0);
+			// set_validation_data();
 		},
 		runtime = basilisk_runtime,
 		core = {
@@ -114,9 +138,26 @@ decl_test_parachains! {
 	pub struct OtherPara {
 		genesis = other_parachain::genesis(),
 		on_init = {
+			// let slot = Slot::from_timestamp(
+			// 	(pallet_timestamp::Now::<rococo_runtime::Runtime>::get()).into(),
+			// 	SlotDuration::from_millis(SLOT_DURATION),
+			// );
+			// basilisk_runtime::System::initialize(
+			// 	&1,
+            //     &Default::default(),
+            //     &Digest {
+			// 		logs: vec![DigestItem::PreRuntime(
+			// 			AURA_ENGINE_ID,
+            //             slot.encode(),
+            //         )],
+            //     },
+            // );
+			basilisk_runtime::System::on_initialize(1);
 			basilisk_runtime::System::set_block_number(1);
 			// Make sure the prices are up-to-date.
 			basilisk_runtime::MultiTransactionPayment::on_initialize(1);
+			set_slot_info(0);
+			// set_validation_data();
 		},
 		runtime = basilisk_runtime,
 		core = {
@@ -526,22 +567,86 @@ pub fn basilisk_run_to_next_block() {
 	basilisk_runtime::System::set_block_number(b + 1);
 }
 
-pub fn set_relaychain_block_number(number: BlockNumber) {
-	use basilisk_runtime::ParachainSystem;
+pub fn set_slot_info(number: u64) {
+	sp_io::storage::clear(&frame_support::storage::storage_prefix(
+		b"ParachainSystem",
+		b"UnincludedSegment",
+	));
+	frame_support::storage::unhashed::put(
+		&frame_support::storage::storage_prefix(b"AuraExt", b"SlotInfo"),
+		&((Slot::from(number), 0))
+	);
+}
+
+fn set_timestamp() {
+    assert_ok!(rococo_runtime::Timestamp::set(
+        rococo_runtime::RuntimeOrigin::none(),
+        pallet_timestamp::Now::<rococo_runtime::Runtime>::get() + primitives::constants::time::SLOT_DURATION
+    ));
+}
+
+fn set_timestamp2(number: u64) {
+    assert_ok!(rococo_runtime::Timestamp::set(
+        rococo_runtime::RuntimeOrigin::none(),
+        pallet_timestamp::Now::<rococo_runtime::Runtime>::get() + (primitives::constants::time::SLOT_DURATION * number)
+    ));
+}
+
+pub fn go_to_relaychain_block(number: BlockNumber) {
+	use frame_support::traits::OnFinalize;
+
+	while rococo_runtime::System::block_number() < number {
+		let current_block = rococo_runtime::System::block_number();
+		let next_block = current_block + 1;
+		rococo_runtime::System::on_finalize(current_block);
+		
+		let slot = Slot::from_timestamp(
+			(pallet_timestamp::Now::<rococo_runtime::Runtime>::get() + SLOT_DURATION).into(),
+            SlotDuration::from_millis(SLOT_DURATION),
+        );
+		rococo_runtime::System::on_initialize(next_block);
+        rococo_runtime::System::initialize(
+			&(next_block),
+            &Default::default(),
+            &Digest {
+				logs: vec![DigestItem::PreRuntime(AURA_ENGINE_ID, slot.encode())],
+            },
+        );
+		
+		rococo_runtime::System::set_block_number(next_block);
+
+		basilisk_run_to_next_block();
+
+		// ParachainSystem::on_initialize(next_block);
+		// set_slot_info((next_block).into());
+		set_timestamp();
+		set_validation_data(next_block);
+	}
+}
+
+fn set_validation_data(next_block: u32) {
 	use basilisk_runtime::RuntimeOrigin;
+	use polkadot_primitives::HeadData;
 
-	rococo_run_to_block(number); //We need to set block number this way as well because tarpaulin code coverage tool does not like the way how we set the block number with `cumulus-test-relay-sproof-builder` package
-
-	ParachainSystem::on_initialize(number);
-
-	let (relay_storage_root, proof) = RelayStateSproofBuilder::default().into_state_root_and_proof();
+	let parent_head = HeadData(b"deadbeef".into());
+	let sproof_builder = RelayStateSproofBuilder {
+		para_id: BASILISK_PARA_ID.into(),
+		included_para_head: Some(parent_head.clone()),
+		current_slot: Slot::from_timestamp(
+			pallet_timestamp::Now::<rococo_runtime::Runtime>::get().into(),
+			SlotDuration::from_millis(6_000),
+		),
+		..Default::default()
+	};
+	
+	let (relay_storage_root, proof) = sproof_builder.into_state_root_and_proof();
 
 	assert_ok!(ParachainSystem::set_validation_data(
 		RuntimeOrigin::none(),
 		cumulus_primitives_parachain_inherent::ParachainInherentData {
 			validation_data: cumulus_primitives_core::PersistedValidationData {
 				parent_head: Default::default(),
-				relay_parent_number: number,
+				relay_parent_number: next_block,
 				relay_parent_storage_root: relay_storage_root,
 				max_pov_size: Default::default(),
 			},
@@ -550,7 +655,37 @@ pub fn set_relaychain_block_number(number: BlockNumber) {
 			horizontal_messages: Default::default(),
 		}
 	));
+
 }
+
+// pub fn set_relaychain_block_number(number: BlockNumber) {
+// 	use basilisk_runtime::ParachainSystem;
+// 	use basilisk_runtime::RuntimeOrigin;
+
+// 	rococo_run_to_block(number); //We need to set block number this way as well because tarpaulin code coverage tool does not like the way how we set the block number with `cumulus-test-relay-sproof-builder` package
+// 	set_slot_info(number.into());
+	
+// 	ParachainSystem::on_initialize(number);
+
+// 	set_timestamp2((number-2).into());
+	
+// 	let (relay_storage_root, proof) = RelayStateSproofBuilder::default().into_state_root_and_proof();
+// 	assert_ok!(ParachainSystem::set_validation_data(
+// 		RuntimeOrigin::none(),
+// 		cumulus_primitives_parachain_inherent::ParachainInherentData {
+// 			validation_data: cumulus_primitives_core::PersistedValidationData {
+// 				parent_head: Default::default(),
+// 				relay_parent_number: number,
+// 				relay_parent_storage_root: relay_storage_root,
+// 				max_pov_size: Default::default(),
+// 			},
+// 			relay_chain_state: proof,
+// 			downward_messages: Default::default(),
+// 			horizontal_messages: Default::default(),
+// 		}
+// 	));
+// 	// set_slot_info(number.into());
+// }
 
 pub fn rococo_run_to_block(to: BlockNumber) {
 	use frame_support::traits::OnFinalize;
@@ -560,6 +695,7 @@ pub fn rococo_run_to_block(to: BlockNumber) {
 		rococo_runtime::System::on_finalize(b);
 		rococo_runtime::System::on_initialize(b + 1);
 		rococo_runtime::System::set_block_number(b + 1);
+		// set_slot_info((b + 1).into());
 	}
 }
 
