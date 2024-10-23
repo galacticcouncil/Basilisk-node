@@ -551,7 +551,7 @@ pub fn initialize_rococo_block(target_block: BlockNumber, target_slot: Slot) {
 	rococo_runtime::ParasShared::on_initialize(target_block);
 	rococo_runtime::ParaInclusion::on_initialize(target_block);
 	// rococo_runtime::ParaInherent::on_initialize(target_block);
-	// 	rococo_runtime::ParaScheduler::on_initialize(target_block);
+	rococo_runtime::ParaScheduler::on_initialize(target_block);
 	rococo_runtime::Paras::on_initialize(target_block);
 	rococo_runtime::Initializer::on_initialize(target_block);
 	rococo_runtime::Dmp::on_initialize(target_block);
@@ -566,7 +566,6 @@ pub fn initialize_rococo_block(target_block: BlockNumber, target_slot: Slot) {
 		SLOT_DURATION * *target_slot
 	));
 	// rococo_runtime::AllPalletsWithSystem::on_initialize(target_block);
-	//
 }
 
 pub fn initialize_basilisk_block(target_block: BlockNumber, target_slot: Slot) {
@@ -583,7 +582,7 @@ pub fn initialize_basilisk_block(target_block: BlockNumber, target_slot: Slot) {
 
 	basilisk_runtime::System::on_initialize(target_block);
 	// basilisk_runtime::Timestamp::on_initialize(target_block);
-	// 	basilisk_runtime::Session::on_initialize(target_block);
+	basilisk_runtime::Session::on_initialize(target_block);
 	basilisk_runtime::Aura::on_initialize(target_block);
 	basilisk_runtime::AuraExt::on_initialize(target_block);
 	basilisk_runtime::RelayChainInfo::on_initialize(target_block);
@@ -602,7 +601,7 @@ pub fn initialize_basilisk_block(target_block: BlockNumber, target_slot: Slot) {
 	// ));
 
 	// basilisk_runtime::AllPalletsWithSystem::on_initialize(target_block);
-	// 	set_validation_data(target_block, target_slot);
+	set_validation_data(target_block, target_slot);
 }
 
 pub fn finalize_basilisk_block(target_block: BlockNumber) {
@@ -610,7 +609,7 @@ pub fn finalize_basilisk_block(target_block: BlockNumber) {
 
 	basilisk_runtime::System::on_finalize(target_block);
 	// basilisk_runtime::Timestamp::on_finalize(target_block);
-	// 	basilisk_runtime::Session::on_finalize(target_block);
+	basilisk_runtime::Session::on_finalize(target_block);
 	basilisk_runtime::Aura::on_finalize(target_block);
 	basilisk_runtime::AuraExt::on_finalize(target_block);
 	basilisk_runtime::RelayChainInfo::on_finalize(target_block);
@@ -639,7 +638,7 @@ pub fn finalize_rococo_block(target_block: BlockNumber) {
 	rococo_runtime::ParasShared::on_finalize(target_block);
 	rococo_runtime::ParaInclusion::on_finalize(target_block);
 	// rococo_runtime::ParaInherent::on_finalize(target_block);
-	// 	rococo_runtime::ParaScheduler::on_finalize(target_block);
+	rococo_runtime::ParaScheduler::on_finalize(target_block);
 	rococo_runtime::Paras::on_finalize(target_block);
 	rococo_runtime::Initializer::on_finalize(target_block);
 	rococo_runtime::Dmp::on_finalize(target_block);
