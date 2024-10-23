@@ -139,7 +139,8 @@ fn non_native_fee_payment_works_with_oracle_price_based_on_onchain_route() {
 			false,
 		));
 
-		basilisk_run_to_next_block();
+		go_to_next_block(true, true);
+		go_to_next_block(true, false);
 
 		// pay with the new token
 		assert_ok!(

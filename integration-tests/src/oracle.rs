@@ -17,7 +17,8 @@ fn xyk_trades_are_ingested_into_oracle() {
 
 	Basilisk::execute_with(|| {
 		// arrange
-		basilisk_run_to_next_block();
+		go_to_next_block(true, true);
+		go_to_next_block(true, false);
 
 		assert_ok!(XYK::create_pool(
 			RuntimeOrigin::signed(ALICE.into()),
@@ -37,7 +38,7 @@ fn xyk_trades_are_ingested_into_oracle() {
 
 		// act
 		// will store the data received in the sell as oracle values
-		basilisk_run_to_next_block();
+		go_to_next_block(false, true);
 
 		// assert
 		let expected = ((105000000000000, 190504761904760).into(), 0);

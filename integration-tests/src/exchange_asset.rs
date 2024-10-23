@@ -193,7 +193,7 @@ fn basilisk_should_swap_assets_coming_from_karura_when_onchain_route_present() {
 			]
 		));
 
-		basilisk_run_to_next_block();
+		go_to_next_block(true, false);
 
 		//Register onchain route from KAR to KSM
 		assert_ok!(basilisk_runtime::Router::set_route(
