@@ -511,7 +511,6 @@ pub fn vesting_account() -> AccountId {
 }
 
 pub fn go_to_block(target_block: BlockNumber) {
-	println!("Going to block {}", target_block);
 	while rococo_runtime::System::block_number() < target_block {
 		let stop = rococo_runtime::System::block_number() == target_block - 1;
 		go_to_next_block(true, !stop);
@@ -524,10 +523,6 @@ pub fn initialize_rococo_block(target_block: BlockNumber, target_slot: Slot) {
 	let authority_index: u32 = 0;
 
 	rococo_runtime::System::set_block_number(target_block);
-	println!("Set Rococo block number to {}", target_block);
-
-	println!("Current BABE slot {:?}", rococo_runtime::Babe::current_slot());
-	println!("Babe initialized {:?}", rococo_runtime::Babe::initialized());
 
 	rococo_runtime::System::initialize(
 		&target_block,
@@ -546,86 +541,38 @@ pub fn initialize_rococo_block(target_block: BlockNumber, target_slot: Slot) {
 		},
 	);
 	rococo_runtime::System::on_initialize(target_block);
-	println!("initialized System for Rococo");
-
 	rococo_runtime::Scheduler::on_initialize(target_block);
-	println!("initialized Scheduler for Rococo");
-
 	rococo_runtime::Preimage::on_initialize(target_block);
-	println!("initialized Preimage for Rococo");
-
 	rococo_runtime::Babe::on_initialize(target_block);
-	println!("initialized Babe for Rococo");
-
 	rococo_runtime::Timestamp::on_initialize(target_block);
-	println!("initialized and set Timestamp for Rococo");
-
 	rococo_runtime::Session::on_initialize(target_block);
-	println!("initialized Session for Rococo");
-
 	rococo_runtime::Grandpa::on_initialize(target_block);
-	println!("initialized Grandpa for Rococo");
-
 	rococo_runtime::ParachainsOrigin::on_initialize(target_block);
-	println!("initialized ParachainsOrigin for Rococo");
-
 	rococo_runtime::ParasShared::on_initialize(target_block);
-	println!("initialized ParasShared for Rococo");
-
 	rococo_runtime::ParaInclusion::on_initialize(target_block);
-	println!("initialized ParaInclusion for Rococo");
-
 	// rococo_runtime::ParaInherent::on_initialize(target_block);
-	// println!("initialized ParaInherent for Rococo");
-
-	rococo_runtime::ParaScheduler::on_initialize(target_block);
-	println!("initialized ParaScheduler for Rococo");
-
+	// 	rococo_runtime::ParaScheduler::on_initialize(target_block);
 	rococo_runtime::Paras::on_initialize(target_block);
-	println!("initialized Paras for Rococo");
-
 	rococo_runtime::Initializer::on_initialize(target_block);
-	println!("initialized Initializer for Rococo");
-
 	rococo_runtime::Dmp::on_initialize(target_block);
-	println!("initialized DmpQueue for Rococo");
-
 	rococo_runtime::Hrmp::on_initialize(target_block);
-	println!("initialized Hrmp for Rococo");
-
 	rococo_runtime::ParaSessionInfo::on_initialize(target_block);
-	println!("initialized ParaSessionInfo for Rococo");
-
 	rococo_runtime::Slots::on_initialize(target_block);
-	println!("initialized Slots for Rococo");
-
 	rococo_runtime::XcmPallet::on_initialize(target_block);
-	println!("initialized Xcm for Rococo");
-
 	rococo_runtime::MessageQueue::on_initialize(target_block);
-	println!("initialized MessageQueue for Rococo");
-
 	rococo_runtime::Beefy::on_initialize(target_block);
-	println!("initialized Beefy for Rococo");
-
 	assert_ok!(rococo_runtime::Timestamp::set(
 		rococo_runtime::RuntimeOrigin::none(),
 		SLOT_DURATION * *target_slot
 	));
 	// rococo_runtime::AllPalletsWithSystem::on_initialize(target_block);
-	// println!("initialized all pallets for Rococo");
+	//
 }
 
 pub fn initialize_basilisk_block(target_block: BlockNumber, target_slot: Slot) {
 	// Force a new Basilisk block to be created
-	println!(
-		"Initializing. Current block number: {:?}",
-		basilisk_runtime::System::block_number()
-	);
 
 	basilisk_runtime::System::set_block_number(target_block);
-	println!("Set Basilisk block number to {}", target_block);
-
 	basilisk_runtime::System::initialize(
 		&target_block,
 		&Default::default(),
@@ -635,182 +582,77 @@ pub fn initialize_basilisk_block(target_block: BlockNumber, target_slot: Slot) {
 	);
 
 	basilisk_runtime::System::on_initialize(target_block);
-	println!("Initialized System for Basilisk");
-
 	// basilisk_runtime::Timestamp::on_initialize(target_block);
-	// println!("Initialized Timestamp for Basilisk");
-
-	basilisk_runtime::Session::on_initialize(target_block);
-	println!("Initialized Session for Basilisk");
-
+	// 	basilisk_runtime::Session::on_initialize(target_block);
 	basilisk_runtime::Aura::on_initialize(target_block);
-	println!("Initialized Aura for Basilisk");
-
 	basilisk_runtime::AuraExt::on_initialize(target_block);
-	println!("Initialized AuraExt for Basilisk");
-
 	basilisk_runtime::RelayChainInfo::on_initialize(target_block);
-	println!("Initialized RelayChainInfo for Basilisk");
-
 	basilisk_runtime::Scheduler::on_initialize(target_block);
-	println!("Initialized Scheduler for Basilisk");
-
 	basilisk_runtime::ParachainSystem::on_initialize(target_block);
-	println!("Initialized ParachainSystem for Basilisk");
-
 	basilisk_runtime::ParachainInfo::on_initialize(target_block);
-	println!("Initialized ParachainInfo for Basilisk");
-
 	basilisk_runtime::PolkadotXcm::on_initialize(target_block);
-	println!("Initialized PolkadotXcm for Basilisk");
-
 	basilisk_runtime::CumulusXcm::on_initialize(target_block);
-	println!("Initialized CumulusXcm for Basilisk");
-
 	basilisk_runtime::XcmpQueue::on_initialize(target_block);
-	println!("Initialized XcmpQueue for Basilisk");
-
 	basilisk_runtime::MessageQueue::on_initialize(target_block);
-	println!("Initialized MessageQueue for Basilisk");
-
 	basilisk_runtime::MultiTransactionPayment::on_initialize(target_block);
-	println!("Initialized MultiTransactionPayment for Basilisk");
-
 	basilisk_runtime::EmaOracle::on_initialize(target_block);
-	println!("Initialized EmaOracle for Basilisk");
-
 	// assert_ok!(basilisk_runtime::Timestamp::set(
 	// 	basilisk_runtime::RuntimeOrigin::none(),
 	// 	SLOT_DURATION * *target_slot
 	// ));
 
 	// basilisk_runtime::AllPalletsWithSystem::on_initialize(target_block);
-	// println!("Initialized all pallets for Basilisk");
-
-	set_validation_data(target_block, target_slot);
-	println!("Set validation data for block {}", target_block);
+	// 	set_validation_data(target_block, target_slot);
 }
 
 pub fn finalize_basilisk_block(target_block: BlockNumber) {
 	use frame_support::traits::OnFinalize;
 
 	basilisk_runtime::System::on_finalize(target_block);
-	println!("finalized System for Basilisk");
-
 	// basilisk_runtime::Timestamp::on_finalize(target_block);
-	// println!("finalized Timestamp for Basilisk");
-
-	basilisk_runtime::Session::on_finalize(target_block);
-	println!("finalized Session for Basilisk");
-
+	// 	basilisk_runtime::Session::on_finalize(target_block);
 	basilisk_runtime::Aura::on_finalize(target_block);
-	println!("finalized Aura for Basilisk");
-
 	basilisk_runtime::AuraExt::on_finalize(target_block);
-	println!("finalized AuraExt for Basilisk");
-
 	basilisk_runtime::RelayChainInfo::on_finalize(target_block);
-	println!("finalized RelayChainInfo for Basilisk");
-
 	basilisk_runtime::Scheduler::on_finalize(target_block);
-	println!("finalized Scheduler for Basilisk");
-
 	basilisk_runtime::ParachainSystem::on_finalize(target_block);
-	println!("finalized ParachainSystem for Basilisk");
-
 	basilisk_runtime::ParachainInfo::on_finalize(target_block);
-	println!("finalized ParachainInfo for Basilisk");
-
 	basilisk_runtime::PolkadotXcm::on_finalize(target_block);
-	println!("finalized PolkadotXcm for Basilisk");
-
 	basilisk_runtime::CumulusXcm::on_finalize(target_block);
-	println!("finalized CumulusXcm for Basilisk");
-
 	basilisk_runtime::XcmpQueue::on_finalize(target_block);
-	println!("finalized XcmpQueue for Basilisk");
-
 	basilisk_runtime::MessageQueue::on_finalize(target_block);
-	println!("finalized MessageQueue for Basilisk");
-
 	basilisk_runtime::MultiTransactionPayment::on_finalize(target_block);
-	println!("finalized MultiTransactionPayment for Basilisk");
-
 	basilisk_runtime::EmaOracle::on_finalize(target_block);
-	println!("finalized EmaOracle for Basilisk");
-
 	basilisk_runtime::System::finalize();
 }
 
 pub fn finalize_rococo_block(target_block: BlockNumber) {
 	use frame_support::traits::OnFinalize;
 	rococo_runtime::System::on_finalize(target_block);
-	println!("Finalized System for Rococo");
-
 	rococo_runtime::Scheduler::on_finalize(target_block);
-	println!("Finalized Scheduler for Rococo");
-
 	rococo_runtime::Preimage::on_finalize(target_block);
-	println!("Finalized Preimage for Rococo");
-
 	rococo_runtime::Babe::on_finalize(target_block);
-	println!("Finalized Babe for Rococo");
-
 	rococo_runtime::Timestamp::on_finalize(target_block);
-	println!("Finalized Timestamp for Rococo");
-
 	rococo_runtime::Session::on_finalize(target_block);
-	println!("Finalized Session for Rococo");
-
 	rococo_runtime::Grandpa::on_finalize(target_block);
-	println!("Finalized Grandpa for Rococo");
-
 	rococo_runtime::ParachainsOrigin::on_finalize(target_block);
-	println!("Finalized ParachainsOrigin for Rococo");
-
 	rococo_runtime::ParasShared::on_finalize(target_block);
-	println!("Finalized ParasShared for Rococo");
-
 	rococo_runtime::ParaInclusion::on_finalize(target_block);
-	println!("Finalized ParaInclusion for Rococo");
-
 	// rococo_runtime::ParaInherent::on_finalize(target_block);
-	// println!("Finalized ParaInherent for Rococo");
-
-	rococo_runtime::ParaScheduler::on_finalize(target_block);
-	println!("Finalized ParaScheduler for Rococo");
-
+	// 	rococo_runtime::ParaScheduler::on_finalize(target_block);
 	rococo_runtime::Paras::on_finalize(target_block);
-	println!("Finalized Paras for Rococo");
-
 	rococo_runtime::Initializer::on_finalize(target_block);
-	println!("Finalized Initializer for Rococo");
-
 	rococo_runtime::Dmp::on_finalize(target_block);
-	println!("Finalized DmpQueue for Rococo");
-
 	rococo_runtime::Hrmp::on_finalize(target_block);
-	println!("Finalized Hrmp for Rococo");
-
 	rococo_runtime::ParaSessionInfo::on_finalize(target_block);
-	println!("Finalized ParaSessionInfo for Rococo");
-
 	rococo_runtime::Slots::on_finalize(target_block);
-	println!("Finalized Slots for Rococo");
-
 	rococo_runtime::XcmPallet::on_finalize(target_block);
-	println!("Finalized Xcm for Rococo");
-
 	rococo_runtime::MessageQueue::on_finalize(target_block);
-	println!("Finalized MessageQueue for Rococo");
-
 	rococo_runtime::Beefy::on_finalize(target_block);
-	println!("Finalized Beefy for Rococo");
-
 	// rococo_runtime::System::finalize();
 
 	// rococo_runtime::AllPalletsWithSystem::on_finalize(target_block);
-	// println!("Finalized all pallets for Rococo");
+	//
 }
 
 pub fn go_to_next_block(initialize: bool, finalize: bool) {
@@ -826,17 +668,10 @@ pub fn go_to_next_block(initialize: bool, finalize: bool) {
 		SlotDuration::from_millis(SLOT_DURATION),
 	);
 
-	println!("Current BABE slot {:?}", rococo_runtime::Babe::current_slot());
-	println!("Babe initialized {:?}", rococo_runtime::Babe::initialized());
 	if initialize {
 		initialize_rococo_block(target_relay_block, slot);
 		initialize_basilisk_block(target_para_block, slot);
 	}
-	println!("RelayBlock {:?}", rococo_runtime::System::block_number());
-	println!(
-		"LastRelayBlockPara {:?}",
-		basilisk_runtime::ParachainSystem::last_relay_block_number()
-	);
 
 	if finalize {
 		finalize_basilisk_block(target_para_block);
