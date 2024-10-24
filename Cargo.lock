@@ -11179,7 +11179,7 @@ dependencies = [
 
 [[package]]
 name = "runtime-integration-tests"
-version = "1.0.4"
+version = "1.0.5"
 dependencies = [
  "basilisk-runtime",
  "cumulus-pallet-aura-ext",

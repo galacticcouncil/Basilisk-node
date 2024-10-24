@@ -61,7 +61,7 @@ use sp_runtime::{traits::AccountIdConversion, BuildStorage, Digest, DigestItem};
 
 use primitives::constants::chain::CORE_ASSET_ID;
 pub use xcm_emulator::Network;
-use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains, Parachain, TestExt};
+use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains};
 
 pub type Rococo = RococoRelayChain<TestNet>;
 pub type Basilisk = BasiliskParachain<TestNet>;
@@ -531,10 +531,10 @@ pub fn initialize_rococo_block(target_block: BlockNumber, target_slot: Slot) {
 			logs: vec![DigestItem::PreRuntime(
 				BABE_ENGINE_ID,
 				PreDigest::SecondaryPlain(
-					(SecondaryPlainPreDigest {
+					SecondaryPlainPreDigest {
 						authority_index,
 						slot: target_slot,
-					}),
+					},
 				)
 				.encode(),
 			)],
