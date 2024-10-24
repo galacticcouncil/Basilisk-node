@@ -530,12 +530,10 @@ pub fn initialize_rococo_block(target_block: BlockNumber, target_slot: Slot) {
 		&Digest {
 			logs: vec![DigestItem::PreRuntime(
 				BABE_ENGINE_ID,
-				PreDigest::SecondaryPlain(
-					SecondaryPlainPreDigest {
-						authority_index,
-						slot: target_slot,
-					},
-				)
+				PreDigest::SecondaryPlain(SecondaryPlainPreDigest {
+					authority_index,
+					slot: target_slot,
+				})
 				.encode(),
 			)],
 		},
