@@ -15,11 +15,10 @@
         "patch": {
           "configuration": {
             "config": {
-              "scheduling_lookahead": 2,
-              "async_backing_params": {
-                "max_candidate_depth": 3,
-                "allowed_ancestry_len": 2
-              }
+				"async_backing_params": {
+					"max_candidate_depth": 3,
+					"allowed_ancestry_len": 2
+				}
             }
           }
         }
