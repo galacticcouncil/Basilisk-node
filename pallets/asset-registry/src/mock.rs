@@ -15,8 +15,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg(test)]
-
 use frame_support::parameter_types;
 use frame_system as system;
 use sp_core::H256;

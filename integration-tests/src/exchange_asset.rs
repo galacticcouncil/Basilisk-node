@@ -1,14 +1,10 @@
 #![cfg(test)]
 
 use crate::kusama_test_net::*;
-use basilisk_runtime::Currencies;
 use basilisk_runtime::RuntimeOrigin;
 use basilisk_runtime::XYK;
 use frame_support::dispatch::GetDispatchInfo;
 use frame_support::{assert_ok, pallet_prelude::*};
-use hydradx_traits::router::AssetPair;
-use hydradx_traits::router::PoolType;
-use hydradx_traits::router::Trade;
 use orml_traits::currency::MultiCurrency;
 use polkadot_xcm::{
 	opaque::v3::{Junction, Junctions::X2, MultiLocation},
@@ -286,28 +282,5 @@ fn create_xyk_pool(asset_a: u32, asset_b: u32) {
 		100 * UNITS,
 		asset_b,
 		50 * UNITS,
-	));
-}
-
-fn create_xyk_pool_with_amounts(asset_a: u32, amount_a: u128, asset_b: u32, amount_b: u128) {
-	assert_ok!(Currencies::update_balance(
-		RuntimeOrigin::root(),
-		DAVE.into(),
-		asset_a,
-		amount_a as i128,
-	));
-
-	assert_ok!(Currencies::update_balance(
-		RuntimeOrigin::root(),
-		DAVE.into(),
-		asset_b,
-		amount_b as i128,
-	));
-	assert_ok!(XYK::create_pool(
-		RuntimeOrigin::signed(DAVE.into()),
-		asset_a,
-		amount_a,
-		asset_b,
-		amount_b,
 	));
 }
