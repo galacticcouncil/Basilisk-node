@@ -109,7 +109,7 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	#[allow(clippy::manual_inspect)]
-	#[pallet::hooks] 	
+	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
 	#[pallet::error]
