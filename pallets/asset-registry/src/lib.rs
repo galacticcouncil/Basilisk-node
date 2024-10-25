@@ -108,7 +108,8 @@ pub mod pallet {
 	#[pallet::storage_version(STORAGE_VERSION)]
 	pub struct Pallet<T>(_);
 
-	#[pallet::hooks]
+	#[allow(clippy::manual_inspect)]
+	#[pallet::hooks] 	
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
 
 	#[pallet::error]

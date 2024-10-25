@@ -1004,7 +1004,7 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry 2.3.4",
+ "pallet-asset-registry 2.3.5",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -6938,7 +6938,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "2.3.4"
+version = "2.3.5"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8599,7 +8599,7 @@ dependencies = [
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
- "pallet-asset-registry 2.3.4",
+ "pallet-asset-registry 2.3.5",
  "pallet-balances",
  "pallet-duster",
  "pallet-liquidity-mining",
@@ -11207,7 +11207,7 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry 2.3.4",
+ "pallet-asset-registry 2.3.5",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
