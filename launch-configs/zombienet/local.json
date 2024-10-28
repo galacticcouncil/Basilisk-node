@@ -10,6 +10,20 @@
       "--no-hardware-benchmarks",
       "--database=paritydb"
     ],
+    "genesis": {
+      "runtimeGenesis": {
+        "patch": {
+          "configuration": {
+            "config": {
+				"async_backing_params": {
+					"max_candidate_depth": 3,
+					"allowed_ancestry_len": 2
+				}
+            }
+          }
+        }
+      }
+    },
     "nodes": [
       {
         "name": "alice",

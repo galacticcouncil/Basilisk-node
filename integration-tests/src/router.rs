@@ -1399,7 +1399,7 @@ fn get_lbp_pair_account_id(asset_a: AssetId, asset_b: AssetId) -> AccountId {
 }
 
 fn start_lbp_campaign() {
-	set_relaychain_block_number(SALE_START.unwrap() + 1);
+	go_to_block(SALE_START.unwrap() + 1);
 }
 
 #[macro_export]

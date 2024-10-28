@@ -47,6 +47,7 @@ use hydradx_adapters::RelayChainBlockNumberProvider;
 use hydradx_traits::evm::InspectEvmAccounts;
 use primitives::constants::time::DAYS;
 use scale_info::TypeInfo;
+use sp_core::ConstU64;
 
 /// We assume that an on-initialize consumes 2.5% of the weight on average, hence a single extrinsic
 /// will not be allowed to consume more than `AvailableBlockRatio - 2.5%`.
@@ -54,6 +55,15 @@ pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
 /// We allow `Normal` extrinsics to fill up the block up to 75%, the rest can be used
 /// by  Operational  extrinsics.
 pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+
+/// Maximum number of blocks simultaneously accepted by the Runtime, not yet included into the
+/// relay chain.
+pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
+/// How many parachain blocks are processed by the relay chain per parent. Limits the number of
+/// blocks authored per slot.
+pub const BLOCK_PROCESSING_VELOCITY: u32 = 1;
+/// Relay chain slot duration, in milliseconds.
+pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 
 pub struct BaseFilter;
 impl Contains<RuntimeCall> for BaseFilter {
@@ -177,7 +187,6 @@ impl frame_system::Config for Runtime {
 }
 
 parameter_types! {
-	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
 	pub const NativeAssetId : AssetId = CORE_ASSET_ID;
 }
 
@@ -185,7 +194,7 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
-	type MinimumPeriod = MinimumPeriod;
+	type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>;
 	type WeightInfo = weights::pallet_timestamp::BasiliskWeight<Runtime>;
 }
 
@@ -414,10 +423,18 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
-	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
+	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
+	type ConsensusHook = ConsensusHook;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::BasiliskWeight<Runtime>;
 }
+
+pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
+	Runtime,
+	RELAY_CHAIN_SLOT_DURATION_MILLIS,
+	BLOCK_PROCESSING_VELOCITY,
+	UNINCLUDED_SEGMENT_CAPACITY,
+>;
 
 parameter_types! {
 	pub const MaxAuthorities: u32 = 50;
@@ -427,7 +444,7 @@ impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
 	type MaxAuthorities = MaxAuthorities;
 	type DisabledValidators = ();
-	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type AllowMultipleBlocksPerSlot = ConstBool<true>;
 	type SlotDuration = ConstU64<SLOT_DURATION>;
 }
 
@@ -507,7 +524,7 @@ impl pallet_transaction_pause::Config for Runtime {
 }
 
 parameter_types! {
-	pub const RewardPerCollator: Balance = 15_216_000_000_000_000; // 12.68[BSX/block] * 1200[block]
+	pub const RewardPerCollator: Balance = 15_240_000_000_000_000; // 6.35[BSX/block] * 2400[block]
 	//GalacticCouncil collators
 	pub ExcludedCollators: Vec<AccountId> = vec![
 		// bXn5CfJB2qHvqnuMqTpXn6un9Fjch8mwkb9i3JUsGVD4ChLoe

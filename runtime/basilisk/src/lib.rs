@@ -55,10 +55,11 @@ use frame_support::sp_runtime::{
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 pub use primitives::{
-	AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index, ItemId, Price, Signature,
+	constants::time::SLOT_DURATION, AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index,
+	ItemId, Price, Signature,
 };
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
-use sp_core::{ConstU32, ConstU64};
+use sp_core::ConstU32;
 use sp_std::{convert::From, marker::PhantomData, prelude::*, vec};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -100,7 +101,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("basilisk"),
 	impl_name: create_runtime_str!("basilisk"),
 	authoring_version: 1,
-	spec_version: 121,
+	spec_version: 122,
 	impl_version: 0,
 	apis: apis::RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -359,30 +360,7 @@ mod benches {
 	);
 }
 
-struct CheckInherents;
-
-impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
-	fn check_inherents(
-		block: &Block,
-		relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
-	) -> sp_inherents::CheckInherentsResult {
-		let relay_chain_slot = relay_state_proof
-			.read_slot()
-			.expect("Could not read the relay chain slot from the proof");
-
-		let inherent_data = cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
-			relay_chain_slot,
-			sp_std::time::Duration::from_secs(6),
-		)
-		.create_inherent_data()
-		.expect("Could not create the timestamp inherent data");
-
-		inherent_data.check_extrinsics(block)
-	}
-}
-
 cumulus_pallet_parachain_system::register_validate_block! {
 	Runtime = Runtime,
 	BlockExecutor = cumulus_pallet_aura_ext::BlockExecutor::<Runtime, Executive>,
-	CheckInherents = CheckInherents,
 }

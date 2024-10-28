@@ -21,7 +21,6 @@ use frame_support::{
 	weights::Weight,
 };
 
-///
 pub mod v1 {
 	use super::*;
 	use codec::{Decode, Encode};

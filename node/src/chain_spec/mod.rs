@@ -106,7 +106,7 @@ pub fn parachain_genesis(
 				})
 				.collect::<Vec<_>>(),
 		},
-	  "assetRegistry": {
+		"assetRegistry": {
 			"registeredAssets": registered_assets.clone(),
 			"nativeAssetName": TOKEN_SYMBOL.as_bytes().to_vec(),
 			"nativeExistentialDeposit": NATIVE_EXISTENTIAL_DEPOSIT,
@@ -114,36 +114,34 @@ pub fn parachain_genesis(
 		"aura": {
 			"authorities": Vec::<sp_consensus_aura::sr25519::AuthorityId>::new()
 		},
-	  "auraExt": {
+		"auraExt": {},
+		"balances": {
+			"balances": endowed_accounts
+				.iter()
+				.cloned()
+				.map(|k| (k.0.clone(), k.1 * UNITS))
+				.collect::<Vec<_>>(),
 		},
-	  "balances": {
-		"balances": endowed_accounts
-		  .iter()
-		  .cloned()
-		  .map(|k| (k.0.clone(), k.1 * UNITS))
-		  .collect::<Vec<_>>(),
-	  },
 		"collatorSelection": {
 			"invulnerables": initial_authorities.0.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
 			"candidacyBond": initial_authorities.1,
 			"desiredCandidates": 0u32,
 		},
-	  "duster": {
-		"accountBlacklist": vec![get_account_id_from_seed::<sr25519::Public>("Duster")],
+		"duster": {
+			"accountBlacklist": vec![get_account_id_from_seed::<sr25519::Public>("Duster")],
 			"rewardAccount": Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
 			"dustAccount": Some(get_account_id_from_seed::<sr25519::Public>("Duster"))
 		},
-	  "emaOracle": {
+		"emaOracle": {
 		},
-	  "multiTransactionPayment": {
+		"multiTransactionPayment": {
 			"currencies": accepted_assets,
 			"accountCurrencies": Vec::<(AccountId, AssetId)>::new(),
 		},
-	  "parachainInfo": {
-		"parachainId": parachain_id,
+		"parachainInfo": {
+			"parachainId": parachain_id,
 		},
-	  "polkadotXcm": {
-		},
+		"polkadotXcm": {},
 		"technicalCommittee": {
 			"members": tech_committee_members,
 		},
@@ -161,14 +159,9 @@ pub fn parachain_genesis(
 				.collect::<Vec<_>>()
 			},
 		},
-		"treasury": {
-	  },
-	  "vesting": {
-	  },
-		"xykWarehouseLm": {
-	  },
-		"xykLiquidityMining": {
-	  },
-	}
-	)
+		"treasury": {},
+		"vesting": {},
+		"xykWarehouseLm": {},
+		"xykLiquidityMining": {},
+	})
 }

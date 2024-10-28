@@ -1,6 +1,6 @@
 [package]
 name = "runtime-integration-tests"
-version = "1.0.4"
+version = "1.0.5"
 description = "Integration tests"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -85,6 +85,7 @@ sp-block-builder = { workspace = true }
 sp-consensus-aura = { workspace = true }
 sp-consensus-babe = { workspace = true }
 sp-consensus-beefy = { workspace = true }
+sp-consensus-slots = { workspace = true }
 sp-authority-discovery = { workspace = true }
 sp-core = { workspace = true }
 sp-inherents = { workspace = true }
