@@ -1,6 +1,8 @@
-FROM ubuntu:21.04
+FROM ubuntu:22.04
 
 WORKDIR /basilisk
+
+RUN apt-get update && apt-get install -y ca-certificates
 
 RUN useradd -m -u 1000 -U -s /bin/sh -d /basilisk basilisk && \
     mkdir -p /basilisk/.local/share/basilisk && \
