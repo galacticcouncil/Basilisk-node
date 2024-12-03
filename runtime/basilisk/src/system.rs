@@ -541,7 +541,6 @@ impl pallet_collator_rewards::Config for Runtime {
 	type RewardPerCollator = RewardPerCollator;
 	type RewardCurrencyId = NativeAssetId;
 	type ExcludedCollators = ExcludedCollators;
-
 	type SessionManager = RotatingCollatorManager;
 	type MaxCandidates = MaxInvulnerables;
 }
