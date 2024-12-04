@@ -17,7 +17,6 @@
 
 use super::*;
 use crate::governance::{origins::GeneralAdmin, TechCommitteeMajority, TechnicalCollective, TreasuryAccount};
-use sp_io::transaction_index::index;
 
 use pallet_transaction_multi_payment::{DepositAll, TransferFees};
 use pallet_transaction_payment::{Multiplier, TargetedFeeAdjustment};
@@ -551,11 +550,10 @@ impl SessionManager<AccountId> for RotatingCollatorManager {
 		// We wrap the ` SessionManager` implementation of `CollatorSelection` to get the collators that
 		// we hand out rewards to,
 		// then we rotate the collators to have a regular distribution for block production
-
 		let mut collators = CollatorSelection::new_session(new_index)?;
 
-		if !collators.is_empty() {
-			collators.rotate_left(1);
+		if let Some(amount) = (new_index as usize).checked_div(collators.len()) {
+			collators.rotate_left(amount);
 		}
 
 		Some(collators)

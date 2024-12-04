@@ -307,6 +307,10 @@ pub mod basilisk {
 				get_account_id_from_seed::<sr25519::Public>("Bob"),
 				get_from_seed::<AuraId>("Bob"),
 			),
+			(
+				get_account_id_from_seed::<sr25519::Public>("Charlie"),
+				get_from_seed::<AuraId>("Charlie"),
+			),
 		]
 	}
 
