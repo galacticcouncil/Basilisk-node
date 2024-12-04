@@ -552,8 +552,8 @@ impl SessionManager<AccountId> for RotatingCollatorManager {
 		// then we rotate the collators to have a regular distribution for block production
 		let mut collators = CollatorSelection::new_session(new_index)?;
 
-		if let Some(amount) = (new_index as usize).checked_div(collators.len()) {
-			collators.rotate_left(amount);
+		if let Some(rotation_amount) = (new_index as usize).checked_rem(collators.len()) {
+			collators.rotate_left(rotation_amount);
 		}
 
 		Some(collators)
