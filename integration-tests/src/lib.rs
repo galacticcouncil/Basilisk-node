@@ -10,6 +10,7 @@ mod nft_marketplace;
 mod non_native_fee;
 mod oracle;
 mod router;
+mod sessions;
 mod transact_call_filter;
 mod vesting;
 mod xyk;
