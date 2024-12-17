@@ -74,6 +74,7 @@ impl pallet_conviction_voting::Config for Runtime {
 	type MaxVotes = ConstU32<512>;
 	type MaxTurnout = frame_support::traits::tokens::currency::ActiveIssuanceOf<Balances, Self::AccountId>;
 	type Polls = Referenda;
+	type VotingHooks = (); // TODO:
 }
 
 parameter_types! {
@@ -132,13 +133,8 @@ parameter_types! {
 
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
-	type ApproveOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
 	type RejectOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
 	type RuntimeEvent = RuntimeEvent;
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ProposalBondMinimum;
-	type ProposalBondMaximum = ProposalBondMaximum;
 	type SpendPeriod = SpendPeriod;
 	type Burn = Burn;
 	type PalletId = TreasuryPalletId;

@@ -182,4 +182,7 @@ impl<T: frame_system::Config> pallet_route_executor::WeightInfo for BasiliskWeig
 		Weight::from_parts(33_415_000, 6156)
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 	}
+	fn skip_ed_handling_for_trade_with_insufficient_assets() -> Weight {
+		Weight::MAX
+	}
 }

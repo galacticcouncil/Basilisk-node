@@ -189,6 +189,7 @@ impl Config for XcmConfig {
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelClosingHandler = ();
 	type HrmpChannelAcceptedHandler = ();
+	type XcmRecorder = PolkadotXcm;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -207,12 +208,14 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
+	type XcmpQueue = TransformOrigin<MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling>;
+	type MaxInboundSuspended = MaxInboundSuspended;
+	type MaxActiveOutboundChannels = ConstU32<128>; // TODO:
+	type MaxPageSize = ConstU32<{ 128 * 1024 }>;
 	type ControllerOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type ControllerOriginConverter = XcmOriginToCallOrigin;
 	type PriceForSiblingDelivery = polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery<ParaId>;
 	type WeightInfo = weights::cumulus_pallet_xcmp_queue::BasiliskWeight<Runtime>;
-	type XcmpQueue = TransformOrigin<MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling>;
-	type MaxInboundSuspended = MaxInboundSuspended;
 }
 parameter_type_with_key! {
 	pub ParachainMinFee: |_location: Location| -> Option<u128> {

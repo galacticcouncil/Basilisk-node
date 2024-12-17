@@ -89,7 +89,7 @@ pallet-xcm = { workspace = true }
 xcm-executor = { workspace = true }
 polkadot-xcm = { workspace = true }
 polkadot-runtime-common = { workspace = true }
-xcm-fee-payment-runtime-api = { workspace = true }
+xcm-runtime-apis = { workspace = true }
 
 # Substrate dependencies
 primitive-types = { workspace = true }
@@ -206,7 +206,7 @@ std = [
     "polkadot-xcm/std",
     "xcm-builder/std",
     "xcm-executor/std",
-    "xcm-fee-payment-runtime-api/std",
+    "xcm-runtime-apis/std",
     "pallet-xcm/std",
     "staging-parachain-info/std",
     "pallet-xyk/std",

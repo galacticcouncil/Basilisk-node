@@ -30,7 +30,7 @@ use polkadot_xcm::{IntoVersion, VersionedAssetId, VersionedAssets, VersionedLoca
 use primitives::constants::chain::CORE_ASSET_ID;
 use sp_api::impl_runtime_apis;
 use sp_core::{Get, OpaqueMetadata};
-use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
+use xcm_runtime_apis::fees::Error as XcmPaymentApiError;
 
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
@@ -188,7 +188,7 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl xcm_fee_payment_runtime_api::XcmPaymentApi<Block> for Runtime {
+	impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
 		fn query_acceptable_payment_assets(xcm_version: polkadot_xcm::Version) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
 			if !matches!(xcm_version, 3 | 4) {
 				return Err(XcmPaymentApiError::UnhandledXcmVersion);
