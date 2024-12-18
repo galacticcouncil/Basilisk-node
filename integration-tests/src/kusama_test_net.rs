@@ -172,7 +172,7 @@ pub mod rococo {
 	use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 	use sp_consensus_babe::AuthorityId as BabeId;
 	use sp_consensus_beefy::ecdsa_crypto::AuthorityId as BeefyId;
-	use sp_core::{Pair, Public, sr25519};
+	use sp_core::{sr25519, Pair, Public};
 
 	/// Helper function to generate a crypto pair from seed
 	fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -201,7 +201,15 @@ pub mod rococo {
 
 	pub fn get_authority_keys_from_seed_no_beefy(
 		seed: &str,
-	) -> (AccountId, AccountId, BabeId, GrandpaId, ValidatorId, AssignmentId, AuthorityDiscoveryId) {
+	) -> (
+		AccountId,
+		AccountId,
+		BabeId,
+		GrandpaId,
+		ValidatorId,
+		AssignmentId,
+		AuthorityDiscoveryId,
+	) {
 		(
 			get_account_id_from_seed::<sr25519::Public>(&format!("{}//stash", seed)),
 			get_account_id_from_seed::<sr25519::Public>(seed),

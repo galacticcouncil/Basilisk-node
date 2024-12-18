@@ -20,10 +20,9 @@ use crate::governance::origins::GeneralAdmin;
 use crate::system::NativeAssetId;
 
 use hydradx_traits::{
-	AMM, AssetKind,
-	router::{inverse_route, AmmTradeWeights, PoolType, Trade},
-	AssetPairAccountIdFor, LockedBalance, OnTradeHandler, OraclePeriod, Source,
 	fee::{InspectTransactionFeeCurrency, SwappablePaymentAssetTrader},
+	router::{inverse_route, AmmTradeWeights, PoolType, Trade},
+	AssetKind, AssetPairAccountIdFor, LockedBalance, OnTradeHandler, OraclePeriod, Source, AMM,
 };
 use pallet_currencies::fungibles::FungibleCurrencies;
 use pallet_currencies::BasicCurrencyAdapter;
@@ -38,7 +37,9 @@ use primitives::constants::{
 
 use frame_support::{
 	parameter_types,
-	sp_runtime::{ArithmeticError, DispatchError, DispatchResult, app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero},
+	sp_runtime::{
+		app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero, ArithmeticError, DispatchError, DispatchResult,
+	},
 	traits::{
 		AsEnsureOriginWithArg, Contains, Currency, Defensive, EitherOf, EnsureOrigin, Get, Imbalance, LockIdentifier,
 		NeverEnsureOrigin, OnUnbalanced,
@@ -47,7 +48,7 @@ use frame_support::{
 };
 use frame_system::{EnsureRoot, RawOrigin};
 use orml_tokens::CurrencyAdapter;
-use orml_traits::{MultiCurrency, currency::MutationHooks};
+use orml_traits::{currency::MutationHooks, MultiCurrency};
 
 pub struct RelayChainAssetId;
 impl Get<AssetId> for RelayChainAssetId {
@@ -166,12 +167,11 @@ impl hydradx_traits::registry::BoundErc20 for NoEvmSupport {
 	}
 }
 // impl orml_traits::MultiCurrency<AccountId> {
-// 	
-// 	
+//
+//
 // }
 
-impl MultiCurrency<AccountId> for NoEvmSupport
-{
+impl MultiCurrency<AccountId> for NoEvmSupport {
 	type CurrencyId = EvmAddress;
 	type Balance = Balance;
 
@@ -212,11 +212,7 @@ impl MultiCurrency<AccountId> for NoEvmSupport
 		Err(DispatchError::Other("EVM not supported"))
 	}
 
-	fn withdraw(
-		_contract: Self::CurrencyId,
-		_who: &AccountId,
-		_amount: Self::Balance,
-	) -> sp_runtime::DispatchResult {
+	fn withdraw(_contract: Self::CurrencyId, _who: &AccountId, _amount: Self::Balance) -> sp_runtime::DispatchResult {
 		Err(DispatchError::Other("EVM not supported"))
 	}
 

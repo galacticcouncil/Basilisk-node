@@ -171,7 +171,7 @@ async fn start_node_impl(
 
 	let params = new_partial(&parachain_config)?;
 	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
-	
+
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let net_config = sc_network::config::FullNetworkConfiguration::<_, _, sc_network::NetworkWorker<Block, Hash>>::new(
 		&parachain_config.network,

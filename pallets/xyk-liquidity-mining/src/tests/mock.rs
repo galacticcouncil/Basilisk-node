@@ -540,10 +540,10 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 	}
 
 	fn update_global_farm(
-		_global_farm_id: GlobalFarmId, 
-		_planned_yielding_periods: Self::Period, 
-		_yield_per_period: Perquintill, 
-		_min_deposit: Self::Balance
+		_global_farm_id: GlobalFarmId,
+		_planned_yielding_periods: Self::Period,
+		_yield_per_period: Perquintill,
+		_min_deposit: Self::Balance,
 	) -> Result<(), Self::Error> {
 		Err(sp_runtime::DispatchError::Other("Not implemented"))
 	}
