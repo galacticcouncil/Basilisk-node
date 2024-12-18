@@ -29,7 +29,7 @@ const TOKEN_DECIMALS: u8 = 12;
 const TOKEN_SYMBOL: &str = "BSX";
 const PROTOCOL_ID: &str = "bsx";
 
-use basilisk_runtime::{AccountId, AuraId, Balance, RuntimeGenesisConfig, Signature, WASM_BINARY};
+use basilisk_runtime::{AccountId, AuraId, Balance, Signature, WASM_BINARY};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use primitives::{
@@ -45,7 +45,6 @@ use sp_core::{crypto::UncheckedInto, sr25519, Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 /// The extensions for the [`ChainSpec`].
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, ChainSpecGroup, ChainSpecExtension)]
-#[serde(deny_unknown_fields)]
 pub struct Extensions {
 	/// The relay chain of the Parachain.
 	pub relay_chain: String,
@@ -61,7 +60,7 @@ impl Extensions {
 }
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;
+pub type ChainSpec = sc_service::GenericChainSpec<Extensions>;
 
 /// Generate a crypto pair from seed.
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
