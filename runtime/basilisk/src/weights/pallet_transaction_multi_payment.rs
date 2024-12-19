@@ -112,4 +112,7 @@ impl<T: frame_system::Config> pallet_transaction_multi_payment::WeightInfo for B
 		Weight::from_parts(11_411_000, 0)
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
+	fn withdraw_fee() -> Weight {
+		Weight::MAX
+	}
 }
