@@ -242,6 +242,7 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for DummyAMM {
 
 	fn execute_buy(
 		_transfer: &hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		_destination: Option<&AccountId>,
 	) -> frame_support::dispatch::DispatchResult {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
@@ -508,6 +509,20 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 		Ok((farm_id, max_reward_per_period))
 	}
 
+	fn create_global_farm_without_price_adjustment(
+		_total_rewards: Self::Balance,
+		_planned_yielding_periods: Self::Period,
+		_blocks_per_period: BlockNumber,
+		_incentivized_asset: AssetId,
+		_reward_currency: AssetId,
+		_owner: AccountId,
+		_yield_per_period: Perquintill,
+		_min_deposit: Self::Balance,
+	) -> Result<(YieldFarmId, Self::Balance), Self::Error> {
+		//NOTE: Basilisk is not using this fn.
+		Err(sp_runtime::DispatchError::Other("Not implemented"))
+	}
+
 	fn update_global_farm_price_adjustment(
 		_who: AccountId,
 		global_farm_id: u32,
@@ -522,6 +537,15 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 
 			Ok(())
 		})
+	}
+
+	fn update_global_farm(
+		_global_farm_id: GlobalFarmId,
+		_planned_yielding_periods: Self::Period,
+		_yield_per_period: Perquintill,
+		_min_deposit: Self::Balance,
+	) -> Result<(), Self::Error> {
+		Err(sp_runtime::DispatchError::Other("Not implemented"))
 	}
 
 	fn terminate_global_farm(
@@ -760,20 +784,6 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 
 	fn get_global_farm_id(deposit_id: u128, yield_farm_id: u32) -> Option<u32> {
 		DEPOSIT_ENTRIES.with(|v| v.borrow().get(&(deposit_id, yield_farm_id)).map(|d| d.global_farm_id))
-	}
-
-	fn create_global_farm_without_price_adjustment(
-		_total_rewards: Self::Balance,
-		_planned_yielding_periods: Self::Period,
-		_blocks_per_period: BlockNumber,
-		_incentivized_asset: AssetId,
-		_reward_currency: AssetId,
-		_owner: AccountId,
-		_yield_per_period: Perquintill,
-		_min_deposit: Self::Balance,
-	) -> Result<(YieldFarmId, Self::Balance), Self::Error> {
-		//NOTE: Basilisk is not using this fn.
-		Err(sp_runtime::DispatchError::Other("Not implemented"))
 	}
 }
 

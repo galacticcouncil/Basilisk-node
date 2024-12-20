@@ -48,7 +48,7 @@ use frame_support::assert_ok;
 use frame_support::traits::OnInitialize;
 use pallet_transaction_multi_payment::Price;
 pub use pallet_xyk::types::AssetPair;
-use polkadot_primitives::v7::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
+use polkadot_primitives::v8::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;
 use primitives::{constants::time::SLOT_DURATION, AssetId, Balance};
@@ -167,13 +167,12 @@ pub mod rococo {
 	}
 
 	use polkadot_primitives::{AssignmentId, ValidatorId};
-	use polkadot_service::chain_spec::get_authority_keys_from_seed_no_beefy;
+	use polkadot_service::chain_spec::get_account_id_from_seed;
 	use sc_consensus_grandpa::AuthorityId as GrandpaId;
 	use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 	use sp_consensus_babe::AuthorityId as BabeId;
 	use sp_consensus_beefy::ecdsa_crypto::AuthorityId as BeefyId;
-
-	use sp_core::{Pair, Public};
+	use sp_core::{sr25519, Pair, Public};
 
 	/// Helper function to generate a crypto pair from seed
 	fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
@@ -198,6 +197,28 @@ pub mod rococo {
 			authority_discovery,
 			beefy,
 		}
+	}
+
+	pub fn get_authority_keys_from_seed_no_beefy(
+		seed: &str,
+	) -> (
+		AccountId,
+		AccountId,
+		BabeId,
+		GrandpaId,
+		ValidatorId,
+		AssignmentId,
+		AuthorityDiscoveryId,
+	) {
+		(
+			get_account_id_from_seed::<sr25519::Public>(&format!("{}//stash", seed)),
+			get_account_id_from_seed::<sr25519::Public>(seed),
+			get_from_seed::<BabeId>(seed),
+			get_from_seed::<GrandpaId>(seed),
+			get_from_seed::<ValidatorId>(seed),
+			get_from_seed::<AssignmentId>(seed),
+			get_from_seed::<AuthorityDiscoveryId>(seed),
+		)
 	}
 
 	pub fn initial_authorities() -> Vec<(
@@ -250,6 +271,7 @@ pub mod rococo {
 						)
 					})
 					.collect::<Vec<_>>(),
+				non_authority_keys: Default::default(),
 			},
 			babe: rococo_runtime::BabeConfig {
 				authorities: Default::default(),
@@ -373,6 +395,7 @@ pub mod basilisk {
 						)
 					})
 					.collect(),
+				non_authority_keys: Default::default(),
 			},
 			asset_registry: basilisk_runtime::AssetRegistryConfig {
 				registered_assets: vec![
@@ -460,6 +483,7 @@ pub mod other_parachain {
 						)
 					})
 					.collect(),
+				non_authority_keys: Default::default(),
 			},
 			asset_registry: basilisk_runtime::AssetRegistryConfig {
 				registered_assets: vec![(b"AUSD".to_vec(), 1_000_000u128, Some(AUSD))],

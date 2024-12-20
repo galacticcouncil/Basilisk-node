@@ -1,11 +1,7 @@
 #![cfg(test)]
 use crate::kusama_test_net::*;
 use basilisk_runtime::CollatorRewards;
-use basilisk_runtime::Runtime;
-use frame_support::traits::Contains;
 use pallet_session::SessionManager;
-use polkadot_xcm::v3::prelude::*;
-use polkadot_xcm::VersionedXcm;
 use pretty_assertions::assert_eq;
 use xcm_emulator::TestExt;
 #[test]

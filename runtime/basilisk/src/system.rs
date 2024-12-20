@@ -44,7 +44,7 @@ use frame_support::{
 };
 use frame_system::EnsureRoot;
 use hydradx_adapters::RelayChainBlockNumberProvider;
-use hydradx_traits::evm::InspectEvmAccounts;
+use hydradx_traits::evm::{EvmAddress, InspectEvmAccounts};
 use primitives::constants::time::DAYS;
 use scale_info::TypeInfo;
 use sp_core::ConstU64;
@@ -261,7 +261,7 @@ impl Get<AssetId> for WethAssetId {
 }
 
 pub struct EvmAccounts;
-impl InspectEvmAccounts<AccountId, sp_core::H160> for EvmAccounts {
+impl InspectEvmAccounts<AccountId> for EvmAccounts {
 	fn is_evm_account(_account_id: AccountId) -> bool {
 		false
 	}
@@ -285,6 +285,10 @@ impl InspectEvmAccounts<AccountId, sp_core::H160> for EvmAccounts {
 	fn can_deploy_contracts(_evm_address: sp_core::H160) -> bool {
 		false
 	}
+
+	fn is_approved_contract(_address: EvmAddress) -> bool {
+		false
+	}
 }
 
 impl pallet_transaction_multi_payment::Config for Runtime {
@@ -296,10 +300,12 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	type WeightInfo = weights::pallet_transaction_multi_payment::BasiliskWeight<Runtime>;
 	type WeightToFee = WeightToFee;
 	type NativeAssetId = NativeAssetId;
+	type PolkadotNativeAssetId = RelayChainAssetId;
 	type EvmAssetId = WethAssetId;
 	type InspectEvmAccounts = EvmAccounts;
 	type EvmPermit = pallet_transaction_multi_payment::DisabledEvmPermitHandler<Runtime>;
 	type TryCallCurrency<'a> = pallet_transaction_multi_payment::NoCallCurrency<Runtime>;
+	type SwappablePaymentAssetSupport = assets::XykPaymentAssetSupport;
 }
 
 /// The type used to represent the kinds of proxying allowed.
