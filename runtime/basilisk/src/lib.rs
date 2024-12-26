@@ -327,7 +327,7 @@ pub mod migrations {
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	frame_support::parameter_types! {
-		pub const BenchmarkMaxBalance: crate::Balance = crate::Balance::max_value();
+		pub const BenchmarkMaxBalance: crate::Balance = crate::Balance::MAX;
 	}
 	frame_benchmarking::define_benchmarks!(
 		[pallet_lbp, LBP]
