@@ -166,10 +166,6 @@ impl hydradx_traits::registry::BoundErc20 for NoEvmSupport {
 		None
 	}
 }
-// impl orml_traits::MultiCurrency<AccountId> {
-//
-//
-// }
 
 impl MultiCurrency<AccountId> for NoEvmSupport {
 	type CurrencyId = EvmAddress;
