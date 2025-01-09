@@ -4327,7 +4327,7 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 [[package]]
 name = "hydra-dx-build-script-utils"
 version = "1.0.4"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "cargo-lock",
  "platforms",
@@ -4336,7 +4336,7 @@ dependencies = [
 [[package]]
 name = "hydra-dx-math"
 version = "8.2.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "fixed",
  "num-traits",
@@ -4350,8 +4350,8 @@ dependencies = [
 
 [[package]]
 name = "hydradx-adapters"
-version = "1.3.8"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+version = "1.3.9"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -4379,7 +4379,7 @@ dependencies = [
  "pallet-referrals",
  "pallet-route-executor",
  "pallet-stableswap",
- "pallet-staking 3.1.2",
+ "pallet-staking 4.0.1",
  "pallet-transaction-multi-payment",
  "pallet-uniques",
  "parity-scale-codec",
@@ -4398,8 +4398,8 @@ dependencies = [
 
 [[package]]
 name = "hydradx-traits"
-version = "3.9.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+version = "3.10.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -6488,7 +6488,7 @@ version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "681030a937600a36906c185595136d26abfebb4aa9c65701cefcaf8578bb982b"
 dependencies = [
- "proc-macro-crate 3.1.0",
+ "proc-macro-crate 1.3.1",
  "proc-macro2",
  "quote",
  "syn 2.0.90",
@@ -6871,7 +6871,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "3.3.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7075,7 +7075,7 @@ dependencies = [
 [[package]]
 name = "pallet-bonds"
 version = "2.2.4"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7149,8 +7149,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-circuit-breaker"
-version = "1.1.26"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+version = "1.1.27"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7166,7 +7166,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-rewards"
 version = "1.0.9"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7236,7 +7236,7 @@ dependencies = [
 [[package]]
 name = "pallet-currencies"
 version = "3.0.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7270,7 +7270,7 @@ dependencies = [
 [[package]]
 name = "pallet-democracy"
 version = "4.3.2"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7303,7 +7303,7 @@ dependencies = [
 [[package]]
 name = "pallet-duster"
 version = "3.2.7"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7322,7 +7322,7 @@ dependencies = [
 [[package]]
 name = "pallet-dynamic-fees"
 version = "1.0.5"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7391,7 +7391,7 @@ dependencies = [
 [[package]]
 name = "pallet-ema-oracle"
 version = "1.3.3"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7526,7 +7526,7 @@ dependencies = [
 [[package]]
 name = "pallet-lbp"
 version = "4.8.6"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7547,8 +7547,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "4.4.3"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+version = "4.4.4"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7654,7 +7654,7 @@ dependencies = [
 [[package]]
 name = "pallet-nft"
 version = "7.1.5"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7774,8 +7774,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-omnipool"
-version = "4.3.6"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+version = "4.3.7"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "bitflags 1.3.2",
  "frame-benchmarking",
@@ -7798,8 +7798,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-omnipool-liquidity-mining"
-version = "2.4.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+version = "2.5.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7921,7 +7921,7 @@ dependencies = [
 [[package]]
 name = "pallet-referrals"
 version = "1.2.7"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7939,7 +7939,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.3.5"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -7967,8 +7967,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-route-executor"
-version = "2.6.2"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+version = "2.6.3"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8057,8 +8057,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-stableswap"
-version = "4.0.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+version = "4.1.1"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "bitflags 1.3.2",
  "frame-support",
@@ -8077,15 +8077,17 @@ dependencies = [
 
 [[package]]
 name = "pallet-staking"
-version = "3.1.2"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+version = "4.0.1"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "frame-system",
  "hydra-dx-math",
  "log",
  "orml-traits",
+ "pallet-conviction-voting",
  "pallet-democracy 4.3.2",
+ "pallet-referenda",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
@@ -8206,7 +8208,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-multi-payment"
 version = "10.1.3"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8228,8 +8230,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-pause"
-version = "1.0.4"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+version = "1.1.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8403,8 +8405,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "6.6.2"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+version = "6.6.3"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -10126,7 +10128,7 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "6.1.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-support",
  "hex-literal",
@@ -14431,7 +14433,7 @@ dependencies = [
 [[package]]
 name = "test-utils"
 version = "1.1.2"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#19ad0c895d61c65571763cea9820dc09b43a3609"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
 dependencies = [
  "frame-system",
  "pretty_assertions",
