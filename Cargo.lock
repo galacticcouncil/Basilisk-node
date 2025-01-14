@@ -2125,7 +2125,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system"
 version = "0.17.1"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "bytes",
  "cumulus-pallet-parachain-system-proc-macro",
@@ -2161,7 +2161,7 @@ dependencies = [
 [[package]]
 name = "cumulus-pallet-parachain-system-proc-macro"
 version = "0.6.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "proc-macro-crate 3.1.0",
  "proc-macro2",
@@ -2221,7 +2221,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-core"
 version = "0.16.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "parity-scale-codec",
  "polkadot-core-primitives",
@@ -2237,7 +2237,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-parachain-inherent"
 version = "0.16.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "async-trait",
  "cumulus-primitives-core",
@@ -2261,7 +2261,7 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-proof-size-hostfunction"
 version = "0.10.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "sp-externalities",
  "sp-runtime-interface",
@@ -3448,7 +3448,7 @@ checksum = "6c2141d6d6c8512188a7891b4b01590a45f6dac67afb4f255c4124dbb86d4eaa"
 [[package]]
 name = "frame-benchmarking"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-support",
  "frame-support-procedural",
@@ -3522,7 +3522,7 @@ dependencies = [
 [[package]]
 name = "frame-election-provider-solution-type"
 version = "14.0.1"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "proc-macro-crate 3.1.0",
  "proc-macro2",
@@ -3533,7 +3533,7 @@ dependencies = [
 [[package]]
 name = "frame-election-provider-support"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-election-provider-solution-type",
  "frame-support",
@@ -3594,7 +3594,7 @@ dependencies = [
 [[package]]
 name = "frame-support"
 version = "38.2.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "aquamarine",
  "array-bytes",
@@ -3635,7 +3635,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural"
 version = "30.0.3"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "Inflector",
  "cfg-expr",
@@ -3655,7 +3655,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools"
 version = "13.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-support-procedural-tools-derive",
  "proc-macro-crate 3.1.0",
@@ -3667,7 +3667,7 @@ dependencies = [
 [[package]]
 name = "frame-support-procedural-tools-derive"
 version = "12.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3677,7 +3677,7 @@ dependencies = [
 [[package]]
 name = "frame-system"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "cfg-if",
  "docify",
@@ -4327,7 +4327,7 @@ checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 [[package]]
 name = "hydra-dx-build-script-utils"
 version = "1.0.4"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "cargo-lock",
  "platforms",
@@ -4335,8 +4335,8 @@ dependencies = [
 
 [[package]]
 name = "hydra-dx-math"
-version = "8.2.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "8.3.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "fixed",
  "num-traits",
@@ -4350,8 +4350,8 @@ dependencies = [
 
 [[package]]
 name = "hydradx-adapters"
-version = "1.3.9"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "1.3.10"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -4368,6 +4368,7 @@ dependencies = [
  "pallet-asset-registry 3.3.0",
  "pallet-balances",
  "pallet-bonds",
+ "pallet-broadcast",
  "pallet-circuit-breaker",
  "pallet-currencies",
  "pallet-dynamic-fees",
@@ -4379,7 +4380,7 @@ dependencies = [
  "pallet-referrals",
  "pallet-route-executor",
  "pallet-stableswap",
- "pallet-staking 4.0.1",
+ "pallet-staking 4.1.0",
  "pallet-transaction-multi-payment",
  "pallet-uniques",
  "parity-scale-codec",
@@ -4398,8 +4399,8 @@ dependencies = [
 
 [[package]]
 name = "hydradx-traits"
-version = "3.10.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "3.12.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -6488,7 +6489,7 @@ version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "681030a937600a36906c185595136d26abfebb4aa9c65701cefcaf8578bb982b"
 dependencies = [
- "proc-macro-crate 1.3.1",
+ "proc-macro-crate 3.1.0",
  "proc-macro2",
  "quote",
  "syn 2.0.90",
@@ -6814,7 +6815,7 @@ checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
 [[package]]
 name = "pallet-asset-conversion"
 version = "20.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6832,7 +6833,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-rate"
 version = "17.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6871,7 +6872,7 @@ dependencies = [
 [[package]]
 name = "pallet-asset-registry"
 version = "3.3.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -6944,7 +6945,7 @@ dependencies = [
 [[package]]
 name = "pallet-authority-discovery"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6959,7 +6960,7 @@ dependencies = [
 [[package]]
 name = "pallet-authorship"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6972,7 +6973,7 @@ dependencies = [
 [[package]]
 name = "pallet-babe"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7016,7 +7017,7 @@ dependencies = [
 [[package]]
 name = "pallet-balances"
 version = "39.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "docify",
  "frame-benchmarking",
@@ -7075,7 +7076,7 @@ dependencies = [
 [[package]]
 name = "pallet-bonds"
 version = "2.2.4"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7112,9 +7113,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-broadcast"
+version = "1.0.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydradx-traits",
+ "log",
+ "parity-scale-codec",
+ "primitives 6.1.0",
+ "scale-info",
+ "serde",
+ "sp-api",
+ "sp-arithmetic",
+ "sp-core",
+ "sp-io",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-broker"
 version = "0.17.2"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "bitvec",
  "frame-benchmarking",
@@ -7149,8 +7170,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-circuit-breaker"
-version = "1.1.27"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "1.1.28"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7166,7 +7187,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-rewards"
 version = "1.0.9"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7220,7 +7241,7 @@ dependencies = [
 [[package]]
 name = "pallet-conviction-voting"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "assert_matches",
  "frame-benchmarking",
@@ -7236,7 +7257,7 @@ dependencies = [
 [[package]]
 name = "pallet-currencies"
 version = "3.0.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7270,7 +7291,7 @@ dependencies = [
 [[package]]
 name = "pallet-democracy"
 version = "4.3.2"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7303,7 +7324,7 @@ dependencies = [
 [[package]]
 name = "pallet-duster"
 version = "3.2.7"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7321,8 +7342,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-dynamic-fees"
-version = "1.0.5"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "1.0.6"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7338,7 +7359,7 @@ dependencies = [
 [[package]]
 name = "pallet-election-provider-multi-phase"
 version = "37.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -7360,7 +7381,7 @@ dependencies = [
 [[package]]
 name = "pallet-election-provider-support-benchmarking"
 version = "37.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -7390,8 +7411,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-ema-oracle"
-version = "1.3.3"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "1.3.4"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7435,7 +7456,7 @@ dependencies = [
 [[package]]
 name = "pallet-fast-unstake"
 version = "37.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "docify",
  "frame-benchmarking",
@@ -7475,7 +7496,7 @@ dependencies = [
 [[package]]
 name = "pallet-identity"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "enumflags2",
  "frame-benchmarking",
@@ -7525,8 +7546,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.8.6"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "4.10.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7535,6 +7556,7 @@ dependencies = [
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
+ "pallet-broadcast",
  "parity-scale-codec",
  "primitive-types",
  "scale-info",
@@ -7547,8 +7569,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquidity-mining"
-version = "4.4.4"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "4.4.5"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7603,7 +7625,7 @@ dependencies = [
 [[package]]
 name = "pallet-message-queue"
 version = "41.0.2"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "environmental",
  "frame-benchmarking",
@@ -7622,7 +7644,7 @@ dependencies = [
 [[package]]
 name = "pallet-mmr"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7654,7 +7676,7 @@ dependencies = [
 [[package]]
 name = "pallet-nft"
 version = "7.1.5"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7774,8 +7796,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-omnipool"
-version = "4.3.7"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "4.5.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "bitflags 1.3.2",
  "frame-benchmarking",
@@ -7787,6 +7809,7 @@ dependencies = [
  "log",
  "orml-traits",
  "pallet-balances",
+ "pallet-broadcast",
  "parity-scale-codec",
  "primitive-types",
  "scale-info",
@@ -7798,8 +7821,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-omnipool-liquidity-mining"
-version = "2.5.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "2.6.1"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7811,6 +7834,7 @@ dependencies = [
  "pallet-ema-oracle",
  "pallet-liquidity-mining",
  "pallet-omnipool",
+ "pallet-stableswap",
  "parity-scale-codec",
  "primitive-types",
  "primitives 6.1.0",
@@ -7903,7 +7927,7 @@ dependencies = [
 [[package]]
 name = "pallet-referenda"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "assert_matches",
  "frame-benchmarking",
@@ -7920,8 +7944,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-referrals"
-version = "1.2.7"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "1.2.8"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7939,7 +7963,7 @@ dependencies = [
 [[package]]
 name = "pallet-relaychain-info"
 version = "0.3.5"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -7967,8 +7991,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-route-executor"
-version = "2.6.3"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "2.7.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -7976,7 +8000,9 @@ dependencies = [
  "hydradx-traits",
  "orml-traits",
  "pallet-balances",
+ "pallet-broadcast",
  "parity-scale-codec",
+ "primitives 6.1.0",
  "scale-info",
  "serde",
  "sp-core",
@@ -8004,7 +8030,7 @@ dependencies = [
 [[package]]
 name = "pallet-session"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8057,8 +8083,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-stableswap"
-version = "4.1.1"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "4.2.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "bitflags 1.3.2",
  "frame-support",
@@ -8066,6 +8092,7 @@ dependencies = [
  "hydra-dx-math",
  "hydradx-traits",
  "orml-traits",
+ "pallet-broadcast",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -8077,8 +8104,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-staking"
-version = "4.0.1"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "4.1.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8099,7 +8126,7 @@ dependencies = [
 [[package]]
 name = "pallet-staking"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-benchmarking",
  "frame-election-provider-support",
@@ -8121,7 +8148,7 @@ dependencies = [
 [[package]]
 name = "pallet-staking-reward-fn"
 version = "22.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "log",
  "sp-arithmetic",
@@ -8171,7 +8198,7 @@ dependencies = [
 [[package]]
 name = "pallet-timestamp"
 version = "37.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "docify",
  "frame-benchmarking",
@@ -8207,8 +8234,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "10.1.3"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "10.1.4"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8231,7 +8258,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-pause"
 version = "1.1.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8246,7 +8273,7 @@ dependencies = [
 [[package]]
 name = "pallet-transaction-payment"
 version = "38.0.2"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -8289,7 +8316,7 @@ dependencies = [
 [[package]]
 name = "pallet-treasury"
 version = "37.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "docify",
  "frame-benchmarking",
@@ -8307,7 +8334,7 @@ dependencies = [
 [[package]]
 name = "pallet-uniques"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8321,11 +8348,12 @@ dependencies = [
 [[package]]
 name = "pallet-utility"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "impl-trait-for-tuples",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
@@ -8336,7 +8364,7 @@ dependencies = [
 [[package]]
 name = "pallet-vesting"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8405,8 +8433,8 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "6.6.3"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+version = "6.7.0"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8416,6 +8444,7 @@ dependencies = [
  "log",
  "orml-tokens",
  "orml-traits",
+ "pallet-broadcast",
  "parity-scale-codec",
  "primitive-types",
  "scale-info",
@@ -8952,7 +8981,7 @@ dependencies = [
 [[package]]
 name = "polkadot-core-primitives"
 version = "15.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -9550,7 +9579,7 @@ dependencies = [
 [[package]]
 name = "polkadot-parachain-primitives"
 version = "14.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "bounded-collections",
  "derive_more 0.99.17",
@@ -9566,7 +9595,7 @@ dependencies = [
 [[package]]
 name = "polkadot-primitives"
 version = "16.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "bitvec",
  "hex-literal",
@@ -9627,7 +9656,7 @@ dependencies = [
 [[package]]
 name = "polkadot-runtime-common"
 version = "17.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "bitvec",
  "frame-benchmarking",
@@ -9677,7 +9706,7 @@ dependencies = [
 [[package]]
 name = "polkadot-runtime-metrics"
 version = "17.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "bs58 0.5.1",
  "frame-benchmarking",
@@ -9689,7 +9718,7 @@ dependencies = [
 [[package]]
 name = "polkadot-runtime-parachains"
 version = "17.0.1"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "bitflags 1.3.2",
  "bitvec",
@@ -10128,7 +10157,7 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "6.1.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-support",
  "hex-literal",
@@ -13015,7 +13044,7 @@ checksum = "826167069c09b99d56f31e9ae5c99049e932a98c9dc2dac47645b08dbbf76ba7"
 [[package]]
 name = "slot-range-helper"
 version = "15.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "enumn",
  "parity-scale-codec",
@@ -13222,7 +13251,7 @@ dependencies = [
 [[package]]
 name = "sp-api"
 version = "34.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "docify",
  "hash-db",
@@ -13244,7 +13273,7 @@ dependencies = [
 [[package]]
 name = "sp-api-proc-macro"
 version = "20.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "Inflector",
  "blake2 0.10.6",
@@ -13258,7 +13287,7 @@ dependencies = [
 [[package]]
 name = "sp-application-crypto"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -13270,7 +13299,7 @@ dependencies = [
 [[package]]
 name = "sp-arithmetic"
 version = "26.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "docify",
  "integer-sqrt",
@@ -13284,7 +13313,7 @@ dependencies = [
 [[package]]
 name = "sp-authority-discovery"
 version = "34.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -13356,7 +13385,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus-babe"
 version = "0.40.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "async-trait",
  "parity-scale-codec",
@@ -13412,7 +13441,7 @@ dependencies = [
 [[package]]
 name = "sp-consensus-slots"
 version = "0.40.1"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -13423,7 +13452,7 @@ dependencies = [
 [[package]]
 name = "sp-core"
 version = "34.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "array-bytes",
  "bitflags 1.3.2",
@@ -13469,7 +13498,7 @@ dependencies = [
 [[package]]
 name = "sp-crypto-hashing"
 version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "blake2b_simd",
  "byteorder",
@@ -13482,7 +13511,7 @@ dependencies = [
 [[package]]
 name = "sp-crypto-hashing-proc-macro"
 version = "0.1.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "quote",
  "sp-crypto-hashing",
@@ -13501,7 +13530,7 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "14.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -13511,7 +13540,7 @@ dependencies = [
 [[package]]
 name = "sp-externalities"
 version = "0.29.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -13521,7 +13550,7 @@ dependencies = [
 [[package]]
 name = "sp-genesis-builder"
 version = "0.15.1"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -13533,7 +13562,7 @@ dependencies = [
 [[package]]
 name = "sp-inherents"
 version = "34.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "async-trait",
  "impl-trait-for-tuples",
@@ -13546,7 +13575,7 @@ dependencies = [
 [[package]]
 name = "sp-io"
 version = "38.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "bytes",
  "docify",
@@ -13582,7 +13611,7 @@ dependencies = [
 [[package]]
 name = "sp-keystore"
 version = "0.40.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "parity-scale-codec",
  "parking_lot 0.12.3",
@@ -13593,7 +13622,7 @@ dependencies = [
 [[package]]
 name = "sp-maybe-compressed-blob"
 version = "11.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "thiserror",
  "zstd 0.12.4",
@@ -13602,7 +13631,7 @@ dependencies = [
 [[package]]
 name = "sp-metadata-ir"
 version = "0.7.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-metadata",
  "parity-scale-codec",
@@ -13623,7 +13652,7 @@ dependencies = [
 [[package]]
 name = "sp-mmr-primitives"
 version = "34.1.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "log",
  "parity-scale-codec",
@@ -13640,7 +13669,7 @@ dependencies = [
 [[package]]
 name = "sp-npos-elections"
 version = "34.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -13663,7 +13692,7 @@ dependencies = [
 [[package]]
 name = "sp-panic-handler"
 version = "13.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "backtrace",
  "lazy_static",
@@ -13683,7 +13712,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime"
 version = "39.0.5"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "docify",
  "either",
@@ -13709,7 +13738,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "28.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
@@ -13728,7 +13757,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "18.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "Inflector",
  "expander",
@@ -13741,7 +13770,7 @@ dependencies = [
 [[package]]
 name = "sp-session"
 version = "36.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
@@ -13755,7 +13784,7 @@ dependencies = [
 [[package]]
 name = "sp-staking"
 version = "36.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "impl-trait-for-tuples",
  "parity-scale-codec",
@@ -13768,7 +13797,7 @@ dependencies = [
 [[package]]
 name = "sp-state-machine"
 version = "0.43.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "hash-db",
  "log",
@@ -13812,12 +13841,12 @@ dependencies = [
 [[package]]
 name = "sp-std"
 version = "14.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 
 [[package]]
 name = "sp-storage"
 version = "21.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "impl-serde",
  "parity-scale-codec",
@@ -13829,7 +13858,7 @@ dependencies = [
 [[package]]
 name = "sp-timestamp"
 version = "34.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "async-trait",
  "parity-scale-codec",
@@ -13841,7 +13870,7 @@ dependencies = [
 [[package]]
 name = "sp-tracing"
 version = "17.0.1"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "parity-scale-codec",
  "tracing",
@@ -13875,7 +13904,7 @@ dependencies = [
 [[package]]
 name = "sp-trie"
 version = "37.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "ahash",
  "hash-db",
@@ -13898,7 +13927,7 @@ dependencies = [
 [[package]]
 name = "sp-version"
 version = "37.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "impl-serde",
  "parity-scale-codec",
@@ -13915,7 +13944,7 @@ dependencies = [
 [[package]]
 name = "sp-version-proc-macro"
 version = "14.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "parity-scale-codec",
  "proc-macro2",
@@ -13926,7 +13955,7 @@ dependencies = [
 [[package]]
 name = "sp-wasm-interface"
 version = "21.0.1"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "anyhow",
  "impl-trait-for-tuples",
@@ -13938,7 +13967,7 @@ dependencies = [
 [[package]]
 name = "sp-weights"
 version = "31.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "bounded-collections",
  "parity-scale-codec",
@@ -14017,7 +14046,7 @@ dependencies = [
 [[package]]
 name = "staging-xcm"
 version = "14.2.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "array-bytes",
  "bounded-collections",
@@ -14036,7 +14065,7 @@ dependencies = [
 [[package]]
 name = "staging-xcm-builder"
 version = "17.0.3"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -14058,7 +14087,7 @@ dependencies = [
 [[package]]
 name = "staging-xcm-executor"
 version = "17.0.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "environmental",
  "frame-benchmarking",
@@ -14179,7 +14208,7 @@ dependencies = [
 [[package]]
 name = "substrate-bip39"
 version = "0.6.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "hmac 0.12.1",
  "pbkdf2",
@@ -14247,7 +14276,7 @@ dependencies = [
 [[package]]
 name = "substrate-wasm-builder"
 version = "24.0.1"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "build-helper",
  "cargo_metadata",
@@ -14433,7 +14462,7 @@ dependencies = [
 [[package]]
 name = "test-utils"
 version = "1.1.2"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#4df086497cb9b56cebe11dbe4eb23a5c398a512f"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=polkadot-stable2409#f94de7fbba2e4bd005533fe88823db0f78c2ecef"
 dependencies = [
  "frame-system",
  "pretty_assertions",
@@ -16191,7 +16220,7 @@ dependencies = [
 [[package]]
 name = "xcm-procedural"
 version = "10.1.0"
-source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#5f269f3229d29112e959d6844eab376914d2c79a"
+source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=stable2409-patch#21d2b5ea4035c4d0f74e286ba6bf61cfd6b44df4"
 dependencies = [
  "Inflector",
  "proc-macro2",
