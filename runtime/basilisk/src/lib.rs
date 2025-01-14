@@ -222,6 +222,7 @@ construct_runtime!(
 		XYKWarehouseLM: warehouse_liquidity_mining::<Instance1> = 113,
 		CollatorRewards: pallet_collator_rewards = 114,
 		// Note: 115 was used by rate limiter which is now removed
+		Broadcast: pallet_broadcast = 116,
 
 		EmaOracle: pallet_ema_oracle = 120,
 

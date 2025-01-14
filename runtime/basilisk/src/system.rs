@@ -454,10 +454,27 @@ impl pallet_aura::Config for Runtime {
 	type SlotDuration = ConstU64<SLOT_DURATION>;
 }
 
+pub struct ManageExecutionTypeForUnifiedEvent;
+
+impl pallet_utility::BatchHook for ManageExecutionTypeForUnifiedEvent {
+	fn on_batch_start() -> DispatchResult {
+		Broadcast::add_to_context(pallet_broadcast::types::ExecutionType::Batch);
+
+		Ok(())
+	}
+
+	fn on_batch_end() -> DispatchResult {
+		Broadcast::remove_from_context();
+
+		Ok(())
+	}
+}
+
 impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type PalletsOrigin = OriginCaller;
+	type BatchHook = ManageExecutionTypeForUnifiedEvent;
 	type WeightInfo = weights::pallet_utility::BasiliskWeight<Runtime>;
 }
 
@@ -643,6 +660,7 @@ use frame_system::EnsureSigned;
 #[cfg(not(feature = "runtime-benchmarks"))]
 use frame_system::EnsureSignedBy;
 use pallet_session::SessionManager;
+use sp_runtime::DispatchResult;
 use sp_staking::SessionIndex;
 
 impl pallet_state_trie_migration::Config for Runtime {

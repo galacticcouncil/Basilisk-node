@@ -55,6 +55,7 @@ test-utils = { git = "https://github.com/galacticcouncil/hydration-node", branch
 pallet-lbp = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
 pallet-xyk = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
 pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
+pallet-broadcast = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
 warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
 hydra-dx-build-script-utils = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409" }
 

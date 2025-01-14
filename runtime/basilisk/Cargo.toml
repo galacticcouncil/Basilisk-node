@@ -52,6 +52,7 @@ pallet-duster = { workspace = true }
 pallet-collator-rewards = { workspace = true }
 pallet-xyk = { workspace = true }
 pallet-lbp = { workspace = true }
+pallet-broadcast = { workspace = true }
 
 # collator support
 pallet-collator-selection = { workspace = true }
@@ -226,6 +227,7 @@ std = [
     "pallet-lbp/std",
     "pallet-utility/std",
     "pallet-xyk-liquidity-mining/std",
+    "pallet-broadcast/std",
     "hydradx-traits/std",
     "hydradx-adapters/std",
     "sp-api/std",
@@ -320,4 +322,5 @@ try-runtime= [
     "pallet-conviction-voting/try-runtime",
     "pallet-referenda/try-runtime",
     "pallet-whitelist/try-runtime",
+    "pallet-broadcast/try-runtime",
 ]

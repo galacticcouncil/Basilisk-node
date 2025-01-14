@@ -267,6 +267,10 @@ impl pallet_duster::Config for Runtime {
 	type WeightInfo = weights::pallet_duster::BasiliskWeight<Runtime>;
 }
 
+impl pallet_broadcast::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+}
+
 pub struct AssetPairAccountId<T: frame_system::Config>(PhantomData<T>);
 impl<T: frame_system::Config> AssetPairAccountIdFor<AssetId, T::AccountId> for AssetPairAccountId<T>
 where
@@ -790,16 +794,16 @@ impl pallet_route_executor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type Balance = Balance;
-	type Currency = FungibleCurrencies<Runtime>;
-	type AMM = (XYK, LBP);
 	type NativeAssetId = NativeAssetId;
-	type DefaultRoutePoolType = DefaultRoutePoolType;
-	type WeightInfo = RouterWeightInfo;
+	type Currency = FungibleCurrencies<Runtime>;
 	type InspectRegistry = AssetRegistry;
-	type TechnicalOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type AMM = (XYK, LBP);
 	type EdToRefundCalculator = RefundAndLockedEdCalculator;
 	type OraclePriceProvider = adapter::OraclePriceProvider<AssetId, EmaOracle>;
 	type OraclePeriod = RouteValidationOraclePeriod;
+	type DefaultRoutePoolType = DefaultRoutePoolType;
+	type ForceInsertOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type WeightInfo = RouterWeightInfo;
 }
 
 parameter_types! {
