@@ -67,14 +67,14 @@ parameter_types! {
 }
 
 impl pallet_conviction_voting::Config for Runtime {
-	type WeightInfo = weights::pallet_conviction_voting::BasiliskWeight<Self>;
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::pallet_conviction_voting::BasiliskWeight<Self>;
 	type Currency = Balances;
-	type VoteLockingPeriod = VoteLockingPeriod;
-	type MaxVotes = ConstU32<512>;
-	type MaxTurnout = frame_support::traits::tokens::currency::ActiveIssuanceOf<Balances, Self::AccountId>;
 	type Polls = Referenda;
-	type VotingHooks = (); // TODO:
+	type MaxTurnout = frame_support::traits::tokens::currency::ActiveIssuanceOf<Balances, Self::AccountId>;
+	type MaxVotes = ConstU32<512>;
+	type VoteLockingPeriod = VoteLockingPeriod;
+	type VotingHooks = ();
 }
 
 parameter_types! {

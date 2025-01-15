@@ -53,6 +53,7 @@ pallet-collator-rewards = { workspace = true }
 pallet-xyk = { workspace = true }
 pallet-lbp = { workspace = true }
 pallet-broadcast = { workspace = true }
+pallet-staking = { workspace = true }
 
 # collator support
 pallet-collator-selection = { workspace = true }
@@ -150,6 +151,7 @@ runtime-benchmarks = [
     "pallet-marketplace/runtime-benchmarks",
     "pallet-xyk/runtime-benchmarks",
     "pallet-lbp/runtime-benchmarks",
+    "pallet-staking/runtime-benchmarks",
     "sp-runtime/runtime-benchmarks",
     "pallet-collator-selection/runtime-benchmarks",
     "pallet-xcm/runtime-benchmarks",
@@ -228,6 +230,7 @@ std = [
     "pallet-utility/std",
     "pallet-xyk-liquidity-mining/std",
     "pallet-broadcast/std",
+    "pallet-staking/std",
     "hydradx-traits/std",
     "hydradx-adapters/std",
     "sp-api/std",
@@ -323,4 +326,5 @@ try-runtime= [
     "pallet-referenda/try-runtime",
     "pallet-whitelist/try-runtime",
     "pallet-broadcast/try-runtime",
+    "pallet-staking/try-runtime",
 ]

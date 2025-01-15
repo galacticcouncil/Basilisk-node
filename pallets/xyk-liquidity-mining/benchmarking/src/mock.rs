@@ -75,6 +75,7 @@ frame_support::construct_runtime!(
 		Currency: orml_tokens,
 		AssetRegistry: pallet_asset_registry,
 		WarehouseLM: pallet_liquidity_mining::<Instance1>,
+		Broadcast: pallet_broadcast,
 	}
 );
 
@@ -329,6 +330,10 @@ impl pallet_xyk::Config for Test {
 	type AMMHandler = ();
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;
+}
+
+impl pallet_broadcast::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
 }
 
 impl ExtBuilder {

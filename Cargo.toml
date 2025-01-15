@@ -56,6 +56,7 @@ pallet-lbp = { git = "https://github.com/galacticcouncil/hydration-node", branch
 pallet-xyk = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
 pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
 pallet-broadcast = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
+pallet-staking = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
 warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
 hydra-dx-build-script-utils = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409" }
 
@@ -96,9 +97,6 @@ pallet-scheduler = { git = "https://github.com/galacticcouncil/polkadot-sdk", br
 pallet-session = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="stable2409-patch", default-features = false }
 pallet-session-benchmarking = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="stable2409-patch", default-features = false }
 pallet-society = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="stable2409-patch", default-features = false }
-pallet-staking = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="stable2409-patch", default-features = false }
-pallet-staking-reward-curve = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="stable2409-patch", default-features = false }
-pallet-staking-reward-fn = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="stable2409-patch", default-features = false }
 pallet-state-trie-migration = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="stable2409-patch", default-features = false }
 pallet-sudo = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="stable2409-patch", default-features = false }
 pallet-timestamp = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="stable2409-patch", default-features = false }
