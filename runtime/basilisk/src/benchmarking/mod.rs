@@ -12,23 +12,25 @@ pub mod xyk;
 
 pub use helper::BenchmarkHelper;
 
-pub use crate::{Runtime, AssetLocation, AssetRegistry, Currencies, TreasuryAccount, MultiTransactionPayment, RuntimeCall, XYK};
+pub use crate::{
+	AssetLocation, AssetRegistry, Currencies, MultiTransactionPayment, Runtime, RuntimeCall, TreasuryAccount, XYK,
+};
 
+use frame_benchmarking::{account, BenchmarkError};
 use frame_support::assert_ok;
 use frame_system::RawOrigin;
-use frame_benchmarking::{account, BenchmarkError};
 
 use primitives::{AccountId, AssetId, Balance};
 use sp_std::vec;
 use sp_std::vec::Vec;
 
+use frame_support::storage::with_transaction;
+use hydradx_traits::{AssetKind, Create};
 use orml_traits::MultiCurrencyExtended;
 use sp_runtime::{
-	TransactionOutcome, FixedU128,
-	traits::{SaturatedConversion, One},
+	traits::{One, SaturatedConversion},
+	FixedU128, TransactionOutcome,
 };
-use hydradx_traits::{AssetKind, Create};
-use frame_support::storage::with_transaction;
 
 pub const BSX: Balance = primitives::constants::currency::UNITS;
 
@@ -57,7 +59,7 @@ pub fn register_external_asset(name: Vec<u8>) -> Result<AssetId, ()> {
 			None,
 		))
 	})
-		.map_err(|_| ())
+	.map_err(|_| ())
 }
 
 pub fn update_balance(currency_id: AssetId, who: &AccountId, balance: Balance) {
@@ -88,11 +90,7 @@ pub const DOT_ASSET_LOCATION: AssetLocation = AssetLocation(polkadot_xcm::v3::Mu
 fn setup_insufficient_asset_with_dot() -> Result<AssetId, BenchmarkError> {
 	let dot = register_asset(b"DOT".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 	set_location(dot, DOT_ASSET_LOCATION).map_err(|_| BenchmarkError::Stop("Failed to set location for weth"))?;
-	pallet_transaction_multi_payment::Pallet::<Runtime>::add_currency(
-		RawOrigin::Root.into(),
-		dot,
-		FixedU128::from(1),
-	)
+	pallet_transaction_multi_payment::Pallet::<Runtime>::add_currency(RawOrigin::Root.into(), dot, FixedU128::from(1))
 		.map_err(|_| BenchmarkError::Stop("Failed to add supported currency"))?;
 	let insufficient_asset =
 		register_external_asset(b"FCA".to_vec()).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
@@ -110,7 +108,7 @@ fn create_funded_account(name: &'static str, index: u32, assets: &[AssetId]) -> 
 		&account,
 		crate::benchmarking::route_executor::INITIAL_BALANCE as i128,
 	)
-		.unwrap();
+	.unwrap();
 
 	for asset in assets {
 		assert_ok!(<Currencies as MultiCurrencyExtended<_>>::update_balance(

@@ -21,11 +21,11 @@ use super::*;
 use crate::{AccountId, AssetId, Balance, Currencies, EmaOracle, Runtime, System};
 use frame_benchmarking::account;
 use frame_benchmarking::BenchmarkError;
+use frame_support::{assert_ok, parameter_types};
 use frame_support::{
 	dispatch::GetDispatchInfo,
 	traits::{OnFinalize, OnInitialize},
 };
-use frame_support::{assert_ok, parameter_types};
 use frame_system::RawOrigin;
 use hydradx_traits::router::PoolType;
 use hydradx_traits::router::RouteProvider;
@@ -33,12 +33,12 @@ use hydradx_traits::PriceOracle;
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrencyExtended;
 use pallet_route_executor::MAX_NUMBER_OF_TRADES;
+use pallet_transaction_multi_payment::{DepositAll, PaymentInfo, TransferFees};
+use pallet_transaction_payment::OnChargeTransaction;
 use primitives::{BlockNumber, Price};
 use sp_runtime::traits::SaturatedConversion;
-use sp_runtime::{FixedPointNumber, FixedU128};
 use sp_runtime::transaction_validity::{InvalidTransaction, TransactionValidityError};
-use pallet_transaction_multi_payment::{PaymentInfo, TransferFees, DepositAll};
-use pallet_transaction_payment::OnChargeTransaction;
+use sp_runtime::{FixedPointNumber, FixedU128};
 
 type MultiPaymentPallet<T> = pallet_transaction_multi_payment::Pallet<T>;
 type XykPallet<T> = pallet_xyk::Pallet<T>;
