@@ -24,7 +24,12 @@ use sp_std::vec;
 use sp_std::vec::Vec;
 
 use orml_traits::MultiCurrencyExtended;
-use sp_runtime::traits::SaturatedConversion;
+use sp_runtime::{
+	TransactionOutcome,
+	traits::SaturatedConversion,
+};
+use hydradx_traits::AssetKind;
+use sp_runtime::traits::One;
 
 pub const BSX: Balance = primitives::constants::currency::UNITS;
 
@@ -37,6 +42,23 @@ pub fn register_asset(name: Vec<u8>, deposit: Balance) -> Result<AssetId, ()> {
 		None,
 	)
 	.map_err(|_| ())
+}
+
+pub fn register_external_asset(name: Vec<u8>) -> Result<AssetId, ()> {
+	let n = name.try_into().map_err(|_| ())?;
+	with_transaction(|| {
+		TransactionOutcome::Commit(AssetRegistry::register_insufficient_asset(
+			None,
+			Some(n),
+			AssetKind::External,
+			Some(Balance::one()),
+			None,
+			None,
+			None,
+			None,
+		))
+	})
+		.map_err(|_| ())
 }
 
 pub fn update_balance(currency_id: AssetId, who: &AccountId, balance: Balance) {

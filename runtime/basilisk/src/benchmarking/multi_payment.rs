@@ -167,6 +167,31 @@ runtime_benchmarks! {
 	verify{
 		assert_eq!(MultiPaymentPallet::<Runtime>::get_currency(caller), None);
 	}
+
+	//Used for calculating multi payment overhead for BaseExtrinsicWeight
+	withdraw_fee {
+		let fee_asset = setup_insufficient_asset_with_dot()?;
+
+		let from: AccountId = account("from", 0, SEED);
+		<Currencies as MultiCurrencyExtended<AccountId>>::update_balance(0, &from, (10_000 * UNITS) as i128)?;
+		update_balance(fee_asset, &from, 1_000 * UNITS);
+
+		MultiTransactionPayment::set_currency(
+			RawOrigin::Signed(from.clone()).into(),
+			fee_asset
+		)?;
+	   let call = RuntimeCall::System(frame_system::Call::remark { remark: vec![] });
+
+		let info = call.get_dispatch_info();
+		let fee= 295599811918u128;
+		let tip = 0;
+		let mut tx_result : Result<Option<PaymentInfo<Balance, pallet_transaction_multi_payment::AssetIdOf<Runtime>, Price>>, TransactionValidityError> = Err(TransactionValidityError::Invalid(InvalidTransaction::Payment));
+	}: {
+		tx_result = <TransferFees<Currencies, DepositAll<Runtime>, TreasuryAccount> as OnChargeTransaction<Runtime>>::withdraw_fee(&from, &call, &info, fee, tip);
+	}
+	verify {
+		assert!(tx_result.is_ok());
+	}
 }
 
 fn create_xyk_pool<T: pallet_xyk::Config>(asset_a: AssetId, amount_a: Balance, asset_b: AssetId, amount_b: Balance)
