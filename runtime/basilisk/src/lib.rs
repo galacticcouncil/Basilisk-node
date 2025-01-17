@@ -277,9 +277,7 @@ pub mod migrations {
 		type ChannelList = ParachainSystem;
 	}
 
-	pub type Migrations = (
-		cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,
-	);
+	pub type Migrations = (cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,);
 }
 
 #[cfg(feature = "runtime-benchmarks")]
