@@ -1,6 +1,6 @@
 [package]
 name = "pallet-asset-registry"
-version = "2.3.5"
+version = "2.3.6"
 description = "Pallet for asset registry management"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -51,8 +51,10 @@ runtime-benchmarks = [
   "frame-support/runtime-benchmarks",
 ]
 std = [
-  "serde/std",
   "codec/std",
+  "scale-info/std",
+  "serde/std",
+  "orml-traits/std",
   "frame-support/std",
   "frame-system/std",
   "sp-runtime/std",
@@ -61,7 +63,6 @@ std = [
   "hydradx-traits/std",
   "sp-api/std",
   "frame-benchmarking/std",
-  "scale-info/std",
   "polkadot-xcm/std",
 ]
 try-runtime = ["frame-support/try-runtime"]

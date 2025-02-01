@@ -17,6 +17,8 @@
 
 //! Custom origins for governance interventions.
 
+#![allow(clippy::manual_inspect)]
+
 pub use pallet_custom_origins::*;
 
 #[frame_support::pallet]

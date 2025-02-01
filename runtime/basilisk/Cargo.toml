@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "123.0.0"
+version = "124.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -52,6 +52,8 @@ pallet-duster = { workspace = true }
 pallet-collator-rewards = { workspace = true }
 pallet-xyk = { workspace = true }
 pallet-lbp = { workspace = true }
+pallet-broadcast = { workspace = true }
+pallet-staking = { workspace = true }
 
 # collator support
 pallet-collator-selection = { workspace = true }
@@ -89,7 +91,7 @@ pallet-xcm = { workspace = true }
 xcm-executor = { workspace = true }
 polkadot-xcm = { workspace = true }
 polkadot-runtime-common = { workspace = true }
-xcm-fee-payment-runtime-api = { workspace = true }
+xcm-runtime-apis = { workspace = true }
 
 # Substrate dependencies
 primitive-types = { workspace = true }
@@ -149,6 +151,7 @@ runtime-benchmarks = [
     "pallet-marketplace/runtime-benchmarks",
     "pallet-xyk/runtime-benchmarks",
     "pallet-lbp/runtime-benchmarks",
+    "pallet-staking/runtime-benchmarks",
     "sp-runtime/runtime-benchmarks",
     "pallet-collator-selection/runtime-benchmarks",
     "pallet-xcm/runtime-benchmarks",
@@ -206,7 +209,7 @@ std = [
     "polkadot-xcm/std",
     "xcm-builder/std",
     "xcm-executor/std",
-    "xcm-fee-payment-runtime-api/std",
+    "xcm-runtime-apis/std",
     "pallet-xcm/std",
     "staging-parachain-info/std",
     "pallet-xyk/std",
@@ -226,6 +229,8 @@ std = [
     "pallet-lbp/std",
     "pallet-utility/std",
     "pallet-xyk-liquidity-mining/std",
+    "pallet-broadcast/std",
+    "pallet-staking/std",
     "hydradx-traits/std",
     "hydradx-adapters/std",
     "sp-api/std",
@@ -320,4 +325,6 @@ try-runtime= [
     "pallet-conviction-voting/try-runtime",
     "pallet-referenda/try-runtime",
     "pallet-whitelist/try-runtime",
+    "pallet-broadcast/try-runtime",
+    "pallet-staking/try-runtime",
 ]

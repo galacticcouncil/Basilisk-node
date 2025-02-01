@@ -15,12 +15,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(unused_assignments)] //We need this as benchmark does not recognize the assignment properly
+
 use super::*;
 use crate::{AccountId, AssetId, Balance, Currencies, EmaOracle, Runtime, System};
 use frame_benchmarking::account;
 use frame_benchmarking::BenchmarkError;
-use frame_support::traits::{OnFinalize, OnInitialize};
 use frame_support::{assert_ok, parameter_types};
+use frame_support::{
+	dispatch::GetDispatchInfo,
+	traits::{OnFinalize, OnInitialize},
+};
 use frame_system::RawOrigin;
 use hydradx_traits::router::PoolType;
 use hydradx_traits::router::RouteProvider;
@@ -28,8 +33,11 @@ use hydradx_traits::PriceOracle;
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrencyExtended;
 use pallet_route_executor::MAX_NUMBER_OF_TRADES;
+use pallet_transaction_multi_payment::{DepositAll, PaymentInfo, TransferFees};
+use pallet_transaction_payment::OnChargeTransaction;
 use primitives::{BlockNumber, Price};
 use sp_runtime::traits::SaturatedConversion;
+use sp_runtime::transaction_validity::{InvalidTransaction, TransactionValidityError};
 use sp_runtime::{FixedPointNumber, FixedU128};
 
 type MultiPaymentPallet<T> = pallet_transaction_multi_payment::Pallet<T>;
@@ -166,6 +174,31 @@ runtime_benchmarks! {
 	}: { MultiPaymentPallet::<Runtime>::reset_payment_currency(RawOrigin::Root.into(), caller.clone())? }
 	verify{
 		assert_eq!(MultiPaymentPallet::<Runtime>::get_currency(caller), None);
+	}
+
+	//Used for calculating multi payment overhead for BaseExtrinsicWeight
+	withdraw_fee {
+		let fee_asset = setup_insufficient_asset_with_dot()?;
+
+		let from: AccountId = account("from", 0, SEED);
+		<Currencies as MultiCurrencyExtended<AccountId>>::update_balance(0, &from, (10_000 * UNITS) as i128)?;
+		update_balance(fee_asset, &from, 1_000 * UNITS);
+
+		MultiTransactionPayment::set_currency(
+			RawOrigin::Signed(from.clone()).into(),
+			fee_asset
+		)?;
+	   let call = RuntimeCall::System(frame_system::Call::remark { remark: vec![] });
+
+		let info = call.get_dispatch_info();
+		let fee= 295599811918u128;
+		let tip = 0;
+		let mut tx_result : Result<Option<PaymentInfo<Balance, pallet_transaction_multi_payment::AssetIdOf<Runtime>, Price>>, TransactionValidityError> = Err(TransactionValidityError::Invalid(InvalidTransaction::Payment));
+	}: {
+		tx_result = <TransferFees<Currencies, DepositAll<Runtime>, TreasuryAccount> as OnChargeTransaction<Runtime>>::withdraw_fee(&from, &call, &info, fee, tip);
+	}
+	verify {
+		assert!(tx_result.is_ok());
 	}
 }
 

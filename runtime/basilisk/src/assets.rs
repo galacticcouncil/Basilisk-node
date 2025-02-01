@@ -20,8 +20,9 @@ use crate::governance::origins::GeneralAdmin;
 use crate::system::NativeAssetId;
 
 use hydradx_traits::{
+	fee::{InspectTransactionFeeCurrency, SwappablePaymentAssetTrader},
 	router::{inverse_route, AmmTradeWeights, PoolType, Trade},
-	AssetPairAccountIdFor, LockedBalance, OnTradeHandler, OraclePeriod, Source,
+	AssetKind, AssetPairAccountIdFor, LockedBalance, OnTradeHandler, OraclePeriod, Source, AMM,
 };
 use pallet_currencies::fungibles::FungibleCurrencies;
 use pallet_currencies::BasicCurrencyAdapter;
@@ -30,13 +31,15 @@ use pallet_route_executor::weights::WeightInfo as RouterWeights;
 use pallet_transaction_multi_payment::{AddTxAssetOnAccount, RemoveTxAssetOnKilled};
 use pallet_xyk::weights::WeightInfo as XykWeights;
 use primitives::constants::{
-	chain::{DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
+	chain::{CORE_ASSET_ID, DISCOUNTED_FEE, MAX_IN_RATIO, MAX_OUT_RATIO, MIN_POOL_LIQUIDITY, MIN_TRADING_LIMIT},
 	currency::{NATIVE_EXISTENTIAL_DEPOSIT, UNITS},
 };
 
 use frame_support::{
 	parameter_types,
-	sp_runtime::{app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero},
+	sp_runtime::{
+		app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero, ArithmeticError, DispatchError, DispatchResult,
+	},
 	traits::{
 		AsEnsureOriginWithArg, Contains, Currency, Defensive, EitherOf, EnsureOrigin, Get, Imbalance, LockIdentifier,
 		NeverEnsureOrigin, OnUnbalanced,
@@ -45,7 +48,7 @@ use frame_support::{
 };
 use frame_system::{EnsureRoot, RawOrigin};
 use orml_tokens::CurrencyAdapter;
-use orml_traits::currency::MutationHooks;
+use orml_traits::{currency::MutationHooks, MultiCurrency};
 
 pub struct RelayChainAssetId;
 impl Get<AssetId> for RelayChainAssetId {
@@ -129,6 +132,95 @@ impl orml_tokens::Config for Runtime {
 	type DustRemovalWhitelist = DustRemovalWhitelist;
 }
 
+pub struct NoEvmSupport;
+impl hydradx_traits::registry::Inspect for NoEvmSupport {
+	type AssetId = AssetId;
+	type Location = ();
+	fn is_sufficient(_id: Self::AssetId) -> bool {
+		false
+	}
+	fn exists(_id: Self::AssetId) -> bool {
+		false
+	}
+	fn decimals(_id: Self::AssetId) -> Option<u8> {
+		None
+	}
+	fn asset_type(_id: Self::AssetId) -> Option<AssetKind> {
+		None
+	}
+	fn is_banned(_id: Self::AssetId) -> bool {
+		true
+	}
+	fn asset_name(_id: Self::AssetId) -> Option<Vec<u8>> {
+		None
+	}
+	fn asset_symbol(_id: Self::AssetId) -> Option<Vec<u8>> {
+		None
+	}
+	fn existential_deposit(_id: Self::AssetId) -> Option<u128> {
+		None
+	}
+}
+impl hydradx_traits::registry::BoundErc20 for NoEvmSupport {
+	fn contract_address(_id: Self::AssetId) -> Option<EvmAddress> {
+		None
+	}
+}
+
+impl MultiCurrency<AccountId> for NoEvmSupport {
+	type CurrencyId = EvmAddress;
+	type Balance = Balance;
+
+	fn minimum_balance(_contract: Self::CurrencyId) -> Self::Balance {
+		Zero::zero()
+	}
+
+	fn total_issuance(_contract: Self::CurrencyId) -> Self::Balance {
+		Zero::zero()
+	}
+
+	fn total_balance(_contract: Self::CurrencyId, _who: &AccountId) -> Self::Balance {
+		Zero::zero()
+	}
+
+	fn free_balance(_contract: Self::CurrencyId, _who: &AccountId) -> Self::Balance {
+		Zero::zero()
+	}
+
+	fn ensure_can_withdraw(
+		_contract: Self::CurrencyId,
+		_who: &AccountId,
+		_amount: Self::Balance,
+	) -> sp_runtime::DispatchResult {
+		Err(DispatchError::Other("EVM not supported"))
+	}
+
+	fn transfer(
+		_contract: Self::CurrencyId,
+		_from: &AccountId,
+		_to: &AccountId,
+		_amount: Self::Balance,
+	) -> sp_runtime::DispatchResult {
+		Err(DispatchError::Other("EVM not supported"))
+	}
+
+	fn deposit(_contract: Self::CurrencyId, _who: &AccountId, _amount: Self::Balance) -> sp_runtime::DispatchResult {
+		Err(DispatchError::Other("EVM not supported"))
+	}
+
+	fn withdraw(_contract: Self::CurrencyId, _who: &AccountId, _amount: Self::Balance) -> sp_runtime::DispatchResult {
+		Err(DispatchError::Other("EVM not supported"))
+	}
+
+	fn can_slash(_contract: Self::CurrencyId, _who: &AccountId, _value: Self::Balance) -> bool {
+		false
+	}
+
+	fn slash(_contract: Self::CurrencyId, _who: &AccountId, _amount: Self::Balance) -> Self::Balance {
+		Zero::zero()
+	}
+}
+
 // The latest versions of the orml-currencies pallet don't emit events.
 // The infrastructure relies on the events from this pallet, so we use the latest version of
 // the pallet that contains and emit events and was updated to the polkadot version we use.
@@ -136,6 +228,8 @@ impl pallet_currencies::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
+	type Erc20Currency = NoEvmSupport;
+	type BoundErc20 = NoEvmSupport;
 	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = weights::pallet_currencies::BasiliskWeight<Runtime>;
 }
@@ -173,6 +267,10 @@ impl pallet_duster::Config for Runtime {
 	type WeightInfo = weights::pallet_duster::BasiliskWeight<Runtime>;
 }
 
+impl pallet_broadcast::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+}
+
 pub struct AssetPairAccountId<T: frame_system::Config>(PhantomData<T>);
 impl<T: frame_system::Config> AssetPairAccountIdFor<AssetId, T::AccountId> for AssetPairAccountId<T>
 where
@@ -193,7 +291,7 @@ where
 }
 
 parameter_types! {
-	pub ExchangeFee: (u32, u32) = (3, 1_000);
+	pub XYKExchangeFee: (u32, u32) = (3, 1_000);
 	pub const MinTradingLimit: Balance = MIN_TRADING_LIMIT;
 	pub const MinPoolLiquidity: Balance = MIN_POOL_LIQUIDITY;
 	pub const MaxInRatio: u128 = MAX_IN_RATIO;
@@ -210,7 +308,7 @@ impl pallet_xyk::Config for Runtime {
 	type Currency = Currencies;
 	type NativeAssetId = NativeAssetId;
 	type WeightInfo = weights::pallet_xyk::BasiliskWeight<Runtime>;
-	type GetExchangeFee = ExchangeFee;
+	type GetExchangeFee = XYKExchangeFee;
 	type MinTradingLimit = MinTradingLimit;
 	type MinPoolLiquidity = MinPoolLiquidity;
 	type MaxInRatio = MaxInRatio;
@@ -233,7 +331,7 @@ where
 {
 	fn get_by_lock(lock_id: LockIdentifier, currency_id: AssetId, who: T::AccountId) -> Balance {
 		if currency_id == NativeAssetId::get() {
-			match pallet_balances::Pallet::<T>::locks(who)
+			match pallet_balances::Pallet::<T>::locks(&who)
 				.into_iter()
 				.find(|lock| lock.id == lock_id)
 			{
@@ -274,6 +372,7 @@ impl pallet_lbp::Config for Runtime {
 #[cfg(feature = "runtime-benchmarks")]
 use codec::Decode;
 use frame_support::traits::Everything;
+use hydradx_traits::evm::EvmAddress;
 
 pub struct RootAsVestingPallet;
 impl EnsureOrigin<RuntimeOrigin> for RootAsVestingPallet {
@@ -695,16 +794,16 @@ impl pallet_route_executor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type Balance = Balance;
-	type Currency = FungibleCurrencies<Runtime>;
-	type AMM = (XYK, LBP);
 	type NativeAssetId = NativeAssetId;
-	type DefaultRoutePoolType = DefaultRoutePoolType;
-	type WeightInfo = RouterWeightInfo;
+	type Currency = FungibleCurrencies<Runtime>;
 	type InspectRegistry = AssetRegistry;
-	type TechnicalOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type AMM = (XYK, LBP);
 	type EdToRefundCalculator = RefundAndLockedEdCalculator;
 	type OraclePriceProvider = adapter::OraclePriceProvider<AssetId, EmaOracle>;
 	type OraclePeriod = RouteValidationOraclePeriod;
+	type DefaultRoutePoolType = DefaultRoutePoolType;
+	type ForceInsertOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type WeightInfo = RouterWeightInfo;
 }
 
 parameter_types! {
@@ -740,4 +839,69 @@ impl pallet_nft::Config for Runtime {
 	type CollectionType = pallet_nft::CollectionType;
 	type Permissions = pallet_nft::NftPermissions;
 	type ReserveCollectionIdUpTo = ReserveCollectionIdUpTo;
+}
+
+pub struct XykPaymentAssetSupport;
+
+impl InspectTransactionFeeCurrency<AssetId> for XykPaymentAssetSupport {
+	fn is_transaction_fee_currency(asset: AssetId) -> bool {
+		asset == CORE_ASSET_ID || MultiTransactionPayment::contains(&asset)
+	}
+}
+
+impl SwappablePaymentAssetTrader<AccountId, AssetId, Balance> for XykPaymentAssetSupport {
+	fn is_trade_supported(from: AssetId, into: AssetId) -> bool {
+		XYK::exists(pallet_xyk::types::AssetPair::new(from, into))
+	}
+
+	fn calculate_fee_amount(swap_amount: Balance) -> Result<Balance, DispatchError> {
+		let xyk_exchange_rate = XYKExchangeFee::get();
+
+		hydra_dx_math::fee::calculate_pool_trade_fee(swap_amount, xyk_exchange_rate)
+			.ok_or(ArithmeticError::Overflow.into())
+	}
+
+	fn calculate_in_given_out(
+		insuff_asset_id: AssetId,
+		asset_out: AssetId,
+		asset_out_amount: Balance,
+	) -> Result<Balance, DispatchError> {
+		let asset_pair_account = XYK::get_pair_id(pallet_xyk::types::AssetPair::new(insuff_asset_id, asset_out));
+		let out_reserve = Currencies::free_balance(asset_out, &asset_pair_account);
+		let in_reserve = Currencies::free_balance(insuff_asset_id, &asset_pair_account.clone());
+
+		hydra_dx_math::xyk::calculate_in_given_out(out_reserve, in_reserve, asset_out_amount)
+			.map_err(|_err| ArithmeticError::Overflow.into())
+	}
+
+	fn calculate_out_given_in(
+		asset_in: AssetId,
+		asset_out: AssetId,
+		asset_in_amount: Balance,
+	) -> Result<Balance, DispatchError> {
+		let asset_pair_account = XYK::get_pair_id(pallet_xyk::types::AssetPair::new(asset_in, asset_out));
+		let in_reserve = Currencies::free_balance(asset_in, &asset_pair_account.clone());
+		let out_reserve = Currencies::free_balance(asset_out, &asset_pair_account);
+
+		hydra_dx_math::xyk::calculate_out_given_in(in_reserve, out_reserve, asset_in_amount)
+			.map_err(|_err| ArithmeticError::Overflow.into())
+	}
+
+	fn buy(
+		origin: &AccountId,
+		asset_in: AssetId,
+		asset_out: AssetId,
+		amount: Balance,
+		max_limit: Balance,
+		dest: &AccountId,
+	) -> DispatchResult {
+		XYK::buy_for(
+			origin,
+			pallet_xyk::types::AssetPair { asset_in, asset_out },
+			amount,
+			max_limit,
+			false,
+			dest,
+		)
+	}
 }

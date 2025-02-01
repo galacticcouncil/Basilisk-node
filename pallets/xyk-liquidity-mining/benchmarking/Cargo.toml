@@ -1,6 +1,6 @@
 [package]
 name = "pallet-xyk-liquidity-mining-benchmarking"
-version = "1.0.18"
+version = "1.0.19"
 description = "Liquidity Mining Benchmarking Module"
 authors = ["GalacticCouncil"]
 edition = "2021"
@@ -30,6 +30,7 @@ pallet-liquidity-mining = { workspace = true }
 hydradx-traits = { workspace = true }
 pallet-duster = { workspace = true }
 pallet-xyk = { workspace = true }
+pallet-broadcast = { workspace = true }
 
 # Substrate dependencies
 sp-std = { workspace = true }
@@ -67,4 +68,5 @@ std = [
     "pallet-nft/std",
     "pallet-uniques/std",
     "pallet-duster/std",
+    "pallet-broadcast/std",
 ]

@@ -67,13 +67,14 @@ parameter_types! {
 }
 
 impl pallet_conviction_voting::Config for Runtime {
-	type WeightInfo = weights::pallet_conviction_voting::BasiliskWeight<Self>;
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::pallet_conviction_voting::BasiliskWeight<Self>;
 	type Currency = Balances;
-	type VoteLockingPeriod = VoteLockingPeriod;
-	type MaxVotes = ConstU32<512>;
-	type MaxTurnout = frame_support::traits::tokens::currency::ActiveIssuanceOf<Balances, Self::AccountId>;
 	type Polls = Referenda;
+	type MaxTurnout = frame_support::traits::tokens::currency::ActiveIssuanceOf<Balances, Self::AccountId>;
+	type MaxVotes = ConstU32<512>;
+	type VoteLockingPeriod = VoteLockingPeriod;
+	type VotingHooks = ();
 }
 
 parameter_types! {
@@ -132,13 +133,8 @@ parameter_types! {
 
 impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
-	type ApproveOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
 	type RejectOrigin = EitherOfDiverse<EnsureRoot<AccountId>, Treasurer>;
 	type RuntimeEvent = RuntimeEvent;
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ProposalBondMinimum;
-	type ProposalBondMaximum = ProposalBondMaximum;
 	type SpendPeriod = SpendPeriod;
 	type Burn = Burn;
 	type PalletId = TreasuryPalletId;

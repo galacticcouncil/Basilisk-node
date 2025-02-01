@@ -135,8 +135,8 @@ fn transaction_fees_should_be_as_expected_when_nft_is_minted() {
 #[test]
 fn transaction_fees_should_be_as_expected_when_nft_collection_is_created() {
 	Basilisk::execute_with(|| {
-		let expected_rust_encoded_fees = 61_167 * UNITS / 100; //611.67
-		let expected_ui_fees = 61_167 * UNITS / 100; //611.67
+		let expected_rust_encoded_fees = 70_000 * UNITS / 100;
+		let expected_ui_fees = 70_000 * UNITS / 100;
 
 		let call = pallet_nft::Call::<basilisk_runtime::Runtime>::create_collection {
 			collection_id: 0,

@@ -91,9 +91,9 @@ runtime_benchmarks! {
 
 	set_price {
 		let (caller, caller2, caller_lookup, metadata) = create_collection_and_mint(COLLECTION_ID_0.into(), ITEM_ID_0.into());
-	}: _(RawOrigin::Signed(caller.clone()), COLLECTION_ID_0.into(), ITEM_ID_0.into(), Some(u32::max_value().into()))
+	}: _(RawOrigin::Signed(caller.clone()), COLLECTION_ID_0.into(), ITEM_ID_0.into(), Some(u32::MAX.into()))
 	verify {
-		assert_eq!(Marketplace::prices(CollectionId::from(COLLECTION_ID_0), ItemId::from(ITEM_ID_0)), Some(u32::max_value().into()))
+		assert_eq!(Marketplace::prices(CollectionId::from(COLLECTION_ID_0), ItemId::from(ITEM_ID_0)), Some(u32::MAX.into()))
 	}
 
 	make_offer {

@@ -87,6 +87,7 @@ mod router_different_pools_tests {
 				asset_out: KSM,
 				amount_in: amount_to_sell,
 				amount_out,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -147,6 +148,7 @@ mod router_different_pools_tests {
 				asset_out: KSM,
 				amount_in,
 				amount_out: amount_to_buy,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -205,6 +207,7 @@ mod xyk_router_tests {
 				asset_out: KSM,
 				amount_in: amount_to_sell,
 				amount_out,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -267,6 +270,7 @@ mod xyk_router_tests {
 				asset_out: KSM,
 				amount_in: amount_to_sell,
 				amount_out,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -489,6 +493,7 @@ mod xyk_router_tests {
 				asset_out: KSM,
 				amount_in,
 				amount_out: amount_to_buy,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -544,6 +549,7 @@ mod xyk_router_tests {
 				asset_out: AUSD,
 				amount_in,
 				amount_out: amount_to_buy,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -607,6 +613,7 @@ mod xyk_router_tests {
 				asset_out: AUSD,
 				amount_in,
 				amount_out: amount_to_buy,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -845,6 +852,7 @@ mod lbp_router_tests {
 				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in: amount_to_sell,
 				amount_out,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -892,6 +900,7 @@ mod lbp_router_tests {
 				asset_out: BSX,
 				amount_in: amount_to_sell,
 				amount_out,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -945,6 +954,7 @@ mod lbp_router_tests {
 				asset_out: KSM,
 				amount_in: amount_to_sell,
 				amount_out,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -998,6 +1008,7 @@ mod lbp_router_tests {
 				asset_out: KSM,
 				amount_in: amount_to_sell,
 				amount_out,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -1045,6 +1056,7 @@ mod lbp_router_tests {
 				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in: amount_to_sell,
 				amount_out: received_amount_out,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -1117,6 +1129,7 @@ mod lbp_router_tests {
 				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in,
 				amount_out: amount_to_buy,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -1164,6 +1177,7 @@ mod lbp_router_tests {
 				asset_out: BSX,
 				amount_in,
 				amount_out: amount_to_buy,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -1217,6 +1231,7 @@ mod lbp_router_tests {
 				asset_out: KSM,
 				amount_in,
 				amount_out: amount_to_buy,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -1270,6 +1285,7 @@ mod lbp_router_tests {
 				asset_out: KSM,
 				amount_in,
 				amount_out: amount_to_buy,
+				event_id: 0,
 			}
 			.into()]);
 		});
@@ -1317,6 +1333,7 @@ mod lbp_router_tests {
 				asset_out: NEW_BOOTSTRAPPED_TOKEN,
 				amount_in: spent_amount_in,
 				amount_out: amount_to_buy,
+				event_id: 0,
 			}
 			.into()]);
 		});
