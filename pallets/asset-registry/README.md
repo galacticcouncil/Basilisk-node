@@ -14,7 +14,7 @@ Asset registry provides functionality to create, store and keep tracking of exis
 
 ### Implementation detail
 
-For each newly registered asset, a sequential id is assigned to that asset. This id identifies the asset and can be used directly in transfers or any other operation which works with an asset ( without performing any additioanl asset check or asset retrieval).
+For each newly registered asset, a sequential id is assigned to that asset. This id identifies the asset and can be used directly in transfers or any other operation which works with an asset ( without performing any additional asset check or asset retrieval).
 
 There is a mapping between the name and asset id stored as well, which helps and is used in AMM Implementation where there is a need to register a pool asset and only name is provided ( see `get_or_create_asset` ).
 
