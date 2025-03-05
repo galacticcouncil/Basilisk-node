@@ -101,7 +101,7 @@ impl<T: frame_system::Config> pallet_scheduler::WeightInfo for BasiliskWeight<T>
 		//  Measured:  `246 + s * (1 ±0)`
 		//  Estimated: `4197809`
 		// Minimum execution time: 26_368_000 picoseconds.
-		Weight::from_parts(26_774_000, 4197809)
+		Weight::from_parts(26_774_000, 3711)
 			// Standard Error: 15
 			.saturating_add(Weight::from_parts(1_618, 0).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
