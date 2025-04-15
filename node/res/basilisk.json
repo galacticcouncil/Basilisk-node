@@ -8,7 +8,8 @@
     "/dns/p2p-03.basilisk.hydradx.io/tcp/30333/p2p/12D3KooWD2Y9VkfC9cmQEpKZLN26xWq7XPJXHDUH8LNVmhoNBrdJ",
     "/dns/bsxboot.sik.rocks/tcp/30333/p2p/12D3KooWAuiU9WhRyYjmsjhjrSLUUEUDeKxVRsj7xi2HVUmXLjSQ",
     "/ip4/89.187.156.216/tcp/30333/p2p/12D3KooWAjNQ57YTUJKAac4DypXauphotuDgZd2TEUpW1y8WP9x2",
-    "/ip4/89.187.156.230/tcp/30333/p2p/12D3KooWDcFTGmMfF9opSyRrWenY1wk7NCo6ABbc4Y2i88iDR85o"
+    "/ip4/89.187.156.230/tcp/30333/p2p/12D3KooWDcFTGmMfF9opSyRrWenY1wk7NCo6ABbc4Y2i88iDR85o",
+    "/ip4/146.59.47.189/tcp/30333/ws/p2p/12D3KooWH2KSkjiLRBfPwd8sxgGC6pVvquZSbznfvQYdTE4mRZQv"
   ],
   "telemetryEndpoints": [
     [
