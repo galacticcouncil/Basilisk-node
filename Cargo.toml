@@ -39,26 +39,26 @@ pallet-asset-registry = { path = "pallets/asset-registry", default-features = fa
 pallet-xyk-liquidity-mining = { path = "pallets/xyk-liquidity-mining", default-features = false}
 pallet-xyk-liquidity-mining-benchmarking = { path = "pallets/xyk-liquidity-mining/benchmarking", default-features = false}
 
-hydra-dx-math = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-hydradx-traits = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-hydradx-adapters = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-relaychain-info = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-nft = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-currencies = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-transaction-pause = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-route-executor = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-ema-oracle = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-duster = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-collator-rewards = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-test-utils = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-lbp = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-xyk = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-broadcast = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-pallet-staking = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409", default-features = false }
-hydra-dx-build-script-utils = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409" }
+hydra-dx-math = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+hydradx-traits = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+hydradx-adapters = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-relaychain-info = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-nft = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-currencies = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-transaction-pause = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-route-executor = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-ema-oracle = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-duster = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-collator-rewards = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+test-utils = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-lbp = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-xyk = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-broadcast = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+pallet-staking = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+warehouse-liquidity-mining = { package="pallet-liquidity-mining", git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22", default-features = false }
+hydra-dx-build-script-utils = { git = "https://github.com/galacticcouncil/hydration-node", branch ="polkadot-stable2409-patch22" }
 
 frame-benchmarking = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="stable2409-patch22", default-features = false }
 frame-benchmarking-cli = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="stable2409-patch22", default-features = false }
