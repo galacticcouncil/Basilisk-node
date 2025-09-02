@@ -91,7 +91,6 @@ impl Contains<RuntimeCall> for BaseFilter {
 
 		match call {
 			RuntimeCall::Uniques(_) => false,
-			RuntimeCall::PolkadotXcm(_) => false,
 			RuntimeCall::OrmlXcm(_) => false,
 			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			_ => true,
