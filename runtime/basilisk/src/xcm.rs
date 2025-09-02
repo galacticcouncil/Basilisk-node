@@ -26,7 +26,7 @@ use frame_support::traits::TransformOrigin;
 use frame_support::{
 	parameter_types,
 	sp_runtime::traits::Convert,
-	traits::{Contains, EitherOf, Everything, Get, Nothing},
+	traits::{Contains, ContainsPair, EitherOf, Everything, Get, Nothing},
 	PalletId,
 };
 use frame_system::EnsureRoot;
@@ -41,7 +41,7 @@ use pallet_xcm::XcmPassthrough;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_parachain::primitives::{RelayChainBlockNumber, Sibling};
 use polkadot_xcm::latest::{Asset, Junctions, Location};
-use polkadot_xcm::prelude::InteriorLocation;
+use polkadot_xcm::prelude::{Fungible, InteriorLocation};
 use polkadot_xcm::v3::{
 	prelude::{Here, NetworkId, Parachain},
 	MultiLocation, Weight as XcmWeight,
@@ -50,6 +50,7 @@ use primitives::AssetId;
 use scale_info::TypeInfo;
 use sp_runtime::traits::MaybeEquivalence;
 use sp_runtime::Perbill;
+use sp_std::marker::PhantomData;
 use xcm_builder::{
 	AccountId32Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom,
 	DescribeAllTerminal, DescribeFamily, EnsureXcmOrigin, FixedWeightBounds, HashedDescription, ParentIsPreset,
@@ -109,11 +110,36 @@ parameter_types! {
 
 parameter_types! {
 	pub const RelayNetwork: NetworkId = NetworkId::Kusama;
+	pub const AssetHubParaId: ParaId = ParaId::new(1000);
+	pub AssetHubLocation: Location = Location::new(1, cumulus_primitives_core::Junctions::X1(Arc::new([cumulus_primitives_core::Junction::Parachain(AssetHubParaId::get().into())])));
 
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 }
+
+pub struct IsKsmFrom<Origin>(PhantomData<Origin>);
+impl<Origin> ContainsPair<Asset, Location> for IsKsmFrom<Origin>
+where
+	Origin: Get<Location>,
+{
+	fn contains(asset: &Asset, origin: &Location) -> bool {
+		let loc = Origin::get();
+		&loc == origin
+			&& matches!(
+				asset,
+				Asset {
+					id: cumulus_primitives_core::AssetId(Location {
+						parents: 1,
+						interior: cumulus_primitives_core::Junctions::Here
+					}),
+					fun: Fungible(_),
+				},
+			)
+	}
+}
+
+pub type Reserves = (IsKsmFrom<AssetHubLocation>, MultiNativeAsset<AbsoluteReserveProvider>);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -151,7 +177,7 @@ impl Config for XcmConfig {
 
 	type AssetTransactor = LocalAssetTransactor;
 	type OriginConverter = XcmOriginToCallOrigin;
-	type IsReserve = MultiNativeAsset<AbsoluteReserveProvider>;
+	type IsReserve = Reserves;
 
 	type IsTeleporter = (); // disabled
 	type UniversalLocation = UniversalLocation;
@@ -218,8 +244,12 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type WeightInfo = weights::cumulus_pallet_xcmp_queue::BasiliskWeight<Runtime>;
 }
 parameter_type_with_key! {
-	pub ParachainMinFee: |_location: Location| -> Option<u128> {
-		None
+	pub ParachainMinFee: |location: Location| -> Option<u128> {
+		#[allow(clippy::match_ref_pats)] // false positive
+		match (location.parents, location.first_interior()) {
+			(1, Some(cumulus_primitives_core::Junction::Parachain(1000))) => Some(150_000_000),
+			_ => None,
+		}
 	};
 }
 

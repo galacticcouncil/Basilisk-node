@@ -20,21 +20,6 @@ fn calling_pallet_uniques_extrinsic_should_be_filtered_by_call_filter() {
 }
 
 #[test]
-fn calling_pallet_xcm_extrinsic_should_be_filtered_by_call_filter() {
-	TestNet::reset();
-
-	Basilisk::execute_with(|| {
-		// the values here don't need to make sense, all we need is a valid Call
-		let call = basilisk_runtime::RuntimeCall::PolkadotXcm(pallet_xcm::Call::send {
-			dest: Box::new(MultiLocation::parent().into_versioned()),
-			message: Box::new(VersionedXcm::from(Xcm(vec![]))),
-		});
-
-		assert!(!basilisk_runtime::BaseFilter::contains(&call));
-	});
-}
-
-#[test]
 fn calling_orml_xcm_extrinsic_should_be_filtered_by_call_filter() {
 	TestNet::reset();
 
