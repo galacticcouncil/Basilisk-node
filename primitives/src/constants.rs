@@ -44,7 +44,7 @@ pub mod time {
 	/// up by `pallet_aura` to implement `fn slot_duration()`.
 	///
 	/// Change this to adjust the block time.
-	pub const MILLISECS_PER_BLOCK: u64 = 6000;
+	pub const MILLISECS_PER_BLOCK: u64 = 2000;
 	pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
 
 	// Time is measured by number of blocks.
@@ -75,9 +75,9 @@ pub mod chain {
 	/// Minimum pool liquidity
 	pub const MIN_POOL_LIQUIDITY: Balance = 1000;
 
-	/// We allow for 2 seconds of compute with a 6 second average block.
+	/// We allow for 1.5 seconds of compute with a 2 second average block.
 	pub const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
-		WEIGHT_REF_TIME_PER_SECOND.saturating_mul(2),
+		WEIGHT_REF_TIME_PER_SECOND.saturating_mul(3).saturating_div(2),
 		polkadot_primitives::v8::MAX_POV_SIZE as u64,
 	);
 
@@ -96,10 +96,10 @@ mod tests {
 		assert_eq!(DAYS / 24, HOURS);
 		// 60 minuts in an hour
 		assert_eq!(HOURS / 60, MINUTES);
-		// 1 minute = 60s = 10 blocks 6s each
-		assert_eq!(MINUTES, 10);
-		// 6s per block
-		assert_eq!(SECS_PER_BLOCK, 6);
+		// 1 minute = 60s = 10 blocks 2s each
+		assert_eq!(MINUTES, 30);
+		// 2s per block
+		assert_eq!(SECS_PER_BLOCK, 2);
 		// 1s = 1000ms
 		assert_eq!(MILLISECS_PER_BLOCK / 1000, SECS_PER_BLOCK);
 		// Extra check for epoch time because changing it bricks the block production and requires regenesis
