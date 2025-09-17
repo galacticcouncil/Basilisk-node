@@ -96,10 +96,10 @@ mod tests {
 		assert_eq!(DAYS / 24, HOURS);
 		// 60 minuts in an hour
 		assert_eq!(HOURS / 60, MINUTES);
-		// 1 minute = 60s = 10 blocks 6s each
-		assert_eq!(MINUTES, 10);
-		// 6s per block
-		assert_eq!(SECS_PER_BLOCK, 6);
+		// 1 minute = 60s = 10 blocks 2s each
+		assert_eq!(MINUTES, 30);
+		// 2s per block
+		assert_eq!(SECS_PER_BLOCK, 2);
 		// 1s = 1000ms
 		assert_eq!(MILLISECS_PER_BLOCK / 1000, SECS_PER_BLOCK);
 		// Extra check for epoch time because changing it bricks the block production and requires regenesis
