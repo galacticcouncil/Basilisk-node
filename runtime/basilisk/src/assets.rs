@@ -221,6 +221,28 @@ impl MultiCurrency<AccountId> for NoEvmSupport {
 	}
 }
 
+pub struct NoErc20Support;
+
+impl hydradx_traits::evm::Erc20Inspect<AssetId> for NoErc20Support {
+	fn contract_address(_id: AssetId) -> Option<EvmAddress> {
+		None
+	}
+
+	fn is_atoken(_asset_id: AssetId) -> bool {
+		false
+	}
+}
+
+impl hydradx_traits::evm::Erc20OnDust<AccountId, AssetId> for NoErc20Support {
+	fn on_dust(
+		_account: &AccountId,
+		_dust_dest_account: &AccountId,
+		_currency_id: AssetId,
+	) -> frame_support::dispatch::DispatchResult {
+		Err(DispatchError::Other("EVM not supported"))
+	}
+}
+
 // The latest versions of the orml-currencies pallet don't emit events.
 // The infrastructure relies on the events from this pallet, so we use the latest version of
 // the pallet that contains and emit events and was updated to the polkadot version we use.
@@ -255,14 +277,11 @@ parameter_types! {
 
 impl pallet_duster::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type Amount = Amount;
-	type CurrencyId = AssetId;
-	type MultiCurrency = Currencies;
-	type MinCurrencyDeposits = AssetRegistry;
-	type Reward = DustingReward;
-	type NativeCurrencyId = NativeAssetId;
-	type BlacklistUpdateOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type AssetId = AssetId;
+	type MultiCurrency = FungibleCurrencies<Runtime>;
+	type ExistentialDeposit = AssetRegistry;
+	type WhitelistUpdateOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type Erc20Support = NoErc20Support;
 	type TreasuryAccountId = TreasuryAccount;
 	type WeightInfo = weights::pallet_duster::BasiliskWeight<Runtime>;
 }
