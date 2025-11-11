@@ -68,25 +68,6 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for Basilisk
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
-	/// Storage: `XcmpQueue::QueueConfig` (r:1 w:0)
-	/// Proof: `XcmpQueue::QueueConfig` (`max_values`: Some(1), `max_size`: Some(12), added: 507, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::ServiceHead` (r:1 w:1)
-	/// Proof: `MessageQueue::ServiceHead` (`max_values`: Some(1), `max_size`: Some(5), added: 500, mode: `MaxEncodedLen`)
-	/// Storage: `XcmpQueue::InboundXcmpSuspended` (r:1 w:0)
-	/// Proof: `XcmpQueue::InboundXcmpSuspended` (`max_values`: Some(1), `max_size`: Some(4002), added: 4497, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::Pages` (r:0 w:1)
-	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(134193), added: 136668, mode: `MaxEncodedLen`)
-	fn enqueue_xcmp_message() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `156`
-		//  Estimated: `5487`
-		// Minimum execution time: 19_710_000 picoseconds.
-		Weight::from_parts(20_123_000, 5487)
-			.saturating_add(T::DbWeight::get().reads(4_u64))
-			.saturating_add(T::DbWeight::get().writes(3_u64))
-	}
 	/// Storage: `XcmpQueue::OutboundXcmpStatus` (r:1 w:1)
 	/// Proof: `XcmpQueue::OutboundXcmpStatus` (`max_values`: Some(1), `max_size`: Some(1282), added: 1777, mode: `MaxEncodedLen`)
 	fn suspend_channel() -> Weight {
@@ -161,5 +142,11 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for Basilisk
 		Weight::from_parts(131_605_000, 69255)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(5_u64))
+	}
+	fn enqueue_n_bytes_xcmp_message(_: u32) -> Weight {
+		Weight::from_parts(10_000_000, 0)
+	}
+	fn enqueue_2_empty_xcmp_messages() -> Weight {
+		Weight::from_parts(10_000_000, 0)
 	}
 }

@@ -363,4 +363,10 @@ impl<T: frame_system::Config> pallet_xcm::WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(4_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
+	fn add_authorized_alias() -> Weight {
+		Weight::from_parts(10_000_000, 0)
+	}
+	fn remove_authorized_alias() -> Weight {
+		Weight::from_parts(10_000_000, 0)
+	}
 }

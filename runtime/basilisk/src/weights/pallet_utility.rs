@@ -125,4 +125,10 @@ impl<T: frame_system::Config> pallet_utility::WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
 	}
+	fn dispatch_as_fallible() -> Weight {
+		Weight::from_parts(10_000_000, 0)
+	}
+	fn if_else() -> Weight {
+		Weight::from_parts(10_000_000, 0)
+	}
 }

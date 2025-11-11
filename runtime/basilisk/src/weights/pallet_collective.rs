@@ -295,4 +295,10 @@ impl<T: frame_system::Config> pallet_collective::WeightInfo for BasiliskWeight<T
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 			.saturating_add(Weight::from_parts(0, 32).saturating_mul(p.into()))
 	}
+	fn kill(_: u32, _: u32) -> Weight {
+		Weight::from_parts(10_000_000, 0)
+	}
+	fn release_proposal_cost() -> Weight {
+		Weight::from_parts(10_000_000, 0)
+	}
 }

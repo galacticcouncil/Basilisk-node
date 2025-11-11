@@ -80,25 +80,10 @@ impl<T: frame_system::Config> pallet_duster::WeightInfo for BasiliskWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(7_u64))
 			.saturating_add(T::DbWeight::get().writes(4_u64))
 	}
-	/// Storage: `Duster::AccountBlacklist` (r:0 w:1)
-	/// Proof: `Duster::AccountBlacklist` (`max_values`: None, `max_size`: Some(48), added: 2523, mode: `MaxEncodedLen`)
-	fn add_nondustable_account() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `929`
-		//  Estimated: `0`
-		// Minimum execution time: 22_105_000 picoseconds.
-		Weight::from_parts(22_376_000, 0)
-			.saturating_add(T::DbWeight::get().writes(1_u64))
+	fn whitelist_account() -> Weight {
+		Weight::from_parts(10_000_000, 0)
 	}
-	/// Storage: `Duster::AccountBlacklist` (r:1 w:1)
-	/// Proof: `Duster::AccountBlacklist` (`max_values`: None, `max_size`: Some(48), added: 2523, mode: `MaxEncodedLen`)
-	fn remove_nondustable_account() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `1283`
-		//  Estimated: `3513`
-		// Minimum execution time: 28_185_000 picoseconds.
-		Weight::from_parts(28_800_000, 3513)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
+	fn remove_from_whitelist() -> Weight {
+		Weight::from_parts(10_000_000, 0)
 	}
 }
