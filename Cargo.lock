@@ -1021,6 +1021,7 @@ dependencies = [
 name = "basilisk-runtime"
 version = "127.0.0"
 dependencies = [
+ "basilisk-traits",
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
  "cumulus-pallet-xcm",
@@ -1091,7 +1092,7 @@ dependencies = [
  "pallet-utility",
  "pallet-whitelist",
  "pallet-xcm",
- "pallet-xyk",
+ "pallet-xyk 6.7.0",
  "pallet-xyk-liquidity-mining",
  "pallet-xyk-liquidity-mining-benchmarking",
  "parachains-common",
@@ -1126,6 +1127,20 @@ dependencies = [
  "staging-xcm-executor",
  "substrate-wasm-builder",
  "xcm-runtime-apis",
+]
+
+[[package]]
+name = "basilisk-traits"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "hydradx-traits",
+ "impl-trait-for-tuples",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-std",
 ]
 
 [[package]]
@@ -1195,6 +1210,21 @@ dependencies = [
  "serde",
  "unicode-normalization",
 ]
+
+[[package]]
+name = "bit-set"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08807e080ed7f9d5433fa9b275196cfc35414f66a0c79d864dc51a0d825231a3"
+dependencies = [
+ "bit-vec",
+]
+
+[[package]]
+name = "bit-vec"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
 
 [[package]]
 name = "bitcoin-internals"
@@ -8039,7 +8069,7 @@ dependencies = [
  "hydra-dx-math",
  "hydradx-traits",
  "log",
- "pallet-xyk",
+ "pallet-xyk 7.0.0",
  "parity-scale-codec",
  "primitives 6.1.2",
  "scale-info",
@@ -8889,7 +8919,7 @@ dependencies = [
  "pallet-evm",
  "pallet-transaction-payment",
  "pallet-utility",
- "pallet-xyk",
+ "pallet-xyk 7.0.0",
  "parity-scale-codec",
  "primitives 6.1.2",
  "scale-info",
@@ -9089,6 +9119,34 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
+version = "6.7.0"
+dependencies = [
+ "basilisk-traits",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math",
+ "hydradx-traits",
+ "log",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-asset-registry 2.3.6",
+ "pallet-broadcast",
+ "parity-scale-codec",
+ "primitive-types",
+ "proptest",
+ "scale-info",
+ "serde",
+ "sp-api",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder",
+]
+
+[[package]]
+name = "pallet-xyk"
 version = "7.0.0"
 source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
 dependencies = [
@@ -9125,7 +9183,7 @@ dependencies = [
  "pallet-balances",
  "pallet-liquidity-mining",
  "pallet-nft",
- "pallet-xyk",
+ "pallet-xyk 6.7.0",
  "parity-scale-codec",
  "pretty_assertions",
  "primitives 6.6.5",
@@ -9154,7 +9212,7 @@ dependencies = [
  "pallet-liquidity-mining",
  "pallet-nft",
  "pallet-uniques",
- "pallet-xyk",
+ "pallet-xyk 6.7.0",
  "pallet-xyk-liquidity-mining",
  "parity-scale-codec",
  "primitives 6.6.5",
@@ -10990,12 +11048,16 @@ version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bee689443a2bd0a16ab0348b52ee43e3b2d1b1f931c8aa5c9f8de4c86fbe8c40"
 dependencies = [
+ "bit-set",
+ "bit-vec",
  "bitflags 2.10.0",
  "num-traits",
  "rand 0.9.2",
  "rand_chacha 0.9.0",
  "rand_xorshift",
  "regex-syntax 0.8.8",
+ "rusty-fork",
+ "tempfile",
  "unarray",
 ]
 
@@ -11769,7 +11831,7 @@ dependencies = [
  "pallet-uniques",
  "pallet-utility",
  "pallet-xcm",
- "pallet-xyk",
+ "pallet-xyk 6.7.0",
  "polkadot-parachain-primitives",
  "polkadot-primitives",
  "polkadot-runtime-parachains",
@@ -12014,6 +12076,18 @@ name = "rustversion"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0e819f2bc632f285be6d7cd36e25940d45b2391dd6d9b939e79de557f7014248"
+
+[[package]]
+name = "rusty-fork"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cc6bf79ff24e648f6da1f8d1f011e9cac26491b619e6b9280f2b47f1774e6ee2"
+dependencies = [
+ "fnv",
+ "quick-error",
+ "tempfile",
+ "wait-timeout",
+]
 
 [[package]]
 name = "ruzstd"
@@ -16382,6 +16456,15 @@ dependencies = [
  "ark-transcript",
  "w3f-pcs",
  "w3f-plonk-common",
+]
+
+[[package]]
+name = "wait-timeout"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09ac3b126d3914f9849036f826e054cbabdc8519970b8998ddaf3b5bd3c65f11"
+dependencies = [
+ "libc",
 ]
 
 [[package]]

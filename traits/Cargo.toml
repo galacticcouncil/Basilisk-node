@@ -1,0 +1,30 @@
+[package]
+name = "basilisk-traits"
+version = "1.0.0"
+description = "Shared traits"
+authors = ["GalacticCouncil"]
+edition = "2021"
+license = "Apache 2.0"
+repository = "https://github.com/galacticcouncil/basilisk-node"
+
+[dependencies]
+codec = { workspace = true }
+scale-info = { workspace = true }
+serde = { workspace = true }
+impl-trait-for-tuples = { workspace = true }
+sp-arithmetic = { workspace = true }
+
+# Substrate dependencies
+frame-support = { workspace = true }
+sp-std = { workspace = true }
+
+hydradx-traits = { workspace = true }
+
+[features]
+default = ["std"]
+std = [
+    "serde/std",
+    "codec/std",
+    "frame-support/std",
+    "sp-std/std",
+]

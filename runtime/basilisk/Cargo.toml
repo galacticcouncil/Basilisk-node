@@ -23,6 +23,7 @@ log = { workspace = true }
 
 # local dependencies
 primitives = { default-features = false, path = "../../primitives" }
+basilisk-traits = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
 pallet-xyk-liquidity-mining = { workspace = true , default-features = false }
 pallet-xyk-liquidity-mining-benchmarking = { workspace = true, optional = true, default-features = false }
@@ -270,6 +271,7 @@ std = [
     "cumulus-primitives-utility/std",
     "parachains-common/std",
     "polkadot-runtime-common/std",
+    "basilisk-traits/std",
 ]
 try-runtime= [
     "frame-try-runtime",
