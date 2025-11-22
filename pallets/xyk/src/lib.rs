@@ -378,8 +378,8 @@ pub mod pallet {
 				pool: pair_account.clone(),
 			});
 
-			T::Currency::transfer(asset_a, &who, &pair_account, amount_a)?;
-			T::Currency::transfer(asset_b, &who, &pair_account, amount_b)?;
+			T::Currency::transfer(asset_a, &who, &pair_account, amount_a, ExistenceRequirement::AllowDeath)?;
+			T::Currency::transfer(asset_b, &who, &pair_account, amount_b, ExistenceRequirement::AllowDeath)?;
 
 			T::Currency::deposit(share_token, &who, shares_added)?;
 
