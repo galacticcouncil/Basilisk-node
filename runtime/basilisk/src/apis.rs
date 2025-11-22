@@ -27,6 +27,7 @@ use frame_support::{
 };
 use hydradx_traits::NativePriceOracle;
 use polkadot_xcm::{IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
+use polkadot_xcm::prelude::XcmVersion;
 use primitives::constants::chain::CORE_ASSET_ID;
 use sp_api::impl_runtime_apis;
 use sp_core::{Get, OpaqueMetadata};
@@ -251,9 +252,17 @@ impl_runtime_apis! {
 	}
 
 	impl xcm_runtime_apis::dry_run::DryRunApi<Block, RuntimeCall, RuntimeEvent, OriginCaller> for Runtime {
-		fn dry_run_call(origin: OriginCaller, call: RuntimeCall) -> Result<CallDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
-			PolkadotXcm::dry_run_call::<Runtime, xcm::XcmRouter, OriginCaller, RuntimeCall>(origin, call)
-		}
+		fn dry_run_call(
+						origin: OriginCaller,
+						call: RuntimeCall,
+						result_xcms_version: XcmVersion
+					) -> Result<CallDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
+						PolkadotXcm::dry_run_call::<
+							Runtime,
+							xcm::XcmRouter,
+							OriginCaller,
+							RuntimeCall>(origin, call, result_xcms_version)
+					}
 
 		fn dry_run_xcm(origin_location: VersionedLocation, xcm: VersionedXcm<RuntimeCall>) -> Result<XcmDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
 			PolkadotXcm::dry_run_xcm::<Runtime, xcm::XcmRouter, RuntimeCall, xcm::XcmConfig>(origin_location, xcm)
@@ -346,6 +355,7 @@ impl_runtime_apis! {
 			}
 
 			use cumulus_primitives_core::ParaId;
+			use polkadot_xcm::prelude::XcmVersion;
 			use polkadot_xcm::latest::prelude::{Location, AssetId, Fungible, Asset, Assets, ParentThen, Parachain, Parent};
 
 			impl pallet_xcm::benchmarking::Config for Runtime {

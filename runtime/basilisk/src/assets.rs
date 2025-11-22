@@ -41,12 +41,12 @@ use frame_support::{
 		app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero, ArithmeticError, DispatchError, DispatchResult,
 	},
 	traits::{
-		AsEnsureOriginWithArg, Contains, Currency, Defensive, EitherOf, EnsureOrigin, Get, Imbalance, LockIdentifier,
+		AsEnsureOriginWithArg, Contains, Currency, Defensive, EitherOf, EnsureOrigin, ExistenceRequirement, Get, Imbalance, LockIdentifier,
 		NeverEnsureOrigin, OnUnbalanced,
 	},
 	BoundedVec, PalletId,
 };
-use frame_system::{EnsureRoot, RawOrigin};
+use frame_system::{EnsureNever, EnsureRoot, RawOrigin};
 use orml_tokens::CurrencyAdapter;
 use orml_traits::{currency::MutationHooks, MultiCurrency};
 
@@ -97,6 +97,7 @@ impl pallet_balances::Config for Runtime {
 	type MaxFreezes = ();
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type DoneSlashHandler = ();
 }
 
 pub struct CurrencyHooks;
@@ -200,6 +201,7 @@ impl MultiCurrency<AccountId> for NoEvmSupport {
 		_from: &AccountId,
 		_to: &AccountId,
 		_amount: Self::Balance,
+		_existence_requirement: ExistenceRequirement
 	) -> sp_runtime::DispatchResult {
 		Err(DispatchError::Other("EVM not supported"))
 	}
@@ -208,7 +210,7 @@ impl MultiCurrency<AccountId> for NoEvmSupport {
 		Err(DispatchError::Other("EVM not supported"))
 	}
 
-	fn withdraw(_contract: Self::CurrencyId, _who: &AccountId, _amount: Self::Balance) -> sp_runtime::DispatchResult {
+	fn withdraw(_contract: Self::CurrencyId, _who: &AccountId, _amount: Self::Balance, _existence_requirement: ExistenceRequirement) -> sp_runtime::DispatchResult {
 		Err(DispatchError::Other("EVM not supported"))
 	}
 
@@ -243,6 +245,10 @@ impl hydradx_traits::evm::Erc20OnDust<AccountId, AssetId> for NoErc20Support {
 	}
 }
 
+parameter_types! {
+	pub ReserveAccount: AccountId = PalletId( * b"curreser").into_account_truncating();
+}
+
 // The latest versions of the orml-currencies pallet don't emit events.
 // The infrastructure relies on the events from this pallet, so we use the latest version of
 // the pallet that contains and emit events and was updated to the polkadot version we use.
@@ -252,6 +258,7 @@ impl pallet_currencies::Config for Runtime {
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type Erc20Currency = NoEvmSupport;
 	type BoundErc20 = NoEvmSupport;
+	type ReserveAccount = ReserveAccount;
 	type GetNativeCurrencyId = NativeAssetId;
 	type WeightInfo = weights::pallet_currencies::BasiliskWeight<Runtime>;
 }
@@ -391,7 +398,7 @@ impl pallet_lbp::Config for Runtime {
 #[cfg(feature = "runtime-benchmarks")]
 use codec::Decode;
 use frame_support::traits::Everything;
-use hydradx_traits::evm::EvmAddress;
+use primitives::EvmAddress;
 
 pub struct RootAsVestingPallet;
 impl EnsureOrigin<RuntimeOrigin> for RootAsVestingPallet {
@@ -556,7 +563,7 @@ impl RouterWeightInfo {
 		);
 		// Handle this case separately. router_execution_buy provides incorrect weight for the case when only calculate_buy is executed.
 		let lbp_weight = if (num_of_calc_buy, num_of_execute_buy) == (1, 0) {
-			weights::pallet_lbp::BasiliskWeight::<Runtime>::calculate_buy()
+			weights::pallet_lbp::BasiliskWeight::<Runtime>::calculate_in_given_out()
 		} else {
 			weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_buy(
 				num_of_calc_buy.saturating_add(num_of_execute_buy),
@@ -745,7 +752,7 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		}
 
 		//Calculate sell amounts for the inversed new route
-		for trade in inverse_route(route.to_vec()) {
+		for trade in inverse_route(BoundedVec::truncate_from(route.to_vec())) {
 			let amm_weight = match trade.pool {
 				PoolType::LBP => lbp_weight,
 				PoolType::XYK => xyk_weight,
@@ -799,30 +806,18 @@ parameter_types! {
 	pub const RouteValidationOraclePeriod: OraclePeriod = OraclePeriod::Hour;
 }
 
-pub struct RefundAndLockedEdCalculator;
-
-use hydradx_traits::router::RefundEdCalculator;
-impl RefundEdCalculator<Balance> for RefundAndLockedEdCalculator {
-	fn calculate() -> Balance {
-		// all assets are sufficient so `RefundAndLockedEdCalculator` is never called.
-		Zero::zero()
-	}
-}
-
 impl pallet_route_executor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type Balance = Balance;
-	type NativeAssetId = NativeAssetId;
 	type Currency = FungibleCurrencies<Runtime>;
-	type InspectRegistry = AssetRegistry;
+	type WeightInfo = RouterWeightInfo;
 	type AMM = (XYK, LBP);
-	type EdToRefundCalculator = RefundAndLockedEdCalculator;
+	type DefaultRoutePoolType = DefaultRoutePoolType;
+	type NativeAssetId = NativeAssetId;
+	type ForceInsertOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type OraclePriceProvider = adapter::OraclePriceProvider<AssetId, EmaOracle>;
 	type OraclePeriod = RouteValidationOraclePeriod;
-	type DefaultRoutePoolType = DefaultRoutePoolType;
-	type ForceInsertOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
-	type WeightInfo = RouterWeightInfo;
 }
 
 parameter_types! {
@@ -836,14 +831,23 @@ parameter_types! {
 
 impl pallet_ema_oracle::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = weights::pallet_ema_oracle::BasiliskWeight<Runtime>;
 	type AuthorityOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
-	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
+	type BifrostOrigin = EnsureNever<AccountId>;
+	/// The definition of the oracle time periods currently assumes a 6 second block time.
+	/// We use the parachain blocks anyway, because we want certain guarantees over how many blocks correspond
+	/// to which smoothing factor.
+	type BlockNumberProvider = System;
 	type SupportedPeriods = SupportedPeriods;
 	type OracleWhitelist = Everything;
-	type MaxUniqueEntries = MaxUniqueOracleEntries;
+	/// With every asset trading against LRNA we will only have as many pairs as there will be assets, so
+	/// 40 seems a decent upper bound for the foreseeable future.
+	type MaxUniqueEntries = ConstU32<40>;
+	type WeightInfo = weights::pallet_ema_oracle::BasiliskWeight<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = benchmarking::BenchmarkHelper;
+	/// Should take care of the overhead introduced by `OracleWhitelist`.
+	type BenchmarkHelper = ();
+	type LocationToAssetIdConversion = CurrencyIdConvert;
+	type MaxAllowedPriceDifference = ();
 }
 
 parameter_types! {

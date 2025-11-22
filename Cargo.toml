@@ -24,6 +24,8 @@ hex-literal = "0.4.1"
 pretty_assertions = "1.4.0"
 static_assertions = "1.1.0"
 test-case = "3.1.0"
+proptest = "1.0.40"
+impl-trait-for-tuples = "0.2.2"
 jsonrpsee = { version = "0.24.3", features = ["server", "macros"] }
 serde_json = { version = "1.0.117", default-features = false }
 clap = { version = "4.1.8", features = [ "derive" ] }
@@ -33,6 +35,7 @@ lazy_static = "1.4.0"
 smallvec = "1.9.0"
 
 basilisk-runtime = { path = "runtime/basilisk", default-features = false }
+primitives = { path = "primitives", default-features = false }
 
 pallet-marketplace = { path = "pallets/marketplace", default-features = false}
 pallet-asset-registry = { path = "pallets/asset-registry", default-features = false}

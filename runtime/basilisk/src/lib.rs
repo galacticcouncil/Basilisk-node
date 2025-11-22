@@ -48,9 +48,9 @@ pub use governance::*;
 pub use system::*;
 pub use xcm::*;
 
-use frame_support::sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT},
+use sp_runtime::{
+	Cow, generic, impl_opaque_keys,
+	traits::{AccountIdConversion, BlockNumberProvider, BlakeTwo256, Block as BlockT},
 };
 use frame_system::pallet_prelude::BlockNumberFor;
 pub use primitives::{
@@ -97,14 +97,14 @@ pub mod opaque {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("basilisk"),
-	impl_name: create_runtime_str!("basilisk"),
+	spec_name: Cow::Borrowed("basilisk"),
+	impl_name: Cow::Borrowed("basilisk"),
 	authoring_version: 1,
 	spec_version: 127,
 	impl_version: 0,
 	apis: apis::RUNTIME_API_VERSIONS,
 	transaction_version: 1,
-	state_version: 1,
+	system_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -122,8 +122,6 @@ pub fn get_all_module_accounts() -> vec::Vec<AccountId> {
 		VestingPalletId::get().into_account_truncating(),
 	]
 }
-
-use sp_runtime::traits::BlockNumberProvider;
 
 // Relay chain Block number provider.
 // Reason why the implementation is different for benchmarks is that it is not possible
