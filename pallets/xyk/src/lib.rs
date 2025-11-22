@@ -30,7 +30,7 @@
 #![allow(clippy::manual_inspect)]
 
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
-use frame_support::{dispatch::DispatchResult, ensure, traits::Get, transactional};
+use frame_support::{dispatch::DispatchResult, ensure, traits::{Get, ExistenceRequirement}, transactional};
 use frame_system::ensure_signed;
 use frame_system::pallet_prelude::BlockNumberFor;
 use hydradx_traits::{
@@ -486,10 +486,10 @@ pub mod pallet {
 				.checked_sub(liquidity_amount)
 				.ok_or(Error::<T>::InvalidLiquidityAmount)?;
 
-			T::Currency::transfer(asset_a, &pair_account, &who, remove_amount_a)?;
-			T::Currency::transfer(asset_b, &pair_account, &who, remove_amount_b)?;
+			T::Currency::transfer(asset_a, &pair_account, &who, remove_amount_a, ExistenceRequirement::AllowDeath)?;
+			T::Currency::transfer(asset_b, &pair_account, &who, remove_amount_b, ExistenceRequirement::AllowDeath)?;
 
-			T::Currency::withdraw(share_token, &who, liquidity_amount)?;
+			T::Currency::withdraw(share_token, &who, liquidity_amount, ExistenceRequirement::AllowDeath)?;
 
 			<TotalLiquidity<T>>::insert(&pair_account, liquidity_left);
 
@@ -504,6 +504,7 @@ pub mod pallet {
 				liquidity_a,
 				liquidity_b,
 				Ratio::new(liquidity_a, liquidity_b),
+				None,
 			)
 			.map_err(|(_w, e)| e)?;
 
@@ -658,8 +659,8 @@ impl<T: Config> Pallet<T> {
 			.checked_add(shares_added)
 			.ok_or(Error::<T>::InvalidLiquidityAmount)?;
 
-		T::Currency::transfer(asset_a, &who, &pair_account, amount_a)?;
-		T::Currency::transfer(asset_b, &who, &pair_account, amount_b)?;
+		T::Currency::transfer(asset_a, &who, &pair_account, amount_a, ExistenceRequirement::AllowDeath)?;
+		T::Currency::transfer(asset_b, &who, &pair_account, amount_b, ExistenceRequirement::AllowDeath)?;
 
 		T::Currency::deposit(share_token, &who, shares_added)?;
 
@@ -676,6 +677,7 @@ impl<T: Config> Pallet<T> {
 			liquidity_a,
 			liquidity_b,
 			Ratio::new(liquidity_a, liquidity_b),
+			None,
 		)
 		.map_err(|(_w, e)| e)?;
 
@@ -877,7 +879,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 		if transfer.discount && transfer.discount_amount > 0u128 {
 			let native_asset = T::NativeAssetId::get();
-			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
+			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount, ExistenceRequirement::AllowDeath)?;
 		}
 
 		T::Currency::transfer(
@@ -885,12 +887,14 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			&transfer.origin,
 			&pair_account,
 			transfer.amount,
+			ExistenceRequirement::AllowDeath,
 		)?;
 		T::Currency::transfer(
 			transfer.assets.asset_out,
 			&pair_account,
 			&transfer.origin,
 			transfer.amount_b,
+			ExistenceRequirement::AllowDeath,
 		)?;
 
 		let liquidity_in = T::Currency::total_balance(transfer.assets.asset_in, &pair_account);
@@ -904,6 +908,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			liquidity_in,
 			liquidity_out,
 			Ratio::new(liquidity_in, liquidity_out),
+			None,
 		)
 		.map_err(|(_w, e)| e)?;
 
@@ -1057,7 +1062,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 		if transfer.discount && transfer.discount_amount > 0 {
 			let native_asset = T::NativeAssetId::get();
-			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount)?;
+			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount, ExistenceRequirement::AllowDeath)?;
 		}
 
 		T::Currency::transfer(
@@ -1065,12 +1070,14 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			&pair_account,
 			destination.unwrap_or(&transfer.origin),
 			transfer.amount,
+			ExistenceRequirement::AllowDeath,
 		)?;
 		T::Currency::transfer(
 			transfer.assets.asset_in,
 			&transfer.origin,
 			&pair_account,
 			transfer.amount_b + transfer.fee.1,
+			ExistenceRequirement::AllowDeath,
 		)?;
 
 		let liquidity_in = T::Currency::total_balance(transfer.assets.asset_in, &pair_account);
@@ -1084,6 +1091,7 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			liquidity_in,
 			liquidity_out,
 			Ratio::new(liquidity_in, liquidity_out),
+			None,
 		)
 		.map_err(|(_w, e)| e)?;
 
