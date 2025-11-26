@@ -4471,12 +4471,12 @@ checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "gmp-mpfr-sys"
-version = "1.6.8"
+version = "1.4.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60f8970a75c006bb2f8ae79c6768a116dd215fa8346a87aed99bf9d82ca43394"
+checksum = "781d258743e6e07d38c5bcd7468cfaa068d56789d10e8de0d3836d5bb338b5d7"
 dependencies = [
  "libc",
- "windows-sys 0.60.2",
+ "winapi",
 ]
 
 [[package]]
@@ -8210,6 +8210,7 @@ dependencies = [
 name = "pallet-lbp"
 version = "4.10.0"
 dependencies = [
+ "basilisk-traits",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -11840,14 +11841,13 @@ dependencies = [
 
 [[package]]
 name = "rug"
-version = "1.28.0"
+version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58ad2e973fe3c3214251a840a621812a4f40468da814b1a3d6947d433c2af11f"
+checksum = "203180f444c95eac53586ed04793ecf6454c5d28f9eca8eead815fc19e136c47"
 dependencies = [
  "az",
  "gmp-mpfr-sys",
  "libc",
- "libm",
  "num-integer",
  "num-traits",
 ]

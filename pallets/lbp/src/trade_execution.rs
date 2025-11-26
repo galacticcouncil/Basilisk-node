@@ -1,5 +1,5 @@
 use crate::*;
-use hydradx_traits::router::{ExecutorError, PoolType, TradeExecution};
+use basilisk_traits::router::{ExecutorError, PoolType, TradeExecution};
 use hydradx_traits::AMM;
 use orml_traits::MultiCurrency;
 use sp_runtime::traits::BlockNumberProvider;

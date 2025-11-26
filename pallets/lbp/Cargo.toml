@@ -20,6 +20,8 @@ scale-info = { workspace = true }
 primitive-types = { workspace = true }
 serde = { workspace = true, optional = true }
 
+basilisk-traits = { workspace = true }
+
 # HydraDX dependencies
 hydra-dx-math = { workspace = true }
 hydradx-traits = { workspace = true }
