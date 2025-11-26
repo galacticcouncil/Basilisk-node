@@ -33,9 +33,10 @@ use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{dispatch::DispatchResult, ensure, traits::{Get, ExistenceRequirement}, transactional};
 use frame_system::ensure_signed;
 use frame_system::pallet_prelude::BlockNumberFor;
+use basilisk_traits::{OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler,};
 use hydradx_traits::{
-	AMMPosition, AMMTransfer, AssetPairAccountIdFor, CanCreatePool, OnCreatePoolHandler, OnLiquidityChangedHandler,
-	OnTradeHandler, AMM,
+	AMMPosition, AMMTransfer, AssetPairAccountIdFor, CanCreatePool,
+	AMM,
 };
 use pallet_broadcast::types::{Asset, Destination, Fee};
 
@@ -504,7 +505,6 @@ pub mod pallet {
 				liquidity_a,
 				liquidity_b,
 				Ratio::new(liquidity_a, liquidity_b),
-				None,
 			)
 			.map_err(|(_w, e)| e)?;
 
@@ -677,7 +677,6 @@ impl<T: Config> Pallet<T> {
 			liquidity_a,
 			liquidity_b,
 			Ratio::new(liquidity_a, liquidity_b),
-			None,
 		)
 		.map_err(|(_w, e)| e)?;
 
@@ -908,7 +907,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			liquidity_in,
 			liquidity_out,
 			Ratio::new(liquidity_in, liquidity_out),
-			None,
 		)
 		.map_err(|(_w, e)| e)?;
 
@@ -1091,7 +1089,6 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 			liquidity_in,
 			liquidity_out,
 			Ratio::new(liquidity_in, liquidity_out),
-			None,
 		)
 		.map_err(|(_w, e)| e)?;
 

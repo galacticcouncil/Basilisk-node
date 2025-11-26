@@ -19,10 +19,11 @@ use super::*;
 use crate::governance::origins::GeneralAdmin;
 use crate::system::NativeAssetId;
 
+use basilisk_traits::{oracle::OraclePeriod, router::{inverse_route, AmmTradeWeights, PoolType, Trade}};
+
 use hydradx_traits::{
 	fee::{InspectTransactionFeeCurrency, SwappablePaymentAssetTrader},
-	router::{inverse_route, AmmTradeWeights, PoolType, Trade},
-	AssetKind, AssetPairAccountIdFor, LockedBalance, OnTradeHandler, OraclePeriod, Source, AMM,
+	AssetKind, AssetPairAccountIdFor, LockedBalance, OnTradeHandler, Source, AMM,
 };
 use pallet_currencies::fungibles::FungibleCurrencies;
 use pallet_currencies::BasicCurrencyAdapter;
