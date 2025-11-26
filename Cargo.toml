@@ -7,6 +7,7 @@ members = [
   'runtime/basilisk',
   'pallets/marketplace',
   'pallets/asset-registry',
+  'pallets/lbp',
   'pallets/route-executor',
   'pallets/xyk',
   'pallets/xyk-liquidity-mining',
@@ -35,6 +36,7 @@ futures = "0.3.31"
 trie-db = "0.29.1"
 lazy_static = "1.4.0"
 smallvec = "1.9.0"
+rug = { version = "1.17.0", features = ["num-traits"] }
 
 basilisk-runtime = { path = "runtime/basilisk", default-features = false }
 primitives = { path = "primitives", default-features = false }
@@ -42,6 +44,7 @@ basilisk-traits = { path = "traits", default-features = false }
 
 pallet-marketplace = { path = "pallets/marketplace", default-features = false}
 pallet-asset-registry = { path = "pallets/asset-registry", default-features = false}
+pallet-lbp = { path = "pallets/lbp", default-features = false }
 pallet-route-executor = { path = "pallets/route-executor", default-features = false }
 pallet-xyk = { path = "pallets/xyk", default-features = false }
 pallet-xyk-liquidity-mining = { path = "pallets/xyk-liquidity-mining", default-features = false}
@@ -59,7 +62,6 @@ pallet-ema-oracle = { git = "https://github.com/galacticcouncil/hydration-node",
 pallet-duster = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-collator-rewards = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 test-utils = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
-pallet-lbp = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-liquidity-mining = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-broadcast = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-staking = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }

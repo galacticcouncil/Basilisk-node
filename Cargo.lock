@@ -1066,7 +1066,7 @@ dependencies = [
  "pallet-elections-phragmen",
  "pallet-ema-oracle",
  "pallet-identity",
- "pallet-lbp",
+ "pallet-lbp 4.10.0",
  "pallet-liquidity-mining",
  "pallet-marketplace",
  "pallet-message-queue",
@@ -3412,7 +3412,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -4470,6 +4470,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
+name = "gmp-mpfr-sys"
+version = "1.6.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60f8970a75c006bb2f8ae79c6768a116dd215fa8346a87aed99bf9d82ca43394"
+dependencies = [
+ "libc",
+ "windows-sys 0.60.2",
+]
+
+[[package]]
 name = "governor"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4940,7 +4950,7 @@ dependencies = [
  "pallet-currencies",
  "pallet-dynamic-fees",
  "pallet-ema-oracle",
- "pallet-lbp",
+ "pallet-lbp 4.10.4",
  "pallet-liquidity-mining",
  "pallet-omnipool",
  "pallet-omnipool-liquidity-mining",
@@ -4997,7 +5007,7 @@ dependencies = [
  "httpdate",
  "itoa",
  "pin-project-lite",
- "socket2 0.4.10",
+ "socket2 0.5.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -8198,8 +8208,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.10.4"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
+version = "4.10.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8211,8 +8220,33 @@ dependencies = [
  "pallet-broadcast",
  "parity-scale-codec",
  "primitive-types",
+ "proptest",
+ "rug",
  "scale-info",
  "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "substrate-wasm-builder",
+ "test-utils",
+]
+
+[[package]]
+name = "pallet-lbp"
+version = "4.10.4"
+source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math",
+ "hydradx-traits",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-broadcast",
+ "parity-scale-codec",
+ "primitive-types",
+ "scale-info",
  "sp-core",
  "sp-runtime",
  "sp-std",
@@ -11116,7 +11150,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
 dependencies = [
  "heck 0.5.0",
- "itertools 0.12.1",
+ "itertools 0.13.0",
  "log",
  "multimap",
  "once_cell",
@@ -11149,7 +11183,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.12.1",
+ "itertools 0.13.0",
  "proc-macro2",
  "quote",
  "syn 2.0.90",
@@ -11269,7 +11303,7 @@ dependencies = [
  "once_cell",
  "socket2 0.6.1",
  "tracing",
- "windows-sys 0.52.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -11805,6 +11839,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "rug"
+version = "1.28.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58ad2e973fe3c3214251a840a621812a4f40468da814b1a3d6947d433c2af11f"
+dependencies = [
+ "az",
+ "gmp-mpfr-sys",
+ "libc",
+ "libm",
+ "num-integer",
+ "num-traits",
+]
+
+[[package]]
 name = "runtime-integration-tests"
 version = "1.0.8"
 dependencies = [
@@ -11844,7 +11892,7 @@ dependencies = [
  "pallet-duster",
  "pallet-ema-oracle",
  "pallet-im-online",
- "pallet-lbp",
+ "pallet-lbp 4.10.0",
  "pallet-marketplace",
  "pallet-nft",
  "pallet-relaychain-info",
@@ -11989,7 +12037,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.11.0",
- "windows-sys 0.52.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
