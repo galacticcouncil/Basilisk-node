@@ -32,7 +32,7 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::EnsureRoot;
-use hydradx_traits::router::PoolType;
+use basilisk_traits::router::PoolType;
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_transaction_multi_payment::DepositAll;

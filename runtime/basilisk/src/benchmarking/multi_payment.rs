@@ -28,7 +28,7 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 use frame_system::RawOrigin;
-use hydradx_traits::router::PoolType;
+use basilisk_traits::router::PoolType;
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrencyExtended;
 use pallet_route_executor::MAX_NUMBER_OF_TRADES;
@@ -42,8 +42,8 @@ use sp_runtime::{FixedPointNumber, FixedU128};
 type MultiPaymentPallet<T> = pallet_transaction_multi_payment::Pallet<T>;
 type XykPallet<T> = pallet_xyk::Pallet<T>;
 type Router<T> = pallet_route_executor::Pallet<T>;
-use hydradx_traits::router::AssetPair;
-use hydradx_traits::router::Trade;
+use basilisk_traits::router::AssetPair;
+use basilisk_traits::router::Trade;
 use hydradx_traits::OraclePeriod;
 
 parameter_types! {

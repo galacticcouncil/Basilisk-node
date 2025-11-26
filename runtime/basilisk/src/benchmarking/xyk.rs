@@ -8,7 +8,7 @@ use orml_benchmarking::runtime_benchmarks;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use sp_std::prelude::*;
 
-use hydradx_traits::router::{PoolType, TradeExecution};
+use basilisk_traits::router::{PoolType, TradeExecution};
 
 const SEED: u32 = 1;
 

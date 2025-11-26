@@ -5,10 +5,8 @@ use basilisk_traits::{
 use frame_support::sp_runtime::DispatchResult;
 use frame_support::traits::{BalanceStatus, ExistenceRequirement};
 use frame_system::pallet_prelude::BlockNumberFor;
-use hydra_dx_math::{
-	ema::EmaPrice,
-	support::rational::{round_u512_to_rational, Rounding},
-};
+use basilisk_math::ema::EmaPrice;
+use hydra_dx_math::support::rational::{round_u512_to_rational, Rounding};
 use orml_traits::currency::TransferAll;
 use orml_traits::{
 	LockIdentifier, MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency, MultiReservableCurrency,
