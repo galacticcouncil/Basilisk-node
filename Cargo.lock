@@ -1059,6 +1059,7 @@ dependencies = [
  "parity-scale-codec",
  "primitive-types",
  "proptest",
+ "rand 0.8.5",
  "rug",
  "scale-info",
  "serde",
@@ -8271,6 +8272,7 @@ name = "pallet-route-executor"
 version = "2.7.0"
 dependencies = [
  "basilisk-adapters",
+ "basilisk-math",
  "basilisk-traits",
  "frame-benchmarking",
  "frame-support",
@@ -8717,6 +8719,7 @@ dependencies = [
 name = "pallet-xyk"
 version = "6.7.0"
 dependencies = [
+ "basilisk-math",
  "basilisk-traits",
  "frame-benchmarking",
  "frame-support",

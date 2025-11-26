@@ -45,7 +45,7 @@ use pallet_broadcast::types::{Asset, Destination, Fee};
 use sp_std::{vec, vec::Vec};
 
 use crate::types::{Amount, AssetId, AssetPair, Balance};
-use hydra_dx_math::ratio::Ratio;
+use basilisk_math::ratio::Ratio;
 use hydradx_traits::AMMAddLiquidity;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 

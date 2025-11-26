@@ -1,8 +1,9 @@
+use crate::ratio::Ratio;
 use hydra_dx_math::fraction;
 use hydra_dx_math::support::rational::Rounding;
 use hydra_dx_math::to_u128_wrapper;
 use hydra_dx_math::transcendental::saturating_powi_high_precision;
-use hydra_dx_math::types::{Balance, Fraction, Ratio};
+use hydra_dx_math::types::{Balance, Fraction};
 
 use num_traits::{One, Zero};
 use primitive_types::{U128, U256, U512};

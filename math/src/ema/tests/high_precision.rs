@@ -1,7 +1,7 @@
 use crate::ema::EmaPrice;
-use crate::fraction;
+use hydra_dx_math::fraction;
 use crate::test_utils::{fraction_to_high_precision, into_rounded_integer};
-use crate::types::Balance;
+use hydra_dx_math::types::Balance;
 
 use num_traits::{One, Pow};
 use proptest::prelude::*;

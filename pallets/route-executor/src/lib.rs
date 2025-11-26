@@ -67,7 +67,7 @@ pub mod pallet {
 	use basilisk_traits::router::ExecutorError;
 	use frame_support::traits::fungibles::Mutate;
 	use frame_system::pallet_prelude::OriginFor;
-	use hydra_dx_math::ema::EmaPrice;
+	use basilisk_math::ema::EmaPrice;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, CheckedDiv, Zero};
 	use sp_runtime::Saturating;
 

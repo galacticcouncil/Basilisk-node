@@ -23,6 +23,7 @@ log = { workspace = true }
 
 basilisk-traits = { workspace = true }
 
+basilisk-math = { workspace = true }
 hydra-dx-math = { workspace = true }
 
 # ORML dependencies
