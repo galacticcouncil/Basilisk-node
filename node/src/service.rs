@@ -25,8 +25,8 @@ use std::{sync::Arc, time::Duration};
 use cumulus_client_cli::CollatorOptions;
 // Local Runtime Types
 use basilisk_runtime::{
-	apis::RuntimeApi,
 	opaque::{Block, Hash},
+	RuntimeApi,
 };
 
 // Cumulus Imports
