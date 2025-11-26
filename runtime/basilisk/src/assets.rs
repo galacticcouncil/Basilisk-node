@@ -53,7 +53,7 @@ use frame_support::{
 	},
 	BoundedVec, PalletId,
 };
-use frame_system::{EnsureNever, EnsureRoot, RawOrigin};
+use frame_system::{EnsureRoot, RawOrigin};
 use orml_tokens::CurrencyAdapter;
 use orml_traits::{currency::MutationHooks, MultiCurrency};
 
