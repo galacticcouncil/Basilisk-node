@@ -1,0 +1,117 @@
+[package]
+name = "basilisk-adapters"
+version = "1.3.10"
+description = "Structs and other generic types for building runtimes."
+authors = ["GalacticCouncil"]
+edition = "2021"
+license = "Apache 2.0"
+repository = "https://github.com/galacticcouncil/warehouse/tree/master/adapters"
+
+[dependencies]
+codec = { workspace = true }
+log = { workspace = true }
+scale-info = { workspace = true }
+
+# HydraDX dependencies
+primitives = { workspace = true }
+hydradx-traits = { workspace = true }
+hydra-dx-math = { workspace = true }
+pallet-transaction-multi-payment = { workspace = true }
+pallet-omnipool = { workspace = true }
+pallet-ema-oracle = { workspace = true }
+pallet-circuit-breaker = { workspace = true }
+warehouse-liquidity-mining = { workspace = true }
+pallet-omnipool-liquidity-mining = { workspace = true }
+pallet-dynamic-fees = { workspace = true }
+pallet-uniques = { workspace = true }
+pallet-staking = { workspace = true }
+pallet-route-executor = { workspace = true }
+pallet-currencies = { workspace = true }
+pallet-stableswap = { workspace = true }
+pallet-referrals = { workspace = true }
+pallet-lbp = { workspace = true }
+pallet-asset-registry = { workspace = true }
+pallet-bonds = { workspace = true }
+pallet-broadcast = { workspace = true }
+
+# Substrate dependencies
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
+primitive-types = { workspace = true }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+
+# Polkadot dependencies
+polkadot-parachain = { workspace = true }
+polkadot-xcm = { workspace = true }
+xcm-builder = { workspace = true }
+xcm-executor = { workspace = true }
+
+# Cumulus dependencies
+cumulus-pallet-parachain-system = { workspace = true }
+cumulus-primitives-core = { workspace = true }
+
+# ORML dependencies
+orml-xcm-support = { workspace = true }
+orml-traits = { workspace = true }
+orml-vesting = { workspace = true }
+orml-utilities = { workspace = true }
+orml-tokens = { workspace = true }
+
+# Pallets
+pallet-balances = { workspace = true }
+
+[dev-dependencies]
+lazy_static = { workspace = true }
+pretty_assertions = { workspace = true }
+pallet-xyk = { workspace = true }
+
+[features]
+default = ["std"]
+runtime-benchmarks = [
+    "xcm-builder/runtime-benchmarks",
+    "xcm-executor/runtime-benchmarks",
+    "pallet-omnipool/runtime-benchmarks",
+    "pallet-ema-oracle/runtime-benchmarks",
+    "pallet-circuit-breaker/runtime-benchmarks",
+    "pallet-omnipool-liquidity-mining/runtime-benchmarks",
+    "pallet-dynamic-fees/runtime-benchmarks",
+    "pallet-uniques/runtime-benchmarks",
+    "pallet-staking/runtime-benchmarks",
+    "pallet-route-executor/runtime-benchmarks",
+    "pallet-stableswap/runtime-benchmarks",
+    "pallet-referrals/runtime-benchmarks",
+    "pallet-lbp/runtime-benchmarks",
+    "pallet-asset-registry/runtime-benchmarks",
+    "pallet-bonds/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+    "sp-runtime/runtime-benchmarks",
+    "cumulus-pallet-parachain-system/runtime-benchmarks",
+    "cumulus-primitives-core/runtime-benchmarks",
+    "orml-vesting/runtime-benchmarks",
+    "orml-tokens/runtime-benchmarks",
+    "pallet-balances/runtime-benchmarks",
+]
+std = [
+    "codec/std",
+    "orml-tokens/std",
+    "pallet-balances/std",
+    "frame-support/std",
+    "frame-system/std",
+    "hydradx-traits/std",
+    "pallet-transaction-multi-payment/std",
+    "polkadot-xcm/std",
+    "sp-runtime/std",
+    "sp-std/std",
+    "xcm-builder/std",
+    "xcm-executor/std",
+    "cumulus-pallet-parachain-system/std",
+    "polkadot-parachain/std",
+    "orml-tokens/std",
+    "pallet-asset-registry/std",
+    "pallet-omnipool-liquidity-mining/std",
+    "pallet-bonds/std",
+]

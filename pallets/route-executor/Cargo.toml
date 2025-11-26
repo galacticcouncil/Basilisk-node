@@ -37,7 +37,7 @@ sp-io = { workspace = true }
 pretty_assertions = { workspace = true }
 orml-tokens = { workspace = true }
 pallet-currencies = { workspace = true }
-hydradx-adapters = { workspace = true }
+basilisk-adapters = { workspace = true }
 test-utils = { workspace = true }
 
 [features]
@@ -56,7 +56,7 @@ std = [
   "frame-system/std",
   "orml-tokens/std",
   "orml-traits/std",
-  "hydradx-adapters/std",
+  "basilisk-adapters/std",
   "pallet-balances/std",
   "pallet-broadcast/std",
   "hydradx-traits/std",

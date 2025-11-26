@@ -12,6 +12,7 @@ members = [
   'pallets/xyk',
   'pallets/xyk-liquidity-mining',
   'pallets/xyk-liquidity-mining/benchmarking',
+  'runtime/adapters',
   'integration-tests',
 ]
 
@@ -38,6 +39,7 @@ lazy_static = "1.4.0"
 smallvec = "1.9.0"
 rug = { version = "1.17.0", features = ["num-traits"] }
 
+basilisk-adapters = { path = "runtime/adapters", default-features = false }
 basilisk-runtime = { path = "runtime/basilisk", default-features = false }
 primitives = { path = "primitives", default-features = false }
 basilisk-traits = { path = "traits", default-features = false }
@@ -52,7 +54,6 @@ pallet-xyk-liquidity-mining-benchmarking = { path = "pallets/xyk-liquidity-minin
 
 hydra-dx-math = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
-hydradx-adapters = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }

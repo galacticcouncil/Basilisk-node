@@ -42,7 +42,7 @@ hydra-dx-math = { workspace = true }
 pallet-transaction-multi-payment = { workspace = true }
 pallet-relaychain-info = { workspace = true }
 pallet-asset-registry = { workspace = true }
-hydradx-adapters = { workspace = true }
+basilisk-adapters = { workspace = true }
 pallet-nft = { workspace = true }
 pallet-currencies = { workspace = true }
 pallet-transaction-pause = { workspace = true }
@@ -233,7 +233,7 @@ std = [
     "pallet-broadcast/std",
     "pallet-staking/std",
     "hydradx-traits/std",
-    "hydradx-adapters/std",
+    "basilisk-adapters/std",
     "sp-api/std",
     "sp-arithmetic/std",
     "sp-block-builder/std",
