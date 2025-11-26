@@ -34,6 +34,8 @@ smallvec = "1.9.0"
 
 basilisk-runtime = { path = "runtime/basilisk", default-features = false }
 
+frame-metadata = { version = "16.0.0", default-features = false }
+
 pallet-marketplace = { path = "pallets/marketplace", default-features = false}
 pallet-asset-registry = { path = "pallets/asset-registry", default-features = false}
 pallet-xyk-liquidity-mining = { path = "pallets/xyk-liquidity-mining", default-features = false}

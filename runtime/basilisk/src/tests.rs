@@ -133,3 +133,26 @@ fn max_multiplier() {
 	}
 	println!("multiplier = {multiplier:?}");
 }
+
+#[test]
+fn metadata_api_implemented() {
+	use codec::Decode;
+	use frame_metadata::{RuntimeMetadata, RuntimeMetadataPrefixed};
+	use std::ops::Deref;
+
+	sp_io::TestExternalities::new_empty().execute_with(|| {
+		let version = 15;
+		let opaque_meta = Runtime::metadata_at_version(version).expect("V15 should exist");
+		let prefixed_meta_bytes = opaque_meta.deref();
+		assert_eq!(
+			prefixed_meta_bytes,
+			Runtime::metadata_at_version(version).unwrap().deref()
+		);
+		let prefixed_meta = RuntimeMetadataPrefixed::decode(&mut &prefixed_meta_bytes[..]).unwrap();
+
+		let RuntimeMetadata::V15(metadata) = prefixed_meta.1 else {
+			panic!("Expected metadata V15");
+		};
+		assert!(!metadata.apis.is_empty());
+	});
+}
