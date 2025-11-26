@@ -19,11 +19,11 @@ use super::*;
 use crate::governance::origins::GeneralAdmin;
 use crate::system::NativeAssetId;
 
-use basilisk_traits::{oracle::OraclePeriod, router::{inverse_route, AmmTradeWeights, PoolType, Trade}};
+use basilisk_traits::{OnTradeHandler, {oracle::OraclePeriod, router::{inverse_route, AmmTradeWeights, PoolType, Trade}}};
 
 use hydradx_traits::{
 	fee::{InspectTransactionFeeCurrency, SwappablePaymentAssetTrader},
-	AssetKind, AssetPairAccountIdFor, LockedBalance, OnTradeHandler, Source, AMM,
+	AssetKind, AssetPairAccountIdFor, LockedBalance, Source, AMM,
 };
 use pallet_currencies::fungibles::FungibleCurrencies;
 use pallet_currencies::BasicCurrencyAdapter;
@@ -564,7 +564,7 @@ impl RouterWeightInfo {
 		);
 		// Handle this case separately. router_execution_buy provides incorrect weight for the case when only calculate_buy is executed.
 		let lbp_weight = if (num_of_calc_buy, num_of_execute_buy) == (1, 0) {
-			weights::pallet_lbp::BasiliskWeight::<Runtime>::calculate_in_given_out()
+			weights::pallet_lbp::BasiliskWeight::<Runtime>::calculate_buy()
 		} else {
 			weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_buy(
 				num_of_calc_buy.saturating_add(num_of_execute_buy),
@@ -753,7 +753,7 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 		}
 
 		//Calculate sell amounts for the inversed new route
-		for trade in inverse_route(BoundedVec::truncate_from(route.to_vec())) {
+		for trade in inverse_route(route.to_vec()) {
 			let amm_weight = match trade.pool {
 				PoolType::LBP => lbp_weight,
 				PoolType::XYK => xyk_weight,

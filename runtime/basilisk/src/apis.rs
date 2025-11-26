@@ -25,7 +25,7 @@ use frame_support::{
 	},
 	weights::WeightToFee as _,
 };
-use hydradx_traits::NativePriceOracle;
+use basilisk_traits::oracle::NativePriceOracle;
 use polkadot_xcm::{IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 use polkadot_xcm::prelude::XcmVersion;
 use primitives::constants::chain::CORE_ASSET_ID;
@@ -194,23 +194,23 @@ impl_runtime_apis! {
 
 	impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
 		fn query_acceptable_payment_assets(xcm_version: polkadot_xcm::Version) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
-			if !matches!(xcm_version, 3 | 4) {
+			if !matches!(xcm_version, 3 | 4 | 5) {
 				return Err(XcmPaymentApiError::UnhandledXcmVersion);
 			}
 
 			let mut asset_locations = vec![
-		AssetLocation(polkadot_xcm::v3::MultiLocation {
+		AssetLocation(polkadot_xcm::v5::Location {
 				parents: 1,
 				interior: [
-					polkadot_xcm::v3::Junction::Parachain(ParachainInfo::get().into()),
-					polkadot_xcm::v3::Junction::GeneralIndex(CORE_ASSET_ID.into()),
+					polkadot_xcm::v5::Junction::Parachain(ParachainInfo::get().into()),
+					polkadot_xcm::v5::Junction::GeneralIndex(CORE_ASSET_ID.into()),
 				]
 				.into(),
 			}),
-			AssetLocation(polkadot_xcm::v3::MultiLocation {
+			AssetLocation(polkadot_xcm::v5::Location {
 				parents: 0,
 				interior: [
-					polkadot_xcm::v3::Junction::GeneralIndex(CORE_ASSET_ID.into()),
+					polkadot_xcm::v5::Junction::GeneralIndex(CORE_ASSET_ID.into()),
 				]
 				.into(),
 			})];
@@ -218,7 +218,7 @@ impl_runtime_apis! {
 			let mut asset_registry_locations: Vec<AssetLocation> = pallet_asset_registry::LocationAssets::<Runtime>::iter_keys().collect();
 			asset_locations.append(&mut asset_registry_locations);
 
-			let versioned_locations = asset_locations.iter().map(|loc| VersionedAssetId::V3(polkadot_xcm::v3::AssetId::Concrete(loc.0)));
+			let versioned_locations = asset_locations.iter().map(|loc| VersionedAssetId::V5(polkadot_xcm::v5::AssetId(loc.0.clone())));
 
 			Ok(versioned_locations
 				.filter_map(|asset| asset.into_version(xcm_version).ok())
@@ -226,10 +226,10 @@ impl_runtime_apis! {
 		}
 
 		fn query_weight_to_asset_fee(weight: Weight, asset: VersionedAssetId) -> Result<u128, XcmPaymentApiError> {
-			let v4_xcm_asset_id = asset.into_version(4).map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
+			let v5_xcm_asset_id = asset.into_version(5).map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
 
 			// get nested polkadot_xcm::AssetId type
-			let xcm_asset_id: &polkadot_xcm::v4::AssetId = v4_xcm_asset_id.try_as().map_err(|_| XcmPaymentApiError::WeightNotComputable)?;
+			let xcm_asset_id: &polkadot_xcm::v5::AssetId = v5_xcm_asset_id.try_as().map_err(|_| XcmPaymentApiError::WeightNotComputable)?;
 
 			let asset_id: AssetId = CurrencyIdConvert::convert(xcm_asset_id.clone().0).ok_or(XcmPaymentApiError::AssetNotFound)?;
 

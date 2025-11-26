@@ -163,7 +163,7 @@ parameter_types! {
 	pub const BaseXcmWeight: XcmWeight = XcmWeight::from_parts(100_000_000, 0);
 	pub const MaxInstructions: u32 = 100;
 	pub const MaxAssetsForTransfer: usize = 2;
-	pub UniversalLocation: InteriorLocation = [polkadot_xcm::v4::prelude::GlobalConsensus(RelayNetwork::get().into()), polkadot_xcm::v4::prelude::Parachain(ParachainInfo::parachain_id().into())].into();
+	pub UniversalLocation: InteriorLocation = [polkadot_xcm::v5::prelude::GlobalConsensus(RelayNetwork::get().into()), polkadot_xcm::v5::prelude::Parachain(ParachainInfo::parachain_id().into())].into();
 }
 
 pub struct XcmConfig;
