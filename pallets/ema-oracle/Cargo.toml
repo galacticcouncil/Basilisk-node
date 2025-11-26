@@ -16,7 +16,8 @@ scale-info = {workspace = true }
 codec = { workspace = true, features = ["derive", "max-encoded-len"] }
 
 # HydraDX dependencies
-hydradx-traits = { workspace = true }
+basilisk-traits = { workspace = true }
+basilisk-math = { workspace = true }
 hydra-dx-math = { workspace = true }
 
 # Substrate dependencies
@@ -54,7 +55,7 @@ std = [
   "sp-arithmetic/std",
   "sp-core/std",
   "sp-std/std",
-  "hydradx-traits/std",
+  "basilisk-traits/std",
   "hydra-dx-math/std",
   "scale-info/std",
 ]

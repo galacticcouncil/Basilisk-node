@@ -843,23 +843,14 @@ parameter_types! {
 
 impl pallet_ema_oracle::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = weights::pallet_ema_oracle::BasiliskWeight<Runtime>;
 	type AuthorityOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
-	type BifrostOrigin = EnsureNever<AccountId>;
-	/// The definition of the oracle time periods currently assumes a 6 second block time.
-	/// We use the parachain blocks anyway, because we want certain guarantees over how many blocks correspond
-	/// to which smoothing factor.
-	type BlockNumberProvider = System;
+	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 	type SupportedPeriods = SupportedPeriods;
 	type OracleWhitelist = Everything;
-	/// With every asset trading against LRNA we will only have as many pairs as there will be assets, so
-	/// 40 seems a decent upper bound for the foreseeable future.
-	type MaxUniqueEntries = ConstU32<40>;
-	type WeightInfo = weights::pallet_ema_oracle::BasiliskWeight<Runtime>;
+	type MaxUniqueEntries = MaxUniqueOracleEntries;
 	#[cfg(feature = "runtime-benchmarks")]
-	/// Should take care of the overhead introduced by `OracleWhitelist`.
-	type BenchmarkHelper = ();
-	type LocationToAssetIdConversion = CurrencyIdConvert;
-	type MaxAllowedPriceDifference = ();
+	type BenchmarkHelper = benchmarking::BenchmarkHelper;
 }
 
 parameter_types! {

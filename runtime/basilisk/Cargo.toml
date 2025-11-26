@@ -22,6 +22,7 @@ smallvec = { workspace = true }
 log = { workspace = true }
 
 # local dependencies
+basilisk-math = { workspace = true }
 primitives = { default-features = false, path = "../../primitives" }
 basilisk-traits = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }

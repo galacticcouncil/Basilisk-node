@@ -17,13 +17,13 @@
 
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::sp_runtime::RuntimeDebug;
-use hydra_dx_math::ema::{calculate_new_by_integrating_incoming, update_outdated_to_current, EmaPrice};
+use basilisk_math::ema::{calculate_new_by_integrating_incoming, update_outdated_to_current, EmaPrice};
 use hydra_dx_math::types::Fraction;
-use hydradx_traits::{AggregatedEntry, Liquidity, Volume};
+use basilisk_traits::oracle::{AggregatedEntry, Liquidity, Volume};
 use scale_info::TypeInfo;
 use sp_arithmetic::traits::{AtLeast32BitUnsigned, SaturatedConversion, UniqueSaturatedInto};
 
-pub use hydradx_traits::{OraclePeriod, Source};
+pub use basilisk_traits::oracle::{OraclePeriod, Source};
 
 use sp_std::prelude::*;
 
