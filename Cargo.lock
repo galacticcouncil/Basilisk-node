@@ -856,17 +856,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "auto_impl"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c87f3f15e7794432337fc718554eaa4dc8f04c9677a950ffe366f20a162ae42"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.90",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1045,7 +1034,7 @@ dependencies = [
  "pallet-route-executor",
  "pallet-transaction-multi-payment",
  "pallet-uniques",
- "pallet-xyk 6.7.0",
+ "pallet-xyk",
  "parity-scale-codec",
  "polkadot-parachain-primitives",
  "pretty_assertions",
@@ -1154,7 +1143,7 @@ dependencies = [
  "pallet-utility",
  "pallet-whitelist",
  "pallet-xcm",
- "pallet-xyk 6.7.0",
+ "pallet-xyk",
  "pallet-xyk-liquidity-mining",
  "pallet-xyk-liquidity-mining-benchmarking",
  "parachains-common",
@@ -2460,7 +2449,7 @@ dependencies = [
  "cumulus-client-network",
  "cumulus-client-pov-recovery",
  "cumulus-primitives-core",
- "cumulus-primitives-proof-size-hostfunction 0.12.0 (git+https://github.com/galacticcouncil/polkadot-sdk?branch=polkadot-stable2503-06-patch)",
+ "cumulus-primitives-proof-size-hostfunction",
  "cumulus-relay-chain-inprocess-interface",
  "cumulus-relay-chain-interface",
  "cumulus-relay-chain-minimal-node",
@@ -2528,7 +2517,7 @@ dependencies = [
  "cumulus-pallet-parachain-system-proc-macro",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
- "cumulus-primitives-proof-size-hostfunction 0.12.0 (git+https://github.com/galacticcouncil/polkadot-sdk?branch=polkadot-stable2503-06-patch)",
+ "cumulus-primitives-proof-size-hostfunction",
  "environmental",
  "frame-benchmarking",
  "frame-support",
@@ -2647,38 +2636,11 @@ dependencies = [
 [[package]]
 name = "cumulus-primitives-proof-size-hostfunction"
 version = "0.12.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#73cb19c8551acea93a4f0eee5aa01bf7a5bfaca0"
-dependencies = [
- "sp-externalities",
- "sp-runtime-interface",
- "sp-trie",
-]
-
-[[package]]
-name = "cumulus-primitives-proof-size-hostfunction"
-version = "0.12.0"
 source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=polkadot-stable2503-06-patch#6fdab91b448ce11fd4d8ee070697e83e0a25d23b"
 dependencies = [
  "sp-externalities",
  "sp-runtime-interface",
  "sp-trie",
-]
-
-[[package]]
-name = "cumulus-primitives-storage-weight-reclaim"
-version = "11.0.0"
-source = "git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503#73cb19c8551acea93a4f0eee5aa01bf7a5bfaca0"
-dependencies = [
- "cumulus-primitives-core",
- "cumulus-primitives-proof-size-hostfunction 0.12.0 (git+https://github.com/moonbeam-foundation/polkadot-sdk?branch=moonbeam-polkadot-stable2503)",
- "docify",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-runtime",
 ]
 
 [[package]]
@@ -3478,55 +3440,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ethbloom"
-version = "0.14.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c321610643004cf908ec0f5f2aa0d8f1f8e14b540562a2887a1111ff1ecbf7b"
-dependencies = [
- "crunchy",
- "fixed-hash",
- "impl-codec",
- "impl-rlp",
- "impl-serde",
- "scale-info",
- "tiny-keccak",
-]
-
-[[package]]
-name = "ethereum"
-version = "0.18.2"
-source = "git+https://github.com/rust-ethereum/ethereum?rev=cf3076f07e61102eec686f6816da668f97d94f1f#cf3076f07e61102eec686f6816da668f97d94f1f"
-dependencies = [
- "bytes",
- "ethereum-types",
- "hash-db",
- "hash256-std-hasher",
- "k256",
- "parity-scale-codec",
- "rlp",
- "scale-info",
- "serde",
- "sha3",
- "trie-root",
-]
-
-[[package]]
-name = "ethereum-types"
-version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ab15ed80916029f878e0267c3a9f92b67df55e79af370bf66199059ae2b4ee3"
-dependencies = [
- "ethbloom",
- "fixed-hash",
- "impl-codec",
- "impl-rlp",
- "impl-serde",
- "primitive-types",
- "scale-info",
- "uint 0.10.0",
-]
-
-[[package]]
 name = "event-listener"
 version = "2.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3583,60 +3496,6 @@ checksum = "8be9f3dfaaffdae2972880079a491a1a8bb7cbed0b8dd7a347f668b4150a3b93"
 dependencies = [
  "event-listener 5.3.0",
  "pin-project-lite",
-]
-
-[[package]]
-name = "evm"
-version = "0.43.4"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503#b3d5b09d5136f76a7e63fae94674f194542e6144"
-dependencies = [
- "auto_impl",
- "environmental",
- "ethereum",
- "evm-core",
- "evm-gasometer",
- "evm-runtime",
- "log",
- "parity-scale-codec",
- "primitive-types",
- "rlp",
- "scale-info",
- "serde",
- "sha3",
-]
-
-[[package]]
-name = "evm-core"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503#b3d5b09d5136f76a7e63fae94674f194542e6144"
-dependencies = [
- "parity-scale-codec",
- "primitive-types",
- "scale-info",
- "serde",
-]
-
-[[package]]
-name = "evm-gasometer"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503#b3d5b09d5136f76a7e63fae94674f194542e6144"
-dependencies = [
- "environmental",
- "evm-core",
- "evm-runtime",
- "primitive-types",
-]
-
-[[package]]
-name = "evm-runtime"
-version = "0.43.0"
-source = "git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2503#b3d5b09d5136f76a7e63fae94674f194542e6144"
-dependencies = [
- "auto_impl",
- "environmental",
- "evm-core",
- "primitive-types",
- "sha3",
 ]
 
 [[package]]
@@ -3848,41 +3707,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fp-account"
-version = "1.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503#5b38fdfd0362f7f941d14e1ab9dea39ddf9efd65"
-dependencies = [
- "hex",
- "impl-serde",
- "libsecp256k1",
- "log",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-runtime-interface",
- "staging-xcm",
-]
-
-[[package]]
-name = "fp-evm"
-version = "3.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503#5b38fdfd0362f7f941d14e1ab9dea39ddf9efd65"
-dependencies = [
- "environmental",
- "evm",
- "frame-support",
- "num_enum",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-runtime",
-]
-
-[[package]]
 name = "fragile"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3923,7 +3747,7 @@ dependencies = [
  "clap",
  "comfy-table",
  "cumulus-client-parachain-inherent",
- "cumulus-primitives-proof-size-hostfunction 0.12.0 (git+https://github.com/galacticcouncil/polkadot-sdk?branch=polkadot-stable2503-06-patch)",
+ "cumulus-primitives-proof-size-hostfunction",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -5267,15 +5091,6 @@ dependencies = [
  "integer-sqrt",
  "num-traits",
  "uint 0.10.0",
-]
-
-[[package]]
-name = "impl-rlp"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54ed8ad1f3877f7e775b8cbf30ed1bd3209a95401817f19a0eb4402d13f8cf90"
-dependencies = [
- "rlp",
 ]
 
 [[package]]
@@ -7142,28 +6957,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "num_enum"
-version = "0.7.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1207a7e20ad57b847bbddc6776b968420d38292bbfe2089accff5e19e82454c"
-dependencies = [
- "num_enum_derive",
- "rustversion",
-]
-
-[[package]]
-name = "num_enum_derive"
-version = "0.7.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff32365de1b6743cb203b710788263c44a03de03802daf96092f2da4fe6ba4d7"
-dependencies = [
- "proc-macro-crate 3.1.0",
- "proc-macro2",
- "quote",
- "syn 2.0.90",
-]
-
-[[package]]
 name = "object"
 version = "0.30.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7986,31 +7779,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-evm"
-version = "6.0.0-dev"
-source = "git+https://github.com/moonbeam-foundation/frontier?branch=moonbeam-polkadot-stable2503#5b38fdfd0362f7f941d14e1ab9dea39ddf9efd65"
-dependencies = [
- "cumulus-primitives-storage-weight-reclaim",
- "environmental",
- "ethereum",
- "evm",
- "fp-account",
- "fp-evm",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hash-db",
- "hex-literal",
- "impl-trait-for-tuples",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
-]
-
-[[package]]
 name = "pallet-fast-unstake"
 version = "39.0.0"
 source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=polkadot-stable2503-06-patch#6fdab91b448ce11fd4d8ee070697e83e0a25d23b"
@@ -8731,25 +8499,30 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "10.2.6"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
+version = "10.1.4"
 dependencies = [
+ "basilisk-math",
+ "basilisk-traits",
  "frame-support",
  "frame-system",
  "hydra-dx-math",
  "hydradx-traits",
+ "orml-tokens",
  "orml-traits",
- "pallet-evm",
+ "pallet-balances",
+ "pallet-currencies",
  "pallet-transaction-payment",
  "pallet-utility",
- "pallet-xyk 7.0.0",
+ "pallet-xyk",
  "parity-scale-codec",
- "primitives 6.1.2",
+ "primitives 6.6.5",
  "scale-info",
  "sp-api",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
+ "test-utils",
 ]
 
 [[package]]
@@ -8969,28 +8742,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-xyk"
-version = "7.0.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "frame-support",
- "frame-system",
- "hydra-dx-math",
- "hydradx-traits",
- "log",
- "orml-tokens",
- "orml-traits",
- "pallet-broadcast",
- "parity-scale-codec",
- "primitive-types",
- "scale-info",
- "sp-core",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
-]
-
-[[package]]
 name = "pallet-xyk-liquidity-mining"
 version = "1.1.13"
 dependencies = [
@@ -9004,7 +8755,7 @@ dependencies = [
  "pallet-balances",
  "pallet-liquidity-mining",
  "pallet-nft",
- "pallet-xyk 6.7.0",
+ "pallet-xyk",
  "parity-scale-codec",
  "pretty_assertions",
  "primitives 6.6.5",
@@ -9033,7 +8784,7 @@ dependencies = [
  "pallet-liquidity-mining",
  "pallet-nft",
  "pallet-uniques",
- "pallet-xyk 6.7.0",
+ "pallet-xyk",
  "pallet-xyk-liquidity-mining",
  "parity-scale-codec",
  "primitives 6.6.5",
@@ -10685,7 +10436,6 @@ dependencies = [
  "fixed-hash",
  "impl-codec",
  "impl-num-traits",
- "impl-rlp",
  "impl-serde",
  "scale-info",
  "uint 0.10.0",
@@ -11410,28 +11160,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rlp"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa24e92bb2a83198bb76d661a71df9f7076b8c420b8696e4d3d97d50d94479e3"
-dependencies = [
- "bytes",
- "rlp-derive",
- "rustc-hex",
-]
-
-[[package]]
-name = "rlp-derive"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "652db34deaaa57929e10ca18e5454a32cb0efc351ae80d320334bbf907b908b3"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.90",
-]
-
-[[package]]
 name = "rocksdb"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11665,7 +11393,7 @@ dependencies = [
  "pallet-uniques",
  "pallet-utility",
  "pallet-xcm",
- "pallet-xyk 6.7.0",
+ "pallet-xyk",
  "polkadot-parachain-primitives",
  "polkadot-primitives",
  "polkadot-runtime-parachains",

@@ -28,10 +28,7 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::RawOrigin;
-use hydradx_traits::{
-	router::{inverse_route, AssetPair, PoolType, RouteProvider, RouteSpotPriceProvider, RouterT, Trade},
-	PriceOracle,
-};
+use basilisk_traits::{oracle::PriceOracle, router::{inverse_route, AssetPair, PoolType, RouteProvider, RouteSpotPriceProvider, RouterT, Trade}};
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use pallet_ema_oracle::OraclePeriod;

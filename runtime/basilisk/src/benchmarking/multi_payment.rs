@@ -28,8 +28,7 @@ use frame_support::{
 };
 use frame_system::RawOrigin;
 use hydradx_traits::router::PoolType;
-use hydradx_traits::router::RouteProvider;
-use hydradx_traits::PriceOracle;
+use basilisk_traits::{oracle::PriceOracle, router::RouteProvider};
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrencyExtended;
 use pallet_route_executor::MAX_NUMBER_OF_TRADES;

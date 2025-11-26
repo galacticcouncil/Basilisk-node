@@ -11,6 +11,7 @@ members = [
   'pallets/ema-oracle',
   'pallets/lbp',
   'pallets/route-executor',
+  'pallets/transaction-multi-payment',
   'pallets/xyk',
   'pallets/xyk-liquidity-mining',
   'pallets/xyk-liquidity-mining/benchmarking',
@@ -53,6 +54,7 @@ pallet-asset-registry = { path = "pallets/asset-registry", default-features = fa
 pallet-ema-oracle = { path = "pallets/ema-oracle", default-features = false}
 pallet-lbp = { path = "pallets/lbp", default-features = false }
 pallet-route-executor = { path = "pallets/route-executor", default-features = false }
+pallet-transaction-multi-payment = { path = "pallets/transaction-multi-payment", default-features = false }
 pallet-xyk = { path = "pallets/xyk", default-features = false }
 pallet-xyk-liquidity-mining = { path = "pallets/xyk-liquidity-mining", default-features = false}
 pallet-xyk-liquidity-mining-benchmarking = { path = "pallets/xyk-liquidity-mining/benchmarking", default-features = false}
@@ -60,7 +62,6 @@ pallet-xyk-liquidity-mining-benchmarking = { path = "pallets/xyk-liquidity-minin
 hydra-dx-math = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 hydradx-traits = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-relaychain-info = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
-pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-nft = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-currencies = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-transaction-pause = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
