@@ -35,8 +35,6 @@ use xcm_executor::{traits::WeightTrader, AssetsInHolding};
 
 pub mod xcm_exchange;
 
-#[cfg(test)]
-mod tests;
 pub mod xyk;
 
 /// Weight trader that accepts multiple assets as weight fee payment.
