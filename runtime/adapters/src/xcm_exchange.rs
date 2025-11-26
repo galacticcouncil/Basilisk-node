@@ -65,7 +65,7 @@ where
 		};
 		let use_onchain_route = vec![];
 
-		pallet_broadcast::Pallet::<Runtime>::add_to_context(ExecutionType::XcmExchange);
+		let _ = pallet_broadcast::Pallet::<Runtime>::add_to_context(ExecutionType::XcmExchange);
 
 		let trade_result = if maximal {
 			// sell
@@ -136,7 +136,7 @@ where
 			.map_err(|_| give.clone())
 		};
 
-		pallet_broadcast::Pallet::<Runtime>::remove_from_context();
+		let _ = pallet_broadcast::Pallet::<Runtime>::remove_from_context();
 
 		trade_result
 	}

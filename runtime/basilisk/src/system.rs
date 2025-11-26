@@ -477,13 +477,13 @@ pub struct ManageExecutionTypeForUnifiedEvent;
 
 impl pallet_utility::BatchHook for ManageExecutionTypeForUnifiedEvent {
 	fn on_batch_start() -> DispatchResult {
-		Broadcast::add_to_context(pallet_broadcast::types::ExecutionType::Batch);
+		let _ = Broadcast::add_to_context(pallet_broadcast::types::ExecutionType::Batch);
 
 		Ok(())
 	}
 
 	fn on_batch_end() -> DispatchResult {
-		Broadcast::remove_from_context();
+		let _ = Broadcast::remove_from_context();
 
 		Ok(())
 	}
