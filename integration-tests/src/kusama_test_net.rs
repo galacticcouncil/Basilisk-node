@@ -82,7 +82,9 @@ decl_test_relay_chains! {
 	#[api_version(11)]
 	pub struct RococoRelayChain {
 		genesis = rococo::genesis(),
-		on_init = (),
+		on_init = {
+			rococo_runtime::System::set_block_number(1);
+		},
 		runtime = rococo_runtime,
 		core = {
 			SovereignAccountOf: rococo_runtime::xcm_config::LocationConverter,
@@ -99,7 +101,7 @@ decl_test_parachains! {
 	pub struct BasiliskParachain {
 		genesis = basilisk::genesis(),
 		on_init = {
-			set_para_slot_info(0);
+			basilisk_runtime::System::set_block_number(1);
 		},
 		runtime = basilisk_runtime,
 		core = {
@@ -116,7 +118,7 @@ decl_test_parachains! {
 	pub struct OtherPara {
 		genesis = other_parachain::genesis(),
 		on_init = {
-			set_para_slot_info(0);
+			basilisk_runtime::System::set_block_number(1);
 		},
 		runtime = basilisk_runtime,
 		core = {
@@ -594,13 +596,11 @@ pub fn initialize_rococo_block(target_block: BlockNumber, target_slot: Slot) {
 	rococo_runtime::Scheduler::on_initialize(target_block);
 	rococo_runtime::Preimage::on_initialize(target_block);
 	rococo_runtime::Babe::on_initialize(target_block);
-	rococo_runtime::Timestamp::on_initialize(target_block);
 	rococo_runtime::Session::on_initialize(target_block);
 	rococo_runtime::Grandpa::on_initialize(target_block);
 	rococo_runtime::ParachainsOrigin::on_initialize(target_block);
 	rococo_runtime::ParasShared::on_initialize(target_block);
 	rococo_runtime::ParaInclusion::on_initialize(target_block);
-	// rococo_runtime::ParaInherent::on_initialize(target_block);
 	rococo_runtime::ParaScheduler::on_initialize(target_block);
 	rococo_runtime::Paras::on_initialize(target_block);
 	rococo_runtime::Initializer::on_initialize(target_block);
@@ -611,15 +611,28 @@ pub fn initialize_rococo_block(target_block: BlockNumber, target_slot: Slot) {
 	rococo_runtime::XcmPallet::on_initialize(target_block);
 	rococo_runtime::MessageQueue::on_initialize(target_block);
 	rococo_runtime::Beefy::on_initialize(target_block);
-	assert_ok!(rococo_runtime::Timestamp::set(
-		rococo_runtime::RuntimeOrigin::none(),
-		SLOT_DURATION * *target_slot
-	));
-	// rococo_runtime::AllPalletsWithSystem::on_initialize(target_block);
 }
 
 pub fn initialize_basilisk_block(target_block: BlockNumber, target_slot: Slot) {
-	// Force a new Basilisk block to be created
+	use frame_support::storage::unhashed;
+
+	// Clear AuraExt storage when starting a new test (block 1) or when resetting
+	// This prevents "Slot moved backwards" errors from previous test runs
+	let aura_key = frame_support::storage::storage_prefix(b"AuraExt", b"RelaySlotInfo");
+
+	if target_block == 1 {
+		unhashed::kill(&aura_key);
+	} else if let Some(data) = unhashed::get_raw(&aura_key) {
+		// Also check if stored slot exists and is greater than what we're about to set
+		// This indicates storage wasn't properly cleared after previous test
+		use sp_core::Decode;
+		if let Ok((stored_slot, _)) = <(Slot, u32)>::decode(&mut &data[..]) {
+			// If stored slot is greater than or equal to the number we're setting, clear it
+			if u64::from(stored_slot) >= target_block as u64 {
+				unhashed::kill(&aura_key);
+			}
+		}
+	}
 
 	basilisk_runtime::System::set_block_number(target_block);
 	basilisk_runtime::System::initialize(
@@ -645,12 +658,8 @@ pub fn initialize_basilisk_block(target_block: BlockNumber, target_slot: Slot) {
 	basilisk_runtime::MessageQueue::on_initialize(target_block);
 	basilisk_runtime::MultiTransactionPayment::on_initialize(target_block);
 	basilisk_runtime::EmaOracle::on_initialize(target_block);
-	// assert_ok!(basilisk_runtime::Timestamp::set(
-	// 	basilisk_runtime::RuntimeOrigin::none(),
-	// 	SLOT_DURATION * *target_slot
-	// ));
 
-	// basilisk_runtime::AllPalletsWithSystem::on_initialize(target_block);
+	// Set validation data AFTER on_initialize hooks
 	set_validation_data(target_block, target_slot);
 }
 
@@ -658,7 +667,6 @@ pub fn finalize_basilisk_block(target_block: BlockNumber) {
 	use frame_support::traits::OnFinalize;
 
 	basilisk_runtime::System::on_finalize(target_block);
-	// basilisk_runtime::Timestamp::on_finalize(target_block);
 	basilisk_runtime::Session::on_finalize(target_block);
 	basilisk_runtime::Aura::on_finalize(target_block);
 	basilisk_runtime::AuraExt::on_finalize(target_block);
@@ -681,13 +689,11 @@ pub fn finalize_rococo_block(target_block: BlockNumber) {
 	rococo_runtime::Scheduler::on_finalize(target_block);
 	rococo_runtime::Preimage::on_finalize(target_block);
 	rococo_runtime::Babe::on_finalize(target_block);
-	rococo_runtime::Timestamp::on_finalize(target_block);
 	rococo_runtime::Session::on_finalize(target_block);
 	rococo_runtime::Grandpa::on_finalize(target_block);
 	rococo_runtime::ParachainsOrigin::on_finalize(target_block);
 	rococo_runtime::ParasShared::on_finalize(target_block);
 	rococo_runtime::ParaInclusion::on_finalize(target_block);
-	// rococo_runtime::ParaInherent::on_finalize(target_block);
 	rococo_runtime::ParaScheduler::on_finalize(target_block);
 	rococo_runtime::Paras::on_finalize(target_block);
 	rococo_runtime::Initializer::on_finalize(target_block);
@@ -698,10 +704,6 @@ pub fn finalize_rococo_block(target_block: BlockNumber) {
 	rococo_runtime::XcmPallet::on_finalize(target_block);
 	rococo_runtime::MessageQueue::on_finalize(target_block);
 	rococo_runtime::Beefy::on_finalize(target_block);
-	// rococo_runtime::System::finalize();
-
-	// rococo_runtime::AllPalletsWithSystem::on_finalize(target_block);
-	//
 }
 
 pub fn go_to_next_block(initialize: bool, finalize: bool) {
@@ -728,7 +730,7 @@ pub fn go_to_next_block(initialize: bool, finalize: bool) {
 	}
 }
 
-pub fn set_validation_data(next_block: u32, slot: Slot) {
+pub fn set_validation_data(next_block: u32, _slot: Slot) {
 	use basilisk_runtime::RuntimeOrigin;
 	use frame_support::storage::storage_prefix;
 	use polkadot_primitives::HeadData;
@@ -737,7 +739,7 @@ pub fn set_validation_data(next_block: u32, slot: Slot) {
 	let sproof_builder = RelayStateSproofBuilder {
 		para_id: basilisk_runtime::ParachainInfo::parachain_id(),
 		included_para_head: Some(parent_head.clone()),
-		current_slot: slot,
+		current_slot: (next_block as u64).into(),
 		..Default::default()
 	};
 
