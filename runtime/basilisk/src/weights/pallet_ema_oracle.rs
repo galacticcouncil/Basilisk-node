@@ -150,7 +150,4 @@ impl<T: frame_system::Config> pallet_ema_oracle::WeightInfo for BasiliskWeight<T
 		Weight::from_parts(22_197_000, 6294)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 	}
-	fn update_bifrost_oracle() -> Weight {
-		Weight::from_parts(10_000_000, 0)
-	}
 }

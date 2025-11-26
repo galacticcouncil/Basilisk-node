@@ -235,6 +235,18 @@ impl<T: frame_system::Config> pallet_lbp::WeightInfo for BasiliskWeight<T> {
 	}
 	/// Storage: `LBP::PoolData` (r:1 w:0)
 	/// Proof: `LBP::PoolData` (`max_values`: None, `max_size`: Some(163), added: 2638, mode: `MaxEncodedLen`)
+	/// Storage: `Tokens::Accounts` (r:2 w:0)
+	/// Proof: `Tokens::Accounts` (`max_values`: None, `max_size`: Some(108), added: 2583, mode: `MaxEncodedLen`)
+	fn calculate_buy() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `718`
+		//  Estimated: `6156`
+		// Minimum execution time: 93_499_000 picoseconds.
+		Weight::from_parts(93_976_000, 6156)
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+	}
+	/// Storage: `LBP::PoolData` (r:1 w:0)
+	/// Proof: `LBP::PoolData` (`max_values`: None, `max_size`: Some(163), added: 2638, mode: `MaxEncodedLen`)
 	/// Storage: `Tokens::Locks` (r:1 w:0)
 	/// Proof: `Tokens::Locks` (`max_values`: None, `max_size`: Some(1261), added: 3736, mode: `MaxEncodedLen`)
 	/// Storage: `Tokens::Accounts` (r:2 w:0)
@@ -246,8 +258,5 @@ impl<T: frame_system::Config> pallet_lbp::WeightInfo for BasiliskWeight<T> {
 		// Minimum execution time: 30_271_000 picoseconds.
 		Weight::from_parts(30_562_000, 6156)
 			.saturating_add(T::DbWeight::get().reads(4_u64))
-	}
-	fn calculate_in_given_out() -> Weight {
-		Weight::from_parts(10_000_000, 0)
 	}
 }

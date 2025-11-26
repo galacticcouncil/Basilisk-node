@@ -57,6 +57,13 @@ pub struct WeightInfo<T>(PhantomData<T>);
 /// Weights for `pallet_route_executor` using the Basilisk node and recommended hardware.
 pub struct BasiliskWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> pallet_route_executor::WeightInfo for BasiliskWeight<T> {
+	fn skip_ed_handling_for_trade_with_insufficient_assets() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 222_000 picoseconds.
+		Weight::from_parts(244_000, 0)
+	}
 	/// Storage: `LBP::PoolData` (r:1 w:0)
 	/// Proof: `LBP::PoolData` (`max_values`: None, `max_size`: Some(163), added: 2638, mode: `MaxEncodedLen`)
 	/// Storage: `Tokens::Accounts` (r:5 w:5)
