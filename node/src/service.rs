@@ -79,7 +79,7 @@ pub fn new_partial(
 		ParachainBackend,
 		(),
 		sc_consensus::DefaultImportQueue<Block>,
-		sc_transaction_pool::FullPool<Block, ParachainClient>,
+		sc_transaction_pool::TransactionPoolHandle<Block, ParachainClient>,
 		(ParachainBlockImport, Option<Telemetry>, Option<TelemetryWorkerHandle>),
 	>,
 	sc_service::Error,
@@ -116,6 +116,7 @@ pub fn new_partial(
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
 			true,
+			None,
 		)?;
 	let client = Arc::new(client);
 
@@ -126,12 +127,15 @@ pub fn new_partial(
 		telemetry
 	});
 
-	let transaction_pool = sc_transaction_pool::BasicPool::new_full(
-		config.transaction_pool.clone(),
-		config.role.is_authority().into(),
-		config.prometheus_registry(),
-		task_manager.spawn_essential_handle(),
-		client.clone(),
+	let transaction_pool = Arc::from(
+		sc_transaction_pool::Builder::new(
+			task_manager.spawn_essential_handle(),
+			client.clone(),
+			config.role.is_authority().into(),
+		)
+			.with_options(config.transaction_pool.clone())
+			.with_prometheus(config.prometheus_registry())
+			.build(),
 	);
 
 	let block_import = ParachainBlockImport::new(client.clone(), backend.clone());
@@ -198,18 +202,17 @@ async fn start_node_impl(
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue_service = params.import_queue.service();
 
-	let (network, system_rpc_tx, tx_handler_controller, start_network, sync_service) =
-		build_network(BuildNetworkParams {
-			parachain_config: &parachain_config,
-			net_config,
-			client: client.clone(),
-			transaction_pool: transaction_pool.clone(),
-			para_id,
-			spawn_handle: task_manager.spawn_handle(),
-			relay_chain_interface: relay_chain_interface.clone(),
-			import_queue: params.import_queue,
-			sybil_resistance_level: CollatorSybilResistance::Resistant, // because of Aura
-		})
+	let (network, system_rpc_tx, tx_handler_controller, sync_service) = build_network(BuildNetworkParams {
+		parachain_config: &parachain_config,
+		client: client.clone(),
+		transaction_pool: transaction_pool.clone(),
+		para_id,
+		spawn_handle: task_manager.spawn_handle(),
+		relay_chain_interface: relay_chain_interface.clone(),
+		import_queue: params.import_queue,
+		net_config,
+		sybil_resistance_level: CollatorSybilResistance::Resistant, // because of Aura
+	})
 		.await?;
 
 	if parachain_config.offchain_worker.enabled {
@@ -228,6 +231,7 @@ async fn start_node_impl(
 				enable_http_requests: false,
 				custom_extensions: move |_| vec![],
 			})
+			.expect("Failed to create offchain workers")
 			.run(client.clone(), task_manager.spawn_handle())
 			.boxed(),
 		);
@@ -337,8 +341,6 @@ async fn start_node_impl(
 		)?;
 	}
 
-	start_network.start_network();
-
 	Ok((task_manager, client))
 }
 
@@ -379,7 +381,7 @@ fn start_consensus(
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 	relay_chain_interface: Arc<dyn RelayChainInterface>,
-	transaction_pool: Arc<sc_transaction_pool::FullPool<Block, ParachainClient>>,
+	transaction_pool: Arc<sc_transaction_pool::TransactionPoolHandle<Block, ParachainClient>>,
 	keystore: KeystorePtr,
 	relay_chain_slot_duration: Duration,
 	para_id: ParaId,
@@ -425,6 +427,7 @@ fn start_consensus(
 		collator_service,
 		authoring_duration: Duration::from_millis(1500),
 		reinitialize: false,
+		max_pov_percentage: None, // Defaults to 85% of max PoV size (safe default)
 	};
 
 	let fut = aura::run::<Block, sp_consensus_aura::sr25519::AuthorityPair, _, _, _, _, _, _, _, _>(params);
