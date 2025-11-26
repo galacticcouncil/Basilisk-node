@@ -67,15 +67,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(clippy::manual_inspect)]
 
+use basilisk_traits::oracle::{AggregatedEntry, AggregatedOracle, AggregatedPriceOracle, Liquidity, Volume};
+use basilisk_traits::{OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler};
 use frame_support::pallet_prelude::*;
 use frame_support::sp_runtime::traits::{BlockNumberProvider, One, Zero};
 use frame_support::traits::Contains;
 use frame_system::pallet_prelude::BlockNumberFor;
-use basilisk_traits::{OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler};
-use basilisk_traits::oracle::{
-	AggregatedEntry, AggregatedOracle, AggregatedPriceOracle, Liquidity,
-	Volume,
-};
 use sp_arithmetic::traits::Saturating;
 use sp_std::marker::PhantomData;
 use sp_std::prelude::*;

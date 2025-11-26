@@ -17,26 +17,22 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use basilisk_traits::oracle::NativePriceOracle;
 use cumulus_primitives_core::relay_chain::Hash;
 use frame_support::{
 	sp_runtime::{
 		traits::{AtLeast32BitUnsigned, Convert, Get, Saturating, Zero},
-		FixedPointNumber, FixedPointOperand,
-		SaturatedConversion,
+		FixedPointNumber, FixedPointOperand, SaturatedConversion,
 	},
 	weights::{Weight, WeightToFee},
 };
-use basilisk_traits::oracle::NativePriceOracle;
 use orml_traits::GetByKey;
 use pallet_transaction_multi_payment::DepositFee;
 use polkadot_xcm::v5::prelude::*;
 use sp_runtime::traits::BlockNumberProvider;
 use sp_std::{collections::btree_map::BTreeMap, marker::PhantomData};
 use xcm_builder::TakeRevenue;
-use xcm_executor::{
-	traits::WeightTrader,
-	AssetsInHolding,
-};
+use xcm_executor::{traits::WeightTrader, AssetsInHolding};
 
 pub mod xcm_exchange;
 

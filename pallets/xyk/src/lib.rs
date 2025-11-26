@@ -29,15 +29,17 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::manual_inspect)]
 
+use basilisk_traits::{OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler};
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
-use frame_support::{dispatch::DispatchResult, ensure, traits::{Get, ExistenceRequirement}, transactional};
+use frame_support::{
+	dispatch::DispatchResult,
+	ensure,
+	traits::{ExistenceRequirement, Get},
+	transactional,
+};
 use frame_system::ensure_signed;
 use frame_system::pallet_prelude::BlockNumberFor;
-use basilisk_traits::{OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler,};
-use hydradx_traits::{
-	AMMPosition, AMMTransfer, AssetPairAccountIdFor, CanCreatePool,
-	AMM,
-};
+use hydradx_traits::{AMMPosition, AMMTransfer, AssetPairAccountIdFor, CanCreatePool, AMM};
 use pallet_broadcast::types::{Asset, Destination, Fee};
 
 use sp_std::{vec, vec::Vec};
@@ -487,8 +489,20 @@ pub mod pallet {
 				.checked_sub(liquidity_amount)
 				.ok_or(Error::<T>::InvalidLiquidityAmount)?;
 
-			T::Currency::transfer(asset_a, &pair_account, &who, remove_amount_a, ExistenceRequirement::AllowDeath)?;
-			T::Currency::transfer(asset_b, &pair_account, &who, remove_amount_b, ExistenceRequirement::AllowDeath)?;
+			T::Currency::transfer(
+				asset_a,
+				&pair_account,
+				&who,
+				remove_amount_a,
+				ExistenceRequirement::AllowDeath,
+			)?;
+			T::Currency::transfer(
+				asset_b,
+				&pair_account,
+				&who,
+				remove_amount_b,
+				ExistenceRequirement::AllowDeath,
+			)?;
 
 			T::Currency::withdraw(share_token, &who, liquidity_amount, ExistenceRequirement::AllowDeath)?;
 
@@ -878,7 +892,12 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 		if transfer.discount && transfer.discount_amount > 0u128 {
 			let native_asset = T::NativeAssetId::get();
-			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount, ExistenceRequirement::AllowDeath)?;
+			T::Currency::withdraw(
+				native_asset,
+				&transfer.origin,
+				transfer.discount_amount,
+				ExistenceRequirement::AllowDeath,
+			)?;
 		}
 
 		T::Currency::transfer(
@@ -1060,7 +1079,12 @@ impl<T: Config> AMM<T::AccountId, AssetId, AssetPair, Balance> for Pallet<T> {
 
 		if transfer.discount && transfer.discount_amount > 0 {
 			let native_asset = T::NativeAssetId::get();
-			T::Currency::withdraw(native_asset, &transfer.origin, transfer.discount_amount, ExistenceRequirement::AllowDeath)?;
+			T::Currency::withdraw(
+				native_asset,
+				&transfer.origin,
+				transfer.discount_amount,
+				ExistenceRequirement::AllowDeath,
+			)?;
 		}
 
 		T::Currency::transfer(

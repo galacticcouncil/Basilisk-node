@@ -16,6 +16,7 @@
 // limitations under the License.
 
 use crate::*;
+use basilisk_traits::oracle::NativePriceOracle;
 use frame_support::{
 	genesis_builder_helper::{build_state, get_preset},
 	sp_runtime::{
@@ -25,9 +26,8 @@ use frame_support::{
 	},
 	weights::WeightToFee as _,
 };
-use basilisk_traits::oracle::NativePriceOracle;
-use polkadot_xcm::{IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 use polkadot_xcm::prelude::XcmVersion;
+use polkadot_xcm::{IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 use primitives::constants::chain::CORE_ASSET_ID;
 use sp_api::impl_runtime_apis;
 use sp_core::{Get, OpaqueMetadata};

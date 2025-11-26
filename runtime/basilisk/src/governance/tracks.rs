@@ -22,7 +22,7 @@ use primitives::constants::{
 	currency::UNITS,
 	time::{HOURS, MINUTES},
 };
-use sp_runtime::{Cow, str_array as s};
+use sp_runtime::{str_array as s, Cow};
 const fn percent(x: i32) -> sp_arithmetic::FixedI64 {
 	sp_arithmetic::FixedI64::from_rational(x as u128, 100)
 }

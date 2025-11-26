@@ -33,6 +33,11 @@ mod tests;
 mod traits;
 
 pub use crate::traits::*;
+use basilisk_math::ema::EmaPrice;
+use basilisk_traits::{
+	oracle::{NativePriceOracle, OraclePeriod, PriceOracle},
+	router::{AssetPair, RouteProvider},
+};
 use frame_support::storage::with_transaction;
 use frame_support::traits::{Contains, ExistenceRequirement, IsSubType};
 use frame_support::{
@@ -47,14 +52,9 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::{ensure_signed, pallet_prelude::BlockNumberFor};
-use basilisk_math::ema::EmaPrice;
-use basilisk_traits::{oracle::{NativePriceOracle, OraclePeriod, PriceOracle},router::{AssetPair, RouteProvider}};
 use hydradx_traits::fee::InspectTransactionFeeCurrency;
 use hydradx_traits::fee::SwappablePaymentAssetTrader;
-use hydradx_traits::{
-	evm::InspectEvmAccounts,
-	AccountFeeCurrency,
-};
+use hydradx_traits::{evm::InspectEvmAccounts, AccountFeeCurrency};
 use orml_traits::{GetByKey, Happened, MultiCurrency};
 use pallet_transaction_payment::OnChargeTransaction;
 use sp_runtime::traits::TryConvert;
@@ -249,7 +249,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn tx_fee_currency_override)]
 	pub type TransactionCurrencyOverride<T: Config> =
-	StorageMap<_, Twox64Concat, T::AccountId, AssetIdOf<T>, OptionQuery>;
+		StorageMap<_, Twox64Concat, T::AccountId, AssetIdOf<T>, OptionQuery>;
 
 	#[pallet::genesis_config]
 	#[derive(frame_support::DefaultNoBound)]
@@ -667,7 +667,7 @@ where
 				T::PolkadotNativeAssetId::get(),
 				fee_in_dot.into(),
 			)
-				.map_err(|_| TransactionValidityError::Invalid(InvalidTransaction::Payment))?;
+			.map_err(|_| TransactionValidityError::Invalid(InvalidTransaction::Payment))?;
 			let pool_fee = T::SwappablePaymentAssetSupport::calculate_fee_amount(amount_in)
 				.map_err(|_| TransactionValidityError::Invalid(InvalidTransaction::Payment))?;
 			let max_limit = amount_in.saturating_add(pool_fee);
@@ -680,7 +680,7 @@ where
 				max_limit,
 				who,
 			)
-				.map_err(|_| TransactionValidityError::Invalid(InvalidTransaction::Payment))?;
+			.map_err(|_| TransactionValidityError::Invalid(InvalidTransaction::Payment))?;
 
 			(fee_in_dot, T::PolkadotNativeAssetId::get(), dot_hdx_price)
 		};

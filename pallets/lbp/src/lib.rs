@@ -75,7 +75,9 @@ type BalanceOf<T> = <<T as Config>::MultiCurrency as MultiCurrency<<T as frame_s
 type PoolId<T> = <T as frame_system::Config>::AccountId;
 
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Default, RuntimeDebug, Encode, Decode, DecodeWithMemTracking, Copy, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+#[derive(
+	Default, RuntimeDebug, Encode, Decode, DecodeWithMemTracking, Copy, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen,
+)]
 pub enum WeightCurveType {
 	#[default]
 	Linear,
@@ -493,8 +495,20 @@ pub mod pallet {
 				data: pool_data,
 			});
 
-			T::MultiCurrency::transfer(asset_a, &pool_owner, &pool_id, asset_a_amount, ExistenceRequirement::AllowDeath)?;
-			T::MultiCurrency::transfer(asset_b, &pool_owner, &pool_id, asset_b_amount, ExistenceRequirement::AllowDeath)?;
+			T::MultiCurrency::transfer(
+				asset_a,
+				&pool_owner,
+				&pool_id,
+				asset_a_amount,
+				ExistenceRequirement::AllowDeath,
+			)?;
+			T::MultiCurrency::transfer(
+				asset_b,
+				&pool_owner,
+				&pool_id,
+				asset_b_amount,
+				ExistenceRequirement::AllowDeath,
+			)?;
 
 			Self::deposit_event(Event::LiquidityAdded {
 				who: pool_id,
@@ -911,7 +925,13 @@ impl<T: Config> Pallet<T> {
 			&pool_account
 		};
 
-		T::MultiCurrency::transfer(fee_asset, fee_payer, &pool.fee_collector, fee_amount, ExistenceRequirement::AllowDeath)?;
+		T::MultiCurrency::transfer(
+			fee_asset,
+			fee_payer,
+			&pool.fee_collector,
+			fee_amount,
+			ExistenceRequirement::AllowDeath,
+		)?;
 
 		// Resets lock for total of collected fees
 		let collected_fee_total = Self::collected_fees(&pool) + fee_amount;

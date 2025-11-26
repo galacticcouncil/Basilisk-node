@@ -1,8 +1,8 @@
 use crate::types::{AssetId, AssetPair, Balance};
 use crate::{Config, Error, Pallet};
+use basilisk_traits::router::{ExecutorError, PoolType, TradeExecution};
 use frame_support::ensure;
 use frame_support::traits::Get;
-use basilisk_traits::router::{ExecutorError, PoolType, TradeExecution};
 use hydradx_traits::AMM;
 use orml_traits::MultiCurrency;
 use sp_runtime::DispatchError::Corruption;

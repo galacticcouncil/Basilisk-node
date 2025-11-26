@@ -1,3 +1,7 @@
+use basilisk_traits::{
+	oracle::{AggregatedPriceOracle, OraclePeriod, PriceOracle},
+	router::{PoolType, Trade},
+};
 use frame_support::sp_runtime::DispatchResult;
 use frame_support::traits::{BalanceStatus, ExistenceRequirement};
 use frame_system::pallet_prelude::BlockNumberFor;
@@ -5,7 +9,6 @@ use hydra_dx_math::{
 	ema::EmaPrice,
 	support::rational::{round_u512_to_rational, Rounding},
 };
-use basilisk_traits::{oracle::{AggregatedPriceOracle, OraclePeriod, PriceOracle}, router::{PoolType, Trade}};
 use orml_traits::currency::TransferAll;
 use orml_traits::{
 	LockIdentifier, MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency, MultiReservableCurrency,
@@ -50,7 +53,13 @@ impl<T: orml_tokens::Config + frame_system::Config> MultiCurrency<T::AccountId> 
 		amount: Self::Balance,
 		existence_requirement: ExistenceRequirement,
 	) -> DispatchResult {
-		let res = <orml_tokens::Pallet<T> as MultiCurrency<T::AccountId>>::transfer(currency_id, from, to, amount, existence_requirement);
+		let res = <orml_tokens::Pallet<T> as MultiCurrency<T::AccountId>>::transfer(
+			currency_id,
+			from,
+			to,
+			amount,
+			existence_requirement,
+		);
 
 		if res.is_ok() {
 			<frame_system::Pallet<T>>::deposit_event(
@@ -71,8 +80,18 @@ impl<T: orml_tokens::Config + frame_system::Config> MultiCurrency<T::AccountId> 
 		<orml_tokens::Pallet<T> as MultiCurrency<T::AccountId>>::deposit(currency_id, who, amount)
 	}
 
-	fn withdraw(currency_id: Self::CurrencyId, who: &T::AccountId, amount: Self::Balance, existence_requirement: ExistenceRequirement) -> DispatchResult {
-		<orml_tokens::Pallet<T> as MultiCurrency<T::AccountId>>::withdraw(currency_id, who, amount, existence_requirement)
+	fn withdraw(
+		currency_id: Self::CurrencyId,
+		who: &T::AccountId,
+		amount: Self::Balance,
+		existence_requirement: ExistenceRequirement,
+	) -> DispatchResult {
+		<orml_tokens::Pallet<T> as MultiCurrency<T::AccountId>>::withdraw(
+			currency_id,
+			who,
+			amount,
+			existence_requirement,
+		)
 	}
 
 	fn can_slash(currency_id: Self::CurrencyId, who: &T::AccountId, value: Self::Balance) -> bool {

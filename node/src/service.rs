@@ -133,9 +133,9 @@ pub fn new_partial(
 			client.clone(),
 			config.role.is_authority().into(),
 		)
-			.with_options(config.transaction_pool.clone())
-			.with_prometheus(config.prometheus_registry())
-			.build(),
+		.with_options(config.transaction_pool.clone())
+		.with_prometheus(config.prometheus_registry())
+		.build(),
 	);
 
 	let block_import = ParachainBlockImport::new(client.clone(), backend.clone());
@@ -213,7 +213,7 @@ async fn start_node_impl(
 		net_config,
 		sybil_resistance_level: CollatorSybilResistance::Resistant, // because of Aura
 	})
-		.await?;
+	.await?;
 
 	if parachain_config.offchain_worker.enabled {
 		use futures::FutureExt;

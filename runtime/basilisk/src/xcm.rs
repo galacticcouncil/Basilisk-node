@@ -20,18 +20,18 @@ use crate::governance::TreasuryAccount;
 use crate::origins::GeneralAdmin;
 use crate::system::WeightToFee;
 
+use basilisk_adapters::xcm_exchange::XcmAssetExchanger;
+use basilisk_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::TransformOrigin;
 use frame_support::{
 	parameter_types,
 	sp_runtime::traits::Convert,
-	traits::{Contains, Disabled, ContainsPair, EitherOf, Everything, Get, Nothing},
+	traits::{Contains, ContainsPair, Disabled, EitherOf, Everything, Get, Nothing},
 	PalletId,
 };
 use frame_system::EnsureRoot;
-use basilisk_adapters::xcm_exchange::XcmAssetExchanger;
-use basilisk_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 use hydradx_traits::router::PoolType;
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
@@ -39,10 +39,7 @@ use pallet_transaction_multi_payment::DepositAll;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_parachain::primitives::{RelayChainBlockNumber, Sibling};
-use polkadot_xcm::v5::{
-	prelude::*,
-	Location, Weight as XcmWeight,
-};
+use polkadot_xcm::v5::{prelude::*, Location, Weight as XcmWeight};
 use primitives::AssetId;
 use scale_info::TypeInfo;
 use sp_runtime::traits::MaybeEquivalence;

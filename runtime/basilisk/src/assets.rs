@@ -19,7 +19,13 @@ use super::*;
 use crate::governance::origins::GeneralAdmin;
 use crate::system::NativeAssetId;
 
-use basilisk_traits::{OnTradeHandler, {oracle::OraclePeriod, router::{inverse_route, AmmTradeWeights, PoolType, Trade}}};
+use basilisk_traits::{
+	OnTradeHandler,
+	{
+		oracle::OraclePeriod,
+		router::{inverse_route, AmmTradeWeights, PoolType, Trade},
+	},
+};
 
 use hydradx_traits::{
 	fee::{InspectTransactionFeeCurrency, SwappablePaymentAssetTrader},
@@ -42,8 +48,8 @@ use frame_support::{
 		app_crypto::sp_core::crypto::UncheckedFrom, traits::Zero, ArithmeticError, DispatchError, DispatchResult,
 	},
 	traits::{
-		AsEnsureOriginWithArg, Contains, Currency, Defensive, EitherOf, EnsureOrigin, ExistenceRequirement, Get, Imbalance, LockIdentifier,
-		NeverEnsureOrigin, OnUnbalanced,
+		AsEnsureOriginWithArg, Contains, Currency, Defensive, EitherOf, EnsureOrigin, ExistenceRequirement, Get,
+		Imbalance, LockIdentifier, NeverEnsureOrigin, OnUnbalanced,
 	},
 	BoundedVec, PalletId,
 };
@@ -202,7 +208,7 @@ impl MultiCurrency<AccountId> for NoEvmSupport {
 		_from: &AccountId,
 		_to: &AccountId,
 		_amount: Self::Balance,
-		_existence_requirement: ExistenceRequirement
+		_existence_requirement: ExistenceRequirement,
 	) -> sp_runtime::DispatchResult {
 		Err(DispatchError::Other("EVM not supported"))
 	}
@@ -211,7 +217,12 @@ impl MultiCurrency<AccountId> for NoEvmSupport {
 		Err(DispatchError::Other("EVM not supported"))
 	}
 
-	fn withdraw(_contract: Self::CurrencyId, _who: &AccountId, _amount: Self::Balance, _existence_requirement: ExistenceRequirement) -> sp_runtime::DispatchResult {
+	fn withdraw(
+		_contract: Self::CurrencyId,
+		_who: &AccountId,
+		_amount: Self::Balance,
+		_existence_requirement: ExistenceRequirement,
+	) -> sp_runtime::DispatchResult {
 		Err(DispatchError::Other("EVM not supported"))
 	}
 

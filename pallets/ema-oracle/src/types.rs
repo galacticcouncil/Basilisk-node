@@ -15,11 +15,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use basilisk_math::ema::{calculate_new_by_integrating_incoming, update_outdated_to_current, EmaPrice};
+use basilisk_traits::oracle::{AggregatedEntry, Liquidity, Volume};
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::sp_runtime::RuntimeDebug;
-use basilisk_math::ema::{calculate_new_by_integrating_incoming, update_outdated_to_current, EmaPrice};
 use hydra_dx_math::types::Fraction;
-use basilisk_traits::oracle::{AggregatedEntry, Liquidity, Volume};
 use scale_info::TypeInfo;
 use sp_arithmetic::traits::{AtLeast32BitUnsigned, SaturatedConversion, UniqueSaturatedInto};
 

@@ -48,10 +48,6 @@ pub use governance::*;
 pub use system::*;
 pub use xcm::*;
 
-use sp_runtime::{
-	Cow, generic, impl_opaque_keys,
-	traits::{AccountIdConversion, BlockNumberProvider, BlakeTwo256, Block as BlockT},
-};
 use frame_system::pallet_prelude::BlockNumberFor;
 pub use primitives::{
 	constants::time::SLOT_DURATION, AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index,
@@ -59,6 +55,11 @@ pub use primitives::{
 };
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::ConstU32;
+use sp_runtime::{
+	generic, impl_opaque_keys,
+	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, BlockNumberProvider},
+	Cow,
+};
 use sp_std::{convert::From, marker::PhantomData, prelude::*, vec};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;

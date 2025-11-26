@@ -26,6 +26,7 @@ use primitives::constants::{
 	time::{HOURS, SLOT_DURATION},
 };
 
+use basilisk_adapters::RelayChainBlockNumberProvider;
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use frame_support::{
 	dispatch::DispatchClass,
@@ -43,7 +44,6 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::EnsureRoot;
-use basilisk_adapters::RelayChainBlockNumberProvider;
 use hydradx_traits::evm::InspectEvmAccounts;
 use primitives::{constants::time::DAYS, EvmAddress};
 use scale_info::TypeInfo;
@@ -312,7 +312,20 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 }
 
 /// The type used to represent the kinds of proxying allowed.
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, DecodeWithMemTracking, RuntimeDebug, MaxEncodedLen, TypeInfo)]
+#[derive(
+	Copy,
+	Clone,
+	Eq,
+	PartialEq,
+	Ord,
+	PartialOrd,
+	Encode,
+	Decode,
+	DecodeWithMemTracking,
+	RuntimeDebug,
+	MaxEncodedLen,
+	TypeInfo,
+)]
 pub enum ProxyType {
 	Any,
 	CancelProxy,
