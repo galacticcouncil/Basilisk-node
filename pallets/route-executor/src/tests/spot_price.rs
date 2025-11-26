@@ -1,5 +1,5 @@
 use crate::tests::mock::*;
-use hydradx_traits::router::RouteSpotPriceProvider;
+use basilisk_traits::router::RouteSpotPriceProvider;
 
 #[test]
 fn price_should_be_none_for_empty_route() {

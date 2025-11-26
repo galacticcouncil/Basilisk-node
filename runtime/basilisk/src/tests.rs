@@ -64,7 +64,7 @@ fn transfer_cost() {
 		println!(
 			"len = {:?} // weight = {:?} // base fee = {:?} // len fee = {:?} // adjusted weight_fee = {:?} // full transfer fee = {:?}\n",
 			len,
-			info.weight,
+			info.call_weight,
 			fee_raw.inclusion_fee.clone().unwrap().base_fee,
 			fee_raw.inclusion_fee.clone().unwrap().len_fee,
 			fee_raw.inclusion_fee.unwrap().adjusted_weight_fee,

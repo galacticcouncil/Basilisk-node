@@ -18,8 +18,8 @@
 use crate::tests::mock::*;
 use crate::{Error, Event, Trade};
 use frame_support::{assert_noop, assert_ok};
-use hydradx_traits::router::AssetPair;
-use hydradx_traits::router::PoolType;
+use basilisk_traits::router::AssetPair;
+use basilisk_traits::router::PoolType;
 use orml_traits::MultiCurrency;
 use pretty_assertions::assert_eq;
 use sp_runtime::DispatchError::BadOrigin;

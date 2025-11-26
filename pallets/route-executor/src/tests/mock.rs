@@ -23,8 +23,8 @@ use frame_support::{
 };
 use frame_system::EnsureRoot;
 use frame_system::{ensure_signed, pallet_prelude::OriginFor};
-use hydra_dx_math::ratio::Ratio;
-use hydradx_traits::router::{ExecutorError, PoolType, RefundEdCalculator, TradeExecution};
+use basilisk_math::ratio::Ratio;
+use basilisk_traits::router::{ExecutorError, PoolType, RefundEdCalculator, TradeExecution};
 use orml_traits::parameter_type_with_key;
 use pallet_currencies::{fungibles::FungibleCurrencies, BasicCurrencyAdapter, MockBoundErc20, MockErc20Currency};
 use pretty_assertions::assert_eq;
@@ -89,6 +89,7 @@ impl frame_system::Config for Test {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 pub type Amount = i128;
@@ -132,6 +133,7 @@ impl pallet_balances::Config for Test {
 	type MaxFreezes = ();
 	type RuntimeHoldReason = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 impl pallet_currencies::Config for Test {
@@ -142,6 +144,7 @@ impl pallet_currencies::Config for Test {
 	type BoundErc20 = MockBoundErc20<Test>;
 	type GetNativeCurrencyId = NativeCurrencyId;
 	type WeightInfo = ();
+	type ReserveAccount = ();
 }
 
 impl pallet_broadcast::Config for Test {
@@ -195,7 +198,8 @@ impl PriceOracle<AssetId> for PriceProviderMock {
 	}
 }
 
-use hydradx_traits::{AssetKind, OraclePeriod, PriceOracle};
+use hydradx_traits::AssetKind;
+use basilisk_traits::oracle::{OraclePeriod, PriceOracle};
 pub struct MockedAssetRegistry;
 
 impl hydradx_traits::registry::Inspect for MockedAssetRegistry {
@@ -305,6 +309,7 @@ impl ExtBuilder {
 				(ALICE, ALICE_INITIAL_NATIVE_BALANCE),
 				(ASSET_PAIR_ACCOUNT, ALICE_INITIAL_NATIVE_BALANCE),
 			],
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

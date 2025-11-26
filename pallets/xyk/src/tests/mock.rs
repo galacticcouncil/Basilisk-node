@@ -109,15 +109,12 @@ parameter_types! {
 impl pallet_asset_registry::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type RegistryOrigin = EnsureSigned<AccountId>;
-	type Currency = Currency;
-	type UpdateOrigin = EnsureSigned<u64>;
 	type AssetId = AssetId;
+	type Balance = Balance;
 	type AssetNativeLocation = AssetLocation;
 	type StringLimit = RegistryStringLimit;
-	type MinStringLimit = MinRegistryStringLimit;
 	type SequentialIdStartAt = SequentialIdOffset;
-	type RegExternalWeightMultiplier = frame_support::traits::ConstU64<1>;
-	type RegisterAssetHook = ();
+	type NativeAssetId = NativeAssetId;
 	type WeightInfo = ();
 }
 
@@ -151,6 +148,7 @@ impl system::Config for Test {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 parameter_type_with_key! {
@@ -204,6 +202,58 @@ impl CanCreatePool<AssetId> for Disallow10_10Pool {
 	}
 }
 
+pub struct MockAMMHandler();
+
+impl basilisk_traits::OnCreatePoolHandler<AssetId> for MockAMMHandler {
+	fn on_create_pool(_asset_a: AssetId, _asset_b: AssetId) -> sp_runtime::DispatchResult {
+		Ok(())
+	}
+}
+
+impl hydradx_traits::OnCreatePoolHandler<AssetId> for MockAMMHandler {
+	fn on_create_pool(_asset_a: AssetId, _asset_b: AssetId) -> sp_runtime::DispatchResult {
+		Ok(())
+	}
+}
+
+impl basilisk_traits::OnTradeHandler<AssetId, Balance, basilisk_math::ratio::Ratio> for MockAMMHandler {
+	fn on_trade(
+		_source: hydradx_traits::Source,
+		_asset_a: AssetId,
+		_asset_b: AssetId,
+		_amount_a: Balance,
+		_amount_b: Balance,
+		_liquidity_a: Balance,
+		_liquidity_b: Balance,
+		_price: basilisk_math::ratio::Ratio,
+	) -> Result<frame_support::weights::Weight, (frame_support::weights::Weight, sp_runtime::DispatchError)> {
+		Ok(frame_support::weights::Weight::zero())
+	}
+
+	fn on_trade_weight() -> frame_support::weights::Weight {
+		frame_support::weights::Weight::zero()
+	}
+}
+
+impl basilisk_traits::OnLiquidityChangedHandler<AssetId, Balance, basilisk_math::ratio::Ratio> for MockAMMHandler {
+	fn on_liquidity_changed(
+		_source: hydradx_traits::Source,
+		_asset_a: AssetId,
+		_asset_b: AssetId,
+		_amount_a: Balance,
+		_amount_b: Balance,
+		_liquidity_a: Balance,
+		_liquidity_b: Balance,
+		_price: basilisk_math::ratio::Ratio,
+	) -> Result<frame_support::weights::Weight, (frame_support::weights::Weight, sp_runtime::DispatchError)> {
+		Ok(frame_support::weights::Weight::zero())
+	}
+
+	fn on_liquidity_changed_weight() -> frame_support::weights::Weight {
+		frame_support::weights::Weight::zero()
+	}
+}
+
 impl pallet_broadcast::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 }
@@ -221,7 +271,7 @@ impl xyk::Config for Test {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type CanCreatePool = Disallow10_10Pool;
-	type AMMHandler = ();
+	type AMMHandler = MockAMMHandler;
 	type DiscountedFee = DiscountedFeeRate;
 	type NonDustableWhitelistHandler = Whitelist;
 	type OracleSource = OracleSourceIdentifier;

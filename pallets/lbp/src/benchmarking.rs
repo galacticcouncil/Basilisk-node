@@ -19,7 +19,7 @@ use super::*;
 
 use crate::Pallet as LBP;
 
-use hydradx_traits::router::{PoolType, TradeExecution};
+use basilisk_traits::router::{PoolType, TradeExecution};
 
 use frame_benchmarking::{account, benchmarks};
 use frame_system::RawOrigin;

@@ -16,22 +16,20 @@
 // limitations under the License.
 
 pub use crate::{mock::*, Error};
-use crate::{AcceptedCurrencies, AcceptedCurrencyPrice, Event, PaymentInfo, Price};
+use crate::{AcceptedCurrencies, AcceptedCurrencyPrice, Event, Price};
 
 use frame_support::{
-	assert_noop, assert_ok, assert_storage_noop,
+	assert_noop, assert_ok,
 	dispatch::{DispatchInfo, PostDispatchInfo},
-	sp_runtime::traits::{BadOrigin, SignedExtension},
-	traits::{tokens::Precision, Hooks},
+	sp_runtime::traits::{BadOrigin, TransactionExtension},
+	traits::{ExistenceRequirement, Hooks, tokens::Precision,},
 	weights::Weight,
 };
-use hydradx_traits::evm::InspectEvmAccounts;
 use orml_traits::MultiCurrency;
 use pallet_balances::Call as BalancesCall;
 use pallet_transaction_payment::ChargeTransactionPayment;
-use sp_core::{H256, U256};
-use sp_runtime::traits::ValidateUnsigned;
-use sp_runtime::transaction_validity::TransactionSource;
+use sp_runtime::traits::DispatchTransaction;
+use basilisk_traits::oracle::NativePriceOracle;
 
 const CALL: &<Test as frame_system::Config>::RuntimeCall =
 	&RuntimeCall::Balances(BalancesCall::transfer_allow_death { dest: BOB, value: 69 });
@@ -111,7 +109,8 @@ fn set_supported_currency_without_spot_price_should_charge_fee_in_correct_curren
 		let len = 10;
 		let info = info_from_weight(Weight::from_parts(5, 0));
 
-		let pre = ChargeTransactionPayment::<Test>::from(0).pre_dispatch(&ALICE, call, &info, len);
+		let pre =
+			ChargeTransactionPayment::<Test>::from(0).validate_and_prepare(Some(ALICE).into(), call, &info, len, 0);
 		assert!(pre.is_ok());
 
 		assert_eq!(
@@ -119,10 +118,11 @@ fn set_supported_currency_without_spot_price_should_charge_fee_in_correct_curren
 			999_999_999_999_970
 		);
 
+		let (pre_data, _origin) = pre.unwrap();
 		assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-			Some(pre.unwrap()),
+			pre_data,
 			&info,
-			&default_post_info(),
+			&mut default_post_info(),
 			len,
 			&Ok(())
 		));
@@ -145,7 +145,8 @@ fn set_supported_currency_in_batch_should_charge_fee_in_correct_currency() {
 		let len = 10;
 		let info = info_from_weight(Weight::from_parts(5, 0));
 
-		let pre = ChargeTransactionPayment::<Test>::from(0).pre_dispatch(&ALICE, &call, &info, len);
+		let pre =
+			ChargeTransactionPayment::<Test>::from(0).validate_and_prepare(Some(ALICE).into(), &call, &info, len, 0);
 		assert!(pre.is_ok());
 
 		assert_eq!(
@@ -153,10 +154,11 @@ fn set_supported_currency_in_batch_should_charge_fee_in_correct_currency() {
 			999_999_999_999_970
 		);
 
+		let (pre_data, _origin) = pre.unwrap();
 		assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-			Some(pre.unwrap()),
+			pre_data,
 			&info,
-			&default_post_info(),
+			&mut default_post_info(),
 			len,
 			&Ok(())
 		));
@@ -176,7 +178,8 @@ fn set_supported_currency_in_batch_should_charge_fee_in_correct_currency() {
 		let len = 10;
 		let info = info_from_weight(Weight::from_parts(5, 0));
 
-		let pre = ChargeTransactionPayment::<Test>::from(0).pre_dispatch(&ALICE, &call, &info, len);
+		let pre =
+			ChargeTransactionPayment::<Test>::from(0).validate_and_prepare(Some(ALICE).into(), &call, &info, len, 0);
 		assert!(pre.is_ok());
 
 		assert_eq!(
@@ -184,10 +187,11 @@ fn set_supported_currency_in_batch_should_charge_fee_in_correct_currency() {
 			999_999_999_999_970
 		);
 
+		let (pre_data, _origin) = pre.unwrap();
 		assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-			Some(pre.unwrap()),
+			pre_data,
 			&info,
-			&default_post_info(),
+			&mut default_post_info(),
 			len,
 			&Ok(())
 		));
@@ -207,7 +211,8 @@ fn set_supported_currency_in_batch_should_charge_fee_in_correct_currency() {
 		let len = 10;
 		let info = info_from_weight(Weight::from_parts(5, 0));
 
-		let pre = ChargeTransactionPayment::<Test>::from(0).pre_dispatch(&ALICE, &call, &info, len);
+		let pre =
+			ChargeTransactionPayment::<Test>::from(0).validate_and_prepare(Some(ALICE).into(), &call, &info, len, 0);
 		assert!(pre.is_ok());
 
 		assert_eq!(
@@ -215,10 +220,11 @@ fn set_supported_currency_in_batch_should_charge_fee_in_correct_currency() {
 			999_999_999_999_970
 		);
 
+		let (pre_data, _origin) = pre.unwrap();
 		assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-			Some(pre.unwrap()),
+			pre_data,
 			&info,
-			&default_post_info(),
+			&mut default_post_info(),
 			len,
 			&Ok(())
 		));
@@ -243,15 +249,17 @@ fn set_supported_currency_in_batch_should_not_work_if_not_first_transaction() {
 
 		let alice_initial_non_native_balance = Currencies::free_balance(SUPPORTED_CURRENCY, &ALICE);
 
-		let pre = ChargeTransactionPayment::<Test>::from(0).pre_dispatch(&ALICE, &call, &info, len);
+		let pre =
+			ChargeTransactionPayment::<Test>::from(0).validate_and_prepare(Some(ALICE).into(), &call, &info, len, 0);
 		assert!(pre.is_ok());
 
 		assert_eq!(Currencies::free_balance(HDX, &ALICE), 999_999_999_999_980);
 
+		let (pre_data, _origin) = pre.unwrap();
 		assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-			Some(pre.unwrap()),
+			pre_data,
 			&info,
-			&default_post_info(),
+			&mut default_post_info(),
 			len,
 			&Ok(())
 		));
@@ -277,15 +285,17 @@ fn set_supported_currency_in_batch_should_not_work_if_not_first_transaction() {
 
 		let alice_initial_non_native_balance = Currencies::free_balance(SUPPORTED_CURRENCY, &ALICE);
 
-		let pre = ChargeTransactionPayment::<Test>::from(0).pre_dispatch(&ALICE, &call, &info, len);
+		let pre =
+			ChargeTransactionPayment::<Test>::from(0).validate_and_prepare(Some(ALICE).into(), &call, &info, len, 0);
 		assert!(pre.is_ok());
 
 		assert_eq!(Currencies::free_balance(HDX, &ALICE), 999_999_999_999_980);
 
+		let (pre_data, _origin) = pre.unwrap();
 		assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-			Some(pre.unwrap()),
+			pre_data,
 			&info,
-			&default_post_info(),
+			&mut default_post_info(),
 			len,
 			&Ok(())
 		));
@@ -311,15 +321,17 @@ fn set_supported_currency_in_batch_should_not_work_if_not_first_transaction() {
 
 		let alice_initial_non_native_balance = Currencies::free_balance(SUPPORTED_CURRENCY, &ALICE);
 
-		let pre = ChargeTransactionPayment::<Test>::from(0).pre_dispatch(&ALICE, &call, &info, len);
+		let pre =
+			ChargeTransactionPayment::<Test>::from(0).validate_and_prepare(Some(ALICE).into(), &call, &info, len, 0);
 		assert!(pre.is_ok());
 
 		assert_eq!(Currencies::free_balance(HDX, &ALICE), 999_999_999_999_980);
 
+		let (pre_data, _origin) = pre.unwrap();
 		assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-			Some(pre.unwrap()),
+			pre_data,
 			&info,
-			&default_post_info(),
+			&mut default_post_info(),
 			len,
 			&Ok(())
 		));
@@ -341,7 +353,8 @@ fn set_supported_currency_with_spot_price_should_charge_fee_in_correct_currency(
 		let len = 10;
 		let info = info_from_weight(Weight::from_parts(5, 0));
 
-		let pre = ChargeTransactionPayment::<Test>::from(0).pre_dispatch(&ALICE, call, &info, len);
+		let pre =
+			ChargeTransactionPayment::<Test>::from(0).validate_and_prepare(Some(ALICE).into(), call, &info, len, 0);
 		assert!(pre.is_ok());
 
 		assert_eq!(
@@ -349,10 +362,11 @@ fn set_supported_currency_with_spot_price_should_charge_fee_in_correct_currency(
 			999_999_999_999_998
 		);
 
+		let (pre_data, _origin) = pre.unwrap();
 		assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-			Some(pre.unwrap()),
+			pre_data,
 			&info,
-			&default_post_info(),
+			&mut default_post_info(),
 			len,
 			&Ok(())
 		));
@@ -383,7 +397,7 @@ fn fee_payment_in_native_currency() {
 			let info = info_from_weight(Weight::from_parts(5, 0));
 
 			assert!(ChargeTransactionPayment::<Test>::from(0)
-				.pre_dispatch(&CHARLIE, CALL, &info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &info, len, 0)
 				.is_ok());
 
 			assert_eq!(Balances::free_balance(CHARLIE), 100 - 5 - 5 - 10);
@@ -407,7 +421,7 @@ fn fee_payment_in_non_native_currency() {
 			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY_WITH_PRICE, &CHARLIE), 10_000);
 
 			assert!(ChargeTransactionPayment::<Test>::from(0)
-				.pre_dispatch(&CHARLIE, CALL, &info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &info, len, 0)
 				.is_ok());
 
 			//Native balance check - Charlie should be still broke!
@@ -431,15 +445,16 @@ fn fee_payment_in_expensive_non_native_currency_should_be_non_zero() {
 			assert_eq!(Tokens::free_balance(HIGH_VALUE_CURRENCY, &BOB), 10_000);
 
 			let pre = ChargeTransactionPayment::<Test>::from(0)
-				.pre_dispatch(&BOB, CALL, &info, len)
+				.validate_and_prepare(Some(BOB).into(), CALL, &info, len, 0)
 				.unwrap();
 
 			// Bob should be charged at least 1 token
 			assert_eq!(Tokens::free_balance(HIGH_VALUE_CURRENCY, &BOB), 9999);
 
-			let post_info = post_info_from_weight(Weight::from_parts(3, 0));
+			let mut post_info = post_info_from_weight(Weight::from_parts(3, 0));
+			let (pre_data, _origin) = pre;
 			assert!(
-				ChargeTransactionPayment::<Test>::post_dispatch(Some(pre), &info, &post_info, len, &Ok(())).is_ok()
+				ChargeTransactionPayment::<Test>::post_dispatch(pre_data, &info, &mut post_info, len, &Ok(())).is_ok()
 			);
 			// BOB should not be refunded in case he payed only 1 token
 			assert_eq!(Tokens::free_balance(HIGH_VALUE_CURRENCY, &BOB), 9999);
@@ -458,7 +473,7 @@ fn fee_payment_non_native_insufficient_balance() {
 			let info = info_from_weight(Weight::from_parts(5, 0));
 
 			assert!(ChargeTransactionPayment::<Test>::from(0)
-				.pre_dispatch(&CHARLIE, CALL, &info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &info, len, 0)
 				.is_err());
 
 			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY, &CHARLIE), 100);
@@ -529,7 +544,7 @@ fn account_currency_works() {
 			account_id: ALICE,
 			asset_id: SUPPORTED_CURRENCY,
 		}
-		.into()]);
+			.into()]);
 
 		assert_eq!(PaymentPallet::account_currency(&ALICE), SUPPORTED_CURRENCY);
 
@@ -542,7 +557,7 @@ fn account_currency_works() {
 pub fn info_from_weight(w: Weight) -> DispatchInfo {
 	// pays_fee: Pays::Yes -- class: DispatchClass::Normal
 	DispatchInfo {
-		weight: w,
+		call_weight: w,
 		..Default::default()
 	}
 }
@@ -575,19 +590,19 @@ fn fee_should_be_transferred_when_paid_in_native_currency() {
 
 			// Act
 			let pre = ChargeTransactionPayment::<Test>::from(tip)
-				.pre_dispatch(&CHARLIE, CALL, &dispatch_info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &dispatch_info, len, 0)
 				.unwrap();
 			// Assert
-			assert_eq!(pre, (tip, CHARLIE, Some(PaymentInfo::Native(5 + 15 + 10))));
 
 			assert_eq!(Balances::free_balance(CHARLIE), 100 - 30);
 			assert_eq!(Balances::free_balance(FEE_RECEIVER), 0);
 
 			// Act
+			let (pre_data, _origin) = pre;
 			assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-				Some(pre),
+				pre_data,
 				&dispatch_info,
-				&default_post_info(),
+				&mut default_post_info(),
 				len,
 				&Ok(())
 			));
@@ -612,7 +627,7 @@ fn fee_should_be_withdrawn_when_paid_in_native_currency() {
 
 			// Act
 			let pre = ChargeTransactionPayment::<Test>::from(tip)
-				.pre_dispatch(&CHARLIE, CALL, &dispatch_info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &dispatch_info, len, 0)
 				.unwrap();
 
 			// Assert
@@ -620,10 +635,11 @@ fn fee_should_be_withdrawn_when_paid_in_native_currency() {
 			assert_eq!(Balances::free_balance(FEE_RECEIVER), 0);
 
 			// Act
+			let (pre_data, _origin) = pre;
 			assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-				Some(pre),
+				pre_data,
 				&dispatch_info,
-				&default_post_info(),
+				&mut default_post_info(),
 				len,
 				&Ok(())
 			));
@@ -649,19 +665,19 @@ fn fee_should_be_transferred_when_paid_in_native_currency_work_with_tip() {
 
 			// Act
 			let pre = ChargeTransactionPayment::<Test>::from(tip)
-				.pre_dispatch(&CHARLIE, CALL, &dispatch_info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &dispatch_info, len, 0)
 				.unwrap();
 			// Assert
-			assert_eq!(pre, (tip, CHARLIE, Some(PaymentInfo::Native(5 + 15 + 10 + tip))));
 
 			assert_eq!(Balances::free_balance(CHARLIE), 100 - 5 - 10 - 15 - tip);
 			assert_eq!(Balances::free_balance(FEE_RECEIVER), 0);
 
 			// Act
+			let (pre_data, _origin) = pre;
 			assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-				Some(pre),
+				pre_data,
 				&dispatch_info,
-				&post_dispatch_info,
+				&mut post_dispatch_info.clone(),
 				len,
 				&Ok(())
 			));
@@ -688,7 +704,7 @@ fn fee_should_be_withdrawn_when_paid_in_native_currency_work_with_tip() {
 
 			// Act
 			let pre = ChargeTransactionPayment::<Test>::from(tip)
-				.pre_dispatch(&CHARLIE, CALL, &dispatch_info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &dispatch_info, len, 0)
 				.unwrap();
 
 			// Assert
@@ -696,10 +712,11 @@ fn fee_should_be_withdrawn_when_paid_in_native_currency_work_with_tip() {
 			assert_eq!(Balances::free_balance(FEE_RECEIVER), 0);
 
 			// Act
+			let (pre_data, _origin) = pre;
 			assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-				Some(pre),
+				pre_data,
 				&dispatch_info,
-				&post_dispatch_info,
+				&mut post_dispatch_info.clone(),
 				len,
 				&Ok(())
 			));
@@ -726,18 +743,10 @@ fn fee_should_be_transferred_when_paid_in_non_native_currency() {
 
 			// Act
 			let pre = ChargeTransactionPayment::<Test>::from(tip)
-				.pre_dispatch(&CHARLIE, CALL, &dispatch_info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &dispatch_info, len, 0)
 				.unwrap();
 
 			// Assert
-			assert_eq!(
-				pre,
-				(
-					tip,
-					CHARLIE,
-					Some(PaymentInfo::NonNative(45, SUPPORTED_CURRENCY, Price::from_float(1.5)))
-				)
-			);
 
 			assert_eq!(Currencies::free_balance(SUPPORTED_CURRENCY, &CHARLIE), 10_000 - 45);
 			assert_eq!(Currencies::free_balance(SUPPORTED_CURRENCY, &FeeReceiver::get()), 0);
@@ -745,10 +754,11 @@ fn fee_should_be_transferred_when_paid_in_non_native_currency() {
 			assert_eq!(Balances::free_balance(FEE_RECEIVER), 0);
 
 			// Act
+			let (pre_data, _origin) = pre;
 			assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-				Some(pre),
+				pre_data,
 				&dispatch_info,
-				&default_post_info(),
+				&mut default_post_info(),
 				len,
 				&Ok(())
 			));
@@ -777,7 +787,7 @@ fn fee_should_be_withdrawn_when_paid_in_non_native_currency() {
 
 			// Act
 			let pre = ChargeTransactionPayment::<Test>::from(tip)
-				.pre_dispatch(&CHARLIE, CALL, &dispatch_info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &dispatch_info, len, 0)
 				.unwrap();
 
 			// Assert
@@ -787,10 +797,11 @@ fn fee_should_be_withdrawn_when_paid_in_non_native_currency() {
 			assert_eq!(Balances::free_balance(FEE_RECEIVER), 0);
 
 			// Act
+			let (pre_data, _origin) = pre;
 			assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-				Some(pre),
+				pre_data,
 				&dispatch_info,
-				&default_post_info(),
+				&mut default_post_info(),
 				len,
 				&Ok(())
 			));
@@ -820,18 +831,10 @@ fn fee_should_be_transferred_when_paid_in_non_native_currency_with_tip() {
 
 			// Act
 			let pre = ChargeTransactionPayment::<Test>::from(tip)
-				.pre_dispatch(&CHARLIE, CALL, &dispatch_info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &dispatch_info, len, 0)
 				.unwrap();
 
 			// Assert
-			assert_eq!(
-				pre,
-				(
-					tip,
-					CHARLIE,
-					Some(PaymentInfo::NonNative(52, SUPPORTED_CURRENCY, Price::from_float(1.5)))
-				)
-			);
 
 			assert_eq!(Currencies::free_balance(SUPPORTED_CURRENCY, &CHARLIE), 10_000 - 52);
 			assert_eq!(Currencies::free_balance(SUPPORTED_CURRENCY, &FeeReceiver::get()), 0);
@@ -839,10 +842,11 @@ fn fee_should_be_transferred_when_paid_in_non_native_currency_with_tip() {
 			assert_eq!(Balances::free_balance(FEE_RECEIVER), 0);
 
 			// Act
+			let (pre_data, _origin) = pre;
 			assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-				Some(pre),
+				pre_data,
 				&dispatch_info,
-				&post_dispatch_info,
+				&mut post_dispatch_info.clone(),
 				len,
 				&Ok(())
 			));
@@ -872,7 +876,7 @@ fn fee_should_be_withdrawn_and_not_refunded_when_paid_in_non_native_currency_wit
 
 			// Act
 			let pre = ChargeTransactionPayment::<Test>::from(tip)
-				.pre_dispatch(&CHARLIE, CALL, &dispatch_info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &dispatch_info, len, 0)
 				.unwrap();
 
 			// Assert
@@ -882,10 +886,11 @@ fn fee_should_be_withdrawn_and_not_refunded_when_paid_in_non_native_currency_wit
 			assert_eq!(Balances::free_balance(FEE_RECEIVER), 0);
 
 			// Act
+			let (pre_data, _origin) = pre;
 			assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-				Some(pre),
+				pre_data,
 				&dispatch_info,
-				&post_dispatch_info,
+				&mut post_dispatch_info.clone(),
 				len,
 				&Ok(())
 			));
@@ -910,7 +915,7 @@ fn fee_payment_in_native_currency_with_no_balance() {
 			let info = info_from_weight(Weight::from_parts(5, 0));
 
 			assert!(ChargeTransactionPayment::<Test>::from(0)
-				.pre_dispatch(&CHARLIE, CALL, &info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &info, len, 0)
 				.is_err());
 
 			assert_eq!(Balances::free_balance(CHARLIE), 10);
@@ -930,7 +935,7 @@ fn fee_payment_in_non_native_currency_with_no_balance() {
 			let info = info_from_weight(Weight::from_parts(5, 0));
 
 			assert!(ChargeTransactionPayment::<Test>::from(0)
-				.pre_dispatch(&CHARLIE, CALL, &info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &info, len, 0)
 				.is_err());
 
 			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY, &CHARLIE), 100);
@@ -955,7 +960,7 @@ fn fee_payment_in_non_native_currency_with_no_price() {
 			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY, &FEE_RECEIVER), 0);
 
 			assert!(ChargeTransactionPayment::<Test>::from(0)
-				.pre_dispatch(&CHARLIE, CALL, &info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &info, len, 0)
 				.is_ok());
 
 			//Native balance check - Charlie should be still broke!
@@ -983,7 +988,7 @@ fn fee_payment_in_unregistered_currency() {
 			));
 
 			assert!(ChargeTransactionPayment::<Test>::from(0)
-				.pre_dispatch(&CHARLIE, CALL, &info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &info, len, 0)
 				.is_err());
 
 			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY, &CHARLIE), 100);
@@ -1002,7 +1007,7 @@ fn fee_payment_non_native_insufficient_balance_with_no_pool() {
 			let info = info_from_weight(Weight::from_parts(5, 0));
 
 			assert!(ChargeTransactionPayment::<Test>::from(0)
-				.pre_dispatch(&CHARLIE, CALL, &info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &info, len, 0)
 				.is_err());
 
 			assert_eq!(Tokens::free_balance(SUPPORTED_CURRENCY, &CHARLIE), 100);
@@ -1023,19 +1028,18 @@ fn fee_transfer_can_kill_account_when_paid_in_native() {
 
 			// Act
 			let pre = ChargeTransactionPayment::<Test>::from(tip)
-				.pre_dispatch(&CHARLIE, CALL, &dispatch_info, len)
+				.validate_and_prepare(Some(CHARLIE).into(), CALL, &dispatch_info, len, 0)
 				.unwrap();
 
 			// Assert
-			assert_eq!(pre, (tip, CHARLIE, Some(PaymentInfo::Native(30))));
-			assert_eq!(Balances::free_balance(CHARLIE), 0);
 			assert_eq!(Balances::free_balance(FEE_RECEIVER), 0);
 
 			// Act
+			let (pre_data, _origin) = pre;
 			assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-				Some(pre),
+				pre_data,
 				&dispatch_info,
-				&default_post_info(),
+				&mut default_post_info(),
 				len,
 				&Ok(())
 			));
@@ -1058,30 +1062,27 @@ fn fee_transfer_can_kill_account_when_paid_in_non_native() {
 			let tip = 0;
 			let dispatch_info = info_from_weight(Weight::from_parts(15, 0));
 
-			assert_ok!(Currencies::withdraw(SUPPORTED_CURRENCY, &ALICE, INITIAL_BALANCE - 45));
+			assert_ok!(Currencies::withdraw(
+				SUPPORTED_CURRENCY,
+				&ALICE,
+				INITIAL_BALANCE - 45,
+				ExistenceRequirement::AllowDeath
+			));
 
 			// Act
 			let pre = ChargeTransactionPayment::<Test>::from(tip)
-				.pre_dispatch(&ALICE, CALL, &dispatch_info, len)
+				.validate_and_prepare(Some(ALICE).into(), CALL, &dispatch_info, len, 0)
 				.unwrap();
 
 			// Assert
-			assert_eq!(
-				pre,
-				(
-					tip,
-					ALICE,
-					Some(PaymentInfo::NonNative(45, SUPPORTED_CURRENCY, Price::from_float(1.5)))
-				)
-			);
-			assert_eq!(Currencies::free_balance(SUPPORTED_CURRENCY, &ALICE), 0);
 			assert_eq!(Currencies::free_balance(SUPPORTED_CURRENCY, &FEE_RECEIVER), 0);
 
 			// Act
+			let (pre_data, _origin) = pre;
 			assert_ok!(ChargeTransactionPayment::<Test>::post_dispatch(
-				Some(pre),
+				pre_data,
 				&dispatch_info,
-				&default_post_info(),
+				&mut default_post_info(),
 				len,
 				&Ok(())
 			));
@@ -1273,8 +1274,6 @@ fn do_not_set_fee_currency_for_new_native_account() {
 
 #[test]
 fn returns_prices_for_supported_currencies() {
-	use hydradx_traits::NativePriceOracle;
-
 	ExtBuilder::default().build().execute_with(|| {
 		// returns constant price of 1 for native asset
 		assert_eq!(PaymentPallet::price(HdxAssetId::get()), Some(1.into()));
@@ -1306,178 +1305,6 @@ fn reset_payment_currency_should_set_currency_to_hdx_for_non_evm_accounts() {
 			account_id: ALICE,
 			asset_id: HDX,
 		}
-		.into()]);
-	});
-}
-
-#[test]
-fn reset_payment_currency_should_set_currency_to_weth_for_evm_accounts() {
-	let alice_evm_address = EVMAccounts::evm_address(&ALICE);
-	let alice_evm_acc = EVMAccounts::truncated_account_id(alice_evm_address);
-
-	ExtBuilder::default()
-		.with_currencies(vec![(alice_evm_acc.clone(), SUPPORTED_CURRENCY)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(PaymentPallet::reset_payment_currency(
-				RuntimeOrigin::root(),
-				alice_evm_acc.clone(),
-			));
-
-			assert_eq!(PaymentPallet::get_currency(alice_evm_acc.clone()), Some(WETH));
-
-			expect_events(vec![Event::CurrencySet {
-				account_id: alice_evm_acc,
-				asset_id: WETH,
-			}
 			.into()]);
-		});
-}
-
-#[test]
-fn validate_unsigned_should_correctly_call_validate_handler() {
-	let alice_evm_address = EVMAccounts::evm_address(&ALICE);
-	let other_evm_address = EVMAccounts::evm_address(&BOB);
-	let alice_evm_acc = EVMAccounts::truncated_account_id(alice_evm_address);
-
-	ExtBuilder::default()
-		.with_currencies(vec![(alice_evm_acc.clone(), SUPPORTED_CURRENCY)])
-		.build()
-		.execute_with(|| {
-			let r: [u8; 32] = [100; 32];
-			let s: [u8; 32] = [200; 32];
-
-			let call = crate::Call::dispatch_permit {
-				from: alice_evm_address,
-				to: other_evm_address,
-				data: b"test".to_vec(),
-				value: U256::from(1234),
-				gas_limit: 123,
-				deadline: U256::from(99999),
-				v: 255,
-				r: H256::from(r),
-				s: H256::from(s),
-			};
-
-			assert_storage_noop!({
-				let res = PaymentPallet::validate_unsigned(TransactionSource::Local, &call);
-				assert_ok!(res);
-			});
-
-			let expected = ValidationData {
-				source: alice_evm_address,
-				target: other_evm_address,
-				input: b"test".to_vec(),
-				value: U256::from(1234),
-				gas_limit: 123,
-				deadline: U256::from(99999),
-				v: 255,
-				r: H256::from(r),
-				s: H256::from(s),
-			};
-
-			assert_eq!(PermitDispatchHandler::last_validation_call_data(), expected);
-		});
-}
-
-#[test]
-fn validate_unsigned_should_correctly_dry_run_dispatch() {
-	let alice_evm_address = EVMAccounts::evm_address(&ALICE);
-	let other_evm_address = EVMAccounts::evm_address(&BOB);
-	let alice_evm_acc = EVMAccounts::truncated_account_id(alice_evm_address);
-
-	ExtBuilder::default()
-		.with_currencies(vec![(alice_evm_acc.clone(), SUPPORTED_CURRENCY)])
-		.build()
-		.execute_with(|| {
-			let r: [u8; 32] = [100; 32];
-			let s: [u8; 32] = [200; 32];
-
-			let call = crate::Call::dispatch_permit {
-				from: alice_evm_address,
-				to: other_evm_address,
-				data: b"test".to_vec(),
-				value: U256::from(1234),
-				gas_limit: 123,
-				deadline: U256::from(99999),
-				v: 255,
-				r: H256::from(r),
-				s: H256::from(s),
-			};
-
-			assert_storage_noop!({
-				let res = PaymentPallet::validate_unsigned(TransactionSource::Local, &call);
-				assert_ok!(res);
-			});
-
-			let expected = PermitDispatchData {
-				source: alice_evm_address,
-				target: other_evm_address,
-				input: b"test".to_vec(),
-				value: U256::from(1234),
-				gas_limit: 123,
-				max_fee_per_gas: U256::from(222u128),
-				max_priority_fee_per_gas: None,
-				nonce: None,
-				access_list: vec![],
-			};
-
-			assert_eq!(PermitDispatchHandler::last_dispatch_call_data(), expected);
-		});
-}
-
-#[test]
-fn dispatch_should_correctly_call_validate_and_dispatch() {
-	let alice_evm_address = EVMAccounts::evm_address(&ALICE);
-	let other_evm_address = EVMAccounts::evm_address(&BOB);
-	let alice_evm_acc = EVMAccounts::truncated_account_id(alice_evm_address);
-
-	ExtBuilder::default()
-		.with_currencies(vec![(alice_evm_acc.clone(), SUPPORTED_CURRENCY)])
-		.build()
-		.execute_with(|| {
-			let r: [u8; 32] = [50; 32];
-			let s: [u8; 32] = [100; 32];
-
-			assert_ok!(PaymentPallet::dispatch_permit(
-				RuntimeOrigin::none(),
-				alice_evm_address,
-				other_evm_address,
-				U256::from(1234),
-				b"test".to_vec(),
-				333,
-				U256::from(99999u128),
-				128,
-				H256::from(r),
-				H256::from(s),
-			));
-
-			let expected = ValidationData {
-				source: alice_evm_address,
-				target: other_evm_address,
-				input: b"test".to_vec(),
-				value: U256::from(1234),
-				gas_limit: 333,
-				deadline: U256::from(99999u128),
-				v: 128,
-				r: H256::from(r),
-				s: H256::from(s),
-			};
-
-			assert_eq!(PermitDispatchHandler::last_validation_call_data(), expected);
-
-			let expected = PermitDispatchData {
-				source: alice_evm_address,
-				target: other_evm_address,
-				input: b"test".to_vec(),
-				value: U256::from(1234),
-				gas_limit: 333,
-				max_fee_per_gas: U256::from(222u128),
-				max_priority_fee_per_gas: None,
-				nonce: None,
-				access_list: vec![],
-			};
-
-			assert_eq!(PermitDispatchHandler::last_dispatch_call_data(), expected);
-		});
+	});
 }

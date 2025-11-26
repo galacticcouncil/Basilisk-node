@@ -141,7 +141,7 @@ proptest! {
 	}
 }
 
-use hydra_dx_math::ema::{iterated_balance_ema, iterated_price_ema, iterated_volume_ema};
+use basilisk_math::ema::{iterated_balance_ema, iterated_price_ema, iterated_volume_ema};
 
 proptest! {
 	#[test]

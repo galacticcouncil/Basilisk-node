@@ -1844,7 +1844,7 @@ fn execute_sell_should_work() {
 				fee_amount: 1_000,
 			}
 			.into(),
-			pallet_broadcast::Event::Swapped {
+			pallet_broadcast::Event::Swapped3 {
 				swapper: ALICE,
 				filler: pool_id,
 				filler_type: pallet_broadcast::types::Filler::LBP,
@@ -1987,7 +1987,7 @@ fn execute_buy_should_work() {
 				fee_amount: 1_000,
 			}
 			.into(),
-			pallet_broadcast::Event::Swapped {
+			pallet_broadcast::Event::Swapped3 {
 				swapper: ALICE,
 				filler: pool_id,
 				filler_type: pallet_broadcast::types::Filler::LBP,
@@ -2316,7 +2316,7 @@ fn buy_should_work() {
 				fee_amount: 35860,
 			}
 			.into(),
-			pallet_broadcast::Event::Swapped {
+			pallet_broadcast::Event::Swapped3 {
 				swapper: buyer,
 				filler: pool_id,
 				filler_type: pallet_broadcast::types::Filler::LBP,
@@ -2461,7 +2461,7 @@ fn buy_should_work_when_limit_is_set_above_account_balance() {
 				fee_amount: 35860,
 			}
 			.into(),
-			pallet_broadcast::Event::Swapped {
+			pallet_broadcast::Event::Swapped3 {
 				swapper: buyer,
 				filler: pool_id,
 				filler_type: pallet_broadcast::types::Filler::LBP,
@@ -2495,7 +2495,7 @@ fn buy_should_work_when_limit_is_set_above_account_balance() {
 				fee_amount: 20_000,
 			}
 			.into(),
-			pallet_broadcast::Event::Swapped {
+			pallet_broadcast::Event::Swapped3 {
 				swapper: buyer,
 				filler: pool_id,
 				filler_type: pallet_broadcast::types::Filler::LBP,
@@ -2586,7 +2586,7 @@ fn sell_should_work() {
 				fee_amount: 20_000,
 			}
 			.into(),
-			pallet_broadcast::Event::Swapped {
+			pallet_broadcast::Event::Swapped3 {
 				swapper: buyer,
 				filler: pool_id,
 				filler_type: pallet_broadcast::types::Filler::LBP,
@@ -3958,8 +3958,8 @@ mod spot_price_calculation {
 	use crate::mock::RuntimeOrigin;
 	use frame_support::storage::with_transaction;
 	use hydradx_traits::pools::SpotPriceProvider;
-	use hydradx_traits::router::PoolType;
-	use hydradx_traits::router::TradeExecution;
+	use basilisk_traits::router::PoolType;
+	use basilisk_traits::router::TradeExecution;
 	use sp_runtime::FixedPointNumber;
 	use sp_runtime::{FixedU128, TransactionOutcome};
 	use test_utils::assert_eq_approx;

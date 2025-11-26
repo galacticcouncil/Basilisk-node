@@ -28,9 +28,8 @@ use frame_support::sp_runtime::{
 use frame_support::traits::{Contains, Everything};
 use frame_support::BoundedVec;
 use frame_system::EnsureRoot;
-use hydradx_traits::OraclePeriod::{self, *};
-use hydradx_traits::Source;
-use hydradx_traits::{Liquidity, Volume};
+use basilisk_traits::oracle::{Liquidity, Volume, OraclePeriod::{self, *}};
+use basilisk_traits::Source;
 use sp_core::H256;
 
 use crate::types::{AssetId, Balance, Price};
@@ -113,6 +112,7 @@ impl frame_system::Config for Test {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 parameter_types! {

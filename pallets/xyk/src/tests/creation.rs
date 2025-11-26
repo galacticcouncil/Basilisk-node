@@ -43,13 +43,8 @@ fn create_pool_should_work() {
 		expect_events(vec![
 			pallet_asset_registry::Event::Registered {
 				asset_id: share_token,
-				asset_name: Some(bounded_name),
+				asset_name: bounded_name,
 				asset_type: AssetType::XYK,
-				existential_deposit: pallet_asset_registry::DEFAULT_ED,
-				xcm_rate_limit: None,
-				symbol: None,
-				decimals: None,
-				is_sufficient: false,
 			}
 			.into(),
 			Event::PoolCreated {
@@ -378,15 +373,13 @@ fn share_asset_id_should_be_offset() {
 		// This is how share tokens were registered before the offset was introduced.
 		assert_ok!(AssetRegistry::register(
 			RuntimeOrigin::signed(ALICE),
-			Some(next_asset_id),
-			Some(asset_pair.name().try_into().unwrap()),
+			asset_pair.name(),
 			AssetType::XYK,
-			Some(<Test as crate::Config>::MinPoolLiquidity::get()),
+			<Test as crate::Config>::MinPoolLiquidity::get(),
+			Some(next_asset_id),
 			None,
 			None,
 			None,
-			None,
-			false
 		));
 
 		// Create_pool doesn't register new share token if it already exists

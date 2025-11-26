@@ -18,7 +18,7 @@
 use super::*;
 pub use crate as multi_payment;
 use crate::{Config, TransferFees};
-use hydra_dx_math::types::Ratio;
+use basilisk_math::ratio::Ratio;
 
 use frame_support::dispatch::{DispatchResultWithPostInfo, PostDispatchInfo};
 use frame_support::{
@@ -32,10 +32,11 @@ use frame_support::{
 	weights::{IdentityFee, Weight},
 };
 use frame_system as system;
-use hydradx_traits::{
+use basilisk_traits::{
 	router::{RouteProvider, Trade},
-	AssetKind, OraclePeriod, PriceOracle,
+	oracle::{OraclePeriod, PriceOracle},
 };
+use hydradx_traits::AssetKind;
 use orml_traits::{currency::MutationHooks, parameter_type_with_key};
 use pallet_currencies::{BasicCurrencyAdapter, MockBoundErc20, MockErc20Currency};
 use sp_core::{H160, H256, U256};
@@ -93,7 +94,6 @@ frame_support::construct_runtime!(
 		 Balances: pallet_balances,
 		 Currencies: pallet_currencies,
 		 Tokens: orml_tokens,
-		 EVMAccounts: pallet_evm_accounts,
 		 Utility: pallet_utility,
 	 }
 
@@ -161,6 +161,7 @@ impl system::Config for Test {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 impl Config for Test {
@@ -174,7 +175,7 @@ impl Config for Test {
 	type NativeAssetId = HdxAssetId;
 	type PolkadotNativeAssetId = DotAssetId;
 	type EvmAssetId = EvmAssetId;
-	type InspectEvmAccounts = EVMAccounts;
+	type InspectEvmAccounts = EvmAccountsMock;
 	type EvmPermit = PermitDispatchHandler;
 	type TryCallCurrency<'a> = NoCallCurrency<Test>;
 	type SwappablePaymentAssetSupport = MockedInsufficientAssetSupport;
@@ -267,6 +268,37 @@ pub struct DefaultRouteProvider;
 
 impl RouteProvider<AssetId> for DefaultRouteProvider {}
 
+pub struct EvmAccountsMock;
+impl hydradx_traits::evm::InspectEvmAccounts<AccountId> for EvmAccountsMock {
+	fn is_evm_account(_account_id: AccountId) -> bool {
+		false
+	}
+
+	fn evm_address(_account_id: &impl AsRef<[u8; 32]>) -> sp_core::H160 {
+		sp_core::H160::default()
+	}
+
+	fn truncated_account_id(_evm_address: sp_core::H160) -> AccountId {
+		AccountId::from([0u8; 32])
+	}
+
+	fn bound_account_id(_evm_address: sp_core::H160) -> Option<AccountId> {
+		None
+	}
+
+	fn account_id(_evm_address: sp_core::H160) -> AccountId {
+		AccountId::from([0u8; 32])
+	}
+
+	fn can_deploy_contracts(_evm_address: sp_core::H160) -> bool {
+		false
+	}
+
+	fn is_approved_contract(_address: sp_core::H160) -> bool {
+		false
+	}
+}
+
 pub struct PriceProviderMock {}
 
 impl PriceOracle<AssetId> for PriceProviderMock {
@@ -297,15 +329,17 @@ impl pallet_balances::Config for Test {
 	type MaxFreezes = ();
 	type RuntimeHoldReason = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 impl pallet_transaction_payment::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = TransferFees<Currencies, DepositAll<Test>, FeeReceiver>;
+	type OnChargeTransaction = TransferFees<Test, Currencies, DepositAll<Test>, FeeReceiver>;
 	type LengthToFee = IdentityFee<Balance>;
 	type OperationalFeeMultiplier = ();
 	type WeightToFee = IdentityFee<Balance>;
 	type FeeMultiplierUpdate = ();
+	type WeightInfo = ();
 }
 
 parameter_type_with_key! {
@@ -348,6 +382,10 @@ impl orml_tokens::Config for Test {
 	type CurrencyHooks = CurrencyHooks;
 }
 
+parameter_types! {
+	pub CurrenciesReserveAccount: AccountId = AccountId::from([1u8; 32]);
+}
+
 impl pallet_currencies::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Tokens;
@@ -356,21 +394,7 @@ impl pallet_currencies::Config for Test {
 	type BoundErc20 = MockBoundErc20<Test>;
 	type GetNativeCurrencyId = HdxAssetId;
 	type WeightInfo = ();
-}
-
-pub struct EvmNonceProvider;
-impl pallet_evm_accounts::EvmNonceProvider for EvmNonceProvider {
-	fn get_nonce(_: sp_core::H160) -> sp_core::U256 {
-		sp_core::U256::zero()
-	}
-}
-
-impl pallet_evm_accounts::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-	type EvmNonceProvider = EvmNonceProvider;
-	type FeeMultiplier = frame_support::traits::ConstU32<10>;
-	type ControllerOrigin = frame_system::EnsureRoot<AccountId>;
-	type WeightInfo = ();
+	type ReserveAccount = CurrenciesReserveAccount;
 }
 
 impl pallet_utility::Config for Test {
@@ -432,6 +456,7 @@ impl ExtBuilder {
 
 		pallet_balances::GenesisConfig::<Test> {
 			balances: self.native_balances,
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
