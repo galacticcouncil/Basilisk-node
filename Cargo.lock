@@ -1018,9 +1018,54 @@ dependencies = [
 ]
 
 [[package]]
+name = "basilisk-adapters"
+version = "1.3.10"
+dependencies = [
+ "basilisk-traits",
+ "cumulus-pallet-parachain-system",
+ "cumulus-primitives-core",
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math",
+ "hydradx-traits",
+ "lazy_static",
+ "log",
+ "orml-tokens",
+ "orml-traits",
+ "orml-utilities",
+ "orml-vesting",
+ "orml-xcm-support",
+ "pallet-asset-registry",
+ "pallet-balances",
+ "pallet-broadcast",
+ "pallet-currencies",
+ "pallet-ema-oracle",
+ "pallet-lbp",
+ "pallet-liquidity-mining",
+ "pallet-route-executor",
+ "pallet-transaction-multi-payment",
+ "pallet-uniques",
+ "pallet-xyk 6.7.0",
+ "parity-scale-codec",
+ "polkadot-parachain-primitives",
+ "pretty_assertions",
+ "primitive-types",
+ "primitives 6.6.5",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+ "staging-xcm-builder",
+ "staging-xcm-executor",
+]
+
+[[package]]
 name = "basilisk-runtime"
 version = "127.0.0"
 dependencies = [
+ "basilisk-adapters",
  "basilisk-traits",
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-parachain-system",
@@ -1040,7 +1085,6 @@ dependencies = [
  "frame-try-runtime",
  "hex-literal",
  "hydra-dx-math",
- "hydradx-adapters",
  "hydradx-traits",
  "log",
  "orml-benchmarking",
@@ -1051,7 +1095,7 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry 2.3.6",
+ "pallet-asset-registry",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -1066,7 +1110,7 @@ dependencies = [
  "pallet-elections-phragmen",
  "pallet-ema-oracle",
  "pallet-identity",
- "pallet-lbp 4.10.0",
+ "pallet-lbp",
  "pallet-liquidity-mining",
  "pallet-marketplace",
  "pallet-message-queue",
@@ -1076,7 +1120,7 @@ dependencies = [
  "pallet-proxy",
  "pallet-referenda",
  "pallet-relaychain-info",
- "pallet-route-executor 2.7.0",
+ "pallet-route-executor",
  "pallet-scheduler",
  "pallet-session",
  "pallet-staking 4.1.5",
@@ -3416,16 +3460,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ethabi"
-version = "18.0.0"
-source = "git+https://github.com/AcalaNetwork/ethabi?branch=acala#6e6ef9b3712aec4ad53193281ca0d92dd217066c"
-dependencies = [
- "ethereum-types",
- "hex",
- "sha3",
-]
-
-[[package]]
 name = "ethbloom"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4919,60 +4953,6 @@ dependencies = [
  "sp-arithmetic",
  "sp-core",
  "sp-std",
-]
-
-[[package]]
-name = "hydradx-adapters"
-version = "1.9.1"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "cumulus-pallet-parachain-system",
- "cumulus-primitives-core",
- "ethabi",
- "evm",
- "frame-support",
- "frame-system",
- "hydra-dx-math",
- "hydradx-traits",
- "log",
- "module-evm-utility-macro",
- "num_enum",
- "orml-tokens",
- "orml-traits",
- "orml-utilities",
- "orml-vesting",
- "orml-xcm-support",
- "pallet-asset-registry 3.3.1",
- "pallet-balances",
- "pallet-bonds",
- "pallet-broadcast",
- "pallet-circuit-breaker",
- "pallet-currencies",
- "pallet-dynamic-fees",
- "pallet-ema-oracle",
- "pallet-lbp 4.10.4",
- "pallet-liquidity-mining",
- "pallet-omnipool",
- "pallet-omnipool-liquidity-mining",
- "pallet-referrals",
- "pallet-route-executor 2.10.1",
- "pallet-stableswap",
- "pallet-staking 4.1.5",
- "pallet-timestamp",
- "pallet-transaction-multi-payment",
- "pallet-uniques",
- "parity-scale-codec",
- "polkadot-parachain-primitives",
- "primitive-types",
- "primitives 6.1.2",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
- "staging-xcm",
- "staging-xcm-builder",
- "staging-xcm-executor",
 ]
 
 [[package]]
@@ -6722,30 +6702,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "module-evm-utility"
-version = "2.21.2"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "ethereum",
- "evm",
- "evm-gasometer",
- "evm-runtime",
- "sha3",
- "sp-std",
-]
-
-[[package]]
-name = "module-evm-utility-macro"
-version = "2.21.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "module-evm-utility",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "moka"
 version = "0.12.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7520,31 +7476,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-asset-registry"
-version = "3.3.1"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hydradx-traits",
- "log",
- "orml-traits",
- "parity-scale-codec",
- "primitive-types",
- "primitives 6.1.2",
- "scale-info",
- "serde",
- "sp-api",
- "sp-arithmetic",
- "sp-core",
- "sp-runtime",
- "sp-std",
- "staging-xcm",
- "substrate-wasm-builder",
-]
-
-[[package]]
 name = "pallet-asset-tx-payment"
 version = "40.0.0"
 source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=polkadot-stable2503-06-patch#6fdab91b448ce11fd4d8ee070697e83e0a25d23b"
@@ -7726,28 +7657,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-bonds"
-version = "2.2.5"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hydradx-traits",
- "log",
- "orml-traits",
- "pallet-timestamp",
- "parity-scale-codec",
- "primitive-types",
- "primitives 6.1.2",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-bounties"
 version = "39.0.0"
 source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=polkadot-stable2503-06-patch#6fdab91b448ce11fd4d8ee070697e83e0a25d23b"
@@ -7819,24 +7728,6 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
-]
-
-[[package]]
-name = "pallet-circuit-breaker"
-version = "1.2.2"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "frame-support",
- "frame-system",
- "hydradx-traits",
- "orml-traits",
- "parity-scale-codec",
- "primitives 6.1.2",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -7996,23 +7887,6 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "substrate-wasm-builder",
-]
-
-[[package]]
-name = "pallet-dynamic-fees"
-version = "4.0.0"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "frame-support",
- "frame-system",
- "hydra-dx-math",
- "hydradx-traits",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -8231,27 +8105,6 @@ dependencies = [
  "sp-std",
  "substrate-wasm-builder",
  "test-utils",
-]
-
-[[package]]
-name = "pallet-lbp"
-version = "4.10.4"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "frame-support",
- "frame-system",
- "hydra-dx-math",
- "hydradx-traits",
- "orml-tokens",
- "orml-traits",
- "pallet-broadcast",
- "parity-scale-codec",
- "primitive-types",
- "scale-info",
- "sp-core",
- "sp-runtime",
- "sp-std",
- "substrate-wasm-builder",
 ]
 
 [[package]]
@@ -8504,57 +8357,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-omnipool"
-version = "5.0.10"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "bitflags 1.3.2",
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "hydra-dx-math",
- "hydradx-traits",
- "impl-trait-for-tuples",
- "log",
- "orml-traits",
- "pallet-balances",
- "pallet-broadcast",
- "parity-scale-codec",
- "primitive-types",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
-name = "pallet-omnipool-liquidity-mining"
-version = "2.7.1"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "frame-support",
- "frame-system",
- "hydra-dx-math",
- "hydradx-traits",
- "log",
- "orml-traits",
- "pallet-balances",
- "pallet-ema-oracle",
- "pallet-liquidity-mining",
- "pallet-omnipool",
- "pallet-stableswap",
- "parity-scale-codec",
- "primitive-types",
- "primitives 6.1.2",
- "scale-info",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-parameters"
 version = "0.11.0"
 source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=polkadot-stable2503-06-patch#6fdab91b448ce11fd4d8ee070697e83e0a25d23b"
@@ -8648,24 +8450,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-referrals"
-version = "1.2.9"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "frame-support",
- "frame-system",
- "hex-literal",
- "hydra-dx-math",
- "hydradx-traits",
- "orml-traits",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-runtime",
- "sp-std",
-]
-
-[[package]]
 name = "pallet-relaychain-info"
 version = "0.3.6"
 source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
@@ -8698,12 +8482,12 @@ dependencies = [
 name = "pallet-route-executor"
 version = "2.7.0"
 dependencies = [
+ "basilisk-adapters",
  "basilisk-traits",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "hydra-dx-math",
- "hydradx-adapters",
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
@@ -8720,27 +8504,6 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "test-utils",
-]
-
-[[package]]
-name = "pallet-route-executor"
-version = "2.10.1"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "frame-support",
- "frame-system",
- "hydra-dx-math",
- "hydradx-traits",
- "orml-traits",
- "pallet-balances",
- "pallet-broadcast",
- "parity-scale-codec",
- "primitives 6.1.2",
- "scale-info",
- "serde",
- "sp-core",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -8812,29 +8575,6 @@ dependencies = [
  "sp-arithmetic",
  "sp-io",
  "sp-runtime",
-]
-
-[[package]]
-name = "pallet-stableswap"
-version = "5.5.1"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
-dependencies = [
- "bitflags 1.3.2",
- "frame-support",
- "frame-system",
- "hydra-dx-math",
- "hydradx-traits",
- "num-traits",
- "orml-traits",
- "pallet-broadcast",
- "parity-scale-codec",
- "primitives 6.1.2",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -9193,7 +8933,7 @@ dependencies = [
  "log",
  "orml-tokens",
  "orml-traits",
- "pallet-asset-registry 2.3.6",
+ "pallet-asset-registry",
  "pallet-broadcast",
  "parity-scale-codec",
  "primitive-types",
@@ -9268,7 +9008,7 @@ dependencies = [
  "hydradx-traits",
  "orml-tokens",
  "orml-traits",
- "pallet-asset-registry 2.3.6",
+ "pallet-asset-registry",
  "pallet-balances",
  "pallet-broadcast",
  "pallet-duster",
@@ -11882,7 +11622,7 @@ dependencies = [
  "orml-xcm",
  "orml-xcm-support",
  "orml-xtokens",
- "pallet-asset-registry 2.3.6",
+ "pallet-asset-registry",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
@@ -11892,11 +11632,11 @@ dependencies = [
  "pallet-duster",
  "pallet-ema-oracle",
  "pallet-im-online",
- "pallet-lbp 4.10.0",
+ "pallet-lbp",
  "pallet-marketplace",
  "pallet-nft",
  "pallet-relaychain-info",
- "pallet-route-executor 2.7.0",
+ "pallet-route-executor",
  "pallet-scheduler",
  "pallet-session",
  "pallet-timestamp",

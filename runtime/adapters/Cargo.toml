@@ -12,26 +12,20 @@ codec = { workspace = true }
 log = { workspace = true }
 scale-info = { workspace = true }
 
+basilisk-traits = { workspace = true }
+
 # HydraDX dependencies
 primitives = { workspace = true }
 hydradx-traits = { workspace = true }
 hydra-dx-math = { workspace = true }
 pallet-transaction-multi-payment = { workspace = true }
-pallet-omnipool = { workspace = true }
 pallet-ema-oracle = { workspace = true }
-pallet-circuit-breaker = { workspace = true }
 warehouse-liquidity-mining = { workspace = true }
-pallet-omnipool-liquidity-mining = { workspace = true }
-pallet-dynamic-fees = { workspace = true }
 pallet-uniques = { workspace = true }
-pallet-staking = { workspace = true }
 pallet-route-executor = { workspace = true }
 pallet-currencies = { workspace = true }
-pallet-stableswap = { workspace = true }
-pallet-referrals = { workspace = true }
 pallet-lbp = { workspace = true }
 pallet-asset-registry = { workspace = true }
-pallet-bonds = { workspace = true }
 pallet-broadcast = { workspace = true }
 
 # Substrate dependencies
@@ -73,19 +67,11 @@ default = ["std"]
 runtime-benchmarks = [
     "xcm-builder/runtime-benchmarks",
     "xcm-executor/runtime-benchmarks",
-    "pallet-omnipool/runtime-benchmarks",
     "pallet-ema-oracle/runtime-benchmarks",
-    "pallet-circuit-breaker/runtime-benchmarks",
-    "pallet-omnipool-liquidity-mining/runtime-benchmarks",
-    "pallet-dynamic-fees/runtime-benchmarks",
     "pallet-uniques/runtime-benchmarks",
-    "pallet-staking/runtime-benchmarks",
     "pallet-route-executor/runtime-benchmarks",
-    "pallet-stableswap/runtime-benchmarks",
-    "pallet-referrals/runtime-benchmarks",
     "pallet-lbp/runtime-benchmarks",
     "pallet-asset-registry/runtime-benchmarks",
-    "pallet-bonds/runtime-benchmarks",
     "frame-support/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
     "sp-runtime/runtime-benchmarks",
@@ -101,6 +87,7 @@ std = [
     "pallet-balances/std",
     "frame-support/std",
     "frame-system/std",
+    "basilisk-traits/std",
     "hydradx-traits/std",
     "pallet-transaction-multi-payment/std",
     "polkadot-xcm/std",
@@ -112,6 +99,4 @@ std = [
     "polkadot-parachain/std",
     "orml-tokens/std",
     "pallet-asset-registry/std",
-    "pallet-omnipool-liquidity-mining/std",
-    "pallet-bonds/std",
 ]

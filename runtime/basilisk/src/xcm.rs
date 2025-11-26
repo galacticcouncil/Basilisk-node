@@ -30,8 +30,8 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::EnsureRoot;
-use hydradx_adapters::xcm_exchange::XcmAssetExchanger;
-use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
+use basilisk_adapters::xcm_exchange::XcmAssetExchanger;
+use basilisk_adapters::{MultiCurrencyTrader, ToFeeReceiver};
 use hydradx_traits::router::PoolType;
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};

@@ -340,7 +340,7 @@ impl pallet_xyk::Config for Runtime {
 	type MaxInRatio = MaxInRatio;
 	type MaxOutRatio = MaxOutRatio;
 	type OracleSource = XYKOracleSourceIdentifier;
-	type CanCreatePool = hydradx_adapters::xyk::AllowPoolCreation<Runtime, AssetRegistry>;
+	type CanCreatePool = basilisk_adapters::xyk::AllowPoolCreation<Runtime, AssetRegistry>;
 	type AMMHandler = pallet_ema_oracle::OnActivityHandler<Runtime>;
 	type DiscountedFee = DiscountedFee;
 	type NonDustableWhitelistHandler = Duster;

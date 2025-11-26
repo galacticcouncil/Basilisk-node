@@ -1,6 +1,7 @@
+use frame_support::traits::ExistenceRequirement;
 use orml_traits::MultiCurrency;
 use pallet_broadcast::types::ExecutionType;
-use polkadot_xcm::v4::prelude::*;
+use polkadot_xcm::v5::prelude::*;
 use sp_core::Get;
 use sp_runtime::traits::{Convert, Zero};
 use sp_std::marker::PhantomData;
@@ -92,7 +93,7 @@ where
 					amount_received >= min_buy_amount.into(),
 					"Sell should return more than mininum buy amount."
 				);
-				Currency::withdraw(asset_out, &account, amount_received)?; // burn the received tokens
+				Currency::withdraw(asset_out, &account, amount_received, ExistenceRequirement::AllowDeath)?; // burn the received tokens
 				let holding: Asset = (wanted.id.clone(), amount_received.into()).into();
 
 				Ok(holding.into())
@@ -118,7 +119,7 @@ where
 				let mut assets = sp_std::vec::Vec::with_capacity(2);
 				let left_over = Currency::free_balance(asset_in, &account);
 				if left_over > Runtime::Balance::zero() {
-					Currency::withdraw(asset_in, &account, left_over)?; // burn left over tokens
+					Currency::withdraw(asset_in, &account, left_over, ExistenceRequirement::AllowDeath)?; // burn left over tokens
 					let holding: Asset = (given.id.clone(), left_over.into()).into();
 					assets.push(holding);
 				}
@@ -127,7 +128,7 @@ where
 					amount_received == amount.into(),
 					"Buy should return exactly the amount we specified."
 				);
-				Currency::withdraw(asset_out, &account, amount_received)?; // burn the received tokens
+				Currency::withdraw(asset_out, &account, amount_received, ExistenceRequirement::AllowDeath)?; // burn the received tokens
 				let holding: Asset = (wanted.id.clone(), amount_received.into()).into();
 				assets.push(holding);
 				Ok(assets.into())
