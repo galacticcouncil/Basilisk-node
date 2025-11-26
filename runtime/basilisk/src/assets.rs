@@ -806,18 +806,30 @@ parameter_types! {
 	pub const RouteValidationOraclePeriod: OraclePeriod = OraclePeriod::Hour;
 }
 
+pub struct RefundAndLockedEdCalculator;
+
+use basilisk_traits::router::RefundEdCalculator;
+impl RefundEdCalculator<Balance> for RefundAndLockedEdCalculator {
+	fn calculate() -> Balance {
+		// all assets are sufficient so `RefundAndLockedEdCalculator` is never called.
+		Zero::zero()
+	}
+}
+
 impl pallet_route_executor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type Balance = Balance;
-	type Currency = FungibleCurrencies<Runtime>;
-	type WeightInfo = RouterWeightInfo;
-	type AMM = (XYK, LBP);
-	type DefaultRoutePoolType = DefaultRoutePoolType;
 	type NativeAssetId = NativeAssetId;
-	type ForceInsertOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type Currency = FungibleCurrencies<Runtime>;
+	type InspectRegistry = AssetRegistry;
+	type AMM = (XYK, LBP);
+	type EdToRefundCalculator = RefundAndLockedEdCalculator;
 	type OraclePriceProvider = adapter::OraclePriceProvider<AssetId, EmaOracle>;
 	type OraclePeriod = RouteValidationOraclePeriod;
+	type DefaultRoutePoolType = DefaultRoutePoolType;
+	type ForceInsertOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type WeightInfo = RouterWeightInfo;
 }
 
 parameter_types! {

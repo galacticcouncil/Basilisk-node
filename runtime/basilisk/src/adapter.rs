@@ -5,10 +5,7 @@ use hydra_dx_math::{
 	ema::EmaPrice,
 	support::rational::{round_u512_to_rational, Rounding},
 };
-use hydradx_traits::{
-	router::{PoolType, Trade},
-	AggregatedPriceOracle, OraclePeriod, PriceOracle,
-};
+use basilisk_traits::{oracle::{AggregatedPriceOracle, OraclePeriod, PriceOracle}, router::{PoolType, Trade}};
 use orml_traits::currency::TransferAll;
 use orml_traits::{
 	LockIdentifier, MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency, MultiReservableCurrency,
