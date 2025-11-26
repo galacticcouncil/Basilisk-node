@@ -1,0 +1,68 @@
+[package]
+name = "pallet-route-executor"
+version = "2.7.0"
+description = "A pallet to execute a route containing a sequence of trades"
+authors = ["GalacticCouncil"]
+edition = "2021"
+license = "Apache 2.0"
+repository = "https://github.com/galacticcouncil/HydraDX-node/tree/master/route-executor"
+
+[dependencies]
+codec = { workspace = true }
+scale-info = { workspace = true }
+serde = { workspace = true }
+
+basilisk-traits = { workspace = true }
+
+# HydraDX dependencies
+hydradx-traits = { workspace = true }
+hydra-dx-math = { workspace = true }
+pallet-broadcast = { workspace = true }
+primitives = { workspace = true }
+
+# ORML dependencies
+orml-traits = { workspace = true }
+
+# Substrate dependencies
+frame-benchmarking = { workspace = true, optional = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+sp-std = { workspace = true }
+sp-core = { workspace = true }
+sp-runtime = { workspace = true }
+pallet-balances = { workspace = true }
+
+[dev-dependencies]
+sp-io = { workspace = true }
+pretty_assertions = { workspace = true }
+orml-tokens = { workspace = true }
+pallet-currencies = { workspace = true }
+hydradx-adapters = { workspace = true }
+test-utils = { workspace = true }
+
+[features]
+default = ["std"]
+runtime-benchmarks = [
+    "frame-benchmarking/runtime-benchmarks",
+    "frame-system/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
+]
+std = [
+  "serde/std",
+  "codec/std",
+  "scale-info/std",
+  "sp-std/std",
+  "frame-support/std",
+  "frame-system/std",
+  "orml-tokens/std",
+  "orml-traits/std",
+  "hydradx-adapters/std",
+  "pallet-balances/std",
+  "pallet-broadcast/std",
+  "hydradx-traits/std",
+  "hydra-dx-math/std",
+  "frame-benchmarking/std",
+  "sp-core/std",
+  "sp-runtime/std",
+]
+try-runtime = ["frame-support/try-runtime"]

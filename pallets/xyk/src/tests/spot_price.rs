@@ -9,7 +9,6 @@ use frame_support::dispatch::RawOrigin;
 use frame_support::storage::with_transaction;
 use hydradx_traits::pools::SpotPriceProvider;
 use hydradx_traits::router::PoolType;
-use hydradx_traits::router::TradeExecution;
 use sp_runtime::FixedPointNumber;
 use sp_runtime::FixedU128;
 use sp_runtime::TransactionOutcome;

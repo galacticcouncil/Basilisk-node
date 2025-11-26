@@ -1076,7 +1076,7 @@ dependencies = [
  "pallet-proxy",
  "pallet-referenda",
  "pallet-relaychain-info",
- "pallet-route-executor",
+ "pallet-route-executor 2.7.0",
  "pallet-scheduler",
  "pallet-session",
  "pallet-staking 4.1.5",
@@ -4945,7 +4945,7 @@ dependencies = [
  "pallet-omnipool",
  "pallet-omnipool-liquidity-mining",
  "pallet-referrals",
- "pallet-route-executor",
+ "pallet-route-executor 2.10.1",
  "pallet-stableswap",
  "pallet-staking 4.1.5",
  "pallet-timestamp",
@@ -8661,6 +8661,34 @@ dependencies = [
 
 [[package]]
 name = "pallet-route-executor"
+version = "2.7.0"
+dependencies = [
+ "basilisk-traits",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "hydra-dx-math",
+ "hydradx-adapters",
+ "hydradx-traits",
+ "orml-tokens",
+ "orml-traits",
+ "pallet-balances",
+ "pallet-broadcast",
+ "pallet-currencies",
+ "parity-scale-codec",
+ "pretty_assertions",
+ "primitives 6.6.5",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "test-utils",
+]
+
+[[package]]
+name = "pallet-route-executor"
 version = "2.10.1"
 source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
 dependencies = [
@@ -11820,7 +11848,7 @@ dependencies = [
  "pallet-marketplace",
  "pallet-nft",
  "pallet-relaychain-info",
- "pallet-route-executor",
+ "pallet-route-executor 2.7.0",
  "pallet-scheduler",
  "pallet-session",
  "pallet-timestamp",
