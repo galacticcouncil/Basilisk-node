@@ -9,6 +9,7 @@ license = "Apache 2.0"
 repository = "https://github.com/galacticcouncil/Basilisk-node"
 
 [dependencies]
+basilisk-traits = { workspace = true }
 # HydraDX dependencies
 pallet-transaction-multi-payment = { workspace = true }
 pallet-nft = { workspace = true }

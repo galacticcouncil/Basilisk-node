@@ -25,7 +25,7 @@ use sp_runtime::{
 
 use frame_support::traits::Everything;
 
-use polkadot_xcm::v3::MultiLocation;
+use polkadot_xcm::v5::Location;
 
 use crate::{self as asset_registry, Config};
 
@@ -90,7 +90,7 @@ use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 
 #[derive(Debug, Default, Encode, Decode, DecodeWithMemTracking, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
-pub struct AssetLocation(pub MultiLocation);
+pub struct AssetLocation(pub Location);
 
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;

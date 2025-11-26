@@ -60,8 +60,9 @@ use sp_core::{storage::Storage, Encode};
 use sp_runtime::{traits::AccountIdConversion, BuildStorage, Digest, DigestItem};
 
 use primitives::constants::chain::CORE_ASSET_ID;
+use polkadot_primitives::runtime_api::runtime_decl_for_parachain_host::ParachainHostV13;
 pub use xcm_emulator::Network;
-use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains};
+use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains, Parachain};
 
 pub type Basilisk = BasiliskParachain<TestNet>;
 pub type OtherParachain = OtherPara<TestNet>;
@@ -167,18 +168,27 @@ pub mod rococo {
 	}
 
 	use polkadot_primitives::{AssignmentId, ValidatorId};
-	use polkadot_service::chain_spec::get_account_id_from_seed;
 	use sc_consensus_grandpa::AuthorityId as GrandpaId;
 	use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 	use sp_consensus_babe::AuthorityId as BabeId;
 	use sp_consensus_beefy::ecdsa_crypto::AuthorityId as BeefyId;
 	use sp_core::{sr25519, Pair, Public};
+	use sp_runtime::traits::AccountIdConversion;
+	use sp_runtime::AccountId32 as AccountPublic;
 
 	/// Helper function to generate a crypto pair from seed
 	fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
 		TPublic::Pair::from_string(&format!("//{}", seed), None)
 			.expect("static values are valid; qed")
 			.public()
+	}
+
+	/// Helper function to generate an account ID from seed.
+	fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
+	where
+		AccountPublic: From<<TPublic::Pair as Pair>::Public>,
+	{
+		AccountPublic::from(get_from_seed::<TPublic>(seed))
 	}
 
 	fn session_keys(
@@ -252,6 +262,7 @@ pub mod rococo {
 					(AccountId::from(ALICE), 2002 * UNITS),
 					(ParaId::from(BASILISK_PARA_ID).into_account_truncating(), 10 * UNITS),
 				],
+				dev_accounts: Default::default(),
 			},
 			session: rococo_runtime::SessionConfig {
 				keys: initial_authorities()
@@ -378,6 +389,7 @@ pub mod basilisk {
 					(AccountId::from(DAVE), DAVE_INITIAL_BSX_BALANCE),
 					(vesting_account(), VESTING_ACCOUNT_INITIAL_BSX_BALANCE),
 				],
+			dev_accounts: Default::default(),
 			},
 			collator_selection: basilisk_runtime::CollatorSelectionConfig {
 				invulnerables: invulnerables().iter().cloned().map(|(acc, _)| acc).collect(),
@@ -444,9 +456,7 @@ pub mod basilisk {
 				account_currencies: vec![],
 			},
 			duster: basilisk_runtime::DusterConfig {
-				account_blacklist: vec![basilisk_runtime::Treasury::account_id()],
-				reward_account: Some(basilisk_runtime::Treasury::account_id()),
-				dust_account: Some(basilisk_runtime::Treasury::account_id()),
+				account_whitelist: vec![basilisk_runtime::Treasury::account_id()],
 			},
 			..Default::default()
 		};
@@ -466,6 +476,7 @@ pub mod other_parachain {
 		let genesis_config = basilisk_runtime::RuntimeGenesisConfig {
 			balances: basilisk_runtime::BalancesConfig {
 				balances: vec![(AccountId::from(ALICE), ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN)],
+				dev_accounts: Default::default(),
 			},
 			collator_selection: basilisk_runtime::CollatorSelectionConfig {
 				invulnerables: basilisk::invulnerables().iter().cloned().map(|(acc, _)| acc).collect(),
@@ -513,9 +524,7 @@ pub mod other_parachain {
 				account_currencies: vec![],
 			},
 			duster: basilisk_runtime::DusterConfig {
-				account_blacklist: vec![basilisk_runtime::Treasury::account_id()],
-				reward_account: Some(basilisk_runtime::Treasury::account_id()),
-				dust_account: Some(basilisk_runtime::Treasury::account_id()),
+				account_whitelist: vec![basilisk_runtime::Treasury::account_id()],
 			},
 			..Default::default()
 		};

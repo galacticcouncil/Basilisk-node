@@ -7,8 +7,8 @@ use frame_support::dispatch::GetDispatchInfo;
 use frame_support::{assert_ok, pallet_prelude::*};
 use orml_traits::currency::MultiCurrency;
 use polkadot_xcm::{
-	opaque::v3::{Junction, Junctions::X2, MultiLocation},
-	v4::prelude::*,
+	opaque::v5::{Junction, Junctions::X2, Location},
+	v5::prelude::*,
 	VersionedXcm,
 };
 use pretty_assertions::assert_eq;
@@ -149,9 +149,9 @@ fn register_kar() {
 		1_000_000,
 		Some(KAR),
 		None,
-		Some(basilisk_runtime::AssetLocation(MultiLocation::new(
+		Some(basilisk_runtime::AssetLocation(Location::new(
 			1,
-			X2(Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0))
+			X2(Arc::new([Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0)]))
 		))),
 		None
 	));
