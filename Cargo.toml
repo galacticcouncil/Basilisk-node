@@ -3,6 +3,7 @@ panic = 'unwind'
 
 [workspace]
 members = [
+  'math',
   'node',
   'runtime/basilisk',
   'pallets/marketplace',
@@ -39,7 +40,9 @@ trie-db = "0.29.1"
 lazy_static = "1.4.0"
 smallvec = "1.9.0"
 rug = { version = "1.17.0", features = ["num-traits"] }
+num-traits = { default-features = false, version = "0.2.14" }
 
+basilisk-math = { path = "math", default-features = false }
 basilisk-adapters = { path = "runtime/adapters", default-features = false }
 basilisk-runtime = { path = "runtime/basilisk", default-features = false }
 primitives = { path = "primitives", default-features = false }
