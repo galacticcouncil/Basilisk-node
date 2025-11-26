@@ -7,6 +7,7 @@ members = [
   'runtime/basilisk',
   'pallets/marketplace',
   'pallets/asset-registry',
+  'pallets/ema-oracle',
   'pallets/lbp',
   'pallets/route-executor',
   'pallets/xyk',
@@ -46,6 +47,7 @@ basilisk-traits = { path = "traits", default-features = false }
 
 pallet-marketplace = { path = "pallets/marketplace", default-features = false}
 pallet-asset-registry = { path = "pallets/asset-registry", default-features = false}
+pallet-ema-oracle = { path = "pallets/ema-oracle", default-features = false}
 pallet-lbp = { path = "pallets/lbp", default-features = false }
 pallet-route-executor = { path = "pallets/route-executor", default-features = false }
 pallet-xyk = { path = "pallets/xyk", default-features = false }
@@ -59,7 +61,6 @@ pallet-transaction-multi-payment = { git = "https://github.com/galacticcouncil/h
 pallet-nft = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-currencies = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-transaction-pause = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
-pallet-ema-oracle = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-duster = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 pallet-collator-rewards = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }
 test-utils = { git = "https://github.com/galacticcouncil/hydration-node", branch ="stable2503-snek", default-features = false }

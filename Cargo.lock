@@ -7944,8 +7944,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-ema-oracle"
-version = "1.8.1"
-source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
+version = "1.3.4"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -7953,16 +7952,18 @@ dependencies = [
  "hydra-dx-math",
  "hydradx-traits",
  "log",
- "pallet-xyk 7.0.0",
  "parity-scale-codec",
- "primitives 6.1.2",
+ "pretty_assertions",
+ "proptest",
+ "rug",
  "scale-info",
  "serde",
  "sp-arithmetic",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sp-std",
- "staging-xcm",
+ "test-utils",
 ]
 
 [[package]]
@@ -8953,7 +8954,6 @@ name = "pallet-xyk"
 version = "7.0.0"
 source = "git+https://github.com/galacticcouncil/hydration-node?branch=stable2503-snek#564d1394c3b8d265827463797474faf4cb030d5f"
 dependencies = [
- "frame-benchmarking",
  "frame-support",
  "frame-system",
  "hydra-dx-math",
@@ -8965,7 +8965,6 @@ dependencies = [
  "parity-scale-codec",
  "primitive-types",
  "scale-info",
- "serde",
  "sp-core",
  "sp-runtime",
  "sp-std",
