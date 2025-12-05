@@ -1,13 +1,13 @@
 use super::high_precision;
 
 use crate::ema::*;
-use hydra_dx_math::fraction;
-use hydra_dx_math::support::rational::Rounding;
 use crate::test_utils::{
 	any_rational, bigger_and_smaller_rational, fraction_to_high_precision, prop_assert_approx_eq,
 	prop_assert_rational_approx_eq, prop_assert_rational_relative_approx_eq,
 };
 use crate::test_utils::{MAX_BALANCE, MIN_BALANCE};
+use hydra_dx_math::fraction;
+use hydra_dx_math::support::rational::Rounding;
 use hydra_dx_math::types::{Balance, Fraction};
 
 use proptest::prelude::*;

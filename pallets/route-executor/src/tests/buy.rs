@@ -17,9 +17,9 @@
 
 use crate::tests::mock::*;
 use crate::{Error, Event, Trade};
-use frame_support::{assert_noop, assert_ok};
 use basilisk_traits::router::AssetPair;
 use basilisk_traits::router::PoolType;
+use frame_support::{assert_noop, assert_ok};
 use pretty_assertions::assert_eq;
 use sp_runtime::DispatchError;
 

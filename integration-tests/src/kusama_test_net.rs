@@ -59,8 +59,8 @@ use sp_consensus_slots::{Slot, SlotDuration};
 use sp_core::{storage::Storage, Encode};
 use sp_runtime::{traits::AccountIdConversion, BuildStorage, Digest, DigestItem};
 
-use primitives::constants::chain::CORE_ASSET_ID;
 use polkadot_primitives::runtime_api::runtime_decl_for_parachain_host::ParachainHostV13;
+use primitives::constants::chain::CORE_ASSET_ID;
 pub use xcm_emulator::Network;
 use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains, Parachain};
 
@@ -391,7 +391,7 @@ pub mod basilisk {
 					(AccountId::from(DAVE), DAVE_INITIAL_BSX_BALANCE),
 					(vesting_account(), VESTING_ACCOUNT_INITIAL_BSX_BALANCE),
 				],
-			dev_accounts: Default::default(),
+				dev_accounts: Default::default(),
 			},
 			collator_selection: basilisk_runtime::CollatorSelectionConfig {
 				invulnerables: invulnerables().iter().cloned().map(|(acc, _)| acc).collect(),

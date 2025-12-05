@@ -1,9 +1,9 @@
 use super::*;
 
-use hydra_dx_math::fraction;
-use hydra_dx_math::support::rational::Rounding;
 use crate::test_utils::fraction_to_high_precision;
 use crate::test_utils::{assert_approx_eq, assert_rational_approx_eq, assert_rational_relative_approx_eq};
+use hydra_dx_math::fraction;
+use hydra_dx_math::support::rational::Rounding;
 use hydra_dx_math::transcendental::saturating_powi_high_precision;
 use hydra_dx_math::types::Fraction;
 

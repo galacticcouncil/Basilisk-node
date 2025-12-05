@@ -17,6 +17,12 @@
 
 use crate as ema_oracle;
 use crate::Config;
+use basilisk_traits::oracle::{
+	Liquidity,
+	OraclePeriod::{self, *},
+	Volume,
+};
+use basilisk_traits::Source;
 use ema_oracle::OracleEntry;
 use frame_support::pallet_prelude::ConstU32;
 use frame_support::parameter_types;
@@ -28,8 +34,6 @@ use frame_support::sp_runtime::{
 use frame_support::traits::{Contains, Everything};
 use frame_support::BoundedVec;
 use frame_system::EnsureRoot;
-use basilisk_traits::oracle::{Liquidity, Volume, OraclePeriod::{self, *}};
-use basilisk_traits::Source;
 use sp_core::H256;
 
 use crate::types::{AssetId, Balance, Price};

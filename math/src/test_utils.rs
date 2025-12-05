@@ -1,8 +1,8 @@
 use hydra_dx_math::fraction;
 use hydra_dx_math::types::{Balance, Fraction};
 
-use proptest::prelude::*;
 use proptest::prelude::Rng;
+use proptest::prelude::*;
 use rug::{Integer, Rational};
 use sp_arithmetic::{FixedPointNumber, FixedU128};
 

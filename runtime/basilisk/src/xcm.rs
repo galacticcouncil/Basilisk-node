@@ -22,6 +22,7 @@ use crate::system::WeightToFee;
 
 use basilisk_adapters::xcm_exchange::XcmAssetExchanger;
 use basilisk_adapters::{MultiCurrencyTrader, ToFeeReceiver};
+use basilisk_traits::router::PoolType;
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::TransformOrigin;
@@ -32,7 +33,6 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::EnsureRoot;
-use basilisk_traits::router::PoolType;
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_transaction_multi_payment::DepositAll;

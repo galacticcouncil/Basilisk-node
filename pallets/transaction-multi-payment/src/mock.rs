@@ -20,6 +20,10 @@ pub use crate as multi_payment;
 use crate::{Config, TransferFees};
 use basilisk_math::ratio::Ratio;
 
+use basilisk_traits::{
+	oracle::{OraclePeriod, PriceOracle},
+	router::{RouteProvider, Trade},
+};
 use frame_support::dispatch::{DispatchResultWithPostInfo, PostDispatchInfo};
 use frame_support::{
 	dispatch::DispatchClass,
@@ -32,10 +36,6 @@ use frame_support::{
 	weights::{IdentityFee, Weight},
 };
 use frame_system as system;
-use basilisk_traits::{
-	router::{RouteProvider, Trade},
-	oracle::{OraclePeriod, PriceOracle},
-};
 use hydradx_traits::AssetKind;
 use orml_traits::{currency::MutationHooks, parameter_type_with_key};
 use pallet_currencies::{BasicCurrencyAdapter, MockBoundErc20, MockErc20Currency};

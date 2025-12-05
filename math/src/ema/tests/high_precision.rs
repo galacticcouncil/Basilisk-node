@@ -1,6 +1,6 @@
 use crate::ema::EmaPrice;
-use hydra_dx_math::fraction;
 use crate::test_utils::{fraction_to_high_precision, into_rounded_integer};
+use hydra_dx_math::fraction;
 use hydra_dx_math::types::Balance;
 
 use num_traits::{One, Pow};

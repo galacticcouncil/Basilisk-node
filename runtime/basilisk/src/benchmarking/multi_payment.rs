@@ -19,6 +19,7 @@
 
 use super::*;
 use crate::{AccountId, AssetId, Balance, Currencies, EmaOracle, Runtime, System};
+use basilisk_traits::router::PoolType;
 use basilisk_traits::{oracle::PriceOracle, router::RouteProvider};
 use frame_benchmarking::account;
 use frame_benchmarking::BenchmarkError;
@@ -28,7 +29,6 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 use frame_system::RawOrigin;
-use basilisk_traits::router::PoolType;
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrencyExtended;
 use pallet_route_executor::MAX_NUMBER_OF_TRADES;

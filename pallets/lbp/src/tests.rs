@@ -3956,10 +3956,10 @@ fn simulate_lbp_event_with_repayment() {
 mod spot_price_calculation {
 	use super::*;
 	use crate::mock::RuntimeOrigin;
-	use frame_support::storage::with_transaction;
-	use hydradx_traits::pools::SpotPriceProvider;
 	use basilisk_traits::router::PoolType;
 	use basilisk_traits::router::TradeExecution;
+	use frame_support::storage::with_transaction;
+	use hydradx_traits::pools::SpotPriceProvider;
 	use sp_runtime::FixedPointNumber;
 	use sp_runtime::{FixedU128, TransactionOutcome};
 	use test_utils::assert_eq_approx;

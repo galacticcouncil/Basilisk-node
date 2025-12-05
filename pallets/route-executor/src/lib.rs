@@ -63,11 +63,11 @@ pub const MAX_NUMBER_OF_TRADES: u32 = 5;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
+	use basilisk_math::ema::EmaPrice;
 	use basilisk_traits::oracle::{OraclePeriod, PriceOracle};
 	use basilisk_traits::router::ExecutorError;
 	use frame_support::traits::fungibles::Mutate;
 	use frame_system::pallet_prelude::OriginFor;
-	use basilisk_math::ema::EmaPrice;
 	use sp_runtime::traits::{AtLeast32BitUnsigned, CheckedDiv, Zero};
 	use sp_runtime::Saturating;
 

@@ -17,14 +17,14 @@
 
 use crate as router;
 use crate::{Config, Trade};
+use basilisk_math::ratio::Ratio;
+use basilisk_traits::router::{ExecutorError, PoolType, RefundEdCalculator, TradeExecution};
 use frame_support::{
 	parameter_types,
 	traits::{Everything, Nothing},
 };
 use frame_system::EnsureRoot;
 use frame_system::{ensure_signed, pallet_prelude::OriginFor};
-use basilisk_math::ratio::Ratio;
-use basilisk_traits::router::{ExecutorError, PoolType, RefundEdCalculator, TradeExecution};
 use orml_traits::parameter_type_with_key;
 use pallet_currencies::{fungibles::FungibleCurrencies, BasicCurrencyAdapter, MockBoundErc20, MockErc20Currency};
 use pretty_assertions::assert_eq;
@@ -198,8 +198,8 @@ impl PriceOracle<AssetId> for PriceProviderMock {
 	}
 }
 
-use hydradx_traits::AssetKind;
 use basilisk_traits::oracle::{OraclePeriod, PriceOracle};
+use hydradx_traits::AssetKind;
 pub struct MockedAssetRegistry;
 
 impl hydradx_traits::registry::Inspect for MockedAssetRegistry {

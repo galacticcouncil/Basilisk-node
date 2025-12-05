@@ -23,8 +23,8 @@ use crate::{mock::*, XcmRateLimitsInRegistry};
 use codec::Encode;
 use frame_support::{assert_noop, assert_ok, BoundedVec};
 use orml_traits::GetByKey;
-use polkadot_xcm::v5::Junctions::X2;
 use polkadot_xcm::v5::prelude::*;
+use polkadot_xcm::v5::Junctions::X2;
 use sp_std::convert::TryInto;
 use sp_std::sync::Arc;
 

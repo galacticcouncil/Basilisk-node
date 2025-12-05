@@ -1,15 +1,12 @@
 #![cfg(test)]
 
 use crate::kusama_test_net::*;
-use basilisk_runtime::{AssetLocation, RuntimeOrigin};
 use basilisk_runtime::XYK;
+use basilisk_runtime::{AssetLocation, RuntimeOrigin};
 use frame_support::dispatch::GetDispatchInfo;
 use frame_support::{assert_ok, pallet_prelude::*};
 use orml_traits::currency::MultiCurrency;
-use polkadot_xcm::{
-	v5::prelude::*,
-	VersionedXcm,
-};
+use polkadot_xcm::{v5::prelude::*, VersionedXcm};
 use pretty_assertions::assert_eq;
 use primitives::constants::chain::CORE_ASSET_ID;
 use sp_runtime::FixedU128;
@@ -150,7 +147,10 @@ fn register_kar() {
 		None,
 		Some(basilisk_runtime::AssetLocation(Location::new(
 			1,
-			Junctions::X2(Arc::new([Junction::Parachain(OTHER_PARA_ID), Junction::GeneralIndex(0)]))
+			Junctions::X2(Arc::new([
+				Junction::Parachain(OTHER_PARA_ID),
+				Junction::GeneralIndex(0)
+			]))
 		))),
 		None
 	));
@@ -178,10 +178,7 @@ fn craft_exchange_asset_xcm<M: Into<Assets>, RC: Decode + GetDispatchInfo>(
 
 	type Weigher<RC> = FixedWeightBounds<BaseXcmWeight, RC, ConstU32<100>>;
 
-	let dest = Location::new(
-		1,
-		Junctions::X1(Arc::new([Junction::Parachain(BASILISK_PARA_ID)])),
-	);
+	let dest = Location::new(1, Junctions::X1(Arc::new([Junction::Parachain(BASILISK_PARA_ID)])));
 
 	let beneficiary = Location::new(
 		0,

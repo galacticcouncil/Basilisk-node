@@ -18,18 +18,18 @@
 pub use crate::{mock::*, Error};
 use crate::{AcceptedCurrencies, AcceptedCurrencyPrice, Event, Price};
 
+use basilisk_traits::oracle::NativePriceOracle;
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::{BadOrigin, TransactionExtension},
-	traits::{ExistenceRequirement, Hooks, tokens::Precision,},
+	traits::{tokens::Precision, ExistenceRequirement, Hooks},
 	weights::Weight,
 };
 use orml_traits::MultiCurrency;
 use pallet_balances::Call as BalancesCall;
 use pallet_transaction_payment::ChargeTransactionPayment;
 use sp_runtime::traits::DispatchTransaction;
-use basilisk_traits::oracle::NativePriceOracle;
 
 const CALL: &<Test as frame_system::Config>::RuntimeCall =
 	&RuntimeCall::Balances(BalancesCall::transfer_allow_death { dest: BOB, value: 69 });
@@ -544,7 +544,7 @@ fn account_currency_works() {
 			account_id: ALICE,
 			asset_id: SUPPORTED_CURRENCY,
 		}
-			.into()]);
+		.into()]);
 
 		assert_eq!(PaymentPallet::account_currency(&ALICE), SUPPORTED_CURRENCY);
 
@@ -1305,6 +1305,6 @@ fn reset_payment_currency_should_set_currency_to_hdx_for_non_evm_accounts() {
 			account_id: ALICE,
 			asset_id: HDX,
 		}
-			.into()]);
+		.into()]);
 	});
 }
