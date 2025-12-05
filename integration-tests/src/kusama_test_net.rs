@@ -296,7 +296,7 @@ pub mod rococo {
 			},
 
 			xcm_pallet: rococo_runtime::XcmPalletConfig {
-				safe_xcm_version: Some(3),
+				safe_xcm_version: Some(5),
 				..Default::default()
 			},
 			..Default::default()
@@ -450,7 +450,7 @@ pub mod basilisk {
 				],
 			},
 			polkadot_xcm: basilisk_runtime::PolkadotXcmConfig {
-				safe_xcm_version: Some(3),
+				safe_xcm_version: Some(5),
 				..Default::default()
 			},
 			multi_transaction_payment: basilisk_runtime::MultiTransactionPaymentConfig {
@@ -518,7 +518,7 @@ pub mod other_parachain {
 				],
 			},
 			polkadot_xcm: basilisk_runtime::PolkadotXcmConfig {
-				safe_xcm_version: Some(3),
+				safe_xcm_version: Some(5),
 				..Default::default()
 			},
 			multi_transaction_payment: basilisk_runtime::MultiTransactionPaymentConfig {
