@@ -188,3 +188,8 @@ runtime-benchmarks = [
     "basilisk-runtime/runtime-benchmarks",
     "rococo-runtime/runtime-benchmarks",
 ]
+
+try-runtime = [
+    "basilisk-runtime/try-runtime",
+    "rococo-runtime/try-runtime",
+]
