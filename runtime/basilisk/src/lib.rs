@@ -33,6 +33,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 mod tests;
 
 mod benchmarking;
+mod migrations;
 pub mod weights;
 
 mod adapter;
@@ -268,16 +269,6 @@ pub type Executive = frame_executive::Executive<
 	AllPalletsWithSystem,
 	migrations::Migrations,
 >;
-
-pub mod migrations {
-	use super::*;
-
-	impl cumulus_pallet_xcmp_queue::migration::v5::V5Config for Runtime {
-		type ChannelList = ParachainSystem;
-	}
-
-	pub type Migrations = (cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,);
-}
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
