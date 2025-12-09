@@ -296,9 +296,8 @@ impl_runtime_apis! {
 			Vec<frame_benchmarking::BenchmarkList>,
 			Vec<frame_support::traits::StorageInfo>,
 		) {
-			use frame_benchmarking::{Benchmarking, BenchmarkList};
+			use frame_benchmarking::BenchmarkList;
 			use frame_support::traits::StorageInfoTrait;
-			use orml_benchmarking::list_benchmark as orml_list_benchmark;
 
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
@@ -307,14 +306,6 @@ impl_runtime_apis! {
 			let mut list = Vec::<BenchmarkList>::new();
 			list_benchmarks!(list, extra);
 
-			orml_list_benchmark!(list, extra, pallet_currencies, benchmarking::currencies);
-			orml_list_benchmark!(list, extra, pallet_xyk, benchmarking::xyk);
-			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
-			orml_list_benchmark!(list, extra, orml_vesting, benchmarking::vesting);
-			orml_list_benchmark!(list, extra, pallet_duster, benchmarking::duster);
-			orml_list_benchmark!(list, extra, pallet_transaction_multi_payment, benchmarking::multi_payment);
-			orml_list_benchmark!(list, extra, pallet_route_executor, benchmarking::route_executor);
-			orml_list_benchmark!(list, extra, pallet_marketplace, benchmarking::marketplace);
 			let storage_info = AllPalletsWithSystem::storage_info();
 
 			(list, storage_info)
@@ -322,12 +313,10 @@ impl_runtime_apis! {
 
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
-		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-			use frame_benchmarking::{BenchmarkError, Benchmarking, BenchmarkBatch};
+		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
+			use frame_benchmarking::{BenchmarkError, BenchmarkBatch};
 			use frame_support::traits::TrackedStorageKey;
 			use sp_std::sync::Arc;
-
-			use orml_benchmarking::add_benchmark as orml_add_benchmark;
 
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
@@ -355,7 +344,6 @@ impl_runtime_apis! {
 			}
 
 			use cumulus_primitives_core::ParaId;
-			use polkadot_xcm::prelude::XcmVersion;
 			use polkadot_xcm::latest::prelude::{Location, AssetId, Fungible, Asset, Assets, ParentThen, Parachain, Parent};
 
 			impl pallet_xcm::benchmarking::Config for Runtime {
@@ -445,15 +433,6 @@ impl_runtime_apis! {
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 			add_benchmarks!(params, batches);
-
-			orml_add_benchmark!(params, batches, pallet_xyk, benchmarking::xyk);
-			orml_add_benchmark!(params, batches, pallet_currencies, benchmarking::currencies);
-			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
-			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
-			orml_add_benchmark!(params, batches, pallet_duster, benchmarking::duster);
-			orml_add_benchmark!(params, batches, pallet_transaction_multi_payment, benchmarking::multi_payment);
-			orml_add_benchmark!(params, batches, pallet_route_executor, benchmarking::route_executor);
-			orml_add_benchmark!(params, batches, pallet_marketplace, benchmarking::marketplace);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
