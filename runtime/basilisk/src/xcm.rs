@@ -392,18 +392,34 @@ impl Convert<Location, Option<AssetId>> for CurrencyIdConvert {
 					&& a.contains(&polkadot_xcm::prelude::GeneralIndex(CORE_ASSET_ID.into()))
 					&& a.contains(&polkadot_xcm::prelude::Parachain(ParachainInfo::get().into())) =>
 			{
+				log::trace!(
+					target: "xcm",
+					"dgd match 1"
+				);
 				Some(CORE_ASSET_ID)
 			}
 			Junctions::X1(a)
 				if parents == 0 && a.contains(&polkadot_xcm::prelude::GeneralIndex(CORE_ASSET_ID.into())) =>
 			{
+				log::trace!(
+					target: "xcm",
+					"dgd match 2"
+				);
 				Some(CORE_ASSET_ID)
 			}
 			_ => {
 				let location: Option<AssetLocation> = location.try_into().ok();
 				if let Some(location) = location {
+					log::trace!(
+						target: "xcm",
+						"dgd match 3"
+					);
 					AssetRegistry::location_to_asset(location)
 				} else {
+					log::trace!(
+						target: "xcm",
+						"dgd match 4"
+					);
 					None
 				}
 			}
@@ -413,6 +429,10 @@ impl Convert<Location, Option<AssetId>> for CurrencyIdConvert {
 
 impl Convert<Asset, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(asset: Asset) -> Option<AssetId> {
+		log::trace!(
+			target: "xcm",
+			"dgd5"
+		);
 		Self::convert(asset.id.0)
 	}
 }
