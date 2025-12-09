@@ -65,6 +65,7 @@ use sp_std::{convert::From, marker::PhantomData, prelude::*, vec};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
+extern crate alloc;
 
 // A few exports that help ease life for downstream crates.
 use frame_support::{construct_runtime, weights::Weight};
@@ -272,6 +273,8 @@ pub type Executive = frame_executive::Executive<
 
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
+	use super::*;
+
 	frame_support::parameter_types! {
 		pub const BenchmarkMaxBalance: crate::Balance = crate::Balance::MAX;
 	}

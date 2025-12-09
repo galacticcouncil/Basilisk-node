@@ -182,6 +182,7 @@ runtime-benchmarks = [
     "pallet-whitelist/runtime-benchmarks",
     "pallet-message-queue/runtime-benchmarks",
     "cumulus-pallet-parachain-system/runtime-benchmarks",
+    "pallet-transaction-multi-payment/runtime-benchmarks",
 ]
 std = [
     "codec/std",

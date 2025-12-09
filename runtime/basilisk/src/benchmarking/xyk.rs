@@ -5,6 +5,7 @@ use super::*;
 use frame_benchmarking::{account, BenchmarkError};
 use frame_system::RawOrigin;
 use orml_benchmarking::runtime_benchmarks;
+use frame_support::traits::ExistenceRequirement;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use sp_std::prelude::*;
 
@@ -87,7 +88,7 @@ runtime_benchmarks! {
 
 		XYK::create_pool(RawOrigin::Signed(maker.clone()).into(), asset_a, INITIAL_BALANCE - 10, asset_b, INITIAL_BALANCE - 10)?;
 
-		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, INITIAL_BALANCE - amount)?;
+		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, INITIAL_BALANCE - amount, ExistenceRequirement::AllowDeath)?;
 
 		assert_eq!(frame_system::Pallet::<Runtime>::account(caller.clone()).sufficients, 0);
 	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount, max_limit)
@@ -142,7 +143,7 @@ runtime_benchmarks! {
 
 		XYK::create_pool(RawOrigin::Signed(maker.clone()).into(), asset_a, INITIAL_BALANCE, asset_b, INITIAL_BALANCE)?;
 
-		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, INITIAL_BALANCE - amount)?;
+		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, INITIAL_BALANCE - amount, ExistenceRequirement::AllowDeath)?;
 
 		assert_eq!(frame_system::Pallet::<Runtime>::account(caller.clone()).sufficients, 0);
 	}: _(RawOrigin::Signed(caller.clone()), asset_a, asset_b, amount, min_bought, discount)
@@ -173,7 +174,7 @@ runtime_benchmarks! {
 
 		XYK::create_pool(RawOrigin::Signed(maker.clone()).into(), asset_a, INITIAL_BALANCE, asset_b, INITIAL_BALANCE)?;
 
-		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, 749_249_999_999_999_u128)?;
+		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, 749_249_999_999_999_u128, ExistenceRequirement::AllowDeath)?;
 
 		assert_eq!(frame_system::Pallet::<Runtime>::account(caller.clone()).sufficients, 0);
 	}: _(RawOrigin::Signed(caller.clone()), asset_b, asset_a, amount, max_sold, discount)
@@ -207,7 +208,7 @@ runtime_benchmarks! {
 
 		XYK::create_pool(RawOrigin::Signed(maker.clone()).into(), asset_a, INITIAL_BALANCE, asset_b, INITIAL_BALANCE)?;
 
-		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, INITIAL_BALANCE - amount)?;
+		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, INITIAL_BALANCE - amount, ExistenceRequirement::AllowDeath)?;
 		assert_eq!(frame_system::Pallet::<Runtime>::account(caller.clone()).sufficients, 0);
 	}: {
 		for _ in 1..c {
@@ -248,7 +249,7 @@ runtime_benchmarks! {
 
 		XYK::create_pool(RawOrigin::Signed(maker.clone()).into(), asset_a, INITIAL_BALANCE, asset_b, INITIAL_BALANCE)?;
 
-		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, 749_249_999_999_999_u128)?;
+		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, 749_249_999_999_999_u128, ExistenceRequirement::AllowDeath)?;
 
 		assert_eq!(frame_system::Pallet::<Runtime>::account(caller.clone()).sufficients, 0);
 	}: {
@@ -287,7 +288,7 @@ runtime_benchmarks! {
 
 		XYK::create_pool(RawOrigin::Signed(maker.clone()).into(), asset_a, INITIAL_BALANCE, asset_b, INITIAL_BALANCE)?;
 
-		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, 749_249_999_999_999_u128)?;
+		<Currencies as MultiCurrency<AccountId>>::transfer(asset_a, &caller, &maker, 749_249_999_999_999_u128, ExistenceRequirement::AllowDeath)?;
 
 		assert_eq!(frame_system::Pallet::<Runtime>::account(caller).sufficients, 0);
 	}: {

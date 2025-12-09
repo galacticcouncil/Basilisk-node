@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{AccountId, AssetId, Balance, Duster, DustingReward, NativeAssetId, Runtime, Tokens};
+use crate::{AccountId, AssetId, Balance, Runtime, Tokens, TreasuryAccount};
 
 use super::*;
 
@@ -44,16 +44,13 @@ runtime_benchmarks! {
 	dust_account{
 		let caller: AccountId = account("caller", 0, SEED);
 		let to_dust_account: AccountId = account("dust", 0, SEED);
-		let dust_dest_account: AccountId = account("dest", 1, SEED);
-		pallet_duster::DustAccount::<Runtime>::put(dust_dest_account);
+		let dest_account = TreasuryAccount::get();
 
 		let asset_id = register_asset(b"TST".to_vec(), 100u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
-		let reward = DustingReward::get();
-		let dest_account = Duster::dust_dest_account();
 
 		let min_deposit = AssetRegistry::get(&asset_id);
 
-		update_balance(asset_id, &dest_account.clone().unwrap(), min_deposit);
+		update_balance(asset_id, &dest_account, min_deposit);
 
 		let dust_amount = min_deposit;
 
@@ -62,31 +59,28 @@ runtime_benchmarks! {
 		update_asset(asset_id, b"TST".to_vec(), 110u128).map_err(|_| BenchmarkError::Stop("Failed to update asset"))?;
 		assert_eq!(Tokens::free_balance(asset_id, &to_dust_account), dust_amount);
 
-		let current_balance = Tokens::free_balance(asset_id, &dest_account.clone().unwrap());
+		let current_balance = Tokens::free_balance(asset_id, &dest_account);
 
-	}: { pallet_duster::Pallet::<Runtime>::dust_account(RawOrigin::Signed(caller.clone()).into(), to_dust_account.clone(),asset_id)? }
+	}: { pallet_duster::Pallet::<Runtime>::dust_account(RawOrigin::Signed(caller.clone()).into(), to_dust_account.clone(), asset_id)? }
 	verify {
 		assert_eq!(Tokens::free_balance(asset_id, &to_dust_account), 0u128);
-		assert_eq!(Tokens::free_balance(NativeAssetId::get(), &caller), reward);
-		assert_eq!(Tokens::free_balance(asset_id, &dest_account.unwrap()), current_balance + dust_amount);
+		assert_eq!(Tokens::free_balance(asset_id, &dest_account), current_balance + dust_amount);
 	}
 
-	add_nondustable_account{
-		let caller: AccountId = account("caller", 0, SEED);
+	whitelist_account{
 		let nondustable_account: AccountId = account("dust", 0, SEED);
-	}: { pallet_duster::Pallet::<Runtime>::add_nondustable_account(RawOrigin::Root.into(), nondustable_account.clone())? }
+	}: { pallet_duster::Pallet::<Runtime>::whitelist_account(RawOrigin::Root.into(), nondustable_account.clone())? }
 	verify {
-		assert!(pallet_duster::Pallet::<Runtime>::blacklisted(&nondustable_account).is_some());
+		assert!(pallet_duster::Pallet::<Runtime>::whitelisted(&nondustable_account).is_some());
 	}
 
-	remove_nondustable_account{
-		let caller: AccountId = account("caller", 0, SEED);
+	remove_from_whitelist{
 		let nondustable_account: AccountId = account("dust", 0, SEED);
-		pallet_duster::Pallet::<Runtime>::add_nondustable_account(RawOrigin::Root.into(), nondustable_account.clone())?;
+		pallet_duster::Pallet::<Runtime>::whitelist_account(RawOrigin::Root.into(), nondustable_account.clone())?;
 
-	}: { pallet_duster::Pallet::<Runtime>::remove_nondustable_account(RawOrigin::Root.into(), nondustable_account.clone())? }
+	}: { pallet_duster::Pallet::<Runtime>::remove_from_whitelist(RawOrigin::Root.into(), nondustable_account.clone())? }
 	verify {
-		assert!(pallet_duster::Pallet::<Runtime>::blacklisted(&nondustable_account).is_none());
+		assert!(pallet_duster::Pallet::<Runtime>::whitelisted(&nondustable_account).is_none());
 	}
 }
 
