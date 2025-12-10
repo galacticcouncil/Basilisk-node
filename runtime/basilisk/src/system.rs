@@ -183,7 +183,6 @@ impl frame_system::Config for Runtime {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
-	// TODO: weights
 	type ExtensionsWeightInfo = weights::frame_system_extensions::BasiliskWeight<Runtime>;
 }
 
@@ -252,8 +251,7 @@ impl pallet_transaction_payment::Config for Runtime {
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
-	// TODO: weights
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_transaction_payment::BasiliskWeight<Runtime>;
 }
 
 pub struct WethAssetId;

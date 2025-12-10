@@ -26,6 +26,7 @@ pub mod pallet_route_executor;
 pub mod pallet_scheduler;
 pub mod pallet_state_trie_migration;
 pub mod pallet_timestamp;
+pub mod pallet_transaction_payment;
 pub mod pallet_transaction_multi_payment;
 pub mod pallet_transaction_pause;
 pub mod pallet_treasury;
