@@ -8922,7 +8922,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "10.1.4"
+version = "11.0.0"
 dependencies = [
  "basilisk-math",
  "basilisk-traits",

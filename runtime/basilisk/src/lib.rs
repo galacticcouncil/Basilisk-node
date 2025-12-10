@@ -306,14 +306,14 @@ mod benches {
 		[pallet_conviction_voting, ConvictionVoting]
 		[pallet_referenda, Referenda]
 		[pallet_whitelist, Whitelist]
-		[pallet_xyk, benchmarking::currencies::Benchmark]
+		[pallet_xyk, benchmarking::xyk::Benchmark]
 		[pallet_currencies, benchmarking::currencies::Benchmark]
-		[orml_tokens, benchmarking::currencies::Benchmark]
-		[orml_vesting, benchmarking::currencies::Benchmark]
-		[pallet_duster, benchmarking::currencies::Benchmark]
-		[pallet_transaction_multi_payment, benchmarking::currencies::Benchmark]
-		[pallet_route_executor, benchmarking::currencies::Benchmark]
-		[pallet_marketplace, benchmarking::currencies::Benchmark]
+		[orml_tokens, benchmarking::tokens::Benchmark]
+		[orml_vesting, benchmarking::vesting::Benchmark]
+		[pallet_duster, benchmarking::duster::Benchmark]
+		[pallet_transaction_multi_payment, benchmarking::multi_payment::Benchmark]
+		[pallet_route_executor, benchmarking::route_executor::Benchmark]
+		[pallet_marketplace, benchmarking::marketplace::Benchmark]
 	);
 }
 
