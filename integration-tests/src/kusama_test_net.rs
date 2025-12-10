@@ -16,7 +16,6 @@ pub const AUSD: AssetId = 1;
 pub const MOVR: AssetId = 2;
 pub const KSM: AssetId = 3;
 pub const NEW_BOOTSTRAPPED_TOKEN: AssetId = 4;
-pub const KAR: AssetId = 5;
 
 pub const ALICE_INITIAL_BSX_BALANCE: u128 = 1_000 * UNITS;
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
@@ -761,17 +760,6 @@ pub fn set_validation_data(next_block: u32, _slot: Slot) {
 	));
 
 	sp_io::storage::clear(&storage_prefix(b"ParachainSystem", b"UnincludedSegment"));
-}
-
-pub fn set_para_slot_info(number: u64) {
-	// sp_io::storage::clear(&frame_support::storage::storage_prefix(
-	// 	b"ParachainSystem",
-	// 	b"UnincludedSegment",
-	// ));
-	frame_support::storage::unhashed::put(
-		&frame_support::storage::storage_prefix(b"AuraExt", b"SlotInfo"),
-		&(Slot::from(number), 0),
-	);
 }
 
 use xcm_emulator::pallet_message_queue;

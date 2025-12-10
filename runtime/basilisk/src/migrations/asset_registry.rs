@@ -118,11 +118,11 @@ where
 			}
 
 			// Write back with proper v5 encoding
-			AssetLocations::<T>::insert(asset_id.clone(), &new_loc);
+			AssetLocations::<T>::insert(asset_id, &new_loc);
 			writes += 1;
 
 			// Update reverse map with new encoding
-			LocationAssets::<T>::insert(&new_loc, asset_id.clone());
+			LocationAssets::<T>::insert(&new_loc, asset_id);
 			writes += 1;
 
 			log::info!(
