@@ -307,6 +307,7 @@ mod benches {
 		[pallet_conviction_voting, ConvictionVoting]
 		[pallet_referenda, Referenda]
 		[pallet_whitelist, Whitelist]
+		[pallet_transaction_payment, TransactionPayment]
 		[pallet_xyk, benchmarking::xyk::Benchmark]
 		[pallet_currencies, benchmarking::currencies::Benchmark]
 		[orml_tokens, benchmarking::tokens::Benchmark]
