@@ -286,6 +286,7 @@ mod benches {
 		[pallet_transaction_pause, TransactionPause]
 		[pallet_ema_oracle, EmaOracle]
 		[frame_system, SystemBench::<Runtime>]
+		[frame_system_extensions, frame_system_benchmarking::extensions::Pallet::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
 		[pallet_democracy, Democracy]
