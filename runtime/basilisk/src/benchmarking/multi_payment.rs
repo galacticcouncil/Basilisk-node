@@ -42,9 +42,9 @@ use sp_runtime::{FixedPointNumber, FixedU128};
 type MultiPaymentPallet<T> = pallet_transaction_multi_payment::Pallet<T>;
 type XykPallet<T> = pallet_xyk::Pallet<T>;
 type Router<T> = pallet_route_executor::Pallet<T>;
+use basilisk_traits::oracle::OraclePeriod;
 use basilisk_traits::router::AssetPair;
 use basilisk_traits::router::Trade;
-use basilisk_traits::oracle::OraclePeriod;
 
 parameter_types! {
 	//NOTE: This should always be > 1 otherwise we will payout more than we collected as ED for

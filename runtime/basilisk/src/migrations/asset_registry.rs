@@ -181,7 +181,7 @@ mod tests {
 	}
 
 	#[test]
-		fn migration_converts_v3_parent_location_to_v5() {
+	fn migration_converts_v3_parent_location_to_v5() {
 		new_test_ext().execute_with(|| {
 			let asset_id: u32 = 1;
 			let old_location = mock_old_location_parent();

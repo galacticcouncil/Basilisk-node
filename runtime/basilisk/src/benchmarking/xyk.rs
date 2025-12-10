@@ -3,9 +3,9 @@ use crate::{AccountId, AssetId, Balance, Currencies, MultiTransactionPayment, Pr
 use super::*;
 
 use frame_benchmarking::{account, BenchmarkError};
+use frame_support::traits::ExistenceRequirement;
 use frame_system::RawOrigin;
 use orml_benchmarking::runtime_benchmarks;
-use frame_support::traits::ExistenceRequirement;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use sp_std::prelude::*;
 

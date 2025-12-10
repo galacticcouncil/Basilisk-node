@@ -27,11 +27,11 @@ use sp_std::vec::Vec;
 use frame_support::storage::with_transaction;
 use hydradx_traits::{AssetKind, Create};
 use orml_traits::MultiCurrencyExtended;
+use polkadot_xcm::v5::Location;
 use sp_runtime::{
 	traits::{One, SaturatedConversion},
 	FixedU128, TransactionOutcome,
 };
-use polkadot_xcm::v5::Location;
 
 pub const BSX: Balance = primitives::constants::currency::UNITS;
 
