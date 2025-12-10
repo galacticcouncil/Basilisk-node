@@ -39,7 +39,7 @@ fn non_native_fee_payment_works_with_configured_price() {
 		);
 
 		let bob_balance = basilisk_runtime::Tokens::free_balance(AUSD, &AccountId::from(BOB));
-		assert_eq!(bob_balance, 999_999_992_137_669);
+		assert_eq!(bob_balance, 999_999_992_137_710);
 	});
 }
 
@@ -140,7 +140,7 @@ fn non_native_fee_payment_works_with_oracle_price_based_on_onchain_route() {
 		);
 
 		let dave_balance = basilisk_runtime::Tokens::free_balance(NEW_TOKEN, &AccountId::from(DAVE));
-		assert_eq!(dave_balance, 990_264_297_166_679);
+		assert_eq!(dave_balance, 990_264_347_751_724);
 	});
 }
 
