@@ -1,6 +1,7 @@
 pub mod cumulus_pallet_parachain_system;
 pub mod cumulus_pallet_xcmp_queue;
 pub mod frame_system;
+pub mod frame_system_extensions;
 pub mod orml_tokens;
 pub mod orml_vesting;
 pub mod pallet_asset_registry;

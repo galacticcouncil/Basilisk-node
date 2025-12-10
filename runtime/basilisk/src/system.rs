@@ -184,7 +184,7 @@ impl frame_system::Config for Runtime {
 	type PostInherents = ();
 	type PostTransactions = ();
 	// TODO: weights
-	type ExtensionsWeightInfo = ();
+	type ExtensionsWeightInfo = weights::frame_system_extensions::BasiliskWeight<Runtime>;
 }
 
 parameter_types! {
