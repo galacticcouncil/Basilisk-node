@@ -44,6 +44,8 @@ rug = { version = "1.17.0", features = ["num-traits"] }
 num-traits = { default-features = false, version = "0.2.14" }
 rand = { version = "0.8.5", default-features = false }
 
+frame-metadata = { version = "16.0.0", default-features = false, features = ["current", "decode"] }
+
 basilisk-math = { path = "math", default-features = false }
 basilisk-adapters = { path = "runtime/adapters", default-features = false }
 basilisk-runtime = { path = "runtime/basilisk", default-features = false }

@@ -1307,6 +1307,7 @@ dependencies = [
  "cumulus-primitives-utility",
  "frame-benchmarking",
  "frame-executive",
+ "frame-metadata 16.0.0",
  "frame-support",
  "frame-system",
  "frame-system-benchmarking",
@@ -4147,6 +4148,17 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-tracing",
+]
+
+[[package]]
+name = "frame-metadata"
+version = "16.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87cf1549fba25a6fcac22785b61698317d958e96cac72a59102ea45b9ae64692"
+dependencies = [
+ "cfg-if",
+ "parity-scale-codec",
+ "scale-info",
 ]
 
 [[package]]
