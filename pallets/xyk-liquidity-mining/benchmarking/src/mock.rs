@@ -126,6 +126,7 @@ impl system::Config for Test {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 impl crate::Config for Test {}
@@ -173,16 +174,35 @@ impl pallet_xyk_liquidity_mining::Config for Test {
 	type NonDustableWhitelistHandler = Duster;
 }
 
+pub struct NoErc20Support;
+
+impl hydradx_traits::evm::Erc20Inspect<AssetId> for NoErc20Support {
+	fn contract_address(_id: AssetId) -> Option<sp_core::H160> {
+		None
+	}
+
+	fn is_atoken(_asset_id: AssetId) -> bool {
+		false
+	}
+}
+
+impl hydradx_traits::evm::Erc20OnDust<AccountId, AssetId> for NoErc20Support {
+	fn on_dust(
+		_account: &AccountId,
+		_dust_dest_account: &AccountId,
+		_currency_id: AssetId,
+	) -> sp_runtime::DispatchResult {
+		Err(sp_runtime::DispatchError::Other("EVM not supported"))
+	}
+}
+
 impl pallet_duster::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type Amount = Amount;
-	type CurrencyId = AssetId;
+	type AssetId = AssetId;
 	type MultiCurrency = Currency;
-	type MinCurrencyDeposits = AssetRegistry;
-	type Reward = ();
-	type NativeCurrencyId = BSXAssetId;
-	type BlacklistUpdateOrigin = EnsureRoot<AccountId>;
+	type ExistentialDeposit = AssetRegistry;
+	type WhitelistUpdateOrigin = EnsureRoot<AccountId>;
+	type Erc20Support = NoErc20Support;
 	type TreasuryAccountId = TreasuryAccount;
 	type WeightInfo = ();
 }
@@ -221,6 +241,7 @@ impl pallet_balances::Config for Test {
 	type MaxFreezes = ();
 	type RuntimeHoldReason = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {

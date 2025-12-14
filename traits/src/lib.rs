@@ -20,6 +20,12 @@ pub trait OnCreatePoolHandler<AssetId> {
 	fn on_create_pool(asset_a: AssetId, asset_b: AssetId) -> dispatch::DispatchResult;
 }
 
+impl<AssetId> OnCreatePoolHandler<AssetId> for () {
+	fn on_create_pool(_asset_a: AssetId, _asset_b: AssetId) -> dispatch::DispatchResult {
+		Ok(())
+	}
+}
+
 /// Handler used by AMM pools to perform some tasks when a trade is executed.
 pub trait OnTradeHandler<AssetId, Balance, Price> {
 	/// Include a trade in the average price calculation of the price-oracle pallet.
