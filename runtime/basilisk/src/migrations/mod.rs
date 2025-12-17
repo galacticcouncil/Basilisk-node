@@ -20,4 +20,10 @@ use crate::Runtime;
 
 mod asset_registry;
 
-pub type Migrations = MigrateAssetRegistryToXcmV5<Runtime>;
+// New migrations which need to be cleaned up after Runtime upgrade
+pub type UnreleasedSingleBlockMigrations = MigrateAssetRegistryToXcmV5<Runtime>;
+
+// These migrations can run on every runtime upgrade
+pub type PermanentSingleBlockMigrations = pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>;
+
+pub type Migrations = (PermanentSingleBlockMigrations, UnreleasedSingleBlockMigrations);
