@@ -20,32 +20,26 @@ use crate::governance::TreasuryAccount;
 use crate::origins::GeneralAdmin;
 use crate::system::WeightToFee;
 
-use codec::{Decode, Encode, MaxEncodedLen};
+use basilisk_adapters::xcm_exchange::XcmAssetExchanger;
+use basilisk_adapters::{MultiCurrencyTrader, ToFeeReceiver};
+use basilisk_traits::router::PoolType;
+use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::TransformOrigin;
 use frame_support::{
 	parameter_types,
 	sp_runtime::traits::Convert,
-	traits::{Contains, ContainsPair, EitherOf, Everything, Get, Nothing},
+	traits::{Contains, ContainsPair, Disabled, EitherOf, Everything, Get, Nothing},
 	PalletId,
 };
 use frame_system::EnsureRoot;
-use hydradx_adapters::xcm_exchange::XcmAssetExchanger;
-use hydradx_adapters::xcm_execute_filter::AllowTransferAndSwap;
-use hydradx_adapters::{MultiCurrencyTrader, ToFeeReceiver};
-use hydradx_traits::router::PoolType;
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 pub use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter, MultiNativeAsset};
 use pallet_transaction_multi_payment::DepositAll;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_parachain::primitives::{RelayChainBlockNumber, Sibling};
-use polkadot_xcm::latest::{Asset, Junctions, Location};
-use polkadot_xcm::prelude::{Fungible, InteriorLocation};
-use polkadot_xcm::v3::{
-	prelude::{Here, NetworkId, Parachain},
-	MultiLocation, Weight as XcmWeight,
-};
+use polkadot_xcm::v5::{prelude::*, Location, Weight as XcmWeight};
 use primitives::AssetId;
 use scale_info::TypeInfo;
 use sp_runtime::traits::MaybeEquivalence;
@@ -59,8 +53,8 @@ use xcm_builder::{
 };
 use xcm_executor::{Config, XcmExecutor};
 
-#[derive(Debug, Default, Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
-pub struct AssetLocation(pub MultiLocation);
+#[derive(Debug, Default, Encode, Decode, DecodeWithMemTracking, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+pub struct AssetLocation(pub Location);
 
 impl Into<Option<Location>> for AssetLocation {
 	fn into(self) -> Option<Location> {
@@ -72,12 +66,11 @@ impl TryFrom<Location> for AssetLocation {
 	type Error = ();
 
 	fn try_from(value: Location) -> Result<Self, Self::Error> {
-		let loc: MultiLocation = value.try_into()?;
-		Ok(AssetLocation(loc))
+		Ok(AssetLocation(value))
 	}
 }
 
-pub const RELAY_CHAIN_ASSET_LOCATION: AssetLocation = AssetLocation(MultiLocation {
+pub const RELAY_CHAIN_ASSET_LOCATION: AssetLocation = AssetLocation(Location {
 	parents: 1,
 	interior: Here,
 });
@@ -115,7 +108,7 @@ parameter_types! {
 
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 
-	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	pub Ancestry: Location = Parachain(ParachainInfo::parachain_id().into()).into();
 }
 
 pub struct IsKsmFrom<Origin>(PhantomData<Origin>);
@@ -167,7 +160,7 @@ parameter_types! {
 	pub const BaseXcmWeight: XcmWeight = XcmWeight::from_parts(100_000_000, 0);
 	pub const MaxInstructions: u32 = 100;
 	pub const MaxAssetsForTransfer: usize = 2;
-	pub UniversalLocation: InteriorLocation = [polkadot_xcm::v4::prelude::GlobalConsensus(RelayNetwork::get().into()), polkadot_xcm::v4::prelude::Parachain(ParachainInfo::parachain_id().into())].into();
+	pub UniversalLocation: InteriorLocation = [polkadot_xcm::v5::prelude::GlobalConsensus(RelayNetwork::get()), polkadot_xcm::v5::prelude::Parachain(ParachainInfo::parachain_id().into())].into();
 }
 
 pub struct XcmConfig;
@@ -216,6 +209,7 @@ impl Config for XcmConfig {
 	type HrmpChannelClosingHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type XcmRecorder = PolkadotXcm;
+	type XcmEventEmitter = ();
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -298,7 +292,7 @@ impl pallet_xcm::Config for Runtime {
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
-	type XcmExecuteFilter = AllowTransferAndSwap<MaxXcmDepth, MaxNumberOfInstructions, RuntimeCall>;
+	type XcmExecuteFilter = Everything;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
@@ -315,6 +309,7 @@ impl pallet_xcm::Config for Runtime {
 	type AdminOrigin = EnsureRoot<Self::AccountId>;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
+	type AuthorizedAliasConsideration = Disabled;
 }
 
 #[test]
@@ -397,18 +392,34 @@ impl Convert<Location, Option<AssetId>> for CurrencyIdConvert {
 					&& a.contains(&polkadot_xcm::prelude::GeneralIndex(CORE_ASSET_ID.into()))
 					&& a.contains(&polkadot_xcm::prelude::Parachain(ParachainInfo::get().into())) =>
 			{
+				log::trace!(
+					target: "xcm",
+					"dgd match 1"
+				);
 				Some(CORE_ASSET_ID)
 			}
 			Junctions::X1(a)
 				if parents == 0 && a.contains(&polkadot_xcm::prelude::GeneralIndex(CORE_ASSET_ID.into())) =>
 			{
+				log::trace!(
+					target: "xcm",
+					"dgd match 2"
+				);
 				Some(CORE_ASSET_ID)
 			}
 			_ => {
 				let location: Option<AssetLocation> = location.try_into().ok();
 				if let Some(location) = location {
+					log::trace!(
+						target: "xcm",
+						"dgd match 3"
+					);
 					AssetRegistry::location_to_asset(location)
 				} else {
+					log::trace!(
+						target: "xcm",
+						"dgd match 4"
+					);
 					None
 				}
 			}
@@ -418,6 +429,10 @@ impl Convert<Location, Option<AssetId>> for CurrencyIdConvert {
 
 impl Convert<Asset, Option<AssetId>> for CurrencyIdConvert {
 	fn convert(asset: Asset) -> Option<AssetId> {
+		log::trace!(
+			target: "xcm",
+			"dgd5"
+		);
 		Self::convert(asset.id.0)
 	}
 }

@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use codec::DecodeWithMemTracking;
 use frame_support::pallet_prelude::*;
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
@@ -26,7 +27,7 @@ use serde::{Deserialize, Serialize};
 pub type Name<L> = BoundedVec<u8, L>;
 pub type Symbol<L> = BoundedVec<u8, L>;
 
-#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+#[derive(Encode, Decode, DecodeWithMemTracking, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum AssetType<AssetId> {
 	Token,
@@ -86,7 +87,7 @@ pub struct AssetMetadata<BoundedString> {
 	pub(super) decimals: u8,
 }
 
-#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, TypeInfo)]
+#[derive(Clone, Encode, Decode, DecodeWithMemTracking, Eq, PartialEq, RuntimeDebug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct Metadata {
 	pub(super) symbol: Vec<u8>,

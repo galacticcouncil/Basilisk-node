@@ -33,6 +33,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 mod tests;
 
 mod benchmarking;
+mod migrations;
 pub mod weights;
 
 mod adapter;
@@ -48,10 +49,6 @@ pub use governance::*;
 pub use system::*;
 pub use xcm::*;
 
-use frame_support::sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT},
-};
 use frame_system::pallet_prelude::BlockNumberFor;
 pub use primitives::{
 	constants::time::SLOT_DURATION, AccountId, Amount, AssetId, Balance, BlockNumber, CollectionId, Hash, Index,
@@ -59,10 +56,16 @@ pub use primitives::{
 };
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::ConstU32;
+use sp_runtime::{
+	generic, impl_opaque_keys,
+	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, BlockNumberProvider},
+	Cow,
+};
 use sp_std::{convert::From, marker::PhantomData, prelude::*, vec};
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
+extern crate alloc;
 
 // A few exports that help ease life for downstream crates.
 use frame_support::{construct_runtime, weights::Weight};
@@ -97,14 +100,14 @@ pub mod opaque {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("basilisk"),
-	impl_name: create_runtime_str!("basilisk"),
+	spec_name: Cow::Borrowed("basilisk"),
+	impl_name: Cow::Borrowed("basilisk"),
 	authoring_version: 1,
-	spec_version: 127,
+	spec_version: 128,
 	impl_version: 0,
 	apis: apis::RUNTIME_API_VERSIONS,
 	transaction_version: 1,
-	state_version: 1,
+	system_version: 1,
 };
 
 /// The version information used to identify this runtime when compiled natively.
@@ -122,8 +125,6 @@ pub fn get_all_module_accounts() -> vec::Vec<AccountId> {
 		VestingPalletId::get().into_account_truncating(),
 	]
 }
-
-use sp_runtime::traits::BlockNumberProvider;
 
 // Relay chain Block number provider.
 // Reason why the implementation is different for benchmarks is that it is not possible
@@ -270,18 +271,10 @@ pub type Executive = frame_executive::Executive<
 	migrations::Migrations,
 >;
 
-pub mod migrations {
-	use super::*;
-
-	impl cumulus_pallet_xcmp_queue::migration::v5::V5Config for Runtime {
-		type ChannelList = ParachainSystem;
-	}
-
-	pub type Migrations = (cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,);
-}
-
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
+	use super::*;
+
 	frame_support::parameter_types! {
 		pub const BenchmarkMaxBalance: crate::Balance = crate::Balance::MAX;
 	}
@@ -293,6 +286,7 @@ mod benches {
 		[pallet_transaction_pause, TransactionPause]
 		[pallet_ema_oracle, EmaOracle]
 		[frame_system, SystemBench::<Runtime>]
+		[frame_system_extensions, frame_system_benchmarking::extensions::Pallet::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
 		[pallet_democracy, Democracy]
@@ -313,6 +307,15 @@ mod benches {
 		[pallet_conviction_voting, ConvictionVoting]
 		[pallet_referenda, Referenda]
 		[pallet_whitelist, Whitelist]
+		[pallet_transaction_payment, TransactionPayment]
+		[pallet_xyk, benchmarking::xyk::Benchmark]
+		[pallet_currencies, benchmarking::currencies::Benchmark]
+		[orml_tokens, benchmarking::tokens::Benchmark]
+		[orml_vesting, benchmarking::vesting::Benchmark]
+		[pallet_duster, benchmarking::duster::Benchmark]
+		[pallet_transaction_multi_payment, benchmarking::multi_payment::Benchmark]
+		[pallet_route_executor, benchmarking::route_executor::Benchmark]
+		[pallet_marketplace, benchmarking::marketplace::Benchmark]
 	);
 }
 

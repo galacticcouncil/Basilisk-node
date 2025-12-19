@@ -16,7 +16,6 @@ pub const AUSD: AssetId = 1;
 pub const MOVR: AssetId = 2;
 pub const KSM: AssetId = 3;
 pub const NEW_BOOTSTRAPPED_TOKEN: AssetId = 4;
-pub const KAR: AssetId = 5;
 
 pub const ALICE_INITIAL_BSX_BALANCE: u128 = 1_000 * UNITS;
 pub const BOB_INITIAL_BSX_BALANCE: u128 = 1000 * UNITS;
@@ -59,9 +58,10 @@ use sp_consensus_slots::{Slot, SlotDuration};
 use sp_core::{storage::Storage, Encode};
 use sp_runtime::{traits::AccountIdConversion, BuildStorage, Digest, DigestItem};
 
+use polkadot_primitives::runtime_api::runtime_decl_for_parachain_host::ParachainHostV13;
 use primitives::constants::chain::CORE_ASSET_ID;
 pub use xcm_emulator::Network;
-use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains};
+use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains, Parachain};
 
 pub type Basilisk = BasiliskParachain<TestNet>;
 pub type OtherParachain = OtherPara<TestNet>;
@@ -81,7 +81,9 @@ decl_test_relay_chains! {
 	#[api_version(11)]
 	pub struct RococoRelayChain {
 		genesis = rococo::genesis(),
-		on_init = (),
+		on_init = {
+			rococo_runtime::System::set_block_number(1);
+		},
 		runtime = rococo_runtime,
 		core = {
 			SovereignAccountOf: rococo_runtime::xcm_config::LocationConverter,
@@ -98,7 +100,7 @@ decl_test_parachains! {
 	pub struct BasiliskParachain {
 		genesis = basilisk::genesis(),
 		on_init = {
-			set_para_slot_info(0);
+			basilisk_runtime::System::set_block_number(1);
 		},
 		runtime = basilisk_runtime,
 		core = {
@@ -115,7 +117,7 @@ decl_test_parachains! {
 	pub struct OtherPara {
 		genesis = other_parachain::genesis(),
 		on_init = {
-			set_para_slot_info(0);
+			basilisk_runtime::System::set_block_number(1);
 		},
 		runtime = basilisk_runtime,
 		core = {
@@ -167,18 +169,27 @@ pub mod rococo {
 	}
 
 	use polkadot_primitives::{AssignmentId, ValidatorId};
-	use polkadot_service::chain_spec::get_account_id_from_seed;
 	use sc_consensus_grandpa::AuthorityId as GrandpaId;
 	use sp_authority_discovery::AuthorityId as AuthorityDiscoveryId;
 	use sp_consensus_babe::AuthorityId as BabeId;
 	use sp_consensus_beefy::ecdsa_crypto::AuthorityId as BeefyId;
 	use sp_core::{sr25519, Pair, Public};
+	use sp_runtime::traits::AccountIdConversion;
+	use sp_runtime::AccountId32 as AccountPublic;
 
 	/// Helper function to generate a crypto pair from seed
 	fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
 		TPublic::Pair::from_string(&format!("//{}", seed), None)
 			.expect("static values are valid; qed")
 			.public()
+	}
+
+	/// Helper function to generate an account ID from seed.
+	fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
+	where
+		AccountPublic: From<<TPublic::Pair as Pair>::Public>,
+	{
+		AccountPublic::from(get_from_seed::<TPublic>(seed))
 	}
 
 	fn session_keys(
@@ -252,6 +263,7 @@ pub mod rococo {
 					(AccountId::from(ALICE), 2002 * UNITS),
 					(ParaId::from(BASILISK_PARA_ID).into_account_truncating(), 10 * UNITS),
 				],
+				dev_accounts: Default::default(),
 			},
 			session: rococo_runtime::SessionConfig {
 				keys: initial_authorities()
@@ -283,7 +295,7 @@ pub mod rococo {
 			},
 
 			xcm_pallet: rococo_runtime::XcmPalletConfig {
-				safe_xcm_version: Some(3),
+				safe_xcm_version: Some(5),
 				..Default::default()
 			},
 			..Default::default()
@@ -378,6 +390,7 @@ pub mod basilisk {
 					(AccountId::from(DAVE), DAVE_INITIAL_BSX_BALANCE),
 					(vesting_account(), VESTING_ACCOUNT_INITIAL_BSX_BALANCE),
 				],
+				dev_accounts: Default::default(),
 			},
 			collator_selection: basilisk_runtime::CollatorSelectionConfig {
 				invulnerables: invulnerables().iter().cloned().map(|(acc, _)| acc).collect(),
@@ -436,7 +449,7 @@ pub mod basilisk {
 				],
 			},
 			polkadot_xcm: basilisk_runtime::PolkadotXcmConfig {
-				safe_xcm_version: Some(3),
+				safe_xcm_version: Some(5),
 				..Default::default()
 			},
 			multi_transaction_payment: basilisk_runtime::MultiTransactionPaymentConfig {
@@ -444,9 +457,7 @@ pub mod basilisk {
 				account_currencies: vec![],
 			},
 			duster: basilisk_runtime::DusterConfig {
-				account_blacklist: vec![basilisk_runtime::Treasury::account_id()],
-				reward_account: Some(basilisk_runtime::Treasury::account_id()),
-				dust_account: Some(basilisk_runtime::Treasury::account_id()),
+				account_whitelist: vec![basilisk_runtime::Treasury::account_id()],
 			},
 			..Default::default()
 		};
@@ -466,6 +477,7 @@ pub mod other_parachain {
 		let genesis_config = basilisk_runtime::RuntimeGenesisConfig {
 			balances: basilisk_runtime::BalancesConfig {
 				balances: vec![(AccountId::from(ALICE), ALICE_INITIAL_NATIVE_BALANCE_ON_OTHER_PARACHAIN)],
+				dev_accounts: Default::default(),
 			},
 			collator_selection: basilisk_runtime::CollatorSelectionConfig {
 				invulnerables: basilisk::invulnerables().iter().cloned().map(|(acc, _)| acc).collect(),
@@ -505,7 +517,7 @@ pub mod other_parachain {
 				],
 			},
 			polkadot_xcm: basilisk_runtime::PolkadotXcmConfig {
-				safe_xcm_version: Some(3),
+				safe_xcm_version: Some(5),
 				..Default::default()
 			},
 			multi_transaction_payment: basilisk_runtime::MultiTransactionPaymentConfig {
@@ -513,9 +525,7 @@ pub mod other_parachain {
 				account_currencies: vec![],
 			},
 			duster: basilisk_runtime::DusterConfig {
-				account_blacklist: vec![basilisk_runtime::Treasury::account_id()],
-				reward_account: Some(basilisk_runtime::Treasury::account_id()),
-				dust_account: Some(basilisk_runtime::Treasury::account_id()),
+				account_whitelist: vec![basilisk_runtime::Treasury::account_id()],
 			},
 			..Default::default()
 		};
@@ -585,13 +595,11 @@ pub fn initialize_rococo_block(target_block: BlockNumber, target_slot: Slot) {
 	rococo_runtime::Scheduler::on_initialize(target_block);
 	rococo_runtime::Preimage::on_initialize(target_block);
 	rococo_runtime::Babe::on_initialize(target_block);
-	rococo_runtime::Timestamp::on_initialize(target_block);
 	rococo_runtime::Session::on_initialize(target_block);
 	rococo_runtime::Grandpa::on_initialize(target_block);
 	rococo_runtime::ParachainsOrigin::on_initialize(target_block);
 	rococo_runtime::ParasShared::on_initialize(target_block);
 	rococo_runtime::ParaInclusion::on_initialize(target_block);
-	// rococo_runtime::ParaInherent::on_initialize(target_block);
 	rococo_runtime::ParaScheduler::on_initialize(target_block);
 	rococo_runtime::Paras::on_initialize(target_block);
 	rococo_runtime::Initializer::on_initialize(target_block);
@@ -602,15 +610,28 @@ pub fn initialize_rococo_block(target_block: BlockNumber, target_slot: Slot) {
 	rococo_runtime::XcmPallet::on_initialize(target_block);
 	rococo_runtime::MessageQueue::on_initialize(target_block);
 	rococo_runtime::Beefy::on_initialize(target_block);
-	assert_ok!(rococo_runtime::Timestamp::set(
-		rococo_runtime::RuntimeOrigin::none(),
-		SLOT_DURATION * *target_slot
-	));
-	// rococo_runtime::AllPalletsWithSystem::on_initialize(target_block);
 }
 
 pub fn initialize_basilisk_block(target_block: BlockNumber, target_slot: Slot) {
-	// Force a new Basilisk block to be created
+	use frame_support::storage::unhashed;
+
+	// Clear AuraExt storage when starting a new test (block 1) or when resetting
+	// This prevents "Slot moved backwards" errors from previous test runs
+	let aura_key = frame_support::storage::storage_prefix(b"AuraExt", b"RelaySlotInfo");
+
+	if target_block == 1 {
+		unhashed::kill(&aura_key);
+	} else if let Some(data) = unhashed::get_raw(&aura_key) {
+		// Also check if stored slot exists and is greater than what we're about to set
+		// This indicates storage wasn't properly cleared after previous test
+		use sp_core::Decode;
+		if let Ok((stored_slot, _)) = <(Slot, u32)>::decode(&mut &data[..]) {
+			// If stored slot is greater than or equal to the number we're setting, clear it
+			if u64::from(stored_slot) >= target_block as u64 {
+				unhashed::kill(&aura_key);
+			}
+		}
+	}
 
 	basilisk_runtime::System::set_block_number(target_block);
 	basilisk_runtime::System::initialize(
@@ -636,12 +657,8 @@ pub fn initialize_basilisk_block(target_block: BlockNumber, target_slot: Slot) {
 	basilisk_runtime::MessageQueue::on_initialize(target_block);
 	basilisk_runtime::MultiTransactionPayment::on_initialize(target_block);
 	basilisk_runtime::EmaOracle::on_initialize(target_block);
-	// assert_ok!(basilisk_runtime::Timestamp::set(
-	// 	basilisk_runtime::RuntimeOrigin::none(),
-	// 	SLOT_DURATION * *target_slot
-	// ));
 
-	// basilisk_runtime::AllPalletsWithSystem::on_initialize(target_block);
+	// Set validation data AFTER on_initialize hooks
 	set_validation_data(target_block, target_slot);
 }
 
@@ -649,7 +666,6 @@ pub fn finalize_basilisk_block(target_block: BlockNumber) {
 	use frame_support::traits::OnFinalize;
 
 	basilisk_runtime::System::on_finalize(target_block);
-	// basilisk_runtime::Timestamp::on_finalize(target_block);
 	basilisk_runtime::Session::on_finalize(target_block);
 	basilisk_runtime::Aura::on_finalize(target_block);
 	basilisk_runtime::AuraExt::on_finalize(target_block);
@@ -672,13 +688,11 @@ pub fn finalize_rococo_block(target_block: BlockNumber) {
 	rococo_runtime::Scheduler::on_finalize(target_block);
 	rococo_runtime::Preimage::on_finalize(target_block);
 	rococo_runtime::Babe::on_finalize(target_block);
-	rococo_runtime::Timestamp::on_finalize(target_block);
 	rococo_runtime::Session::on_finalize(target_block);
 	rococo_runtime::Grandpa::on_finalize(target_block);
 	rococo_runtime::ParachainsOrigin::on_finalize(target_block);
 	rococo_runtime::ParasShared::on_finalize(target_block);
 	rococo_runtime::ParaInclusion::on_finalize(target_block);
-	// rococo_runtime::ParaInherent::on_finalize(target_block);
 	rococo_runtime::ParaScheduler::on_finalize(target_block);
 	rococo_runtime::Paras::on_finalize(target_block);
 	rococo_runtime::Initializer::on_finalize(target_block);
@@ -689,10 +703,6 @@ pub fn finalize_rococo_block(target_block: BlockNumber) {
 	rococo_runtime::XcmPallet::on_finalize(target_block);
 	rococo_runtime::MessageQueue::on_finalize(target_block);
 	rococo_runtime::Beefy::on_finalize(target_block);
-	// rococo_runtime::System::finalize();
-
-	// rococo_runtime::AllPalletsWithSystem::on_finalize(target_block);
-	//
 }
 
 pub fn go_to_next_block(initialize: bool, finalize: bool) {
@@ -719,7 +729,7 @@ pub fn go_to_next_block(initialize: bool, finalize: bool) {
 	}
 }
 
-pub fn set_validation_data(next_block: u32, slot: Slot) {
+pub fn set_validation_data(next_block: u32, _slot: Slot) {
 	use basilisk_runtime::RuntimeOrigin;
 	use frame_support::storage::storage_prefix;
 	use polkadot_primitives::HeadData;
@@ -728,7 +738,7 @@ pub fn set_validation_data(next_block: u32, slot: Slot) {
 	let sproof_builder = RelayStateSproofBuilder {
 		para_id: basilisk_runtime::ParachainInfo::parachain_id(),
 		included_para_head: Some(parent_head.clone()),
-		current_slot: slot,
+		current_slot: (next_block as u64).into(),
 		..Default::default()
 	};
 
@@ -750,17 +760,6 @@ pub fn set_validation_data(next_block: u32, slot: Slot) {
 	));
 
 	sp_io::storage::clear(&storage_prefix(b"ParachainSystem", b"UnincludedSegment"));
-}
-
-pub fn set_para_slot_info(number: u64) {
-	// sp_io::storage::clear(&frame_support::storage::storage_prefix(
-	// 	b"ParachainSystem",
-	// 	b"UnincludedSegment",
-	// ));
-	frame_support::storage::unhashed::put(
-		&frame_support::storage::storage_prefix(b"AuraExt", b"SlotInfo"),
-		&(Slot::from(number), 0),
-	);
 }
 
 use xcm_emulator::pallet_message_queue;

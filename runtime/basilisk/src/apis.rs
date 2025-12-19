@@ -16,6 +16,7 @@
 // limitations under the License.
 
 use crate::*;
+use basilisk_traits::oracle::NativePriceOracle;
 use frame_support::{
 	genesis_builder_helper::{build_state, get_preset},
 	sp_runtime::{
@@ -25,7 +26,7 @@ use frame_support::{
 	},
 	weights::WeightToFee as _,
 };
-use hydradx_traits::NativePriceOracle;
+use polkadot_xcm::prelude::XcmVersion;
 use polkadot_xcm::{IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
 use primitives::constants::chain::CORE_ASSET_ID;
 use sp_api::impl_runtime_apis;
@@ -193,23 +194,23 @@ impl_runtime_apis! {
 
 	impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
 		fn query_acceptable_payment_assets(xcm_version: polkadot_xcm::Version) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
-			if !matches!(xcm_version, 3 | 4) {
+			if !matches!(xcm_version, 3..=5) {
 				return Err(XcmPaymentApiError::UnhandledXcmVersion);
 			}
 
 			let mut asset_locations = vec![
-		AssetLocation(polkadot_xcm::v3::MultiLocation {
+		AssetLocation(polkadot_xcm::v5::Location {
 				parents: 1,
 				interior: [
-					polkadot_xcm::v3::Junction::Parachain(ParachainInfo::get().into()),
-					polkadot_xcm::v3::Junction::GeneralIndex(CORE_ASSET_ID.into()),
+					polkadot_xcm::v5::Junction::Parachain(ParachainInfo::get().into()),
+					polkadot_xcm::v5::Junction::GeneralIndex(CORE_ASSET_ID.into()),
 				]
 				.into(),
 			}),
-			AssetLocation(polkadot_xcm::v3::MultiLocation {
+			AssetLocation(polkadot_xcm::v5::Location {
 				parents: 0,
 				interior: [
-					polkadot_xcm::v3::Junction::GeneralIndex(CORE_ASSET_ID.into()),
+					polkadot_xcm::v5::Junction::GeneralIndex(CORE_ASSET_ID.into()),
 				]
 				.into(),
 			})];
@@ -217,7 +218,7 @@ impl_runtime_apis! {
 			let mut asset_registry_locations: Vec<AssetLocation> = pallet_asset_registry::LocationAssets::<Runtime>::iter_keys().collect();
 			asset_locations.append(&mut asset_registry_locations);
 
-			let versioned_locations = asset_locations.iter().map(|loc| VersionedAssetId::V3(polkadot_xcm::v3::AssetId::Concrete(loc.0)));
+			let versioned_locations = asset_locations.iter().map(|loc| VersionedAssetId::V5(polkadot_xcm::v5::AssetId(loc.0.clone())));
 
 			Ok(versioned_locations
 				.filter_map(|asset| asset.into_version(xcm_version).ok())
@@ -225,10 +226,10 @@ impl_runtime_apis! {
 		}
 
 		fn query_weight_to_asset_fee(weight: Weight, asset: VersionedAssetId) -> Result<u128, XcmPaymentApiError> {
-			let v4_xcm_asset_id = asset.into_version(4).map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
+			let v5_xcm_asset_id = asset.into_version(5).map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
 
 			// get nested polkadot_xcm::AssetId type
-			let xcm_asset_id: &polkadot_xcm::v4::AssetId = v4_xcm_asset_id.try_as().map_err(|_| XcmPaymentApiError::WeightNotComputable)?;
+			let xcm_asset_id: &polkadot_xcm::v5::AssetId = v5_xcm_asset_id.try_as().map_err(|_| XcmPaymentApiError::WeightNotComputable)?;
 
 			let asset_id: AssetId = CurrencyIdConvert::convert(xcm_asset_id.clone().0).ok_or(XcmPaymentApiError::AssetNotFound)?;
 
@@ -251,9 +252,17 @@ impl_runtime_apis! {
 	}
 
 	impl xcm_runtime_apis::dry_run::DryRunApi<Block, RuntimeCall, RuntimeEvent, OriginCaller> for Runtime {
-		fn dry_run_call(origin: OriginCaller, call: RuntimeCall) -> Result<CallDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
-			PolkadotXcm::dry_run_call::<Runtime, xcm::XcmRouter, OriginCaller, RuntimeCall>(origin, call)
-		}
+		fn dry_run_call(
+						origin: OriginCaller,
+						call: RuntimeCall,
+						result_xcms_version: XcmVersion
+					) -> Result<CallDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
+						PolkadotXcm::dry_run_call::<
+							Runtime,
+							xcm::XcmRouter,
+							OriginCaller,
+							RuntimeCall>(origin, call, result_xcms_version)
+					}
 
 		fn dry_run_xcm(origin_location: VersionedLocation, xcm: VersionedXcm<RuntimeCall>) -> Result<XcmDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
 			PolkadotXcm::dry_run_xcm::<Runtime, xcm::XcmRouter, RuntimeCall, xcm::XcmConfig>(origin_location, xcm)
@@ -287,9 +296,8 @@ impl_runtime_apis! {
 			Vec<frame_benchmarking::BenchmarkList>,
 			Vec<frame_support::traits::StorageInfo>,
 		) {
-			use frame_benchmarking::{Benchmarking, BenchmarkList};
+			use frame_benchmarking::BenchmarkList;
 			use frame_support::traits::StorageInfoTrait;
-			use orml_benchmarking::list_benchmark as orml_list_benchmark;
 
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
@@ -298,27 +306,18 @@ impl_runtime_apis! {
 			let mut list = Vec::<BenchmarkList>::new();
 			list_benchmarks!(list, extra);
 
-			orml_list_benchmark!(list, extra, pallet_currencies, benchmarking::currencies);
-			orml_list_benchmark!(list, extra, pallet_xyk, benchmarking::xyk);
-			orml_list_benchmark!(list, extra, orml_tokens, benchmarking::tokens);
-			orml_list_benchmark!(list, extra, orml_vesting, benchmarking::vesting);
-			orml_list_benchmark!(list, extra, pallet_duster, benchmarking::duster);
-			orml_list_benchmark!(list, extra, pallet_transaction_multi_payment, benchmarking::multi_payment);
-			orml_list_benchmark!(list, extra, pallet_route_executor, benchmarking::route_executor);
-			orml_list_benchmark!(list, extra, pallet_marketplace, benchmarking::marketplace);
 			let storage_info = AllPalletsWithSystem::storage_info();
 
 			(list, storage_info)
 		}
 
+		#[allow(non_local_definitions)]
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
-		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
-			use frame_benchmarking::{BenchmarkError, Benchmarking, BenchmarkBatch};
+		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
+			use frame_benchmarking::{BenchmarkError, BenchmarkBatch};
 			use frame_support::traits::TrackedStorageKey;
 			use sp_std::sync::Arc;
-
-			use orml_benchmarking::add_benchmark as orml_add_benchmark;
 
 			use frame_system_benchmarking::Pallet as SystemBench;
 			use pallet_xyk_liquidity_mining_benchmarking::Pallet as XYKLiquidityMiningBench;
@@ -435,15 +434,6 @@ impl_runtime_apis! {
 			let mut batches = Vec::<BenchmarkBatch>::new();
 			let params = (&config, &whitelist);
 			add_benchmarks!(params, batches);
-
-			orml_add_benchmark!(params, batches, pallet_xyk, benchmarking::xyk);
-			orml_add_benchmark!(params, batches, pallet_currencies, benchmarking::currencies);
-			orml_add_benchmark!(params, batches, orml_tokens, benchmarking::tokens);
-			orml_add_benchmark!(params, batches, orml_vesting, benchmarking::vesting);
-			orml_add_benchmark!(params, batches, pallet_duster, benchmarking::duster);
-			orml_add_benchmark!(params, batches, pallet_transaction_multi_payment, benchmarking::multi_payment);
-			orml_add_benchmark!(params, batches, pallet_route_executor, benchmarking::route_executor);
-			orml_add_benchmark!(params, batches, pallet_marketplace, benchmarking::marketplace);
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)

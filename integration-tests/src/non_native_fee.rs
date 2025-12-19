@@ -5,12 +5,9 @@ use crate::kusama_test_net::*;
 use basilisk_runtime::{Balances, Currencies, MultiTransactionPayment, RuntimeOrigin, Tokens};
 
 use frame_support::{
-	assert_err, assert_ok,
+	assert_ok,
 	dispatch::DispatchInfo,
-	sp_runtime::{
-		traits::SignedExtension,
-		transaction_validity::{InvalidTransaction, TransactionValidityError},
-	},
+	sp_runtime::transaction_validity::{InvalidTransaction, TransactionValidityError},
 	weights::Weight,
 };
 use hydradx_traits::AMM;
@@ -18,6 +15,7 @@ use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;
 use primitives::AssetId;
+use sp_runtime::traits::DispatchTransaction;
 use xcm_emulator::TestExt;
 
 #[test]
@@ -30,22 +28,18 @@ fn non_native_fee_payment_works_with_configured_price() {
 		);
 
 		let info = DispatchInfo {
-			weight: Weight::from_parts(106_957_000, 0),
+			call_weight: Weight::from_parts(106_957_000, 0),
 			..Default::default()
 		};
 		let len: usize = 10;
 
 		assert_ok!(
-			pallet_transaction_payment::ChargeTransactionPayment::<basilisk_runtime::Runtime>::from(0).pre_dispatch(
-				&AccountId::from(BOB),
-				&call,
-				&info,
-				len,
-			)
+			pallet_transaction_payment::ChargeTransactionPayment::<basilisk_runtime::Runtime>::from(0)
+				.validate_and_prepare(Some(AccountId::from(BOB)).into(), &call, &info, len, 0,)
 		);
 
 		let bob_balance = basilisk_runtime::Tokens::free_balance(AUSD, &AccountId::from(BOB));
-		assert_eq!(bob_balance, 999_999_992_137_669);
+		assert_eq!(bob_balance, 999_999_992_137_710);
 	});
 }
 
@@ -60,7 +54,7 @@ fn non_native_fee_payment_works_with_oracle_price_based_on_onchain_route() {
 			currency: NEW_TOKEN,
 		});
 	let info = DispatchInfo {
-		weight: Weight::from_parts(106_957_000, 0),
+		call_weight: Weight::from_parts(106_957_000, 0),
 		..Default::default()
 	};
 	let len: usize = 10;
@@ -107,13 +101,10 @@ fn non_native_fee_payment_works_with_oracle_price_based_on_onchain_route() {
 		));
 
 		// try and fail to pay with the new token
-		assert_err!(
-			pallet_transaction_payment::ChargeTransactionPayment::<basilisk_runtime::Runtime>::from(0).pre_dispatch(
-				&AccountId::from(DAVE),
-				&call,
-				&info,
-				len,
-			),
+		assert_eq!(
+			pallet_transaction_payment::ChargeTransactionPayment::<basilisk_runtime::Runtime>::from(0)
+				.validate_and_prepare(Some(AccountId::from(DAVE)).into(), &call, &info, len, 0,)
+				.unwrap_err(),
 			TransactionValidityError::from(InvalidTransaction::Payment)
 		);
 
@@ -144,16 +135,12 @@ fn non_native_fee_payment_works_with_oracle_price_based_on_onchain_route() {
 
 		// pay with the new token
 		assert_ok!(
-			pallet_transaction_payment::ChargeTransactionPayment::<basilisk_runtime::Runtime>::from(0).pre_dispatch(
-				&AccountId::from(DAVE),
-				&call,
-				&info,
-				len,
-			)
+			pallet_transaction_payment::ChargeTransactionPayment::<basilisk_runtime::Runtime>::from(0)
+				.validate_and_prepare(Some(AccountId::from(DAVE)).into(), &call, &info, len, 0,)
 		);
 
 		let dave_balance = basilisk_runtime::Tokens::free_balance(NEW_TOKEN, &AccountId::from(DAVE));
-		assert_eq!(dave_balance, 990_264_297_166_679);
+		assert_eq!(dave_balance, 990_264_347_751_724);
 	});
 }
 

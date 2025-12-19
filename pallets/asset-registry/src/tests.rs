@@ -23,8 +23,10 @@ use crate::{mock::*, XcmRateLimitsInRegistry};
 use codec::Encode;
 use frame_support::{assert_noop, assert_ok, BoundedVec};
 use orml_traits::GetByKey;
-use polkadot_xcm::v3::prelude::*;
+use polkadot_xcm::v5::prelude::*;
+use polkadot_xcm::v5::Junctions::X2;
 use sp_std::convert::TryInto;
+use sp_std::sync::Arc;
 
 #[test]
 fn register_asset_works() {
@@ -171,7 +173,7 @@ fn location_mapping_works() {
 		);
 
 		let key = Junction::from(BoundedVec::try_from(asset_id.encode()).unwrap());
-		let asset_location = AssetLocation(MultiLocation::new(0, X2(Parachain(200), key)));
+		let asset_location = AssetLocation(Location::new(0, X2(Arc::new([Parachain(200), key]))));
 
 		assert_ok!(AssetRegistryPallet::set_location(
 			RuntimeOrigin::root(),
@@ -692,7 +694,7 @@ fn register_asset_should_work_when_location_is_provided() {
 		let asset_id: RegistryAssetId = 10;
 
 		let key = Junction::from(BoundedVec::try_from(asset_id.encode()).unwrap());
-		let asset_location = AssetLocation(MultiLocation::new(0, X2(Parachain(200), key)));
+		let asset_location = AssetLocation(Location::new(0, X2(Arc::new([Parachain(200), key]))));
 
 		assert_ok!(AssetRegistryPallet::register(
 			RuntimeOrigin::root(),
@@ -731,7 +733,7 @@ fn register_asset_should_fail_when_location_is_already_registered() {
 		// Arrange
 		let asset_id: RegistryAssetId = 10;
 		let key = Junction::from(BoundedVec::try_from(asset_id.encode()).unwrap());
-		let asset_location = AssetLocation(MultiLocation::new(0, X2(Parachain(2021), key)));
+		let asset_location = AssetLocation(Location::new(0, X2(Arc::new([Parachain(2021), key]))));
 		assert_ok!(AssetRegistryPallet::register(
 			RuntimeOrigin::root(),
 			b"asset_id".to_vec(),
@@ -766,7 +768,7 @@ fn set_location_should_fail_when_location_is_already_registered() {
 		// Arrange
 		let asset_id: RegistryAssetId = 10;
 		let key = Junction::from(BoundedVec::try_from(asset_id.encode()).unwrap());
-		let asset_location = AssetLocation(MultiLocation::new(0, X2(Parachain(2021), key)));
+		let asset_location = AssetLocation(Location::new(0, X2(Arc::new([Parachain(2021), key]))));
 		assert_ok!(AssetRegistryPallet::register(
 			RuntimeOrigin::root(),
 			b"asset_id".to_vec(),
@@ -792,7 +794,7 @@ fn set_location_should_remove_old_location() {
 		// Arrange
 		let asset_id: RegistryAssetId = 10;
 		let key = Junction::from(BoundedVec::try_from(asset_id.encode()).unwrap());
-		let old_asset_location = AssetLocation(MultiLocation::new(0, X2(Parachain(2021), key)));
+		let old_asset_location = AssetLocation(Location::new(0, X2(Arc::new([Parachain(2021), key]))));
 		assert_ok!(AssetRegistryPallet::register(
 			RuntimeOrigin::root(),
 			b"asset_id".to_vec(),
@@ -808,7 +810,7 @@ fn set_location_should_remove_old_location() {
 		assert_ok!(AssetRegistryPallet::set_location(
 			RuntimeOrigin::root(),
 			asset_id,
-			AssetLocation(MultiLocation::new(0, X2(Parachain(2022), key)))
+			AssetLocation(Location::new(0, X2(Arc::new([Parachain(2022), key]))))
 		));
 
 		// Assert
@@ -822,7 +824,7 @@ fn register_asset_should_work_when_all_optional_are_provided() {
 		let asset_id: RegistryAssetId = 10;
 
 		let key = Junction::from(BoundedVec::try_from(asset_id.encode()).unwrap());
-		let asset_location = AssetLocation(MultiLocation::new(0, X2(Parachain(200), key)));
+		let asset_location = AssetLocation(Location::new(0, X2(Arc::new([Parachain(200), key]))));
 
 		assert_ok!(AssetRegistryPallet::register(
 			RuntimeOrigin::root(),

@@ -84,6 +84,7 @@ impl pallet_balances::Config for Test {
 	type MaxFreezes = ();
 	type RuntimeHoldReason = ();
 	type RuntimeFreezeReason = ();
+	type DoneSlashHandler = ();
 }
 
 impl system::Config for Test {
@@ -116,6 +117,7 @@ impl system::Config for Test {
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
+	type ExtensionsWeightInfo = ();
 }
 
 parameter_types! {
@@ -211,6 +213,7 @@ impl ExtBuilder {
 				.iter()
 				.flat_map(|(x, asset)| vec![(x.clone(), *asset)])
 				.collect(),
+			dev_accounts: Default::default(),
 		}
 		.assimilate_storage(t)
 		.unwrap();

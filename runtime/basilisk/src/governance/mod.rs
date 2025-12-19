@@ -17,7 +17,7 @@
 
 use super::*;
 use crate::governance::tracks::TracksInfo;
-use crate::origins::{ReferendumCanceller, ReferendumKiller, Spender, Treasurer, WhitelistedCaller};
+use crate::origins::{GeneralAdmin, ReferendumCanceller, ReferendumKiller, Spender, Treasurer, WhitelistedCaller};
 use frame_support::{
 	parameter_types,
 	sp_runtime::Permill,
@@ -60,6 +60,9 @@ impl pallet_collective::Config<TechnicalCollective> for Runtime {
 	type WeightInfo = weights::pallet_collective::BasiliskWeight<Runtime>;
 	type MaxProposalWeight = MaxProposalWeight;
 	type SetMembersOrigin = EnsureRoot<AccountId>;
+	type DisapproveOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type KillOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
+	type Consideration = ();
 }
 
 parameter_types! {
@@ -75,6 +78,9 @@ impl pallet_conviction_voting::Config for Runtime {
 	type MaxVotes = ConstU32<512>;
 	type VoteLockingPeriod = VoteLockingPeriod;
 	type VotingHooks = ();
+	// Any single technical committee member may remove a vote.
+	type VoteRemovalOrigin = frame_system::EnsureSignedBy<TechCommAccounts, AccountId>;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -117,6 +123,7 @@ impl pallet_referenda::Config for Runtime {
 	type AlarmInterval = AlarmInterval;
 	type Tracks = TracksInfo;
 	type Preimages = Preimage;
+	type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -155,6 +162,7 @@ impl pallet_treasury::Config for Runtime {
 	type PayoutPeriod = TreasuryPayoutPeriod;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = benchmarking::BenchmarkHelper;
+	type BlockNumberProvider = System;
 }
 
 pub struct PayFromTreasuryAccount;

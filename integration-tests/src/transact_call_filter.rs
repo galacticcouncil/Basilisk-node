@@ -4,7 +4,7 @@ use crate::kusama_test_net::*;
 use frame_support::{assert_ok, dispatch::GetDispatchInfo};
 use sp_runtime::codec::Encode;
 
-use polkadot_xcm::v4::prelude::*;
+use polkadot_xcm::v5::prelude::*;
 
 use xcm_emulator::TestExt;
 
@@ -58,7 +58,7 @@ fn allowed_transact_call_should_pass_filter() {
 				weight_limit: Unlimited,
 			},
 			Transact {
-				require_weight_at_most: call.get_dispatch_info().weight,
+				fallback_max_weight: Some(call.get_dispatch_info().call_weight),
 				origin_kind: OriginKind::SovereignAccount,
 				call: basilisk_runtime::RuntimeCall::Currencies(call).encode().into(),
 			},
@@ -149,7 +149,7 @@ fn blocked_transact_calls_should_not_pass_filter() {
 				weight_limit: Unlimited,
 			},
 			Transact {
-				require_weight_at_most: Weight::from_parts(10_000_000_000, 0u64),
+				fallback_max_weight: Some(Weight::from_parts(10_000_000_000, 0u64)),
 				origin_kind: OriginKind::Native,
 				call: basilisk_runtime::RuntimeCall::Treasury(call).encode().into(),
 			},
@@ -225,7 +225,7 @@ fn safe_call_filter_should_respect_runtime_call_filter() {
 				weight_limit: Unlimited,
 			},
 			Transact {
-				require_weight_at_most: Weight::from_parts(1_000_000_000, 2653u64),
+				fallback_max_weight: Some(Weight::from_parts(1_000_000_000, 2653u64)),
 				origin_kind: OriginKind::Native,
 				call: basilisk_runtime::RuntimeCall::Uniques(call).encode().into(),
 			},

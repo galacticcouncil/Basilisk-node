@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "127.0.0"
+version = "128.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -13,6 +13,9 @@ targets = ["x86_64-unknown-linux-gnu"]
 [build-dependencies]
 substrate-wasm-builder = { workspace = true }
 
+[dev-dependencies]
+frame-metadata = { workspace = true }
+
 [dependencies]
 hex-literal = { workspace = true }
 serde = { workspace = true, optional = true }
@@ -22,7 +25,9 @@ smallvec = { workspace = true }
 log = { workspace = true }
 
 # local dependencies
+basilisk-math = { workspace = true }
 primitives = { default-features = false, path = "../../primitives" }
+basilisk-traits = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
 pallet-xyk-liquidity-mining = { workspace = true , default-features = false }
 pallet-xyk-liquidity-mining-benchmarking = { workspace = true, optional = true, default-features = false }
@@ -41,7 +46,7 @@ hydra-dx-math = { workspace = true }
 pallet-transaction-multi-payment = { workspace = true }
 pallet-relaychain-info = { workspace = true }
 pallet-asset-registry = { workspace = true }
-hydradx-adapters = { workspace = true }
+basilisk-adapters = { workspace = true }
 pallet-nft = { workspace = true }
 pallet-currencies = { workspace = true }
 pallet-transaction-pause = { workspace = true }
@@ -180,6 +185,8 @@ runtime-benchmarks = [
     "pallet-whitelist/runtime-benchmarks",
     "pallet-message-queue/runtime-benchmarks",
     "cumulus-pallet-parachain-system/runtime-benchmarks",
+    "pallet-transaction-multi-payment/runtime-benchmarks",
+    "pallet-transaction-payment/runtime-benchmarks",
 ]
 std = [
     "codec/std",
@@ -232,7 +239,7 @@ std = [
     "pallet-broadcast/std",
     "pallet-staking/std",
     "hydradx-traits/std",
-    "hydradx-adapters/std",
+    "basilisk-adapters/std",
     "sp-api/std",
     "sp-arithmetic/std",
     "sp-block-builder/std",
@@ -270,6 +277,7 @@ std = [
     "cumulus-primitives-utility/std",
     "parachains-common/std",
     "polkadot-runtime-common/std",
+    "basilisk-traits/std",
 ]
 try-runtime= [
     "frame-try-runtime",

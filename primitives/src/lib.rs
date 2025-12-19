@@ -20,7 +20,7 @@
 
 use codec::{Decode, Encode};
 
-use primitive_types::U256;
+use primitive_types::{H160, U256};
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
 
@@ -47,6 +47,8 @@ pub type Signature = MultiSignature;
 /// Some way of identifying an account on the chain. We intentionally make it equivalent
 /// to the public key of our transaction signing scheme.
 pub type AccountId = <<Signature as Verify>::Signer as IdentifyAccount>::AccountId;
+
+pub type EvmAddress = H160;
 
 /// The type for looking up accounts. We don't expect more than 4 billion of them, but you
 /// never know...

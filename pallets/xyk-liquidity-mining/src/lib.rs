@@ -45,7 +45,10 @@ pub mod weights;
 
 pub use pallet::*;
 
-use frame_support::traits::tokens::nonfungibles::{Inspect, Mutate};
+use frame_support::traits::{
+	tokens::nonfungibles::{Inspect, Mutate},
+	ExistenceRequirement,
+};
 use frame_support::{ensure, sp_runtime::traits::Zero, PalletId};
 use frame_system::pallet_prelude::BlockNumberFor;
 use hydradx_traits::liquidity_mining::{GlobalFarmId, Mutate as LiquidityMiningMutate, YieldFarmId};
@@ -914,13 +917,25 @@ impl<T: Config> Pallet<T> {
 	fn lock_lp_tokens(lp_token: AssetId, who: &T::AccountId, amount: Balance) -> Result<(), DispatchError> {
 		let service_account_for_lp_shares = Self::account_id();
 
-		T::MultiCurrency::transfer(lp_token, who, &service_account_for_lp_shares, amount)
+		T::MultiCurrency::transfer(
+			lp_token,
+			who,
+			&service_account_for_lp_shares,
+			amount,
+			ExistenceRequirement::AllowDeath,
+		)
 	}
 
 	fn unlock_lp_tokens(lp_token: AssetId, who: &T::AccountId, amount: Balance) -> Result<(), DispatchError> {
 		let service_account_for_lp_shares = Self::account_id();
 
-		T::MultiCurrency::transfer(lp_token, &service_account_for_lp_shares, who, amount)
+		T::MultiCurrency::transfer(
+			lp_token,
+			&service_account_for_lp_shares,
+			who,
+			amount,
+			ExistenceRequirement::AllowDeath,
+		)
 	}
 
 	/// This function retuns value of lp tokens in the `asset` currency.
