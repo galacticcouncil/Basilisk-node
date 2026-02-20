@@ -296,7 +296,7 @@ pub struct ExtendedDustRemovalWhitelist;
 
 impl Get<Vec<AccountId>> for ExtendedDustRemovalWhitelist {
 	fn get() -> Vec<AccountId> {
-		let mut accounts = vec![
+		let accounts = vec![
 			TreasuryPalletId::get().into_account_truncating(),
 			VestingPalletId::get().into_account_truncating(),
 			pallet_route_executor::Pallet::<Runtime>::router_account(),
