@@ -10,7 +10,7 @@ use frame_support::{
 	sp_runtime::transaction_validity::{InvalidTransaction, TransactionValidityError},
 	weights::Weight,
 };
-use hydradx_traits::AMM;
+use basilisk_traits::AMM;
 use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;

@@ -5,7 +5,7 @@ use crate::assert_trader_non_native_balance;
 use crate::kusama_test_net::*;
 
 use basilisk_runtime::{BlockNumber, RuntimeOrigin, LBP, XYK};
-use hydradx_traits::AMM;
+use basilisk_traits::AMM;
 use primitives::AssetId;
 
 use pallet_lbp::WeightCurveType;

@@ -5,7 +5,8 @@ use crate::{
 };
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, LockIdentifier, Nothing};
-use hydradx_traits::{AMMTransfer, LockedBalance};
+use basilisk_traits::AMMTransfer;
+use hydradx_traits::LockedBalance;
 use orml_traits::parameter_type_with_key;
 use sp_core::H256;
 use sp_runtime::{

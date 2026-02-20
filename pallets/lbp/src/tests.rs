@@ -29,7 +29,8 @@ pub use crate::mock::{
 	HDX, KUSD,
 };
 use frame_support::{assert_err, assert_noop, assert_ok};
-use hydradx_traits::{AMMTransfer, LockedBalance};
+use basilisk_traits::AMMTransfer;
+use hydradx_traits::LockedBalance;
 use pallet_broadcast::types::Destination;
 use sp_runtime::traits::{BadOrigin, Dispatchable};
 use sp_std::convert::TryInto;
