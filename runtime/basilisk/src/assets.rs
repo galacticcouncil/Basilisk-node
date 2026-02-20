@@ -270,6 +270,7 @@ impl pallet_currencies::Config for Runtime {
 	type BoundErc20 = NoEvmSupport;
 	type ReserveAccount = ReserveAccount;
 	type GetNativeCurrencyId = NativeAssetId;
+	type RegistryInspect = AssetRegistry;
 	type WeightInfo = weights::pallet_currencies::BasiliskWeight<Runtime>;
 }
 
@@ -292,12 +293,28 @@ parameter_types! {
 	pub const DustingReward: u128 = 0;
 }
 
+pub struct ExtendedDustRemovalWhitelist;
+
+impl Get<Vec<AccountId>> for ExtendedDustRemovalWhitelist {
+	fn get() -> Vec<AccountId> {
+		let mut accounts = vec![
+			TreasuryPalletId::get().into_account_truncating(),
+			VestingPalletId::get().into_account_truncating(),
+			pallet_route_executor::Pallet::<Runtime>::router_account(),
+		];
+
+		accounts
+	}
+}
+
+
 impl pallet_duster::Config for Runtime {
 	type AssetId = AssetId;
 	type MultiCurrency = FungibleCurrencies<Runtime>;
 	type ExistentialDeposit = AssetRegistry;
 	type WhitelistUpdateOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type Erc20Support = NoErc20Support;
+	type ExtendedWhitelist = ExtendedDustRemovalWhitelist;
 	type TreasuryAccountId = TreasuryAccount;
 	type WeightInfo = weights::pallet_duster::BasiliskWeight<Runtime>;
 }
