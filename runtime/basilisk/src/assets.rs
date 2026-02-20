@@ -127,7 +127,6 @@ impl Contains<AccountId> for DustRemovalWhitelist {
 }
 
 impl orml_tokens::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
@@ -265,7 +264,6 @@ parameter_types! {
 // The infrastructure relies on the events from this pallet, so we use the latest version of
 // the pallet that contains and emit events and was updated to the polkadot version we use.
 impl pallet_currencies::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type Erc20Currency = NoEvmSupport;
@@ -295,7 +293,6 @@ parameter_types! {
 }
 
 impl pallet_duster::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type MultiCurrency = FungibleCurrencies<Runtime>;
 	type ExistentialDeposit = AssetRegistry;
@@ -305,9 +302,7 @@ impl pallet_duster::Config for Runtime {
 	type WeightInfo = weights::pallet_duster::BasiliskWeight<Runtime>;
 }
 
-impl pallet_broadcast::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-}
+impl pallet_broadcast::Config for Runtime {}
 
 pub struct AssetPairAccountId<T: frame_system::Config>(PhantomData<T>);
 impl<T: frame_system::Config> AssetPairAccountIdFor<AssetId, T::AccountId> for AssetPairAccountId<T>
@@ -438,7 +433,6 @@ parameter_types! {
 }
 
 impl orml_vesting::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type MinVestedTransfer = MinVestedTransfer;
 	type VestedTransferOrigin = RootAsVestingPallet;
@@ -532,7 +526,6 @@ parameter_types! {
 
 type XYKLiquidityMiningInstance = warehouse_liquidity_mining::Instance1;
 impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type MultiCurrency = Currencies;
 	type PalletId = WarehouseLMPalletId;
@@ -870,7 +863,6 @@ parameter_types! {
 }
 
 impl pallet_nft::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::pallet_nft::BasiliskWeight<Runtime>;
 	type NftCollectionId = CollectionId;
 	type NftItemId = ItemId;

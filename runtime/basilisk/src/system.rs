@@ -554,12 +554,10 @@ impl staging_parachain_info::Config for Runtime {}
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
 impl pallet_relaychain_info::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
 impl pallet_transaction_pause::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type UpdateOrigin = EitherOf<EnsureRoot<Self::AccountId>, TechCommitteeMajority>;
 	type WeightInfo = weights::pallet_transaction_pause::BasiliskWeight<Runtime>;
 }
@@ -574,7 +572,6 @@ parameter_types! {
 }
 
 impl pallet_collator_rewards::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type CurrencyId = AssetId;
 	type Currency = Currencies;
