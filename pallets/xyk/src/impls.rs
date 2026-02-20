@@ -1,6 +1,6 @@
 use crate::types::{AssetId, AssetPair, Price};
 use hydradx_traits::pools::SpotPriceProvider;
-use hydradx_traits::AMM;
+use basilisk_traits::AMM;
 use orml_traits::MultiCurrency;
 use sp_runtime::FixedPointNumber;
 use sp_std::marker::PhantomData;

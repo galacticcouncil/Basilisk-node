@@ -20,7 +20,7 @@ use crate::governance::origins::GeneralAdmin;
 use crate::system::NativeAssetId;
 
 use basilisk_traits::{
-	OnTradeHandler,
+	AMM, OnTradeHandler,
 	{
 		oracle::OraclePeriod,
 		router::{inverse_route, AmmTradeWeights, PoolType, Trade},
@@ -29,7 +29,7 @@ use basilisk_traits::{
 
 use hydradx_traits::{
 	fee::{InspectTransactionFeeCurrency, SwappablePaymentAssetTrader},
-	AssetKind, AssetPairAccountIdFor, LockedBalance, Source, AMM,
+	AssetKind, AssetPairAccountIdFor, LockedBalance, Source,
 };
 use pallet_currencies::fungibles::FungibleCurrencies;
 use pallet_currencies::BasicCurrencyAdapter;

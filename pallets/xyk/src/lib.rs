@@ -29,7 +29,7 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::manual_inspect)]
 
-use basilisk_traits::{OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler};
+use basilisk_traits::{AMM, AMMTransfer, OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler};
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{
 	dispatch::DispatchResult,
@@ -39,7 +39,7 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 use frame_system::pallet_prelude::BlockNumberFor;
-use hydradx_traits::{AMMPosition, AMMTransfer, AssetPairAccountIdFor, CanCreatePool, AMM};
+use hydradx_traits::{AMMPosition, AssetPairAccountIdFor, CanCreatePool};
 use pallet_broadcast::types::{Asset, Destination, Fee};
 
 use sp_std::{vec, vec::Vec};

@@ -37,7 +37,8 @@ use frame_support::{
 use frame_system::ensure_signed;
 use frame_system::pallet_prelude::BlockNumberFor;
 use hydra_dx_math::types::LBPWeight;
-use hydradx_traits::{AMMTransfer, AssetPairAccountIdFor, CanCreatePool, LockedBalance, AMM};
+use basilisk_traits::{AMM, AMMTransfer};
+use hydradx_traits::{AssetPairAccountIdFor, CanCreatePool, LockedBalance};
 use pallet_broadcast::types::{Asset, Destination, Fee};
 
 use orml_traits::{MultiCurrency, MultiCurrencyExtended, MultiLockableCurrency};

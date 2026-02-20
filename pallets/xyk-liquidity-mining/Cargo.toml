@@ -22,6 +22,7 @@ orml-traits = { workspace = true }
 
 # Local dependencies
 primitives = { path = "../../primitives", default-features = false }
+basilisk-traits = { workspace = true }
 
 # Warehouse dependencies
 pallet-liquidity-mining = { workspace = true }
