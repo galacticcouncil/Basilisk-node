@@ -126,7 +126,6 @@ parameter_types! {
 }
 
 impl orml_tokens::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
@@ -174,12 +173,9 @@ impl LockedBalance<AssetId, AccountId, Balance> for MultiLockedBalance {
 	}
 }
 
-impl pallet_broadcast::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-}
+impl pallet_broadcast::Config for Test {}
 
 impl Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currency;
 	type LockedBalance = MultiLockedBalance;
 	type CreatePoolOrigin = frame_system::EnsureRoot<u64>;
