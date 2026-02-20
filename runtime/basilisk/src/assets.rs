@@ -278,7 +278,6 @@ parameter_types! {
 	pub const SequentialIdOffset: u32 = 1_000_000;
 }
 impl pallet_asset_registry::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RegistryOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type AssetId = AssetId;
 	type Balance = Balance;
@@ -352,7 +351,6 @@ parameter_types! {
 }
 
 impl pallet_xyk::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type Currency = Currencies;
@@ -405,7 +403,6 @@ parameter_types! {
 }
 
 impl pallet_lbp::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currencies;
 	type LockedBalance = MultiCurrencyLockedBalance<Runtime>;
 	type CreatePoolOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
@@ -464,7 +461,6 @@ parameter_types! {
 }
 
 impl pallet_marketplace::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = KusamaCurrency;
 	type WeightInfo = weights::pallet_marketplace::BasiliskWeight<Runtime>;
 	type MinimumOfferAmount = MinimumOfferAmount;
@@ -521,7 +517,6 @@ parameter_types! {
 }
 
 impl pallet_xyk_liquidity_mining::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currencies;
 	type AMM = XYK;
 	type CreateOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
@@ -839,7 +834,6 @@ impl RefundEdCalculator<Balance> for RefundAndLockedEdCalculator {
 }
 
 impl pallet_route_executor::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type Balance = Balance;
 	type NativeAssetId = NativeAssetId;
@@ -864,7 +858,6 @@ parameter_types! {
 }
 
 impl pallet_ema_oracle::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::pallet_ema_oracle::BasiliskWeight<Runtime>;
 	type AuthorityOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;

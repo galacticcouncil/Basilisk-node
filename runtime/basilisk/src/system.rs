@@ -293,7 +293,6 @@ impl InspectEvmAccounts<AccountId> for EvmAccounts {
 }
 
 impl pallet_transaction_multi_payment::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AcceptedCurrencyOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type Currencies = Currencies;
 	type RouteProvider = Router;
