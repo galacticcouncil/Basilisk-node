@@ -50,13 +50,9 @@ pub use pallet_xyk::types::AssetPair;
 use polkadot_primitives::v8::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;
-use primitives::{constants::time::SLOT_DURATION, AssetId, Balance};
-use sp_consensus_aura::AURA_ENGINE_ID;
-use sp_consensus_babe::digests::SecondaryPlainPreDigest;
-use sp_consensus_babe::BABE_ENGINE_ID;
-use sp_consensus_slots::{Slot, SlotDuration};
+use primitives::{AssetId, Balance};
 use sp_core::{storage::Storage, Encode};
-use sp_runtime::{traits::AccountIdConversion, BuildStorage, Digest, DigestItem};
+use sp_runtime::{traits::AccountIdConversion, BuildStorage};
 
 use polkadot_primitives::runtime_api::runtime_decl_for_parachain_host::ParachainHostV13;
 use primitives::constants::chain::CORE_ASSET_ID;
@@ -563,203 +559,104 @@ pub fn vesting_account() -> AccountId {
 	VestingPalletId::get().into_account_truncating()
 }
 
-pub fn go_to_block(target_block: BlockNumber) {
-	while rococo_runtime::System::block_number() < target_block {
-		let stop = rococo_runtime::System::block_number() == target_block - 1;
-		go_to_next_block(true, !stop);
-	}
-}
-
-pub fn initialize_rococo_block(target_block: BlockNumber, target_slot: Slot) {
-	use sp_consensus_babe::digests::PreDigest;
-
-	let authority_index: u32 = 0;
-
-	rococo_runtime::System::set_block_number(target_block);
-
-	rococo_runtime::System::initialize(
-		&target_block,
-		&Default::default(),
-		&Digest {
-			logs: vec![DigestItem::PreRuntime(
-				BABE_ENGINE_ID,
-				PreDigest::SecondaryPlain(SecondaryPlainPreDigest {
-					authority_index,
-					slot: target_slot,
-				})
-				.encode(),
-			)],
-		},
-	);
-	rococo_runtime::System::on_initialize(target_block);
-	rococo_runtime::Scheduler::on_initialize(target_block);
-	rococo_runtime::Preimage::on_initialize(target_block);
-	rococo_runtime::Babe::on_initialize(target_block);
-	rococo_runtime::Session::on_initialize(target_block);
-	rococo_runtime::Grandpa::on_initialize(target_block);
-	rococo_runtime::ParachainsOrigin::on_initialize(target_block);
-	rococo_runtime::ParasShared::on_initialize(target_block);
-	rococo_runtime::ParaInclusion::on_initialize(target_block);
-	rococo_runtime::ParaScheduler::on_initialize(target_block);
-	rococo_runtime::Paras::on_initialize(target_block);
-	rococo_runtime::Initializer::on_initialize(target_block);
-	rococo_runtime::Dmp::on_initialize(target_block);
-	rococo_runtime::Hrmp::on_initialize(target_block);
-	rococo_runtime::ParaSessionInfo::on_initialize(target_block);
-	rococo_runtime::Slots::on_initialize(target_block);
-	rococo_runtime::XcmPallet::on_initialize(target_block);
-	rococo_runtime::MessageQueue::on_initialize(target_block);
-	rococo_runtime::Beefy::on_initialize(target_block);
-}
-
-pub fn initialize_basilisk_block(target_block: BlockNumber, target_slot: Slot) {
+pub fn go_to_block(number: BlockNumber) {
 	use frame_support::storage::unhashed;
+	use frame_support::traits::OnFinalize;
+	use basilisk_runtime::ParachainSystem;
 
-	// Clear AuraExt storage when starting a new test (block 1) or when resetting
-	// This prevents "Slot moved backwards" errors from previous test runs
+	let current_block = basilisk_runtime::System::block_number();
+
 	let aura_key = frame_support::storage::storage_prefix(b"AuraExt", b"RelaySlotInfo");
 
-	if target_block == 1 {
+	if number == 1 || current_block > number {
 		unhashed::kill(&aura_key);
 	} else if let Some(data) = unhashed::get_raw(&aura_key) {
-		// Also check if stored slot exists and is greater than what we're about to set
-		// This indicates storage wasn't properly cleared after previous test
+		use sp_consensus_slots::Slot;
 		use sp_core::Decode;
 		if let Ok((stored_slot, _)) = <(Slot, u32)>::decode(&mut &data[..]) {
-			// If stored slot is greater than or equal to the number we're setting, clear it
-			if u64::from(stored_slot) >= target_block as u64 {
+			if u64::from(stored_slot) >= number as u64 {
 				unhashed::kill(&aura_key);
 			}
 		}
 	}
 
-	basilisk_runtime::System::set_block_number(target_block);
-	basilisk_runtime::System::initialize(
-		&target_block,
-		&Default::default(),
-		&Digest {
-			logs: vec![DigestItem::PreRuntime(AURA_ENGINE_ID, target_slot.encode())],
-		},
-	);
-
-	basilisk_runtime::System::on_initialize(target_block);
-	// basilisk_runtime::Timestamp::on_initialize(target_block);
-	basilisk_runtime::Session::on_initialize(target_block);
-	basilisk_runtime::Aura::on_initialize(target_block);
-	basilisk_runtime::AuraExt::on_initialize(target_block);
-	basilisk_runtime::RelayChainInfo::on_initialize(target_block);
-	basilisk_runtime::Scheduler::on_initialize(target_block);
-	basilisk_runtime::ParachainSystem::on_initialize(target_block);
-	basilisk_runtime::ParachainInfo::on_initialize(target_block);
-	basilisk_runtime::PolkadotXcm::on_initialize(target_block);
-	basilisk_runtime::CumulusXcm::on_initialize(target_block);
-	basilisk_runtime::XcmpQueue::on_initialize(target_block);
-	basilisk_runtime::MessageQueue::on_initialize(target_block);
-	basilisk_runtime::MultiTransactionPayment::on_initialize(target_block);
-	basilisk_runtime::EmaOracle::on_initialize(target_block);
-
-	// Set validation data AFTER on_initialize hooks
-	set_validation_data(target_block, target_slot);
-}
-
-pub fn finalize_basilisk_block(target_block: BlockNumber) {
-	use frame_support::traits::OnFinalize;
-
-	basilisk_runtime::System::on_finalize(target_block);
-	basilisk_runtime::Session::on_finalize(target_block);
-	basilisk_runtime::Aura::on_finalize(target_block);
-	basilisk_runtime::AuraExt::on_finalize(target_block);
-	basilisk_runtime::RelayChainInfo::on_finalize(target_block);
-	basilisk_runtime::Scheduler::on_finalize(target_block);
-	basilisk_runtime::ParachainSystem::on_finalize(target_block);
-	basilisk_runtime::ParachainInfo::on_finalize(target_block);
-	basilisk_runtime::PolkadotXcm::on_finalize(target_block);
-	basilisk_runtime::CumulusXcm::on_finalize(target_block);
-	basilisk_runtime::XcmpQueue::on_finalize(target_block);
-	basilisk_runtime::MessageQueue::on_finalize(target_block);
-	basilisk_runtime::MultiTransactionPayment::on_finalize(target_block);
-	basilisk_runtime::EmaOracle::on_finalize(target_block);
-	basilisk_runtime::System::finalize();
-}
-
-pub fn finalize_rococo_block(target_block: BlockNumber) {
-	use frame_support::traits::OnFinalize;
-	rococo_runtime::System::on_finalize(target_block);
-	rococo_runtime::Scheduler::on_finalize(target_block);
-	rococo_runtime::Preimage::on_finalize(target_block);
-	rococo_runtime::Babe::on_finalize(target_block);
-	rococo_runtime::Session::on_finalize(target_block);
-	rococo_runtime::Grandpa::on_finalize(target_block);
-	rococo_runtime::ParachainsOrigin::on_finalize(target_block);
-	rococo_runtime::ParasShared::on_finalize(target_block);
-	rococo_runtime::ParaInclusion::on_finalize(target_block);
-	rococo_runtime::ParaScheduler::on_finalize(target_block);
-	rococo_runtime::Paras::on_finalize(target_block);
-	rococo_runtime::Initializer::on_finalize(target_block);
-	rococo_runtime::Dmp::on_finalize(target_block);
-	rococo_runtime::Hrmp::on_finalize(target_block);
-	rococo_runtime::ParaSessionInfo::on_finalize(target_block);
-	rococo_runtime::Slots::on_finalize(target_block);
-	rococo_runtime::XcmPallet::on_finalize(target_block);
-	rococo_runtime::MessageQueue::on_finalize(target_block);
-	rococo_runtime::Beefy::on_finalize(target_block);
-}
-
-pub fn go_to_next_block(initialize: bool, finalize: bool) {
-	let current_block = rococo_runtime::System::block_number();
-	let current_para_block = basilisk_runtime::System::block_number();
-	let target_relay_block = current_block + 1;
-	let target_para_block = current_para_block + 1;
-
-	// Advance the relaychain block
-
-	let slot = Slot::from_timestamp(
-		(pallet_timestamp::Now::<rococo_runtime::Runtime>::get() + SLOT_DURATION).into(),
-		SlotDuration::from_millis(SLOT_DURATION),
-	);
-
-	if initialize {
-		initialize_rococo_block(target_relay_block, slot);
-		initialize_basilisk_block(target_para_block, slot);
+	if current_block < number {
+		basilisk_runtime::System::on_finalize(current_block);
+		basilisk_runtime::Session::on_finalize(current_block);
+		basilisk_runtime::Aura::on_finalize(current_block);
+		basilisk_runtime::AuraExt::on_finalize(current_block);
+		basilisk_runtime::RelayChainInfo::on_finalize(current_block);
+		basilisk_runtime::Scheduler::on_finalize(current_block);
+		basilisk_runtime::ParachainSystem::on_finalize(current_block);
+		basilisk_runtime::ParachainInfo::on_finalize(current_block);
+		basilisk_runtime::PolkadotXcm::on_finalize(current_block);
+		basilisk_runtime::CumulusXcm::on_finalize(current_block);
+		basilisk_runtime::XcmpQueue::on_finalize(current_block);
+		basilisk_runtime::MessageQueue::on_finalize(current_block);
+		basilisk_runtime::MultiTransactionPayment::on_finalize(current_block);
+		basilisk_runtime::EmaOracle::on_finalize(current_block);
 	}
 
-	if finalize {
-		finalize_basilisk_block(target_para_block);
-		finalize_rococo_block(target_relay_block);
-	}
-}
+	ParachainSystem::on_initialize(number);
 
-pub fn set_validation_data(next_block: u32, _slot: Slot) {
-	use basilisk_runtime::RuntimeOrigin;
-	use frame_support::storage::storage_prefix;
-	use polkadot_primitives::HeadData;
+	let mut sproof_builder = RelayStateSproofBuilder::default();
 
-	let parent_head = HeadData(b"deadbeef".into());
-	let sproof_builder = RelayStateSproofBuilder {
-		para_id: basilisk_runtime::ParachainInfo::parachain_id(),
-		included_para_head: Some(parent_head.clone()),
-		current_slot: (next_block as u64).into(),
-		..Default::default()
+	let parent_head_data = {
+		use xcm_emulator::HeaderT;
+		let header = cumulus_primitives_core::relay_chain::Header::new(
+			number,
+			sp_core::H256::from_low_u64_be(0),
+			sp_core::H256::from_low_u64_be(0),
+			Default::default(),
+			Default::default(),
+		);
+		cumulus_primitives_core::relay_chain::HeadData(header.encode())
 	};
+
+	sproof_builder.para_id = basilisk_runtime::ParachainInfo::parachain_id();
+	sproof_builder.included_para_head = Some(parent_head_data.clone());
+	sproof_builder.current_slot = (number as u64).into();
 
 	let (relay_storage_root, proof) = sproof_builder.into_state_root_and_proof();
 
-	assert_ok!(basilisk_runtime::ParachainSystem::set_validation_data(
-		RuntimeOrigin::none(),
+	assert_ok!(ParachainSystem::set_validation_data(
+		basilisk_runtime::RuntimeOrigin::none(),
 		cumulus_primitives_parachain_inherent::ParachainInherentData {
 			validation_data: cumulus_primitives_core::PersistedValidationData {
-				parent_head,
-				relay_parent_number: next_block,
+				parent_head: Default::default(),
+				relay_parent_number: number,
 				relay_parent_storage_root: relay_storage_root,
 				max_pov_size: Default::default(),
 			},
 			relay_chain_state: proof,
 			downward_messages: Default::default(),
 			horizontal_messages: Default::default(),
+			collator_peer_id: None,
+			relay_parent_descendants: Default::default(),
 		}
 	));
 
-	sp_io::storage::clear(&storage_prefix(b"ParachainSystem", b"UnincludedSegment"));
+	sp_io::storage::clear(&frame_support::storage::storage_prefix(b"ParachainSystem", b"UnincludedSegment"));
+
+	basilisk_runtime::System::set_block_number(number);
+	basilisk_runtime::System::on_initialize(number);
+	basilisk_runtime::Session::on_initialize(number);
+	basilisk_runtime::Aura::on_initialize(number);
+	basilisk_runtime::AuraExt::on_initialize(number);
+	basilisk_runtime::RelayChainInfo::on_initialize(number);
+	basilisk_runtime::Scheduler::on_initialize(number);
+	basilisk_runtime::ParachainInfo::on_initialize(number);
+	basilisk_runtime::PolkadotXcm::on_initialize(number);
+	basilisk_runtime::CumulusXcm::on_initialize(number);
+	basilisk_runtime::XcmpQueue::on_initialize(number);
+	basilisk_runtime::MessageQueue::on_initialize(number);
+	basilisk_runtime::MultiTransactionPayment::on_initialize(number);
+	basilisk_runtime::EmaOracle::on_initialize(number);
+}
+
+pub fn go_to_next_block(_initialize: bool, _finalize: bool) {
+	let current_para_block = basilisk_runtime::System::block_number();
+	go_to_block(current_para_block + 1);
 }
 
 use xcm_emulator::pallet_message_queue;
