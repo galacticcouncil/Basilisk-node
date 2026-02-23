@@ -114,6 +114,7 @@ pallet-conviction-voting = { workspace = true }
 pallet-preimage = { workspace = true }
 pallet-session = { workspace = true }
 pallet-proxy = { workspace = true }
+pallet-migrations = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-timestamp = { workspace = true }
@@ -168,6 +169,7 @@ runtime-benchmarks = [
     "pallet-scheduler/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
     "pallet-tips/runtime-benchmarks",
+    "pallet-migrations/runtime-benchmarks",
     "pallet-proxy/runtime-benchmarks",
     "pallet-multisig/runtime-benchmarks",
     "pallet-preimage/runtime-benchmarks",
@@ -260,6 +262,7 @@ std = [
     "pallet-collective/std",
     "pallet-democracy/std",
     "pallet-proxy/std",
+    "pallet-migrations/std",
     "pallet-multisig/std",
     "pallet-scheduler/std",
     "pallet-tips/std",
@@ -306,6 +309,7 @@ try-runtime= [
     "pallet-collective/try-runtime",
     "pallet-democracy/try-runtime",
     "pallet-proxy/try-runtime",
+    "pallet-migrations/try-runtime",
     "pallet-multisig/try-runtime",
     "pallet-scheduler/try-runtime",
     "pallet-tips/try-runtime",

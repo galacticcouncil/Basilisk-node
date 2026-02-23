@@ -223,6 +223,7 @@ construct_runtime!(
 		CollatorRewards: pallet_collator_rewards = 114,
 		// Note: 115 was used by rate limiter which is now removed
 		Broadcast: pallet_broadcast = 116,
+		MultiBlockMigrations: pallet_migrations = 117,
 
 		EmaOracle: pallet_ema_oracle = 120,
 
@@ -268,7 +269,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	migrations::Migrations,
+	migrations::SingleBlockMigrationsList,
 >;
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -316,6 +317,7 @@ mod benches {
 		[pallet_transaction_multi_payment, benchmarking::multi_payment::Benchmark]
 		[pallet_route_executor, benchmarking::route_executor::Benchmark]
 		[pallet_marketplace, benchmarking::marketplace::Benchmark]
+		[pallet_migrations, MultiBlockMigrations]
 	);
 }
 

@@ -27,6 +27,7 @@ use primitives::constants::{
 };
 
 use basilisk_adapters::RelayChainBlockNumberProvider;
+use frame_support::migrations::FailedMigrationHandling;
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use frame_support::{
 	dispatch::DispatchClass,
@@ -178,12 +179,45 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = ConstU32<16>;
-	type SingleBlockMigrations = ();
-	type MultiBlockMigrator = ();
+	type SingleBlockMigrations = migrations::SingleBlockMigrationsList;
+	type MultiBlockMigrator = MultiBlockMigrations;
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
 	type ExtensionsWeightInfo = weights::frame_system_extensions::BasiliskWeight<Runtime>;
+}
+
+parameter_types! {
+	pub MaxServiceWeight: Weight = NORMAL_DISPATCH_RATIO * BlockWeights::get().max_block;
+}
+
+impl pallet_migrations::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Migrations = migrations::MultiBlockMigrationsList<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Migrations = pallet_migrations::mock_helpers::MockedMigrations;
+	type CursorMaxLen = ConstU32<65_536>;
+	type IdentifierMaxLen = ConstU32<256>;
+	type MigrationStatusHandler = ();
+	type FailedMigrationHandler = LogErrorAndForceUnstuck;
+	type MaxServiceWeight = MaxServiceWeight;
+	type WeightInfo = weights::pallet_migrations::BasiliskWeight<Runtime>;
+}
+
+pub struct LogErrorAndForceUnstuck;
+impl frame_support::migrations::FailedMigrationHandler for LogErrorAndForceUnstuck {
+	fn failed(migration: Option<u32>) -> FailedMigrationHandling {
+		log::error!(
+			target: "runtime::migrations",
+			"Migration {:?} failed - halting all migrations and resuming chain",
+			migration
+		);
+
+		// Clear the migration cursor entirely. Transactions resume, remaining migrations are
+		// skipped. State may be inconsistent.
+		FailedMigrationHandling::ForceUnstuck
+	}
 }
 
 parameter_types! {

@@ -1342,6 +1342,7 @@ dependencies = [
  "pallet-liquidity-mining",
  "pallet-marketplace",
  "pallet-message-queue",
+ "pallet-migrations",
  "pallet-multisig",
  "pallet-nft",
  "pallet-preimage",
