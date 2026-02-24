@@ -1333,7 +1333,6 @@ dependencies = [
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-currencies",
- "pallet-democracy 41.0.0",
  "pallet-duster",
  "pallet-elections-phragmen",
  "pallet-ema-oracle",

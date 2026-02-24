@@ -172,7 +172,6 @@ construct_runtime!(
 		Treasury: pallet_treasury = 4,
 		Utility: pallet_utility = 5,
 		// NOTE: 6 - is used by Scheduler which must be after cumulus_pallet_parachain_system
-		Democracy: pallet_democracy exclude_parts { Config } = 7,
 		// NOTE 7, 8, 9 are retired (used by gov v1)
 		TechnicalCommittee: pallet_collective::<Instance2> = 10,
 		Vesting: orml_vesting = 11,
@@ -290,7 +289,6 @@ mod benches {
 		[frame_system_extensions, frame_system_benchmarking::extensions::Pallet::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
-		[pallet_democracy, Democracy]
 		[pallet_treasury, Treasury]
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]

@@ -10,7 +10,6 @@ pub mod pallet_collator_selection;
 pub mod pallet_collective;
 pub mod pallet_conviction_voting;
 pub mod pallet_currencies;
-pub mod pallet_democracy;
 pub mod pallet_duster;
 pub mod pallet_ema_oracle;
 pub mod pallet_identity;

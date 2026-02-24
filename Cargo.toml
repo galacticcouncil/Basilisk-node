@@ -97,7 +97,6 @@ pallet-balances = { git = "https://github.com/galacticcouncil/polkadot-sdk", bra
 pallet-bounties = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2506-7-patch", default-features = false }
 pallet-collective = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2506-7-patch", default-features = false }
 pallet-conviction-voting = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2506-7-patch", default-features = false }
-pallet-democracy = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2506-7-patch", default-features = false }
 pallet-election-provider-multi-phase = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2506-7-patch", default-features = false }
 pallet-elections-phragmen = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2506-7-patch", default-features = false }
 pallet-identity = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2506-7-patch", default-features = false }
