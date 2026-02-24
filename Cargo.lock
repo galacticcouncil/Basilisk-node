@@ -1289,7 +1289,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "128.0.0"
+version = "129.0.0"
 dependencies = [
  "basilisk-adapters",
  "basilisk-math",
