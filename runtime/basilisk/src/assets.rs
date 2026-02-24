@@ -20,7 +20,7 @@ use crate::governance::origins::GeneralAdmin;
 use crate::system::NativeAssetId;
 
 use basilisk_traits::{
-	AMM, OnTradeHandler,
+	OnTradeHandler, AMM,
 	{
 		oracle::OraclePeriod,
 		router::{inverse_route, AmmTradeWeights, PoolType, Trade},
@@ -305,7 +305,6 @@ impl Get<Vec<AccountId>> for ExtendedDustRemovalWhitelist {
 		accounts
 	}
 }
-
 
 impl pallet_duster::Config for Runtime {
 	type AssetId = AssetId;

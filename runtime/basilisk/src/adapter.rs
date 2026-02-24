@@ -60,14 +60,14 @@ impl<T: orml_tokens::Config + frame_system::Config> MultiCurrency<T::AccountId> 
 		);
 
 		if res.is_ok() {
-			<frame_system::Pallet<T>>::deposit_event(
-				<T as frame_system::Config>::RuntimeEvent::from(orml_tokens::Event::<T>::Transfer {
+			<frame_system::Pallet<T>>::deposit_event(<T as frame_system::Config>::RuntimeEvent::from(
+				orml_tokens::Event::<T>::Transfer {
 					currency_id,
 					from: from.clone(),
 					to: to.clone(),
 					amount,
-				}),
-			);
+				},
+			));
 		}
 
 		res

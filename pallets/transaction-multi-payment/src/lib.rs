@@ -34,6 +34,7 @@ mod traits;
 
 pub use crate::traits::*;
 use basilisk_math::ema::EmaPrice;
+use basilisk_traits::AccountFeeCurrency;
 use basilisk_traits::{
 	oracle::{NativePriceOracle, OraclePeriod, PriceOracle},
 	router::{AssetPair, RouteProvider},
@@ -52,10 +53,9 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::{ensure_signed, pallet_prelude::BlockNumberFor};
-use basilisk_traits::AccountFeeCurrency;
+use hydradx_traits::evm::InspectEvmAccounts;
 use hydradx_traits::fee::InspectTransactionFeeCurrency;
 use hydradx_traits::fee::SwappablePaymentAssetTrader;
-use hydradx_traits::evm::InspectEvmAccounts;
 use orml_traits::{GetByKey, Happened, MultiCurrency};
 use pallet_transaction_payment::OnChargeTransaction;
 use sp_runtime::traits::TryConvert;

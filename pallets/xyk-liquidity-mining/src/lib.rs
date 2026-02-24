@@ -56,9 +56,9 @@ use pallet_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 use pallet_xyk::types::{AssetId, AssetPair, Balance};
 
 pub use crate::weights::WeightInfo;
+use basilisk_traits::AMM;
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::{ensure_signed, pallet_prelude::OriginFor};
-use basilisk_traits::AMM;
 use hydradx_traits::{
 	nft::{CreateTypedCollection, ReserveCollectionId},
 	AMMPosition,

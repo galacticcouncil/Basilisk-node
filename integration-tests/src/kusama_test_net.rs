@@ -560,9 +560,9 @@ pub fn vesting_account() -> AccountId {
 }
 
 pub fn go_to_block(number: BlockNumber) {
+	use basilisk_runtime::ParachainSystem;
 	use frame_support::storage::unhashed;
 	use frame_support::traits::OnFinalize;
-	use basilisk_runtime::ParachainSystem;
 
 	let current_block = basilisk_runtime::System::block_number();
 
@@ -636,7 +636,10 @@ pub fn go_to_block(number: BlockNumber) {
 		}
 	));
 
-	sp_io::storage::clear(&frame_support::storage::storage_prefix(b"ParachainSystem", b"UnincludedSegment"));
+	sp_io::storage::clear(&frame_support::storage::storage_prefix(
+		b"ParachainSystem",
+		b"UnincludedSegment",
+	));
 
 	basilisk_runtime::System::set_block_number(number);
 	basilisk_runtime::System::on_initialize(number);

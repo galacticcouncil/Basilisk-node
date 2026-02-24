@@ -1,5 +1,8 @@
 use crate::*;
-use basilisk_traits::{AMM, router::{ExecutorError, PoolType, TradeExecution}};
+use basilisk_traits::{
+	router::{ExecutorError, PoolType, TradeExecution},
+	AMM,
+};
 use orml_traits::MultiCurrency;
 use sp_runtime::traits::BlockNumberProvider;
 use sp_runtime::DispatchError::Corruption;

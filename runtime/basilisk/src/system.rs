@@ -27,8 +27,8 @@ use primitives::constants::{
 };
 
 use basilisk_adapters::RelayChainBlockNumberProvider;
-use frame_support::migrations::FailedMigrationHandling;
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
+use frame_support::migrations::FailedMigrationHandling;
 use frame_support::{
 	dispatch::DispatchClass,
 	pallet_prelude::Get,

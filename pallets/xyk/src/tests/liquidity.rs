@@ -1,8 +1,8 @@
 pub use super::mock::*;
 use crate::types::{AssetPair, Balance};
 use crate::{Error, Event};
-use frame_support::{assert_noop, assert_ok};
 use basilisk_traits::AMM as AmmPool;
+use frame_support::{assert_noop, assert_ok};
 use orml_traits::MultiCurrency;
 
 #[test]

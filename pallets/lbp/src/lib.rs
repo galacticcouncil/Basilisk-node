@@ -23,6 +23,7 @@
 #![allow(clippy::manual_inspect)]
 
 pub use crate::types::{Amount, AssetId, AssetPair, Balance};
+use basilisk_traits::{AMMTransfer, AMM};
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use frame_support::sp_runtime::{
 	traits::{AtLeast32BitUnsigned, BlockNumberProvider, Saturating, Zero},
@@ -37,7 +38,6 @@ use frame_support::{
 use frame_system::ensure_signed;
 use frame_system::pallet_prelude::BlockNumberFor;
 use hydra_dx_math::types::LBPWeight;
-use basilisk_traits::{AMM, AMMTransfer};
 use hydradx_traits::{AssetPairAccountIdFor, CanCreatePool, LockedBalance};
 use pallet_broadcast::types::{Asset, Destination, Fee};
 

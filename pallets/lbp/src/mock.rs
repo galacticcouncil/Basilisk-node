@@ -3,9 +3,9 @@ use crate::{
 	types::{AssetId, AssetPair, Balance},
 	AssetPairAccountIdFor, Config, Pool, WeightCurveType,
 };
+use basilisk_traits::AMMTransfer;
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, LockIdentifier, Nothing};
-use basilisk_traits::AMMTransfer;
 use hydradx_traits::LockedBalance;
 use orml_traits::parameter_type_with_key;
 use sp_core::H256;

@@ -29,7 +29,7 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::manual_inspect)]
 
-use basilisk_traits::{AMM, AMMTransfer, OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler};
+use basilisk_traits::{AMMTransfer, OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler, AMM};
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{
 	dispatch::DispatchResult,

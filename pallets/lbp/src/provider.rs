@@ -1,7 +1,7 @@
 use crate::{AssetId, AssetPair, Config, Pallet, PoolData};
+use basilisk_traits::AMM;
 use hydra_dx_math::types::Price;
 use hydradx_traits::pools::SpotPriceProvider;
-use basilisk_traits::AMM;
 use orml_traits::MultiCurrency;
 use sp_runtime::traits::{BlockNumberProvider, One};
 use sp_runtime::{FixedPointNumber, FixedU128};
