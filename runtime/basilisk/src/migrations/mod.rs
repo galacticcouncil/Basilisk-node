@@ -16,9 +16,15 @@
 // limitations under the License.
 
 use crate::Runtime;
+use frame_support::migrations::RemovePallet;
+use frame_support::weights::constants::RocksDbWeight;
+
+frame_support::parameter_types! {
+	pub const DemocracyPalletName: &'static str = "Democracy";
+}
 
 // New migrations which need to be cleaned up after Runtime upgrade
-pub type UnreleasedSingleBlockMigrations = ();
+pub type UnreleasedSingleBlockMigrations = RemovePallet<DemocracyPalletName, RocksDbWeight>;
 
 // These migrations can run on every runtime upgrade
 pub type PermanentSingleBlockMigrations = pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>;

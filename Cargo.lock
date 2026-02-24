@@ -1145,7 +1145,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "19.0.0"
+version = "19.1.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -1403,7 +1403,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-traits"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "frame-support",
  "hydradx-traits",
@@ -7951,7 +7951,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-asset-registry"
-version = "2.4.0"
+version = "2.5.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -8444,7 +8444,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-ema-oracle"
-version = "1.4.0"
+version = "1.5.0"
 dependencies = [
  "basilisk-math",
  "basilisk-traits",
@@ -8584,7 +8584,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-lbp"
-version = "4.11.0"
+version = "4.12.0"
 dependencies = [
  "basilisk-traits",
  "frame-benchmarking",
@@ -8628,7 +8628,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-marketplace"
-version = "5.1.0"
+version = "5.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9043,7 +9043,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-route-executor"
-version = "2.8.0"
+version = "2.9.0"
 dependencies = [
  "basilisk-adapters",
  "basilisk-math",
@@ -9310,7 +9310,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "11.1.0"
+version = "11.2.0"
 dependencies = [
  "basilisk-math",
  "basilisk-traits",
@@ -9527,7 +9527,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk"
-version = "6.8.0"
+version = "6.9.0"
 dependencies = [
  "basilisk-math",
  "basilisk-traits",
@@ -9556,7 +9556,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xyk-liquidity-mining"
-version = "1.2.0"
+version = "1.3.0"
 dependencies = [
  "basilisk-traits",
  "frame-support",
@@ -12320,7 +12320,7 @@ checksum = "48fd7bd8a6377e15ad9d42a8ec25371b94ddc67abe7c8b9127bec79bebaaae18"
 
 [[package]]
 name = "runtime-integration-tests"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "basilisk-runtime",
  "basilisk-traits",
