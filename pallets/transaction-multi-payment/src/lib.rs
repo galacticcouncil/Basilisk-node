@@ -399,6 +399,7 @@ pub mod pallet {
 		#[pallet::weight(
 			<T as Config>::EvmPermit::dispatch_weight(*gas_limit)
 		)]
+		#[allow(clippy::useless_conversion)]
 		pub fn dispatch_permit(
 			origin: OriginFor<T>,
 			from: H160,
