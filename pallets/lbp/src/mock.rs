@@ -3,9 +3,10 @@ use crate::{
 	types::{AssetId, AssetPair, Balance},
 	AssetPairAccountIdFor, Config, Pool, WeightCurveType,
 };
+use basilisk_traits::AMMTransfer;
 use frame_support::parameter_types;
 use frame_support::traits::{Everything, LockIdentifier, Nothing};
-use hydradx_traits::{AMMTransfer, LockedBalance};
+use hydradx_traits::LockedBalance;
 use orml_traits::parameter_type_with_key;
 use sp_core::H256;
 use sp_runtime::{
@@ -126,7 +127,6 @@ parameter_types! {
 }
 
 impl orml_tokens::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
@@ -174,12 +174,9 @@ impl LockedBalance<AssetId, AccountId, Balance> for MultiLockedBalance {
 	}
 }
 
-impl pallet_broadcast::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-}
+impl pallet_broadcast::Config for Test {}
 
 impl Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currency;
 	type LockedBalance = MultiLockedBalance;
 	type CreatePoolOrigin = frame_system::EnsureRoot<u64>;

@@ -76,8 +76,6 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_broadcast::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
 		/// Asset id type
 		type AssetId: Parameter + Member + Copy + MaybeSerializeDeserialize + MaxEncodedLen + AtLeast32BitUnsigned;
 
@@ -333,6 +331,7 @@ pub mod pallet {
 		#[pallet::call_index(2)]
 		#[pallet::weight(T::WeightInfo::set_route_weight(new_route))]
 		#[transactional]
+		#[allow(clippy::useless_conversion)]
 		pub fn set_route(
 			origin: OriginFor<T>,
 			mut asset_pair: AssetPair<T::AssetId>,
@@ -413,6 +412,7 @@ pub mod pallet {
 		#[pallet::call_index(3)]
 		#[pallet::weight(T::WeightInfo::force_insert_route_weight())]
 		#[transactional]
+		#[allow(clippy::useless_conversion)]
 		pub fn force_insert_route(
 			origin: OriginFor<T>,
 			mut asset_pair: AssetPair<T::AssetId>,

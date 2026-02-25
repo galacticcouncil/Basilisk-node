@@ -56,11 +56,12 @@ use pallet_liquidity_mining::{FarmMultiplier, LoyaltyCurve};
 use pallet_xyk::types::{AssetId, AssetPair, Balance};
 
 pub use crate::weights::WeightInfo;
+use basilisk_traits::AMM;
 use frame_support::{pallet_prelude::*, sp_runtime::traits::AccountIdConversion};
 use frame_system::{ensure_signed, pallet_prelude::OriginFor};
 use hydradx_traits::{
 	nft::{CreateTypedCollection, ReserveCollectionId},
-	AMMPosition, AMM,
+	AMMPosition,
 };
 use orml_traits::MultiCurrency;
 use pallet_nft::CollectionType;
@@ -123,8 +124,6 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + TypeInfo {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
 		/// Currency for transfers.
 		type MultiCurrency: MultiCurrency<Self::AccountId, CurrencyId = AssetId, Balance = Balance>;
 

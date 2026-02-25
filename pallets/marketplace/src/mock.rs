@@ -44,7 +44,6 @@ parameter_types! {
 }
 
 impl pallet_marketplace::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type WeightInfo = pallet_marketplace::weights::BasiliskWeight<Test>;
 	type MinimumOfferAmount = MinimumOfferAmount;
@@ -56,7 +55,6 @@ parameter_types! {
 }
 
 impl pallet_nft::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type NftCollectionId = u32;
 	type NftItemId = u32;

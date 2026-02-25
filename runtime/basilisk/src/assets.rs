@@ -20,7 +20,7 @@ use crate::governance::origins::GeneralAdmin;
 use crate::system::NativeAssetId;
 
 use basilisk_traits::{
-	OnTradeHandler,
+	OnTradeHandler, AMM,
 	{
 		oracle::OraclePeriod,
 		router::{inverse_route, AmmTradeWeights, PoolType, Trade},
@@ -29,7 +29,7 @@ use basilisk_traits::{
 
 use hydradx_traits::{
 	fee::{InspectTransactionFeeCurrency, SwappablePaymentAssetTrader},
-	AssetKind, AssetPairAccountIdFor, LockedBalance, Source, AMM,
+	AssetKind, AssetPairAccountIdFor, LockedBalance, Source,
 };
 use pallet_currencies::fungibles::FungibleCurrencies;
 use pallet_currencies::BasicCurrencyAdapter;
@@ -127,7 +127,6 @@ impl Contains<AccountId> for DustRemovalWhitelist {
 }
 
 impl orml_tokens::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
@@ -265,13 +264,13 @@ parameter_types! {
 // The infrastructure relies on the events from this pallet, so we use the latest version of
 // the pallet that contains and emit events and was updated to the polkadot version we use.
 impl pallet_currencies::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Tokens;
 	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
 	type Erc20Currency = NoEvmSupport;
 	type BoundErc20 = NoEvmSupport;
 	type ReserveAccount = ReserveAccount;
 	type GetNativeCurrencyId = NativeAssetId;
+	type RegistryInspect = AssetRegistry;
 	type WeightInfo = weights::pallet_currencies::BasiliskWeight<Runtime>;
 }
 
@@ -279,7 +278,6 @@ parameter_types! {
 	pub const SequentialIdOffset: u32 = 1_000_000;
 }
 impl pallet_asset_registry::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RegistryOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type AssetId = AssetId;
 	type Balance = Balance;
@@ -294,20 +292,32 @@ parameter_types! {
 	pub const DustingReward: u128 = 0;
 }
 
+pub struct ExtendedDustRemovalWhitelist;
+
+impl Get<Vec<AccountId>> for ExtendedDustRemovalWhitelist {
+	fn get() -> Vec<AccountId> {
+		let accounts = vec![
+			TreasuryPalletId::get().into_account_truncating(),
+			VestingPalletId::get().into_account_truncating(),
+			pallet_route_executor::Pallet::<Runtime>::router_account(),
+		];
+
+		accounts
+	}
+}
+
 impl pallet_duster::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type MultiCurrency = FungibleCurrencies<Runtime>;
 	type ExistentialDeposit = AssetRegistry;
 	type WhitelistUpdateOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type Erc20Support = NoErc20Support;
+	type ExtendedWhitelist = ExtendedDustRemovalWhitelist;
 	type TreasuryAccountId = TreasuryAccount;
 	type WeightInfo = weights::pallet_duster::BasiliskWeight<Runtime>;
 }
 
-impl pallet_broadcast::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-}
+impl pallet_broadcast::Config for Runtime {}
 
 pub struct AssetPairAccountId<T: frame_system::Config>(PhantomData<T>);
 impl<T: frame_system::Config> AssetPairAccountIdFor<AssetId, T::AccountId> for AssetPairAccountId<T>
@@ -340,7 +350,6 @@ parameter_types! {
 }
 
 impl pallet_xyk::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountId<Self>;
 	type Currency = Currencies;
@@ -393,7 +402,6 @@ parameter_types! {
 }
 
 impl pallet_lbp::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currencies;
 	type LockedBalance = MultiCurrencyLockedBalance<Runtime>;
 	type CreatePoolOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
@@ -438,7 +446,6 @@ parameter_types! {
 }
 
 impl orml_vesting::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type MinVestedTransfer = MinVestedTransfer;
 	type VestedTransferOrigin = RootAsVestingPallet;
@@ -453,7 +460,6 @@ parameter_types! {
 }
 
 impl pallet_marketplace::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Currency = KusamaCurrency;
 	type WeightInfo = weights::pallet_marketplace::BasiliskWeight<Runtime>;
 	type MinimumOfferAmount = MinimumOfferAmount;
@@ -510,7 +516,6 @@ parameter_types! {
 }
 
 impl pallet_xyk_liquidity_mining::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currencies;
 	type AMM = XYK;
 	type CreateOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
@@ -532,7 +537,6 @@ parameter_types! {
 
 type XYKLiquidityMiningInstance = warehouse_liquidity_mining::Instance1;
 impl warehouse_liquidity_mining::Config<XYKLiquidityMiningInstance> for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type MultiCurrency = Currencies;
 	type PalletId = WarehouseLMPalletId;
@@ -829,7 +833,6 @@ impl RefundEdCalculator<Balance> for RefundAndLockedEdCalculator {
 }
 
 impl pallet_route_executor::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type Balance = Balance;
 	type NativeAssetId = NativeAssetId;
@@ -854,7 +857,6 @@ parameter_types! {
 }
 
 impl pallet_ema_oracle::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::pallet_ema_oracle::BasiliskWeight<Runtime>;
 	type AuthorityOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type BlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
@@ -870,7 +872,6 @@ parameter_types! {
 }
 
 impl pallet_nft::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = weights::pallet_nft::BasiliskWeight<Runtime>;
 	type NftCollectionId = CollectionId;
 	type NftItemId = ItemId;

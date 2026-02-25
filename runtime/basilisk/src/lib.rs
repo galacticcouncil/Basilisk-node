@@ -103,7 +103,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("basilisk"),
 	impl_name: Cow::Borrowed("basilisk"),
 	authoring_version: 1,
-	spec_version: 128,
+	spec_version: 129,
 	impl_version: 0,
 	apis: apis::RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -172,7 +172,6 @@ construct_runtime!(
 		Treasury: pallet_treasury = 4,
 		Utility: pallet_utility = 5,
 		// NOTE: 6 - is used by Scheduler which must be after cumulus_pallet_parachain_system
-		Democracy: pallet_democracy exclude_parts { Config } = 7,
 		// NOTE 7, 8, 9 are retired (used by gov v1)
 		TechnicalCommittee: pallet_collective::<Instance2> = 10,
 		Vesting: orml_vesting = 11,
@@ -223,6 +222,7 @@ construct_runtime!(
 		CollatorRewards: pallet_collator_rewards = 114,
 		// Note: 115 was used by rate limiter which is now removed
 		Broadcast: pallet_broadcast = 116,
+		MultiBlockMigrations: pallet_migrations = 117,
 
 		EmaOracle: pallet_ema_oracle = 120,
 
@@ -268,7 +268,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	migrations::Migrations,
+	migrations::SingleBlockMigrationsList,
 >;
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -289,7 +289,6 @@ mod benches {
 		[frame_system_extensions, frame_system_benchmarking::extensions::Pallet::<Runtime>]
 		[pallet_balances, Balances]
 		[pallet_timestamp, Timestamp]
-		[pallet_democracy, Democracy]
 		[pallet_treasury, Treasury]
 		[pallet_scheduler, Scheduler]
 		[pallet_utility, Utility]
@@ -316,6 +315,7 @@ mod benches {
 		[pallet_transaction_multi_payment, benchmarking::multi_payment::Benchmark]
 		[pallet_route_executor, benchmarking::route_executor::Benchmark]
 		[pallet_marketplace, benchmarking::marketplace::Benchmark]
+		[pallet_migrations, MultiBlockMigrations]
 	);
 }
 

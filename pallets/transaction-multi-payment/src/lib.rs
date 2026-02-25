@@ -34,6 +34,7 @@ mod traits;
 
 pub use crate::traits::*;
 use basilisk_math::ema::EmaPrice;
+use basilisk_traits::AccountFeeCurrency;
 use basilisk_traits::{
 	oracle::{NativePriceOracle, OraclePeriod, PriceOracle},
 	router::{AssetPair, RouteProvider},
@@ -52,9 +53,9 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::{ensure_signed, pallet_prelude::BlockNumberFor};
+use hydradx_traits::evm::InspectEvmAccounts;
 use hydradx_traits::fee::InspectTransactionFeeCurrency;
 use hydradx_traits::fee::SwappablePaymentAssetTrader;
-use hydradx_traits::{evm::InspectEvmAccounts, AccountFeeCurrency};
 use orml_traits::{GetByKey, Happened, MultiCurrency};
 use pallet_transaction_payment::OnChargeTransaction;
 use sp_runtime::traits::TryConvert;
@@ -113,9 +114,6 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_transaction_payment::Config {
-		/// Because this pallet emits events, it depends on the runtime's definition of an event.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
 		/// The origin which can add/remove accepted currencies
 		type AcceptedCurrencyOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
@@ -401,6 +399,7 @@ pub mod pallet {
 		#[pallet::weight(
 			<T as Config>::EvmPermit::dispatch_weight(*gas_limit)
 		)]
+		#[allow(clippy::useless_conversion)]
 		pub fn dispatch_permit(
 			origin: OriginFor<T>,
 			from: H160,

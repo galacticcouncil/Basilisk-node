@@ -107,7 +107,6 @@ parameter_types! {
 }
 
 impl pallet_asset_registry::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;
 	type Balance = Balance;
@@ -158,7 +157,6 @@ parameter_type_with_key! {
 }
 
 impl orml_tokens::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
@@ -254,12 +252,9 @@ impl basilisk_traits::OnLiquidityChangedHandler<AssetId, Balance, basilisk_math:
 	}
 }
 
-impl pallet_broadcast::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-}
+impl pallet_broadcast::Config for Test {}
 
 impl xyk::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currency;

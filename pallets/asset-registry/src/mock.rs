@@ -93,7 +93,6 @@ use scale_info::TypeInfo;
 pub struct AssetLocation(pub Location);
 
 impl Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type RegistryOrigin = frame_system::EnsureRoot<u64>;
 	type AssetId = u32;
 	type Balance = Balance;

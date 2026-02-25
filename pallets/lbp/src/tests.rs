@@ -28,8 +28,9 @@ pub use crate::mock::{
 	set_block_number, Currency, ExtBuilder, LBPPallet, RuntimeOrigin as Origin, Test, ALICE, BOB, BSX, CHARLIE, ETH,
 	HDX, KUSD,
 };
+use basilisk_traits::AMMTransfer;
 use frame_support::{assert_err, assert_noop, assert_ok};
-use hydradx_traits::{AMMTransfer, LockedBalance};
+use hydradx_traits::LockedBalance;
 use pallet_broadcast::types::Destination;
 use sp_runtime::traits::{BadOrigin, Dispatchable};
 use sp_std::convert::TryInto;

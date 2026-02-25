@@ -8,9 +8,123 @@ use frame_support::dispatch::{self};
 use frame_support::sp_runtime::{traits::Zero, DispatchError, RuntimeDebug};
 use frame_support::weights::Weight;
 use serde::{Deserialize, Serialize};
+use sp_std::vec::Vec;
 
 /// Identifier for oracle data sources.
 pub type Source = [u8; 8];
+
+/// Hold information to perform amm transfer
+/// Contains also exact amount which will be sold/bought
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
+pub struct AMMTransfer<AccountId, AssetId, AssetPair, Balance> {
+	pub origin: AccountId,
+	pub assets: AssetPair,
+	pub amount: Balance,
+	pub amount_b: Balance,
+	pub discount: bool,
+	pub discount_amount: Balance,
+	pub fee: (AssetId, Balance),
+}
+
+/// Traits for handling AMM Pool trades.
+pub trait AMM<AccountId, AssetId, AssetPair, Amount: Zero> {
+	/// Check if both assets exist in a pool.
+	fn exists(assets: AssetPair) -> bool;
+
+	/// Return pair account.
+	fn get_pair_id(assets: AssetPair) -> AccountId;
+
+	/// Return share token for assets.
+	fn get_share_token(assets: AssetPair) -> AssetId;
+
+	/// Return list of active assets in a given pool.
+	fn get_pool_assets(pool_account_id: &AccountId) -> Option<Vec<AssetId>>;
+
+	/// Calculate spot price for asset a and b.
+	fn get_spot_price_unchecked(asset_a: AssetId, asset_b: AssetId, amount: Amount) -> Amount;
+
+	/// Sell trade validation
+	/// Perform all necessary checks to validate an intended sale.
+	fn validate_sell(
+		origin: &AccountId,
+		assets: AssetPair,
+		amount: Amount,
+		min_bought: Amount,
+		discount: bool,
+	) -> Result<AMMTransfer<AccountId, AssetId, AssetPair, Amount>, frame_support::sp_runtime::DispatchError>;
+
+	/// Execute buy for given validated transfer.
+	fn execute_sell(transfer: &AMMTransfer<AccountId, AssetId, AssetPair, Amount>) -> dispatch::DispatchResult;
+
+	/// Perform asset swap.
+	/// Call execute following the validation.
+	fn sell(
+		origin: &AccountId,
+		assets: AssetPair,
+		amount: Amount,
+		min_bought: Amount,
+		discount: bool,
+	) -> dispatch::DispatchResult {
+		Self::execute_sell(&Self::validate_sell(origin, assets, amount, min_bought, discount)?)?;
+
+		Ok(())
+	}
+
+	/// Buy trade validation
+	/// Perform all necessary checks to validate an intended buy.
+	fn validate_buy(
+		origin: &AccountId,
+		assets: AssetPair,
+		amount: Amount,
+		max_limit: Amount,
+		discount: bool,
+	) -> Result<AMMTransfer<AccountId, AssetId, AssetPair, Amount>, frame_support::sp_runtime::DispatchError>;
+
+	/// Execute buy for given validated transfer.
+	fn execute_buy(
+		transfer: &AMMTransfer<AccountId, AssetId, AssetPair, Amount>,
+		destination: Option<&AccountId>,
+	) -> dispatch::DispatchResult;
+
+	/// Perform asset swap.
+	fn buy(
+		origin: &AccountId,
+		assets: AssetPair,
+		amount: Amount,
+		max_limit: Amount,
+		discount: bool,
+	) -> dispatch::DispatchResult {
+		Self::execute_buy(&Self::validate_buy(origin, assets, amount, max_limit, discount)?, None)?;
+
+		Ok(())
+	}
+
+	/// Perform asset swap and send bought assets to the destination account.
+	fn buy_for(
+		origin: &AccountId,
+		assets: AssetPair,
+		amount: Amount,
+		max_limit: Amount,
+		discount: bool,
+		dest: &AccountId,
+	) -> dispatch::DispatchResult {
+		Self::execute_buy(
+			&Self::validate_buy(origin, assets, amount, max_limit, discount)?,
+			Some(dest),
+		)?;
+		Ok(())
+	}
+	fn get_min_trading_limit() -> Amount;
+
+	fn get_min_pool_liquidity() -> Amount;
+
+	fn get_max_in_ratio() -> u128;
+
+	fn get_max_out_ratio() -> u128;
+
+	fn get_fee(pool_account_id: &AccountId) -> (u32, u32);
+}
 
 /// Handler used by AMM pools to perform some tasks when a new pool is created.
 pub trait OnCreatePoolHandler<AssetId> {
@@ -101,4 +215,10 @@ impl<AssetId, Balance, Price> OnLiquidityChangedHandler<AssetId, Balance, Price>
 	fn on_liquidity_changed_weight() -> Weight {
 		Weight::zero()
 	}
+}
+
+/// Provides account's fee payment asset
+pub trait AccountFeeCurrency<AccountId> {
+	type AssetId;
+	fn get(a: &AccountId) -> Self::AssetId;
 }

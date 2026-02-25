@@ -27,8 +27,9 @@ use frame_support::{
 	PalletId,
 };
 
+use basilisk_traits::AMM;
 use frame_system as system;
-use hydradx_traits::{nft::CreateTypedCollection, pools::DustRemovalAccountWhitelist, AMMPosition, AMM};
+use hydradx_traits::{nft::CreateTypedCollection, pools::DustRemovalAccountWhitelist, AMMPosition};
 use orml_traits::parameter_type_with_key;
 use pallet_liquidity_mining::{FarmMultiplier, YieldFarmId};
 use pallet_nft::CollectionType;
@@ -235,21 +236,21 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for DummyAMM {
 		_min_bought: Balance,
 		_discount: bool,
 	) -> Result<
-		hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		basilisk_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 		frame_support::sp_runtime::DispatchError,
 	> {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
 
 	fn execute_buy(
-		_transfer: &hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		_transfer: &basilisk_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 		_destination: Option<&AccountId>,
 	) -> frame_support::dispatch::DispatchResult {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
 
 	fn execute_sell(
-		_transfer: &hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		_transfer: &basilisk_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 	) -> frame_support::dispatch::DispatchResult {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
 	}
@@ -261,7 +262,7 @@ impl AMM<AccountId, AssetId, AssetPair, Balance> for DummyAMM {
 		_max_limit: Balance,
 		_discount: bool,
 	) -> Result<
-		hydradx_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
+		basilisk_traits::AMMTransfer<AccountId, AssetId, AssetPair, Balance>,
 		frame_support::sp_runtime::DispatchError,
 	> {
 		Err(sp_runtime::DispatchError::Other("NotImplemented"))
@@ -341,7 +342,6 @@ parameter_types! {
 }
 
 impl Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Tokens;
 	type CreateOrigin = frame_system::EnsureRoot<AccountId>;
 	type WeightInfo = ();
@@ -786,6 +786,16 @@ impl hydradx_traits::liquidity_mining::Mutate<AccountId, AssetId, BlockNumber> f
 	fn get_global_farm_id(deposit_id: u128, yield_farm_id: u32) -> Option<u32> {
 		DEPOSIT_ENTRIES.with(|v| v.borrow().get(&(deposit_id, yield_farm_id)).map(|d| d.global_farm_id))
 	}
+
+	fn get_yield_farm_ids(deposit_id: DepositId) -> Option<Vec<u32>> {
+		DEPOSITS.with(|v| {
+			let m = v.borrow();
+			m.get(&deposit_id).map(|_deposit| {
+				// Return an empty vector for now - this is a dummy implementation
+				Vec::new()
+			})
+		})
+	}
 }
 
 //NOTE: this is and should not be used anywhere. This exists only to make trait bellow happy. Trait
@@ -831,7 +841,6 @@ parameter_type_with_key! {
 }
 
 impl orml_tokens::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;

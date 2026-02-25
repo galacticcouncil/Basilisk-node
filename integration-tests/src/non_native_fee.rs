@@ -4,13 +4,13 @@ use crate::kusama_test_net::*;
 
 use basilisk_runtime::{Balances, Currencies, MultiTransactionPayment, RuntimeOrigin, Tokens};
 
+use basilisk_traits::AMM;
 use frame_support::{
 	assert_ok,
 	dispatch::DispatchInfo,
 	sp_runtime::transaction_validity::{InvalidTransaction, TransactionValidityError},
 	weights::Weight,
 };
-use hydradx_traits::AMM;
 use orml_traits::currency::MultiCurrency;
 use pallet_asset_registry::AssetType;
 use pallet_transaction_multi_payment::Price;

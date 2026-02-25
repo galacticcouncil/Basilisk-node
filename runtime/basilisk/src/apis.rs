@@ -342,13 +342,21 @@ impl_runtime_apis! {
 						cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())
 						])
 				));
+				pub ExistentialDepositAsset: Option<Asset> = Some((
+					AssetLocation::get(),
+					ExistentialDeposit::get()
+				).into());
 			}
 
 			use cumulus_primitives_core::ParaId;
 			use polkadot_xcm::latest::prelude::{Location, AssetId, Fungible, Asset, Assets, ParentThen, Parachain, Parent};
 
 			impl pallet_xcm::benchmarking::Config for Runtime {
-				type DeliveryHelper = ();
+				type DeliveryHelper = cumulus_primitives_utility::ToParentDeliveryHelper<
+					xcm::XcmConfig,
+					ExistentialDepositAsset,
+					(),
+				>;
 
 				fn reachable_dest() -> Option<Location> {
 					Some(Parent.into())

@@ -151,7 +151,6 @@ impl pallet_liquidity_mining::Config<Instance1> for Test {
 	type MaxYieldFarmsPerGlobalFarm = MaxYieldFarmsPerGlobalFarm;
 	type AssetRegistry = AssetRegistry;
 	type NonDustableWhitelistHandler = Duster;
-	type RuntimeEvent = RuntimeEvent;
 	type PriceAdjustment = pallet_liquidity_mining::DefaultPriceAdjustment;
 	type TreasuryAccountId = TreasuryAccount;
 }
@@ -162,7 +161,6 @@ parameter_types! {
 }
 
 impl pallet_xyk_liquidity_mining::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type MultiCurrency = Currency;
 	type CreateOrigin = EnsureRoot<AccountId>;
 	type PalletId = LMPalletId;
@@ -197,13 +195,13 @@ impl hydradx_traits::evm::Erc20OnDust<AccountId, AssetId> for NoErc20Support {
 }
 
 impl pallet_duster::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type AssetId = AssetId;
 	type MultiCurrency = Currency;
 	type ExistentialDeposit = AssetRegistry;
 	type WhitelistUpdateOrigin = EnsureRoot<AccountId>;
 	type Erc20Support = NoErc20Support;
 	type TreasuryAccountId = TreasuryAccount;
+	type ExtendedWhitelist = ();
 	type WeightInfo = ();
 }
 
@@ -212,7 +210,6 @@ parameter_types! {
 }
 
 impl pallet_nft::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type NftCollectionId = primitives::CollectionId;
 	type NftItemId = primitives::ItemId;
@@ -282,7 +279,6 @@ parameter_type_with_key! {
 }
 
 impl orml_tokens::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Amount = Amount;
 	type CurrencyId = AssetId;
@@ -314,7 +310,6 @@ impl AssetPairAccountIdFor<AssetId, AccountId> for AssetPairAccountIdTest {
 }
 
 impl pallet_asset_registry::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type RegistryOrigin = EnsureSigned<AccountId>;
 	type AssetId = AssetId;
 	type Balance = Balance;
@@ -335,7 +330,6 @@ parameter_types! {
 }
 
 impl pallet_xyk::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
 	type AssetRegistry = AssetRegistry;
 	type AssetPairAccountId = AssetPairAccountIdTest;
 	type Currency = Currency;
@@ -353,9 +347,7 @@ impl pallet_xyk::Config for Test {
 	type NonDustableWhitelistHandler = Duster;
 }
 
-impl pallet_broadcast::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-}
+impl pallet_broadcast::Config for Test {}
 
 impl ExtBuilder {
 	pub fn build(self) -> sp_io::TestExternalities {

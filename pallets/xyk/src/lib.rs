@@ -29,7 +29,7 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::manual_inspect)]
 
-use basilisk_traits::{OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler};
+use basilisk_traits::{AMMTransfer, OnCreatePoolHandler, OnLiquidityChangedHandler, OnTradeHandler, AMM};
 use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::{
 	dispatch::DispatchResult,
@@ -39,7 +39,7 @@ use frame_support::{
 };
 use frame_system::ensure_signed;
 use frame_system::pallet_prelude::BlockNumberFor;
-use hydradx_traits::{AMMPosition, AMMTransfer, AssetPairAccountIdFor, CanCreatePool, AMM};
+use hydradx_traits::{AMMPosition, AssetPairAccountIdFor, CanCreatePool};
 use pallet_broadcast::types::{Asset, Destination, Fee};
 
 use sp_std::{vec, vec::Vec};
@@ -83,8 +83,6 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_broadcast::Config {
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
 		/// Registry support
 		type AssetRegistry: Create<Balance, AssetId = AssetId, Error = DispatchError>;
 
@@ -539,9 +537,7 @@ pub mod pallet {
 
 				if r.is_err() {
 					log::trace!(
-					target: "xyk::remova_liquidity", "XYK: Failed to remove account {:?} from dust-removal whitelist. Reason {:?}",
-						pair_account,
-					r
+					target: "xyk::remova_liquidity", "XYK: Failed to remove account {pair_account:?} from dust-removal whitelist. Reason {r:?}",
 					);
 				}
 

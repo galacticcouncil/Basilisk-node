@@ -28,6 +28,7 @@ use primitives::constants::{
 
 use basilisk_adapters::RelayChainBlockNumberProvider;
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
+use frame_support::migrations::FailedMigrationHandling;
 use frame_support::{
 	dispatch::DispatchClass,
 	pallet_prelude::Get,
@@ -92,7 +93,6 @@ impl Contains<RuntimeCall> for BaseFilter {
 		match call {
 			RuntimeCall::Uniques(_) => false,
 			RuntimeCall::OrmlXcm(_) => false,
-			RuntimeCall::Democracy(pallet_democracy::Call::propose { .. }) => false,
 			_ => true,
 		}
 	}
@@ -178,12 +178,44 @@ impl frame_system::Config for Runtime {
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = ConstU32<16>;
-	type SingleBlockMigrations = ();
-	type MultiBlockMigrator = ();
+	type SingleBlockMigrations = migrations::SingleBlockMigrationsList;
+	type MultiBlockMigrator = MultiBlockMigrations;
 	type PreInherents = ();
 	type PostInherents = ();
 	type PostTransactions = ();
 	type ExtensionsWeightInfo = weights::frame_system_extensions::BasiliskWeight<Runtime>;
+}
+
+parameter_types! {
+	pub MaxServiceWeight: Weight = NORMAL_DISPATCH_RATIO * BlockWeights::get().max_block;
+}
+
+impl pallet_migrations::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Migrations = migrations::MultiBlockMigrationsList<Runtime>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type Migrations = pallet_migrations::mock_helpers::MockedMigrations;
+	type CursorMaxLen = ConstU32<65_536>;
+	type IdentifierMaxLen = ConstU32<256>;
+	type MigrationStatusHandler = ();
+	type FailedMigrationHandler = LogErrorAndForceUnstuck;
+	type MaxServiceWeight = MaxServiceWeight;
+	type WeightInfo = weights::pallet_migrations::BasiliskWeight<Runtime>;
+}
+
+pub struct LogErrorAndForceUnstuck;
+impl frame_support::migrations::FailedMigrationHandler for LogErrorAndForceUnstuck {
+	fn failed(migration: Option<u32>) -> FailedMigrationHandling {
+		log::error!(
+			target: "runtime::migrations",
+			"Migration {migration:?} failed - halting all migrations and resuming chain"
+		);
+
+		// Clear the migration cursor entirely. Transactions resume, remaining migrations are
+		// skipped. State may be inconsistent.
+		FailedMigrationHandling::ForceUnstuck
+	}
 }
 
 parameter_types! {
@@ -293,7 +325,6 @@ impl InspectEvmAccounts<AccountId> for EvmAccounts {
 }
 
 impl pallet_transaction_multi_payment::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type AcceptedCurrencyOrigin = EitherOf<EnsureRoot<Self::AccountId>, GeneralAdmin>;
 	type Currencies = Currencies;
 	type RouteProvider = Router;
@@ -450,6 +481,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ConsensusHook = ConsensusHook;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::BasiliskWeight<Runtime>;
 	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
+	type RelayParentOffset = ConstU32<0>;
 }
 
 pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
@@ -554,12 +586,10 @@ impl staging_parachain_info::Config for Runtime {}
 impl cumulus_pallet_aura_ext::Config for Runtime {}
 
 impl pallet_relaychain_info::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type RelaychainBlockNumberProvider = RelayChainBlockNumberProvider<Runtime>;
 }
 
 impl pallet_transaction_pause::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type UpdateOrigin = EitherOf<EnsureRoot<Self::AccountId>, TechCommitteeMajority>;
 	type WeightInfo = weights::pallet_transaction_pause::BasiliskWeight<Runtime>;
 }
@@ -574,7 +604,6 @@ parameter_types! {
 }
 
 impl pallet_collator_rewards::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type CurrencyId = AssetId;
 	type Currency = Currencies;
@@ -644,6 +673,8 @@ impl pallet_identity::Config for Runtime {
 	type WeightInfo = weights::pallet_identity::BasiliskWeight<Runtime>;
 	type UsernameDeposit = UsernameDeposit;
 	type UsernameGracePeriod = ConstU32<{ 30 * DAYS }>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
 
 parameter_types! {

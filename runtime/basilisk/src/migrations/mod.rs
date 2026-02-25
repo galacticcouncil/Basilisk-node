@@ -15,15 +15,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::migrations::asset_registry::MigrateAssetRegistryToXcmV5;
 use crate::Runtime;
+use frame_support::migrations::RemovePallet;
+use frame_support::weights::constants::RocksDbWeight;
 
-mod asset_registry;
+frame_support::parameter_types! {
+	pub const DemocracyPalletName: &'static str = "Democracy";
+}
 
 // New migrations which need to be cleaned up after Runtime upgrade
-pub type UnreleasedSingleBlockMigrations = MigrateAssetRegistryToXcmV5<Runtime>;
+pub type UnreleasedSingleBlockMigrations = RemovePallet<DemocracyPalletName, RocksDbWeight>;
 
 // These migrations can run on every runtime upgrade
 pub type PermanentSingleBlockMigrations = pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>;
 
-pub type Migrations = (PermanentSingleBlockMigrations, UnreleasedSingleBlockMigrations);
+pub type SingleBlockMigrationsList = (PermanentSingleBlockMigrations, UnreleasedSingleBlockMigrations);
+
+// Multi-block migrations executed by pallet-migrations
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type MultiBlockMigrationsList<Runtime> = pallet_identity::migration::v2::LazyMigrationV1ToV2<Runtime>;
