@@ -175,7 +175,7 @@ pub mod rococo {
 
 	/// Helper function to generate a crypto pair from seed
 	fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
-		TPublic::Pair::from_string(&format!("//{}", seed), None)
+		TPublic::Pair::from_string(&format!("//{seed}"), None)
 			.expect("static values are valid; qed")
 			.public()
 	}
@@ -218,7 +218,7 @@ pub mod rococo {
 		AuthorityDiscoveryId,
 	) {
 		(
-			get_account_id_from_seed::<sr25519::Public>(&format!("{}//stash", seed)),
+			get_account_id_from_seed::<sr25519::Public>(&format!("{seed}//stash")),
 			get_account_id_from_seed::<sr25519::Public>(seed),
 			get_from_seed::<BabeId>(seed),
 			get_from_seed::<GrandpaId>(seed),
@@ -312,7 +312,7 @@ pub mod basilisk {
 
 	/// Helper function to generate a crypto pair from seed
 	fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
-		TPublic::Pair::from_string(&format!("//{}", seed), None)
+		TPublic::Pair::from_string(&format!("//{seed}"), None)
 			.expect("static values are valid; qed")
 			.public()
 	}

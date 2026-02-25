@@ -120,8 +120,7 @@ impl<
 		_context: &XcmContext,
 	) -> Result<AssetsInHolding, XcmError> {
 		log::trace!(
-			target: "xcm::weight", "MultiCurrencyTrader::buy_weight weight: {:?}, payment: {:?}",
-			weight, payment
+			target: "xcm::weight", "MultiCurrencyTrader::buy_weight weight: {weight:?}, payment: {payment:?}"
 		);
 		let (asset_loc, price) = self.get_asset_and_price(&payment).ok_or(XcmError::AssetNotFound)?;
 		let fee = ConvertWeightToFee::weight_to_fee(&weight);
@@ -212,7 +211,7 @@ impl<
 				C::convert(asset).and_then(|id| {
 					let receiver = F::get();
 					D::deposit_fee(&receiver, id, amount.saturated_into::<Balance>())
-						.map_err(|e| log::trace!(target: "xcm::take_revenue", "Could not deposit fee: {:?}", e))
+						.map_err(|e| log::trace!(target: "xcm::take_revenue", "Could not deposit fee: {e:?}"))
 						.ok()
 				});
 			}
