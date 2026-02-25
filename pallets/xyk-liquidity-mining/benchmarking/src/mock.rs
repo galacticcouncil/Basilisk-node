@@ -201,7 +201,7 @@ impl pallet_duster::Config for Test {
 	type WhitelistUpdateOrigin = EnsureRoot<AccountId>;
 	type Erc20Support = NoErc20Support;
 	type TreasuryAccountId = TreasuryAccount;
-	type ExtendedWhitelist = Nothing;
+	type ExtendedWhitelist = ();
 	type WeightInfo = ();
 }
 
