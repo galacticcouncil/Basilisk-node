@@ -353,7 +353,7 @@
 - ci: test inclusion fixes [#41](https://github.com/galacticcouncil/Basilisk-node/pull/41) ([@lumir-mrkva](https://github.com/lumir-mrkva))
 - chore: pin orml to specific revision [#39](https://github.com/galacticcouncil/Basilisk-node/pull/39) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
 - ci: smoke test [#32](https://github.com/galacticcouncil/Basilisk-node/pull/32) ([@lumir-mrkva](https://github.com/lumir-mrkva))
-- chore: update dependecies [#29](https://github.com/galacticcouncil/Basilisk-node/pull/29) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
+- chore: update dependencies [#29](https://github.com/galacticcouncil/Basilisk-node/pull/29) ([@enthusiastmartin](https://github.com/enthusiastmartin) [@lumir-mrkva](https://github.com/lumir-mrkva))
 - fix: fix build with runtime benchmarks features ([@enthusiastmartin](https://github.com/enthusiastmartin))
 - ci: fork builds [#4](https://github.com/galacticcouncil/Basilisk-node/pull/4) ([@lumir-mrkva](https://github.com/lumir-mrkva) [@enthusiastmartin](https://github.com/enthusiastmartin))
 - refactor: use pallets from hydradx-node repo [#3](https://github.com/galacticcouncil/Basilisk-node/pull/3) ([@enthusiastmartin](https://github.com/enthusiastmartin))
