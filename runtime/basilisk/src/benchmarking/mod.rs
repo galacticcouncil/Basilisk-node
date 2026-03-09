@@ -27,6 +27,7 @@ use sp_std::vec::Vec;
 use frame_support::storage::with_transaction;
 use hydradx_traits::{AssetKind, Create};
 use orml_traits::MultiCurrencyExtended;
+use polkadot_xcm::v5::Location;
 use sp_runtime::{
 	traits::{One, SaturatedConversion},
 	FixedU128, TransactionOutcome,
@@ -86,7 +87,7 @@ pub fn set_location(asset_id: AssetId, location: AssetLocation) -> Result<(), ()
 	AssetRegistry::set_location(RawOrigin::Root.into(), asset_id, location).map_err(|_| ())
 }
 
-pub const DOT_ASSET_LOCATION: AssetLocation = AssetLocation(polkadot_xcm::v3::MultiLocation::parent());
+pub const DOT_ASSET_LOCATION: AssetLocation = AssetLocation(Location::parent());
 fn setup_insufficient_asset_with_dot() -> Result<AssetId, BenchmarkError> {
 	let dot = register_asset(b"DOT".to_vec(), 1u128).map_err(|_| BenchmarkError::Stop("Failed to register asset"))?;
 	set_location(dot, DOT_ASSET_LOCATION).map_err(|_| BenchmarkError::Stop("Failed to set location for weth"))?;

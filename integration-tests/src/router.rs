@@ -5,7 +5,7 @@ use crate::assert_trader_non_native_balance;
 use crate::kusama_test_net::*;
 
 use basilisk_runtime::{BlockNumber, RuntimeOrigin, LBP, XYK};
-use hydradx_traits::AMM;
+use basilisk_traits::AMM;
 use primitives::AssetId;
 
 use pallet_lbp::WeightCurveType;
@@ -26,8 +26,8 @@ mod router_different_pools_tests {
 	use basilisk_runtime::Router;
 	use xcm_emulator::TestExt;
 
+	use basilisk_traits::router::PoolType;
 	use frame_support::assert_ok;
-	use hydradx_traits::router::PoolType;
 	use pallet_route_executor::Trade;
 
 	use super::*;
@@ -161,8 +161,8 @@ mod xyk_router_tests {
 	use basilisk_runtime::Router;
 	use xcm_emulator::TestExt;
 
+	use basilisk_traits::router::PoolType;
 	use frame_support::{assert_noop, assert_ok};
-	use hydradx_traits::router::PoolType;
 	use pallet_route_executor::Trade;
 
 	use super::*;
@@ -804,8 +804,8 @@ mod lbp_router_tests {
 	use basilisk_runtime::Router;
 	use xcm_emulator::TestExt;
 
+	use basilisk_traits::router::PoolType;
 	use frame_support::assert_ok;
-	use hydradx_traits::router::PoolType;
 	use pallet_route_executor::Trade;
 
 	use crate::router::*;

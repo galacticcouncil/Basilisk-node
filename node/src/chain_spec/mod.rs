@@ -127,9 +127,7 @@ pub fn parachain_genesis(
 			"desiredCandidates": 0u32,
 		},
 		"duster": {
-			"accountBlacklist": vec![get_account_id_from_seed::<sr25519::Public>("Duster")],
-			"rewardAccount": Some(get_account_id_from_seed::<sr25519::Public>("Duster")),
-			"dustAccount": Some(get_account_id_from_seed::<sr25519::Public>("Duster"))
+			"accountWhitelist": vec![get_account_id_from_seed::<sr25519::Public>("Duster")]
 		},
 		"emaOracle": {
 		},

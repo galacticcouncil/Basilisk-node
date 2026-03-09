@@ -19,6 +19,8 @@
 
 use super::*;
 use crate::{AccountId, AssetId, Balance, Currencies, EmaOracle, Runtime, System};
+use basilisk_traits::router::PoolType;
+use basilisk_traits::{oracle::PriceOracle, router::RouteProvider};
 use frame_benchmarking::account;
 use frame_benchmarking::BenchmarkError;
 use frame_support::{assert_ok, parameter_types};
@@ -27,9 +29,6 @@ use frame_support::{
 	traits::{OnFinalize, OnInitialize},
 };
 use frame_system::RawOrigin;
-use hydradx_traits::router::PoolType;
-use hydradx_traits::router::RouteProvider;
-use hydradx_traits::PriceOracle;
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::MultiCurrencyExtended;
 use pallet_route_executor::MAX_NUMBER_OF_TRADES;
@@ -43,9 +42,9 @@ use sp_runtime::{FixedPointNumber, FixedU128};
 type MultiPaymentPallet<T> = pallet_transaction_multi_payment::Pallet<T>;
 type XykPallet<T> = pallet_xyk::Pallet<T>;
 type Router<T> = pallet_route_executor::Pallet<T>;
-use hydradx_traits::router::AssetPair;
-use hydradx_traits::router::Trade;
-use hydradx_traits::OraclePeriod;
+use basilisk_traits::oracle::OraclePeriod;
+use basilisk_traits::router::AssetPair;
+use basilisk_traits::router::Trade;
 
 parameter_types! {
 	//NOTE: This should always be > 1 otherwise we will payout more than we collected as ED for
@@ -195,7 +194,7 @@ runtime_benchmarks! {
 		let tip = 0;
 		let mut tx_result : Result<Option<PaymentInfo<Balance, pallet_transaction_multi_payment::AssetIdOf<Runtime>, Price>>, TransactionValidityError> = Err(TransactionValidityError::Invalid(InvalidTransaction::Payment));
 	}: {
-		tx_result = <TransferFees<Currencies, DepositAll<Runtime>, TreasuryAccount> as OnChargeTransaction<Runtime>>::withdraw_fee(&from, &call, &info, fee, tip);
+		tx_result = <TransferFees<Runtime, Currencies, DepositAll<Runtime>, TreasuryAccount> as OnChargeTransaction<Runtime>>::withdraw_fee(&from, &call, &info, fee, tip);
 	}
 	verify {
 		assert!(tx_result.is_ok());

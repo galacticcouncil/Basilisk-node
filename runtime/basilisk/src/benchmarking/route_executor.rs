@@ -19,6 +19,10 @@
 use crate::{AccountId, AssetId, Balance, Currencies, EmaOracle, Router, Runtime, RuntimeOrigin, System, LBP, XYK};
 
 use super::*;
+use basilisk_traits::{
+	oracle::PriceOracle,
+	router::{inverse_route, AssetPair, PoolType, RouteProvider, RouteSpotPriceProvider, RouterT, Trade},
+};
 use frame_benchmarking::{account, BenchmarkError, BenchmarkResult};
 use frame_support::{
 	assert_ok,
@@ -28,10 +32,6 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::RawOrigin;
-use hydradx_traits::{
-	router::{inverse_route, AssetPair, PoolType, RouteProvider, RouteSpotPriceProvider, RouterT, Trade},
-	PriceOracle,
-};
 use orml_benchmarking::runtime_benchmarks;
 use orml_traits::{MultiCurrency, MultiCurrencyExtended};
 use pallet_ema_oracle::OraclePeriod;

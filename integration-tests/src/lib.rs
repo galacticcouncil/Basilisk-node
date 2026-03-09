@@ -2,7 +2,6 @@
 // Disable the integration tests when this feature is enabled.
 #![cfg(not(feature = "runtime-benchmarks"))]
 mod call_filter;
-mod exchange_asset;
 mod fees;
 mod kusama_test_net;
 mod nft;

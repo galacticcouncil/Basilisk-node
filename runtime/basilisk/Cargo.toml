@@ -1,6 +1,6 @@
 [package]
 name = "basilisk-runtime"
-version = "128.0.0"
+version = "130.0.0"
 authors = ["GalacticCouncil"]
 edition = "2021"
 homepage = "https://github.com/galacticcouncil/Basilisk-node"
@@ -13,6 +13,9 @@ targets = ["x86_64-unknown-linux-gnu"]
 [build-dependencies]
 substrate-wasm-builder = { workspace = true }
 
+[dev-dependencies]
+frame-metadata = { workspace = true }
+
 [dependencies]
 hex-literal = { workspace = true }
 serde = { workspace = true, optional = true }
@@ -22,13 +25,14 @@ smallvec = { workspace = true }
 log = { workspace = true }
 
 # local dependencies
+basilisk-math = { workspace = true }
 primitives = { default-features = false, path = "../../primitives" }
+basilisk-traits = { workspace = true, default-features = false }
 pallet-marketplace = { workspace = true, default-features = false }
 pallet-xyk-liquidity-mining = { workspace = true , default-features = false }
 pallet-xyk-liquidity-mining-benchmarking = { workspace = true, optional = true, default-features = false }
 
 pallet-treasury = { workspace = true }
-pallet-democracy = { workspace = true }
 pallet-scheduler = { workspace = true }
 pallet-elections-phragmen = { workspace = true }
 pallet-tips = { workspace = true }
@@ -41,7 +45,7 @@ hydra-dx-math = { workspace = true }
 pallet-transaction-multi-payment = { workspace = true }
 pallet-relaychain-info = { workspace = true }
 pallet-asset-registry = { workspace = true }
-hydradx-adapters = { workspace = true }
+basilisk-adapters = { workspace = true }
 pallet-nft = { workspace = true }
 pallet-currencies = { workspace = true }
 pallet-transaction-pause = { workspace = true }
@@ -109,6 +113,7 @@ pallet-conviction-voting = { workspace = true }
 pallet-preimage = { workspace = true }
 pallet-session = { workspace = true }
 pallet-proxy = { workspace = true }
+pallet-migrations = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-referenda = { workspace = true }
 pallet-timestamp = { workspace = true }
@@ -158,11 +163,11 @@ runtime-benchmarks = [
     "xcm-builder/runtime-benchmarks",
     "pallet-asset-registry/runtime-benchmarks",
     "pallet-duster/runtime-benchmarks",
-    "pallet-democracy/runtime-benchmarks",
     "pallet-treasury/runtime-benchmarks",
     "pallet-scheduler/runtime-benchmarks",
     "pallet-utility/runtime-benchmarks",
     "pallet-tips/runtime-benchmarks",
+    "pallet-migrations/runtime-benchmarks",
     "pallet-proxy/runtime-benchmarks",
     "pallet-multisig/runtime-benchmarks",
     "pallet-preimage/runtime-benchmarks",
@@ -180,6 +185,9 @@ runtime-benchmarks = [
     "pallet-whitelist/runtime-benchmarks",
     "pallet-message-queue/runtime-benchmarks",
     "cumulus-pallet-parachain-system/runtime-benchmarks",
+    "pallet-transaction-multi-payment/runtime-benchmarks",
+    "pallet-transaction-payment/runtime-benchmarks",
+    "cumulus-primitives-utility/runtime-benchmarks",
 ]
 std = [
     "codec/std",
@@ -232,7 +240,7 @@ std = [
     "pallet-broadcast/std",
     "pallet-staking/std",
     "hydradx-traits/std",
-    "hydradx-adapters/std",
+    "basilisk-adapters/std",
     "sp-api/std",
     "sp-arithmetic/std",
     "sp-block-builder/std",
@@ -251,8 +259,8 @@ std = [
     "sp-version/std",
     "pallet-treasury/std",
     "pallet-collective/std",
-    "pallet-democracy/std",
     "pallet-proxy/std",
+    "pallet-migrations/std",
     "pallet-multisig/std",
     "pallet-scheduler/std",
     "pallet-tips/std",
@@ -270,6 +278,7 @@ std = [
     "cumulus-primitives-utility/std",
     "parachains-common/std",
     "polkadot-runtime-common/std",
+    "basilisk-traits/std",
 ]
 try-runtime= [
     "frame-try-runtime",
@@ -296,8 +305,8 @@ try-runtime= [
     "pallet-utility/try-runtime",
     "pallet-treasury/try-runtime",
     "pallet-collective/try-runtime",
-    "pallet-democracy/try-runtime",
     "pallet-proxy/try-runtime",
+    "pallet-migrations/try-runtime",
     "pallet-multisig/try-runtime",
     "pallet-scheduler/try-runtime",
     "pallet-tips/try-runtime",

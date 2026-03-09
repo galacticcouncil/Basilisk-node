@@ -4,9 +4,9 @@ use crate::kusama_test_net::*;
 
 use basilisk_runtime::Currencies;
 use basilisk_runtime::{DustRemovalWhitelist, RuntimeOrigin, XYK};
+use basilisk_traits::AMM;
 use frame_support::assert_noop;
 use frame_support::{assert_ok, traits::Contains};
-use hydradx_traits::AMM;
 use pallet_xyk::types::AssetId;
 use xcm_emulator::TestExt;
 

@@ -3,8 +3,8 @@
 use crate::kusama_test_net::*;
 
 use basilisk_runtime::{EmaOracle, RuntimeOrigin, XYKOracleSourceIdentifier, XYK};
+use basilisk_traits::oracle::{AggregatedPriceOracle, OraclePeriod::*};
 use frame_support::assert_ok;
-use hydradx_traits::{AggregatedPriceOracle, OraclePeriod::*};
 use pallet_ema_oracle::OracleError;
 use xcm_emulator::TestExt;
 
