@@ -31,6 +31,9 @@ use basilisk_runtime::{
 
 // Cumulus Imports
 use cumulus_client_collator::service::CollatorService;
+use cumulus_client_consensus_aura::collators::slot_based::{
+	SlotBasedBlockImport, SlotBasedBlockImportHandle,
+};
 use cumulus_client_consensus_common::ParachainBlockImport as TParachainBlockImport;
 use cumulus_client_consensus_proposer::Proposer;
 use cumulus_client_service::{
@@ -65,7 +68,11 @@ type ParachainClient = TFullClient<
 
 type ParachainBackend = TFullBackend<Block>;
 
-type ParachainBlockImport = TParachainBlockImport<Block, Arc<ParachainClient>, ParachainBackend>;
+type ParachainBlockImport = TParachainBlockImport<
+	Block,
+	SlotBasedBlockImport<Block, Arc<ParachainClient>, ParachainClient>,
+	ParachainBackend,
+>;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
@@ -80,7 +87,7 @@ pub fn new_partial(
 		(),
 		sc_consensus::DefaultImportQueue<Block>,
 		sc_transaction_pool::TransactionPoolHandle<Block, ParachainClient>,
-		(ParachainBlockImport, Option<Telemetry>, Option<TelemetryWorkerHandle>),
+		(ParachainBlockImport, SlotBasedBlockImportHandle<Block>, Option<Telemetry>, Option<TelemetryWorkerHandle>),
 	>,
 	sc_service::Error,
 > {
@@ -138,7 +145,9 @@ pub fn new_partial(
 		.build(),
 	);
 
-	let block_import = ParachainBlockImport::new(client.clone(), backend.clone());
+	let (slot_based_block_import, block_import_handle) =
+		SlotBasedBlockImport::new(client.clone(), client.clone());
+	let block_import = ParachainBlockImport::new(slot_based_block_import, backend.clone());
 
 	let import_queue = build_import_queue(
 		client.clone(),
@@ -156,7 +165,7 @@ pub fn new_partial(
 		task_manager,
 		transaction_pool,
 		select_chain: (),
-		other: (block_import, telemetry, telemetry_worker_handle),
+		other: (block_import, block_import_handle, telemetry, telemetry_worker_handle),
 	})
 }
 
@@ -174,7 +183,7 @@ async fn start_node_impl(
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&parachain_config)?;
-	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
+	let (block_import, block_import_handle, mut telemetry, telemetry_worker_handle) = params.other;
 
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let net_config = sc_network::config::FullNetworkConfiguration::<_, _, sc_network::NetworkWorker<Block, Hash>>::new(
@@ -329,6 +338,7 @@ async fn start_node_impl(
 			client.clone(),
 			backend.clone(),
 			block_import,
+			block_import_handle,
 			prometheus_registry.as_ref(),
 			telemetry.as_ref().map(|t| t.handle()),
 			&task_manager,
@@ -379,6 +389,7 @@ fn start_consensus(
 	client: Arc<ParachainClient>,
 	backend: Arc<ParachainBackend>,
 	block_import: ParachainBlockImport,
+	block_import_handle: SlotBasedBlockImportHandle<Block>,
 	prometheus_registry: Option<&Registry>,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
@@ -388,13 +399,10 @@ fn start_consensus(
 	relay_chain_slot_duration: Duration,
 	para_id: ParaId,
 	collator_key: CollatorPair,
-	overseer_handle: OverseerHandle,
+	_overseer_handle: OverseerHandle,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 ) -> Result<(), sc_service::Error> {
-	use cumulus_client_consensus_aura::collators::lookahead::{self as aura, Params as AuraParams};
-
-	// NOTE: because we use Aura here explicitly, we can use `CollatorSybilResistance::Resistant`
-	// when starting the network.
+	use cumulus_client_consensus_aura::collators::slot_based::{self as slot_based, Params as SlotBasedParams};
 
 	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
 		task_manager.spawn_handle(),
@@ -413,27 +421,32 @@ fn start_consensus(
 		client.clone(),
 	);
 
-	let params = AuraParams {
+	let client_for_aura = client.clone();
+	let params = SlotBasedParams {
 		create_inherent_data_providers: move |_, ()| async move { Ok(()) },
 		block_import,
 		para_client: client.clone(),
 		para_backend: backend.clone(),
 		relay_client: relay_chain_interface,
-		code_hash_provider: move |block_hash| client.code_at(block_hash).ok().map(|c| ValidationCode::from(c).hash()),
+		code_hash_provider: move |block_hash| {
+			client_for_aura.code_at(block_hash).ok().map(|c| ValidationCode::from(c).hash())
+		},
 		keystore,
 		collator_key,
 		para_id,
-		overseer_handle,
-		relay_chain_slot_duration,
 		proposer,
 		collator_service,
-		authoring_duration: Duration::from_millis(1500),
+		authoring_duration: Duration::from_millis(2000),
 		reinitialize: false,
-		max_pov_percentage: None, // Defaults to 85% of max PoV size (safe default)
+		slot_offset: Duration::from_secs(1),
+		block_import_handle,
+		spawner: task_manager.spawn_handle(),
+		relay_chain_slot_duration,
+		export_pov: None,
+		max_pov_percentage: None,
 	};
 
-	let fut = aura::run::<Block, sp_consensus_aura::sr25519::AuthorityPair, _, _, _, _, _, _, _, _>(params);
-	task_manager.spawn_essential_handle().spawn("aura", None, fut);
+	slot_based::run::<Block, sp_consensus_aura::sr25519::AuthorityPair, _, _, _, _, _, _, _, _, _>(params);
 
 	Ok(())
 }
