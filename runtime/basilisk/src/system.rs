@@ -60,6 +60,8 @@ pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included into the
 /// relay chain.
 pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = 3;
+/// Build with an offset of 1 behind the relay chain best block.
+pub const RELAY_PARENT_OFFSET: u32 = 1;
 /// How many parachain blocks are processed by the relay chain per parent. Limits the number of
 /// blocks authored per slot.
 pub const BLOCK_PROCESSING_VELOCITY: u32 = 1;
@@ -481,7 +483,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ConsensusHook = ConsensusHook;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::BasiliskWeight<Runtime>;
 	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
-	type RelayParentOffset = ConstU32<0>;
+	type RelayParentOffset = ConstU32<RELAY_PARENT_OFFSET>;
 }
 
 pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
