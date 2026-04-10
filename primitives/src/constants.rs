@@ -45,7 +45,11 @@ pub mod time {
 	///
 	/// Change this to adjust the block time.
 	pub const MILLISECS_PER_BLOCK: u64 = 2000;
-	pub const SLOT_DURATION: u64 = MILLISECS_PER_BLOCK;
+
+	// The slot duration determines the length of each author's turn and is decoupled from the block
+	// production interval. During their slot, authors are allowed to produce multiple blocks. **The
+	// slot duration is required to be at least 6s (same as on the relay chain).**
+	pub const SLOT_DURATION: u64 = 6000;
 
 	// Time is measured by number of blocks.
 	pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
