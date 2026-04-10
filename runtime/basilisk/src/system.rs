@@ -58,7 +58,7 @@ pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
 pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 /// Build with an offset of 1 behind the relay chain best block.
-pub const RELAY_PARENT_OFFSET: u32 = 1;
+pub const RELAY_PARENT_OFFSET: u32 = 0;
 /// How many parachain blocks are processed by the relay chain per parent. Limits the number of
 /// blocks authored per slot.
 pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
