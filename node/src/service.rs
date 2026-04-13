@@ -31,9 +31,7 @@ use basilisk_runtime::{
 
 // Cumulus Imports
 use cumulus_client_collator::service::CollatorService;
-use cumulus_client_consensus_aura::collators::slot_based::{
-	SlotBasedBlockImport, SlotBasedBlockImportHandle,
-};
+use cumulus_client_consensus_aura::collators::slot_based::{SlotBasedBlockImport, SlotBasedBlockImportHandle};
 use cumulus_client_consensus_common::ParachainBlockImport as TParachainBlockImport;
 use cumulus_client_consensus_proposer::Proposer;
 use cumulus_client_service::{
@@ -44,7 +42,7 @@ use cumulus_primitives_core::{
 	relay_chain::{CollatorPair, ValidationCode},
 	ParaId,
 };
-use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface};
+use cumulus_relay_chain_interface::RelayChainInterface;
 
 // Substrate Imports
 use sc_client_api::Backend;
@@ -68,11 +66,8 @@ type ParachainClient = TFullClient<
 
 type ParachainBackend = TFullBackend<Block>;
 
-type ParachainBlockImport = TParachainBlockImport<
-	Block,
-	SlotBasedBlockImport<Block, Arc<ParachainClient>, ParachainClient>,
-	ParachainBackend,
->;
+type ParachainBlockImport =
+	TParachainBlockImport<Block, SlotBasedBlockImport<Block, Arc<ParachainClient>, ParachainClient>, ParachainBackend>;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
@@ -87,7 +82,12 @@ pub fn new_partial(
 		(),
 		sc_consensus::DefaultImportQueue<Block>,
 		sc_transaction_pool::TransactionPoolHandle<Block, ParachainClient>,
-		(ParachainBlockImport, SlotBasedBlockImportHandle<Block>, Option<Telemetry>, Option<TelemetryWorkerHandle>),
+		(
+			ParachainBlockImport,
+			SlotBasedBlockImportHandle<Block>,
+			Option<Telemetry>,
+			Option<TelemetryWorkerHandle>,
+		),
 	>,
 	sc_service::Error,
 > {
@@ -145,8 +145,7 @@ pub fn new_partial(
 		.build(),
 	);
 
-	let (slot_based_block_import, block_import_handle) =
-		SlotBasedBlockImport::new(client.clone(), client.clone());
+	let (slot_based_block_import, block_import_handle) = SlotBasedBlockImport::new(client.clone(), client.clone());
 	let block_import = ParachainBlockImport::new(slot_based_block_import, backend.clone());
 
 	let import_queue = build_import_queue(
@@ -348,7 +347,6 @@ async fn start_node_impl(
 			relay_chain_slot_duration,
 			para_id,
 			collator_key.expect("Command line arguments do not allow this. qed"),
-			overseer_handle,
 			announce_block,
 		)?;
 	}
@@ -399,7 +397,6 @@ fn start_consensus(
 	relay_chain_slot_duration: Duration,
 	para_id: ParaId,
 	collator_key: CollatorPair,
-	_overseer_handle: OverseerHandle,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 ) -> Result<(), sc_service::Error> {
 	use cumulus_client_consensus_aura::collators::slot_based::{self as slot_based, Params as SlotBasedParams};
@@ -429,7 +426,10 @@ fn start_consensus(
 		para_backend: backend.clone(),
 		relay_client: relay_chain_interface,
 		code_hash_provider: move |block_hash| {
-			client_for_aura.code_at(block_hash).ok().map(|c| ValidationCode::from(c).hash())
+			client_for_aura
+				.code_at(block_hash)
+				.ok()
+				.map(|c| ValidationCode::from(c).hash())
 		},
 		keystore,
 		collator_key,
