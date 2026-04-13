@@ -56,6 +56,7 @@ pallet-duster = { workspace = true }
 pallet-collator-rewards = { workspace = true }
 pallet-xyk = { workspace = true }
 pallet-lbp = { workspace = true }
+pallet-parameters = { workspace = true }
 pallet-broadcast = { workspace = true }
 pallet-staking = { workspace = true }
 
@@ -235,6 +236,7 @@ std = [
     "pallet-transaction-multi-payment/std",
     "pallet-transaction-payment-rpc-runtime-api/std",
     "pallet-lbp/std",
+    "pallet-parameters/std",
     "pallet-utility/std",
     "pallet-xyk-liquidity-mining/std",
     "pallet-broadcast/std",
@@ -320,6 +322,7 @@ try-runtime= [
     "pallet-xyk/try-runtime",
     "pallet-duster/try-runtime",
     "pallet-lbp/try-runtime",
+    "pallet-parameters/try-runtime",
     "pallet-nft/try-runtime",
     "pallet-transaction-multi-payment/try-runtime",
     "pallet-relaychain-info/try-runtime",

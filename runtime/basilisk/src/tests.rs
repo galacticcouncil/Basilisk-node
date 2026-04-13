@@ -2,9 +2,11 @@
 
 use crate::*;
 use codec::Encode;
+use cumulus_primitives_core::runtime_decl_for_relay_parent_offset_api::RelayParentOffsetApiV1;
 use frame_support::{
 	dispatch::{DispatchClass, GetDispatchInfo},
 	sp_runtime::{traits::Convert, BuildStorage, FixedPointNumber},
+	traits::Get,
 	weights::WeightToFee,
 };
 use pallet_transaction_payment::Multiplier;
@@ -154,5 +156,34 @@ fn metadata_api_implemented() {
 			panic!("Expected metadata V15");
 		};
 		assert!(!metadata.apis.is_empty());
+	});
+}
+
+#[test]
+fn relay_parent_offset_defaults_to_production_value() {
+	let mut ext: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
+		.unwrap()
+		.into();
+
+	ext.execute_with(|| {
+		assert_eq!(Parameters::relay_parent_offset_override(), false);
+		assert_eq!(RelayParentOffset::get(), DEFAULT_RELAY_PARENT_OFFSET);
+		assert_eq!(Runtime::relay_parent_offset(), DEFAULT_RELAY_PARENT_OFFSET);
+	});
+}
+
+#[test]
+fn relay_parent_offset_uses_override_when_enabled() {
+	let mut ext: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
+		.unwrap()
+		.into();
+
+	ext.execute_with(|| {
+		pallet_parameters::RelayParentOffsetOverride::<Runtime>::put(true);
+		assert_eq!(Parameters::relay_parent_offset_override(), true);
+		assert_eq!(RelayParentOffset::get(), 0);
+		assert_eq!(Runtime::relay_parent_offset(), 0);
 	});
 }
