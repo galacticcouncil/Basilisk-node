@@ -12,8 +12,8 @@ mod tests;
 
 pub use pallet::*;
 
-use frame_support::pallet_prelude::*;
 use core::marker::PhantomData;
+use frame_support::pallet_prelude::*;
 
 #[frame_support::pallet]
 pub mod pallet {
