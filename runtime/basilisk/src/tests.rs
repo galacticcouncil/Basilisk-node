@@ -168,7 +168,7 @@ fn relay_parent_offset_defaults_to_production_value() {
 		.into();
 
 	ext.execute_with(|| {
-		assert_eq!(Parameters::relay_parent_offset_override(), false);
+		assert!(!Parameters::relay_parent_offset_override());
 		assert_eq!(RelayParentOffset::get(), DEFAULT_RELAY_PARENT_OFFSET);
 		assert_eq!(Runtime::relay_parent_offset(), DEFAULT_RELAY_PARENT_OFFSET);
 	});
@@ -183,7 +183,7 @@ fn relay_parent_offset_uses_override_when_enabled() {
 
 	ext.execute_with(|| {
 		pallet_parameters::RelayParentOffsetOverride::<Runtime>::put(true);
-		assert_eq!(Parameters::relay_parent_offset_override(), true);
+		assert!(Parameters::relay_parent_offset_override());
 		assert_eq!(RelayParentOffset::get(), 0);
 		assert_eq!(Runtime::relay_parent_offset(), 0);
 	});
