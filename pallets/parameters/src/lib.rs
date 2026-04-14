@@ -26,11 +26,16 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	#[pallet::storage]
+	#[pallet::getter(fn is_testnet)]
+	pub type IsTestnet<T> = StorageValue<_, bool, ValueQuery>;
+
+	#[pallet::storage]
 	#[pallet::getter(fn relay_parent_offset_override)]
 	pub type RelayParentOffsetOverride<T> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
+		pub is_testnet: bool,
 		pub relay_parent_offset_override: bool,
 		pub _phantom: PhantomData<T>,
 	}
@@ -38,6 +43,7 @@ pub mod pallet {
 	impl<T: Config> Default for GenesisConfig<T> {
 		fn default() -> Self {
 			Self {
+				is_testnet: false,
 				relay_parent_offset_override: false,
 				_phantom: PhantomData,
 			}
@@ -47,6 +53,7 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
 		fn build(&self) {
+			IsTestnet::<T>::put(self.is_testnet);
 			RelayParentOffsetOverride::<T>::put(self.relay_parent_offset_override);
 		}
 	}

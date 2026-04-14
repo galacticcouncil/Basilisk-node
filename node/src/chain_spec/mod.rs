@@ -88,6 +88,7 @@ pub fn parachain_genesis(
 	accepted_assets: Vec<(AssetId, Price)>, // (Asset id, Fallback price) - asset which fee can be paid with
 	token_balances: Vec<(AccountId, Vec<(AssetId, Balance)>)>,
 	parachain_id: ParaId,
+	is_testnet: bool,
 ) -> serde_json::Value {
 	serde_json::json!({
 		"system": {},
@@ -134,6 +135,9 @@ pub fn parachain_genesis(
 		"multiTransactionPayment": {
 			"currencies": accepted_assets,
 			"accountCurrencies": Vec::<(AccountId, AssetId)>::new(),
+		},
+		"parameters": {
+			"isTestnet": is_testnet,
 		},
 		"parachainInfo": {
 			"parachainId": parachain_id,

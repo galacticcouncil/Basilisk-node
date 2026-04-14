@@ -102,6 +102,8 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 		],
 		// parachain ID
 		PARA_ID.into(),
+		// is_testnet
+		true,
 	);
 
 	let chain_spec = ChainSpec::builder(
