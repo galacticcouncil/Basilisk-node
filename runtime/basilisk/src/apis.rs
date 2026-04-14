@@ -290,6 +290,21 @@ impl_runtime_apis! {
 		}
 	}
 
+	impl cumulus_primitives_core::RelayParentOffsetApi<Block> for Runtime {
+		fn relay_parent_offset() -> u32 {
+			RelayParentOffset::get()
+		}
+	}
+
+	impl cumulus_primitives_core::GetCoreSelectorApi<Block> for Runtime {
+		fn core_selector() -> (
+			cumulus_primitives_core::CoreSelector,
+			cumulus_primitives_core::ClaimQueueOffset,
+		) {
+			ParachainSystem::core_selector()
+		}
+	}
+
 	#[cfg(feature = "runtime-benchmarks")]
 	impl frame_benchmarking::Benchmark<Block> for Runtime {
 		fn benchmark_metadata(extra: bool) -> (

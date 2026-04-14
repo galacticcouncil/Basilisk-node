@@ -35,7 +35,7 @@ use sp_arithmetic::Perbill;
 use sp_runtime::{traits::IdentityLookup, DispatchError};
 
 pub mod origins;
-mod tracks;
+pub mod tracks;
 pub type TechCommitteeMajority = EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 2>;
 
 parameter_types! {
