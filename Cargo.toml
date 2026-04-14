@@ -5,6 +5,7 @@ panic = 'unwind'
 members = [
   'math',
   'node',
+  'pallets/parameters',
   'runtime/basilisk',
   'pallets/marketplace',
   'pallets/asset-registry',
@@ -56,6 +57,7 @@ pallet-marketplace = { path = "pallets/marketplace", default-features = false}
 pallet-asset-registry = { path = "pallets/asset-registry", default-features = false}
 pallet-ema-oracle = { path = "pallets/ema-oracle", default-features = false}
 pallet-lbp = { path = "pallets/lbp", default-features = false }
+pallet-parameters = { path = "pallets/parameters", default-features = false }
 pallet-route-executor = { path = "pallets/route-executor", default-features = false }
 pallet-transaction-multi-payment = { path = "pallets/transaction-multi-payment", default-features = false }
 pallet-xyk = { path = "pallets/xyk", default-features = false }
@@ -596,4 +598,3 @@ westend-runtime = { git = "https://github.com/galacticcouncil/polkadot-sdk", bra
 cumulus-client-pov-recovery = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "polkadot-stable2506-7-patch" }
 cumulus-pallet-parachain-system-proc-macro = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "polkadot-stable2506-7-patch" }
 cumulus-relay-chain-rpc-interface = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch = "polkadot-stable2506-7-patch" }
-

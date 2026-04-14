@@ -79,10 +79,18 @@ impl<
 	/// price oracle.
 	fn get_asset_and_price(&mut self, payment: &AssetsInHolding) -> Option<(Location, Price)> {
 		if let Some(asset) = payment.fungible_assets_iter().next() {
+			log::trace!(
+				target: "xcm",
+				"dgd31"
+			);
 			ConvertCurrency::convert(asset.clone())
 				.and_then(|currency| AcceptedCurrencyPrices::price(currency))
 				.map(|price| (asset.id.0, price))
 		} else {
+			log::trace!(
+				target: "xcm",
+				"dgd32"
+			);
 			None
 		}
 	}
@@ -123,6 +131,10 @@ impl<
 			target: "xcm::weight", "MultiCurrencyTrader::buy_weight weight: {weight:?}, payment: {payment:?}"
 		);
 		let (asset_loc, price) = self.get_asset_and_price(&payment).ok_or(XcmError::AssetNotFound)?;
+		log::trace!(
+			target: "xcm",
+			"dgd4"
+		);
 		let fee = ConvertWeightToFee::weight_to_fee(&weight);
 		let converted_fee = price.checked_mul_int(fee).ok_or(XcmError::Overflow)?;
 		let amount: u128 = converted_fee.try_into().map_err(|_| XcmError::Overflow)?;

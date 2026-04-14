@@ -1344,6 +1344,7 @@ dependencies = [
  "pallet-migrations",
  "pallet-multisig",
  "pallet-nft",
+ "pallet-parameters 1.0.0",
  "pallet-preimage",
  "pallet-proxy",
  "pallet-referenda",
@@ -8860,6 +8861,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-parameters"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+]
+
+[[package]]
 name = "pallet-preimage"
 version = "41.0.0"
 source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=polkadot-stable2506-7-patch#fcda9c2d27456e4d1399446bef179100d280d0d0"
@@ -12153,7 +12167,7 @@ dependencies = [
  "pallet-multisig",
  "pallet-nis",
  "pallet-offences",
- "pallet-parameters",
+ "pallet-parameters 0.12.0",
  "pallet-preimage",
  "pallet-proxy",
  "pallet-ranked-collective",
@@ -17684,7 +17698,7 @@ dependencies = [
  "pallet-nomination-pools-runtime-api",
  "pallet-offences",
  "pallet-offences-benchmarking",
- "pallet-parameters",
+ "pallet-parameters 0.12.0",
  "pallet-preimage",
  "pallet-proxy",
  "pallet-recovery",

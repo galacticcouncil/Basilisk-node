@@ -204,6 +204,8 @@ impl pallet_migrations::Config for Runtime {
 	type WeightInfo = weights::pallet_migrations::BasiliskWeight<Runtime>;
 }
 
+impl pallet_parameters::Config for Runtime {}
+
 pub struct LogErrorAndForceUnstuck;
 impl frame_support::migrations::FailedMigrationHandler for LogErrorAndForceUnstuck {
 	fn failed(migration: Option<u32>) -> FailedMigrationHandling {

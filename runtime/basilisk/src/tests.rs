@@ -7,6 +7,7 @@ use frame_support::{
 	sp_runtime::{traits::Convert, BuildStorage, FixedPointNumber},
 	weights::WeightToFee,
 };
+use pallet_referenda::TracksInfo as _;
 use pallet_transaction_payment::Multiplier;
 use primitives::constants::{
 	currency::{CENTS, DOLLARS, MILLICENTS},
@@ -154,5 +155,43 @@ fn metadata_api_implemented() {
 			panic!("Expected metadata V15");
 		};
 		assert!(!metadata.apis.is_empty());
+	});
+}
+
+#[test]
+fn governance_tracks_default_to_normal_timings() {
+	let mut ext: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
+		unwrap()
+		.into();
+
+	ext.execute_with(|| {
+		let root_track = governance::tracks::TracksInfo::tracks()
+			.find(|track| track.id == 0)
+			.expect("root track should exist");
+		assert_eq!(root_track.info.prepare_period, HOURS);
+		assert_eq!(root_track.info.confirm_period, 12 * HOURS);
+	});
+}
+
+#[test]
+fn governance_tracks_use_testnet_timings_when_enabled() {
+	let mut ext: sp_io::TestExternalities = frame_system::GenesisConfig::<Runtime>::default()
+		.build_storage()
+		unwrap()
+		.into();
+
+	ext.execute_with(|| {
+		pallet_parameters::IsTestnet::<Runtime>::put(true);
+		let root_track = governance::tracks::TracksInfo::tracks()
+			.find(|track| track.id == 0)
+			.expect("root track should exist");
+		let general_admin_track = governance::tracks::TracksInfo::tracks()
+			.find(|track| track.id == 4)
+			.expect("general admin track should exist");
+		assert_eq!(root_track.info.prepare_period, 1);
+		assert_eq!(root_track.info.confirm_period, 1);
+		assert_eq!(general_admin_track.info.prepare_period, 1);
+		assert_eq!(general_admin_track.info.confirm_period, 1);
 	});
 }
