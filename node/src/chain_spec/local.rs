@@ -45,7 +45,7 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 		),
 		// endowed_accounts
 		vec![
-			(get_account_id_from_seed::<sr25519::Public>("Alice"), INITIAL_BALANCE * 10),
+			(get_account_id_from_seed::<sr25519::Public>("Alice"), INITIAL_BALANCE * 20),
 			(get_account_id_from_seed::<sr25519::Public>("Bob"), INITIAL_BALANCE),
 			(get_account_id_from_seed::<sr25519::Public>("Charlie"), INITIAL_BALANCE),
 			(get_account_id_from_seed::<sr25519::Public>("Dave"), INITIAL_BALANCE),
