@@ -292,7 +292,7 @@ impl_runtime_apis! {
 
 	impl cumulus_primitives_core::RelayParentOffsetApi<Block> for Runtime {
 		fn relay_parent_offset() -> u32 {
-			RELAY_PARENT_OFFSET
+			RelayParentOffset::get()
 		}
 	}
 

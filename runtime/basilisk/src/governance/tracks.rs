@@ -151,12 +151,131 @@ const TRACKS_DATA: [Track<u16, Balance, BlockNumber>; 8] = [
 	},
 ];
 
+const TESTNET_TRACKS_DATA: [Track<u16, Balance, BlockNumber>; 8] = [
+	Track {
+		id: 0,
+		info: TrackInfo {
+			name: s("root"),
+			max_deciding: 3,
+			decision_deposit: 100_000_000 * UNITS,
+			prepare_period: 1,
+			decision_period: 7 * DAYS,
+			confirm_period: 1,
+			min_enactment_period: 1,
+			min_approval: APP_RECIP,
+			min_support: SUP_LINEAR,
+		},
+	},
+	Track {
+		id: 1,
+		info: TrackInfo {
+			name: s("whitelisted_caller"),
+			max_deciding: 3,
+			decision_deposit: 1_000_000 * UNITS,
+			prepare_period: 1,
+			decision_period: DAYS,
+			confirm_period: 1,
+			min_enactment_period: 1,
+			min_approval: APP_RECIP,
+			min_support: SUP_WHITELISTED_CALLER,
+		},
+	},
+	Track {
+		id: 2,
+		info: TrackInfo {
+			name: s("referendum_canceller"),
+			max_deciding: 10,
+			decision_deposit: 10_000_000 * UNITS,
+			prepare_period: 60 * MINUTES,
+			decision_period: 3 * DAYS,
+			confirm_period: 60 * MINUTES,
+			min_enactment_period: 10 * MINUTES,
+			min_approval: APP_LINEAR_FLAT,
+			min_support: SUP_FAST_RECIP,
+		},
+	},
+	Track {
+		id: 3,
+		info: TrackInfo {
+			name: s("referendum_killer"),
+			max_deciding: 10,
+			decision_deposit: 50_000_000 * UNITS,
+			prepare_period: 60 * MINUTES,
+			decision_period: 3 * DAYS,
+			confirm_period: 3 * HOURS,
+			min_enactment_period: 10 * MINUTES,
+			min_approval: APP_LINEAR_FLAT,
+			min_support: SUP_FAST_RECIP,
+		},
+	},
+	Track {
+		id: 4,
+		info: TrackInfo {
+			name: s("general_admin"),
+			max_deciding: 10,
+			decision_deposit: 10_000_000 * UNITS,
+			prepare_period: 1,
+			decision_period: 7 * DAYS,
+			confirm_period: 1,
+			min_enactment_period: 1,
+			min_approval: APP_RECIP,
+			min_support: SUP_RECIP,
+		},
+	},
+	Track {
+		id: 5,
+		info: TrackInfo {
+			name: s("treasurer"),
+			max_deciding: 10,
+			decision_deposit: 50_000_000 * UNITS,
+			prepare_period: 1,
+			decision_period: 7 * DAYS,
+			confirm_period: 1,
+			min_enactment_period: 1,
+			min_approval: APP_RECIP,
+			min_support: SUP_LINEAR,
+		},
+	},
+	Track {
+		id: 6,
+		info: TrackInfo {
+			name: s("spender"),
+			max_deciding: 10,
+			decision_deposit: 5_000_000 * UNITS,
+			prepare_period: 60 * MINUTES,
+			decision_period: 7 * DAYS,
+			confirm_period: 3 * HOURS,
+			min_enactment_period: 10 * MINUTES,
+			min_approval: APP_LINEAR,
+			min_support: SUP_RECIP,
+		},
+	},
+	Track {
+		id: 7,
+		info: TrackInfo {
+			name: s("tipper"),
+			max_deciding: 10,
+			decision_deposit: 500_000 * UNITS,
+			prepare_period: 60 * MINUTES,
+			decision_period: 7 * DAYS,
+			confirm_period: 3 * HOURS,
+			min_enactment_period: 10 * MINUTES,
+			min_approval: APP_LINEAR_FLAT,
+			min_support: SUP_FAST_RECIP,
+		},
+	},
+];
+
 pub struct TracksInfo;
 impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 	type Id = u16;
 	type RuntimeOrigin = <RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin;
 	fn tracks() -> impl Iterator<Item = Cow<'static, Track<Self::Id, Balance, BlockNumber>>> {
-		TRACKS_DATA.iter().map(Cow::Borrowed)
+		if Parameters::is_testnet() {
+			TESTNET_TRACKS_DATA.iter().map(Cow::Borrowed)
+		} else {
+			TRACKS_DATA.iter().map(Cow::Borrowed)
+		}
 	}
 
 	fn track_for(id: &Self::RuntimeOrigin) -> Result<Self::Id, ()> {

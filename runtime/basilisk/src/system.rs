@@ -58,15 +58,27 @@ pub const AVERAGE_ON_INITIALIZE_RATIO: Perbill = Perbill::from_perthousand(25);
 pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 
 /// Build with an offset of 1 behind the relay chain best block.
-pub const RELAY_PARENT_OFFSET: u32 = 0;
+pub const DEFAULT_RELAY_PARENT_OFFSET: u32 = 1;
 /// How many parachain blocks are processed by the relay chain per parent. Limits the number of
 /// blocks authored per slot.
 pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included into the
 /// relay chain.
-pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = (3 + RELAY_PARENT_OFFSET) * BLOCK_PROCESSING_VELOCITY;
+pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = (3 + DEFAULT_RELAY_PARENT_OFFSET) * BLOCK_PROCESSING_VELOCITY;
 /// Relay chain slot duration, in milliseconds.
 pub const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
+
+pub struct RelayParentOffset;
+
+impl Get<u32> for RelayParentOffset {
+	fn get() -> u32 {
+		if Parameters::relay_parent_offset_override() {
+			0
+		} else {
+			DEFAULT_RELAY_PARENT_OFFSET
+		}
+	}
+}
 
 pub struct BaseFilter;
 impl Contains<RuntimeCall> for BaseFilter {
@@ -205,6 +217,8 @@ impl pallet_migrations::Config for Runtime {
 	type MaxServiceWeight = MaxServiceWeight;
 	type WeightInfo = weights::pallet_migrations::BasiliskWeight<Runtime>;
 }
+
+impl pallet_parameters::Config for Runtime {}
 
 pub struct LogErrorAndForceUnstuck;
 impl frame_support::migrations::FailedMigrationHandler for LogErrorAndForceUnstuck {
@@ -483,7 +497,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ConsensusHook = ConsensusHook;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::BasiliskWeight<Runtime>;
 	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
-	type RelayParentOffset = ConstU32<RELAY_PARENT_OFFSET>;
+	type RelayParentOffset = RelayParentOffset;
 }
 
 pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<

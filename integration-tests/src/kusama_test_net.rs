@@ -448,6 +448,10 @@ pub mod basilisk {
 				safe_xcm_version: Some(5),
 				..Default::default()
 			},
+			parameters: basilisk_runtime::ParametersConfig {
+				relay_parent_offset_override: true,
+				..Default::default()
+			},
 			multi_transaction_payment: basilisk_runtime::MultiTransactionPaymentConfig {
 				currencies: vec![(AUSD, Price::from_inner(462_962_963_000_u128))], //0.000_000_462_962_963
 				account_currencies: vec![],
@@ -514,6 +518,10 @@ pub mod other_parachain {
 			},
 			polkadot_xcm: basilisk_runtime::PolkadotXcmConfig {
 				safe_xcm_version: Some(5),
+				..Default::default()
+			},
+			parameters: basilisk_runtime::ParametersConfig {
+				relay_parent_offset_override: true,
 				..Default::default()
 			},
 			multi_transaction_payment: basilisk_runtime::MultiTransactionPaymentConfig {

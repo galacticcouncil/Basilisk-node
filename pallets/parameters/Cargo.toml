@@ -1,0 +1,33 @@
+[package]
+name = "pallet-parameters"
+version = "1.0.0"
+authors = ["GalacticCouncil"]
+edition = "2021"
+license = "Apache-2.0"
+homepage = "https://github.com/galacticcouncil/Basilisk-node"
+repository = "https://github.com/galacticcouncil/Basilisk-node"
+description = "Pallet for storing runtime parameters"
+
+[dependencies]
+codec = { workspace = true, features = ["derive", "max-encoded-len"] }
+scale-info = { workspace = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+
+[dev-dependencies]
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+
+[features]
+default = ["std"]
+std = [
+    "codec/std",
+    "scale-info/std",
+    "frame-support/std",
+    "frame-system/std",
+    "sp-core/std",
+    "sp-io/std",
+    "sp-runtime/std",
+]
+try-runtime = ["frame-support/try-runtime"]

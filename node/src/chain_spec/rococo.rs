@@ -79,6 +79,8 @@ pub fn _parachain_config_rococo() -> Result<ChainSpec, String> {
 		vec![],
 		// parachain ID
 		PARA_ID.into(),
+		// is_testnet
+		false,
 	);
 
 	let chain_spec = ChainSpec::builder(

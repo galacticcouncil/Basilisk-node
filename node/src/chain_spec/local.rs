@@ -45,7 +45,10 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 		),
 		// endowed_accounts
 		vec![
-			(get_account_id_from_seed::<sr25519::Public>("Alice"), INITIAL_BALANCE),
+			(
+				get_account_id_from_seed::<sr25519::Public>("Alice"),
+				INITIAL_BALANCE * 20,
+			),
 			(get_account_id_from_seed::<sr25519::Public>("Bob"), INITIAL_BALANCE),
 			(get_account_id_from_seed::<sr25519::Public>("Charlie"), INITIAL_BALANCE),
 			(get_account_id_from_seed::<sr25519::Public>("Dave"), INITIAL_BALANCE),
@@ -102,6 +105,8 @@ pub fn parachain_config() -> Result<ChainSpec, String> {
 		],
 		// parachain ID
 		PARA_ID.into(),
+		// is_testnet
+		true,
 	);
 
 	let chain_spec = ChainSpec::builder(

@@ -42,7 +42,7 @@ use cumulus_primitives_core::{
 	relay_chain::{CollatorPair, ValidationCode},
 	ParaId,
 };
-use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface};
+use cumulus_relay_chain_interface::RelayChainInterface;
 
 // Substrate Imports
 use sc_client_api::Backend;
@@ -347,7 +347,6 @@ async fn start_node_impl(
 			relay_chain_slot_duration,
 			para_id,
 			collator_key.expect("Command line arguments do not allow this. qed"),
-			overseer_handle,
 			announce_block,
 		)?;
 	}
@@ -398,7 +397,6 @@ fn start_consensus(
 	relay_chain_slot_duration: Duration,
 	para_id: ParaId,
 	collator_key: CollatorPair,
-	_overseer_handle: OverseerHandle,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
 ) -> Result<(), sc_service::Error> {
 	use cumulus_client_consensus_aura::collators::slot_based::{self as slot_based, Params as SlotBasedParams};

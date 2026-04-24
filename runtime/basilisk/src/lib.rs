@@ -223,6 +223,7 @@ construct_runtime!(
 		// Note: 115 was used by rate limiter which is now removed
 		Broadcast: pallet_broadcast = 116,
 		MultiBlockMigrations: pallet_migrations = 117,
+		Parameters: pallet_parameters = 118,
 
 		EmaOracle: pallet_ema_oracle = 120,
 
