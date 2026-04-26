@@ -20,45 +20,52 @@ fn bench_events() -> Vec<(AccountId, sp_staking::SessionIndex)> {
 }
 
 #[test]
-fn benches_index_zero_in_session_zero() {
+fn even_sessions_run_full_set_with_no_event() {
 	ExtBuilder.build().execute_with(|| {
 		set_inner(Some(vec![1, 2, 3, 4, 5]));
-		let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(0).unwrap();
-		assert_eq!(out, vec![2, 3, 4, 5]);
-		assert_eq!(last_bench_event(), Some((1, 0)));
+		for idx in [0u32, 2, 4, 6, 100] {
+			System::<Test>::reset_events();
+			let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(idx).unwrap();
+			assert_eq!(out, vec![1, 2, 3, 4, 5], "session {idx} should keep full set");
+			assert!(bench_events().is_empty(), "session {idx} must not emit");
+		}
 	});
 }
 
 #[test]
-fn benches_rotates_across_sessions() {
+fn benches_first_collator_in_session_one() {
+	ExtBuilder.build().execute_with(|| {
+		set_inner(Some(vec![1, 2, 3, 4, 5]));
+		let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(1).unwrap();
+		assert_eq!(out, vec![2, 3, 4, 5]);
+		assert_eq!(last_bench_event(), Some((1, 1)));
+	});
+}
+
+#[test]
+fn bench_index_advances_every_other_session() {
+	// Session 1 -> bench[0], session 3 -> bench[1], session 5 -> bench[2], etc.
 	ExtBuilder.build().execute_with(|| {
 		let set = vec![10, 20, 30, 40, 50];
 		set_inner(Some(set.clone()));
-
-		let mut benched = Vec::new();
-		for idx in 0..set.len() as u32 {
-			let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(idx).unwrap();
+		for (i, &expected_who) in set.iter().enumerate() {
+			let session = (i as u32) * 2 + 1; // 1, 3, 5, 7, 9
+			System::<Test>::reset_events();
+			let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(session).unwrap();
 			assert_eq!(out.len(), set.len() - 1);
-			benched.push(set[idx as usize % set.len()]);
+			assert_eq!(last_bench_event(), Some((expected_who, session)));
 		}
-
-		let mut events: Vec<AccountId> = bench_events().into_iter().map(|(w, _)| w).collect();
-		events.sort();
-		let mut expected = set.clone();
-		expected.sort();
-		assert_eq!(events, expected);
 	});
 }
 
 #[test]
 fn bench_index_wraps_modulo_set_length() {
+	// session 7 -> 7/2 = 3 -> bench[3 % 3 = 0] = 10
 	ExtBuilder.build().execute_with(|| {
-		let set = vec![10, 20, 30];
-		set_inner(Some(set.clone()));
-		// session 7 -> 7 % 3 = 1 -> bench 20
+		set_inner(Some(vec![10, 20, 30]));
 		let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(7).unwrap();
-		assert_eq!(out, vec![10, 30]);
-		assert_eq!(last_bench_event(), Some((20, 7)));
+		assert_eq!(out, vec![20, 30]);
+		assert_eq!(last_bench_event(), Some((10, 7)));
 	});
 }
 
@@ -66,7 +73,7 @@ fn bench_index_wraps_modulo_set_length() {
 fn does_not_bench_single_collator_set() {
 	ExtBuilder.build().execute_with(|| {
 		set_inner(Some(vec![42]));
-		let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(0).unwrap();
+		let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(1).unwrap();
 		assert_eq!(out, vec![42]);
 		assert!(bench_events().is_empty());
 	});
@@ -76,7 +83,7 @@ fn does_not_bench_single_collator_set() {
 fn propagates_none_from_inner() {
 	ExtBuilder.build().execute_with(|| {
 		set_inner(None);
-		let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(0);
+		let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(1);
 		assert!(out.is_none());
 		assert!(bench_events().is_empty());
 	});
@@ -86,7 +93,7 @@ fn propagates_none_from_inner() {
 fn empty_set_from_inner_passes_through_without_bench() {
 	ExtBuilder.build().execute_with(|| {
 		set_inner(Some(vec![]));
-		let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(0).unwrap();
+		let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(1).unwrap();
 		assert!(out.is_empty());
 		assert!(bench_events().is_empty());
 	});
