@@ -32,10 +32,15 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// One collator was excluded from the active set for the given session.
+		/// Announces that `who` will be excluded from the active set in the
+		/// upcoming session `session_index`. Emitted from
+		/// `SessionManager::new_session`, which pallet-session calls one
+		/// session ahead of activation, so this fires one session before the
+		/// bench is reflected in `session.validators()`. The field name
+		/// matches `session.NewSession`.
 		CollatorBenched {
 			who: T::AccountId,
-			session: SessionIndex,
+			session_index: SessionIndex,
 		},
 	}
 }
@@ -50,7 +55,7 @@ impl<T: Config> SessionManager<T::AccountId> for Pallet<T> {
 			let benched = collators.remove(bench_idx);
 			Self::deposit_event(Event::CollatorBenched {
 				who: benched,
-				session: new_index,
+				session_index: new_index,
 			});
 		}
 		Some(collators)

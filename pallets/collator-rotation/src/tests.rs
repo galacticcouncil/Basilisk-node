@@ -4,7 +4,7 @@ use pallet_session::SessionManager;
 
 fn last_bench_event() -> Option<(AccountId, sp_staking::SessionIndex)> {
 	System::<Test>::events().into_iter().rev().find_map(|r| match r.event {
-		RuntimeEvent::CollatorRotation(Event::CollatorBenched { who, session }) => Some((who, session)),
+		RuntimeEvent::CollatorRotation(Event::CollatorBenched { who, session_index }) => Some((who, session_index)),
 		_ => None,
 	})
 }
@@ -13,7 +13,7 @@ fn bench_events() -> Vec<(AccountId, sp_staking::SessionIndex)> {
 	System::<Test>::events()
 		.into_iter()
 		.filter_map(|r| match r.event {
-			RuntimeEvent::CollatorRotation(Event::CollatorBenched { who, session }) => Some((who, session)),
+			RuntimeEvent::CollatorRotation(Event::CollatorBenched { who, session_index }) => Some((who, session_index)),
 			_ => None,
 		})
 		.collect()
@@ -35,7 +35,6 @@ fn benches_rotates_across_sessions() {
 		let set = vec![10, 20, 30, 40, 50];
 		set_inner(Some(set.clone()));
 
-		// Each member benched exactly once over `len` consecutive sessions.
 		let mut benched = Vec::new();
 		for idx in 0..set.len() as u32 {
 			let out = <crate::Pallet<Test> as SessionManager<AccountId>>::new_session(idx).unwrap();
