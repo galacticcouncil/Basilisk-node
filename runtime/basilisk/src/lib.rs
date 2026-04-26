@@ -224,6 +224,7 @@ construct_runtime!(
 		Broadcast: pallet_broadcast = 116,
 		MultiBlockMigrations: pallet_migrations = 117,
 		Parameters: pallet_parameters = 118,
+		CollatorRotation: pallet_collator_rotation = 119,
 
 		EmaOracle: pallet_ema_oracle = 120,
 

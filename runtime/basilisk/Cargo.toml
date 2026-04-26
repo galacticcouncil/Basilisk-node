@@ -54,6 +54,7 @@ warehouse-liquidity-mining = { workspace = true }
 pallet-ema-oracle = { workspace = true }
 pallet-duster = { workspace = true }
 pallet-collator-rewards = { workspace = true }
+pallet-collator-rotation = { workspace = true }
 pallet-xyk = { workspace = true }
 pallet-lbp = { workspace = true }
 pallet-parameters = { workspace = true }
@@ -237,6 +238,7 @@ std = [
     "pallet-transaction-payment-rpc-runtime-api/std",
     "pallet-lbp/std",
     "pallet-parameters/std",
+    "pallet-collator-rotation/std",
     "pallet-utility/std",
     "pallet-xyk-liquidity-mining/std",
     "pallet-broadcast/std",
@@ -332,6 +334,7 @@ try-runtime= [
     "warehouse-liquidity-mining/try-runtime",
     "pallet-ema-oracle/try-runtime",
     "pallet-collator-rewards/try-runtime",
+    "pallet-collator-rotation/try-runtime",
     "pallet-state-trie-migration/try-runtime",
     "pallet-message-queue/try-runtime",
     "pallet-conviction-voting/try-runtime",

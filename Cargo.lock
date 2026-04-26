@@ -1329,6 +1329,7 @@ dependencies = [
  "pallet-balances",
  "pallet-broadcast",
  "pallet-collator-rewards",
+ "pallet-collator-rotation",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-conviction-voting",
@@ -8249,6 +8250,22 @@ dependencies = [
  "sp-staking",
  "sp-std",
  "substrate-wasm-builder",
+]
+
+[[package]]
+name = "pallet-collator-rotation"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-session",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
 ]
 
 [[package]]
