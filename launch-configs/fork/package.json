@@ -1,0 +1,34 @@
+{
+  "name": "basilisk-fork",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "state:get": "./get-state.sh",
+    "state:download": "wget -O data/state.json ${STATE_SOURCE}",
+    "state:scrape": "../../target/release/scraper save-chainspec --uri ${STATE_RPC:-wss://rpc.basilisk.cloud} ${STATE_BLOCK:+--at=${STATE_BLOCK}} --path ./ && mkdir -p data && mv SNAPSHOT.json data/state.json",
+    "state:prepare": "node prepare-state-for-zombienet.js data/state.json data/forked-chainspec.json",
+    "zombie:init": "zombienet -l text -fd data spawn config.json",
+    "para:alice": "tail -F data/alice-1.log",
+    "para:bob": "tail -F data/bob-1.log",
+    "relay:alice": "tail -F data/alice.log",
+    "relay:bob": "tail -F data/bob.log",
+    "relay:charlie": "tail -F data/charlie.log",
+    "relay:dave": "tail -F data/dave.log",
+    "zombienet": "run-p -lr zombie:init para:* relay:*",
+    "start": "run-s -n state:get state:prepare zombienet",
+    "start:raw": "run-s -n state:prepare zombienet",
+    "start:live": "run-s -n state:scrape state:prepare zombienet",
+    "docker:build": "docker build --no-cache -t galacticcouncil/fork:basilisk .",
+    "docker:build:next": "docker build --no-cache --build-arg BASILISK_BIN_URL=https://github.com/galacticcouncil/Basilisk-node/releases/download/v$VERSION -t galacticcouncil/fork:basilisk-next .",
+    "docker:build:version": "docker build --no-cache --build-arg BASILISK_BIN_URL=https://github.com/galacticcouncil/Basilisk-node/releases/download/v$VERSION -t galacticcouncil/fork:basilisk-$VERSION .",
+    "docker:push": "docker push galacticcouncil/fork:basilisk",
+    "docker:push:next": "docker push galacticcouncil/fork:basilisk-next",
+    "docker:release": "run-s -n docker:build docker:push"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@polkadot/types": "^15.0.2",
+    "npm-run-all": "^4.1.5"
+  }
+}
