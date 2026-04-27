@@ -1289,7 +1289,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "130.0.0"
+version = "131.0.0"
 dependencies = [
  "basilisk-adapters",
  "basilisk-math",
@@ -1329,6 +1329,7 @@ dependencies = [
  "pallet-balances",
  "pallet-broadcast",
  "pallet-collator-rewards",
+ "pallet-collator-rotation",
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-conviction-voting",
@@ -8252,6 +8253,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-collator-rotation"
+version = "1.0.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "pallet-session",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-staking",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-collator-selection"
 version = "22.0.0"
 source = "git+https://github.com/galacticcouncil/polkadot-sdk?branch=polkadot-stable2506-7-patch#1f079dd12e6fb26f85fad87f04a149d79677c024"
@@ -12335,7 +12352,7 @@ checksum = "48fd7bd8a6377e15ad9d42a8ec25371b94ddc67abe7c8b9127bec79bebaaae18"
 
 [[package]]
 name = "runtime-integration-tests"
-version = "1.2.1"
+version = "1.2.2"
 dependencies = [
  "basilisk-runtime",
  "basilisk-traits",

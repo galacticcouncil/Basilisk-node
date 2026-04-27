@@ -6,6 +6,7 @@ members = [
   'math',
   'node',
   'pallets/parameters',
+  'pallets/collator-rotation',
   'runtime/basilisk',
   'pallets/marketplace',
   'pallets/asset-registry',
@@ -58,6 +59,7 @@ pallet-asset-registry = { path = "pallets/asset-registry", default-features = fa
 pallet-ema-oracle = { path = "pallets/ema-oracle", default-features = false}
 pallet-lbp = { path = "pallets/lbp", default-features = false }
 pallet-parameters = { path = "pallets/parameters", default-features = false }
+pallet-collator-rotation = { path = "pallets/collator-rotation", default-features = false }
 pallet-route-executor = { path = "pallets/route-executor", default-features = false }
 pallet-transaction-multi-payment = { path = "pallets/transaction-multi-payment", default-features = false }
 pallet-xyk = { path = "pallets/xyk", default-features = false }

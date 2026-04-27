@@ -626,33 +626,13 @@ impl pallet_collator_rewards::Config for Runtime {
 	type RewardPerCollator = RewardPerCollator;
 	type RewardCurrencyId = NativeAssetId;
 	type ExcludedCollators = ExcludedCollators;
-	type SessionManager = RotatingCollatorManager;
+	type SessionManager = CollatorRotation;
 	type MaxCandidates = MaxInvulnerables;
 	type RewardsBag = TreasuryAccount;
 }
 
-pub struct RotatingCollatorManager;
-impl SessionManager<AccountId> for RotatingCollatorManager {
-	fn new_session(new_index: SessionIndex) -> Option<Vec<AccountId>> {
-		// We wrap the ` SessionManager` implementation of `CollatorSelection` to get the collators that
-		// we hand out rewards to,
-		// then we rotate the collators to have a regular distribution for block production
-		let mut collators = CollatorSelection::new_session(new_index)?;
-
-		if let Some(rotation_amount) = (new_index as usize).checked_rem(collators.len()) {
-			collators.rotate_left(rotation_amount);
-		}
-
-		Some(collators)
-	}
-
-	fn end_session(end_index: SessionIndex) {
-		CollatorSelection::end_session(end_index)
-	}
-
-	fn start_session(start_index: SessionIndex) {
-		CollatorSelection::start_session(start_index)
-	}
+impl pallet_collator_rotation::Config for Runtime {
+	type Inner = CollatorSelection;
 }
 
 parameter_types! {
@@ -729,9 +709,7 @@ use frame_system::EnsureSigned;
 
 #[cfg(not(feature = "runtime-benchmarks"))]
 use frame_system::EnsureSignedBy;
-use pallet_session::SessionManager;
 use sp_runtime::DispatchResult;
-use sp_staking::SessionIndex;
 
 impl pallet_state_trie_migration::Config for Runtime {
 	type ControlOrigin = EnsureRoot<Self::AccountId>;

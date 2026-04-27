@@ -103,7 +103,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("basilisk"),
 	impl_name: Cow::Borrowed("basilisk"),
 	authoring_version: 1,
-	spec_version: 130,
+	spec_version: 131,
 	impl_version: 0,
 	apis: apis::RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -224,6 +224,7 @@ construct_runtime!(
 		Broadcast: pallet_broadcast = 116,
 		MultiBlockMigrations: pallet_migrations = 117,
 		Parameters: pallet_parameters = 118,
+		CollatorRotation: pallet_collator_rotation = 119,
 
 		EmaOracle: pallet_ema_oracle = 120,
 
