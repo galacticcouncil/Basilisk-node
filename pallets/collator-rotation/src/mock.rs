@@ -19,8 +19,8 @@ construct_runtime!(
 
 thread_local! {
 	pub static INNER_SET: RefCell<Option<Vec<AccountId>>> = RefCell::new(Some(vec![1, 2, 3, 4, 5]));
-	pub static END_CALLS: RefCell<Vec<SessionIndex>> = RefCell::new(Vec::new());
-	pub static START_CALLS: RefCell<Vec<SessionIndex>> = RefCell::new(Vec::new());
+	pub static END_CALLS: RefCell<Vec<SessionIndex>> = const { RefCell::new(Vec::new()) };
+	pub static START_CALLS: RefCell<Vec<SessionIndex>> = const { RefCell::new(Vec::new()) };
 }
 
 pub struct MockInner;
