@@ -1,0 +1,90 @@
+{
+  "settings": {
+    "timeout": 1000,
+    "provider": "native"
+  },
+  "relaychain": {
+    "default_command": "../../../polkadot-sdk/target/release/polkadot",
+    "chain": "rococo-local",
+    "default_args": [
+      "--no-hardware-benchmarks",
+      "--database=paritydb"
+    ],
+    "genesis": {
+      "runtimeGenesis": {
+        "patch": {
+          "configuration": {
+            "config": {
+              "async_backing_params": {
+                "max_candidate_depth": 3,
+                "allowed_ancestry_len": 2
+              }
+            }
+          }
+        }
+      }
+    },
+    "nodes": [
+      {
+        "name": "alice",
+        "rpc_port": 9944,
+        "validator": true
+      },
+      {
+        "name": "bob",
+        "rpc_port": 9955,
+        "validator": true
+      },
+      {
+        "name": "charlie",
+        "rpc_port": 9966,
+        "validator": true
+      },
+      {
+        "name": "dave",
+        "rpc_port": 9977,
+        "validator": true
+      }
+    ]
+  },
+  "types": {},
+  "hrmp_channels": [],
+  "parachains": [
+    {
+      "id": 2090,
+      "cumulus_based": true,
+      "chain": "local",
+      "chain_spec_path": "data/forked-chainspec.json",
+      "collators": [
+        {
+          "name": "alice",
+          "command": "../../target/release/basilisk",
+          "rpc_port": 9999,
+          "args": [
+            "--no-hardware-benchmarks",
+            "--force-authoring",
+            "--database=paritydb",
+            "--pool-type=fork-aware",
+            "--pruning=archive",
+            "--rpc-max-connections=5000",
+            "--tx-ban-seconds=5",
+            "--log=info"
+          ]
+        },
+        {
+          "name": "bob",
+          "command": "../../target/release/basilisk",
+          "rpc_port": 9989,
+          "args": [
+            "--no-hardware-benchmarks",
+            "--force-authoring",
+            "--database=paritydb",
+            "--pool-type=fork-aware",
+            "--pruning=archive",
+            "--log=info"
+          ]
+        }
+      ]
+    }
+  ]
+}
