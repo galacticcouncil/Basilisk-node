@@ -256,6 +256,13 @@ impl hydradx_traits::evm::Erc20OnDust<AccountId, AssetId> for NoErc20Support {
 	}
 }
 
+pub struct NoopEgressHandler;
+impl hydradx_traits::circuit_breaker::AssetWithdrawHandler<AccountId, AssetId, Balance> for NoopEgressHandler {
+	type OnWithdraw = ();
+	type OnDeposit = ();
+	type OnTransfer = ();
+}
+
 parameter_types! {
 	pub ReserveAccount: AccountId = PalletId( * b"curreser").into_account_truncating();
 }
@@ -271,6 +278,7 @@ impl pallet_currencies::Config for Runtime {
 	type ReserveAccount = ReserveAccount;
 	type GetNativeCurrencyId = NativeAssetId;
 	type RegistryInspect = AssetRegistry;
+	type EgressHandler = NoopEgressHandler;
 	type WeightInfo = weights::pallet_currencies::BasiliskWeight<Runtime>;
 }
 

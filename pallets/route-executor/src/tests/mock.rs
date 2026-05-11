@@ -144,6 +144,7 @@ impl pallet_currencies::Config for Test {
 	type WeightInfo = ();
 	type ReserveAccount = ();
 	type RegistryInspect = MockBoundErc20<Test>;
+	type EgressHandler = pallet_currencies::MockEgressHandler<Test>;
 }
 
 impl pallet_broadcast::Config for Test {}
