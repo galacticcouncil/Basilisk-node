@@ -9076,7 +9076,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-route-executor"
-version = "2.9.0"
+version = "2.9.1"
 dependencies = [
  "basilisk-adapters",
  "basilisk-math",
@@ -9343,7 +9343,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-transaction-multi-payment"
-version = "11.2.0"
+version = "11.2.1"
 dependencies = [
  "basilisk-math",
  "basilisk-traits",
