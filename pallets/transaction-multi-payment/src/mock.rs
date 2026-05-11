@@ -393,6 +393,7 @@ impl pallet_currencies::Config for Test {
 	type WeightInfo = ();
 	type ReserveAccount = CurrenciesReserveAccount;
 	type RegistryInspect = MockBoundErc20<Test>;
+	type EgressHandler = pallet_currencies::MockEgressHandler<Test>;
 }
 
 impl pallet_utility::Config for Test {
