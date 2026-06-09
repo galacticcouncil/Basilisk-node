@@ -5,13 +5,35 @@ let WsProvider;
 let Keyring;
 let cryptoWaitReady;
 
+function loadPackage(packageName) {
+	try {
+		return require(packageName);
+	} catch (error) {
+		const paths = (process.env.PATH || "").split(require("path").delimiter);
+		for (const entry of paths) {
+			if (!entry.endsWith(`${require("path").sep}node_modules${require("path").sep}.bin`)) {
+				continue;
+			}
+
+			const nodeModules = require("path").dirname(entry);
+			try {
+				return require(require("path").join(nodeModules, packageName));
+			} catch (_) {
+				// Try the next npm exec temp directory.
+			}
+		}
+
+		throw error;
+	}
+}
+
 try {
-	({ ApiPromise, WsProvider, Keyring } = require("@polkadot/api"));
-	({ cryptoWaitReady } = require("@polkadot/util-crypto"));
+	({ ApiPromise, WsProvider, Keyring } = loadPackage("@polkadot/api"));
+	({ cryptoWaitReady } = loadPackage("@polkadot/util-crypto"));
 } catch (error) {
 	console.error(
 		"Missing JS deps. Run without installing into the repo via:\n" +
-			"npm exec --yes --package=@polkadot/api --package=@polkadot/util-crypto -- node scripts/assign_cores.js",
+		"npm exec --yes --package=@polkadot/api --package=@polkadot/util-crypto -- node scripts/assign_cores.js",
 	);
 	process.exit(1);
 }

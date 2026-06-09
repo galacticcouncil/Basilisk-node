@@ -40,8 +40,8 @@ Prerequisites:
 cd ./launch-configs/zombienet
 zombienet spawn local.json
 
-// Enable 2s blocktime
-node scripts/assign_cores.js
+// Assign cores to enable 2s blocktime
+npm exec --yes --package=@polkadot/api --package=@polkadot/util-crypto -- node scripts/assign_cores.js
 ```
 
 ### Interaction with the node
