@@ -36,9 +36,12 @@ Prerequisites:
 * Grab `zombienet` utility used to start network from [releases](https://github.com/paritytech/zombienet/releases)
 
 
-```
+```bash
 cd ./launch-configs/zombienet
 zombienet spawn local.json
+
+// Assign cores to enable 2s blocktime
+npm exec --yes --package=@polkadot/api --package=@polkadot/util-crypto -- node scripts/assign_cores.js
 ```
 
 ### Interaction with the node

@@ -15,8 +15,11 @@
         "patch": {
           "configuration": {
             "config": {
+				"scheduler_params": {
+					"num_cores": 3
+				},
 				"async_backing_params": {
-					"max_candidate_depth": 3,
+					"max_candidate_depth": 6,
 					"allowed_ancestry_len": 2
 				}
             }
@@ -28,6 +31,7 @@
       {
         "name": "alice",
         "ws_port": 9944,
+        "rpc_port": 9945,
         "validator": true
       },
       {
