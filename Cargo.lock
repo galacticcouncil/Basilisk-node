@@ -1145,7 +1145,7 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "basilisk"
-version = "25.0.0"
+version = "26.0.0"
 dependencies = [
  "basilisk-runtime",
  "clap",
@@ -1177,7 +1177,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-primitives",
  "polkadot-service",
- "primitives 6.7.1",
+ "primitives 6.7.2",
  "sc-basic-authorship",
  "sc-block-builder",
  "sc-chain-spec",
@@ -1258,7 +1258,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "pretty_assertions",
  "primitive-types 0.13.1",
- "primitives 6.7.1",
+ "primitives 6.7.2",
  "scale-info",
  "sp-core",
  "sp-io",
@@ -1289,7 +1289,7 @@ dependencies = [
 
 [[package]]
 name = "basilisk-runtime"
-version = "134.0.0"
+version = "135.0.0"
 dependencies = [
  "basilisk-adapters",
  "basilisk-math",
@@ -1374,7 +1374,7 @@ dependencies = [
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
  "primitive-types 0.13.1",
- "primitives 6.7.1",
+ "primitives 6.7.2",
  "scale-info",
  "serde",
  "smallvec",
@@ -8658,7 +8658,7 @@ dependencies = [
  "pallet-uniques",
  "parity-scale-codec",
  "pretty_assertions",
- "primitives 6.7.1",
+ "primitives 6.7.2",
  "scale-info",
  "serde",
  "sp-arithmetic",
@@ -9093,7 +9093,7 @@ dependencies = [
  "pallet-currencies",
  "parity-scale-codec",
  "pretty_assertions",
- "primitives 6.7.1",
+ "primitives 6.7.2",
  "scale-info",
  "serde",
  "sp-core",
@@ -9359,7 +9359,7 @@ dependencies = [
  "pallet-utility",
  "pallet-xyk",
  "parity-scale-codec",
- "primitives 6.7.1",
+ "primitives 6.7.2",
  "scale-info",
  "sp-api",
  "sp-core",
@@ -9605,7 +9605,7 @@ dependencies = [
  "pallet-xyk",
  "parity-scale-codec",
  "pretty_assertions",
- "primitives 6.7.1",
+ "primitives 6.7.2",
  "scale-info",
  "sp-arithmetic",
  "sp-core",
@@ -9634,7 +9634,7 @@ dependencies = [
  "pallet-xyk",
  "pallet-xyk-liquidity-mining",
  "parity-scale-codec",
- "primitives 6.7.1",
+ "primitives 6.7.2",
  "scale-info",
  "sp-arithmetic",
  "sp-core",
@@ -11394,7 +11394,7 @@ dependencies = [
 
 [[package]]
 name = "primitives"
-version = "6.7.1"
+version = "6.7.2"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -12413,7 +12413,7 @@ dependencies = [
  "polkadot-runtime-parachains",
  "polkadot-service",
  "pretty_assertions",
- "primitives 6.7.1",
+ "primitives 6.7.2",
  "rococo-runtime",
  "sc-consensus-grandpa",
  "sp-api",
