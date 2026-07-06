@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 pub type Name<L> = BoundedVec<u8, L>;
 pub type Symbol<L> = BoundedVec<u8, L>;
 
-#[derive(Encode, Decode, DecodeWithMemTracking, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+#[derive(Encode, Decode, DecodeWithMemTracking, Eq, PartialEq, Copy, Clone, Debug, TypeInfo, MaxEncodedLen)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum AssetType<AssetId> {
 	Token,
@@ -66,7 +66,7 @@ impl<AssetId> From<AssetType<AssetId>> for AssetKind {
 	}
 }
 
-#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, Debug, TypeInfo, MaxEncodedLen)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct AssetDetails<AssetId, Balance, BoundedString> {
 	/// The name of this asset. Limited in length by `StringLimit`.
@@ -79,7 +79,7 @@ pub struct AssetDetails<AssetId, Balance, BoundedString> {
 	pub xcm_rate_limit: Option<Balance>,
 }
 
-#[derive(Clone, Encode, Decode, Eq, PartialEq, Default, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+#[derive(Clone, Encode, Decode, Eq, PartialEq, Default, Debug, TypeInfo, MaxEncodedLen)]
 pub struct AssetMetadata<BoundedString> {
 	/// The ticker symbol for this asset. Limited in length by `StringLimit`.
 	pub(super) symbol: BoundedString,
@@ -87,7 +87,7 @@ pub struct AssetMetadata<BoundedString> {
 	pub(super) decimals: u8,
 }
 
-#[derive(Clone, Encode, Decode, DecodeWithMemTracking, Eq, PartialEq, RuntimeDebug, TypeInfo)]
+#[derive(Clone, Encode, Decode, DecodeWithMemTracking, Eq, PartialEq, Debug, TypeInfo)]
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct Metadata {
 	pub(super) symbol: Vec<u8>,

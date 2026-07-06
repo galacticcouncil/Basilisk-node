@@ -33,7 +33,7 @@ use frame_support::{
 	dispatch::DispatchClass,
 	pallet_prelude::Get,
 	parameter_types,
-	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill, RuntimeDebug},
+	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill},
 	traits::{
 		fungible::HoldConsideration, ConstBool, Contains, Defensive, EitherOf, EqualPrivilegeOnly, InstanceFilter,
 		LinearStoragePrice, SortedMembers,
@@ -367,7 +367,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 	Encode,
 	Decode,
 	DecodeWithMemTracking,
-	RuntimeDebug,
+	Debug,
 	MaxEncodedLen,
 	TypeInfo,
 )]

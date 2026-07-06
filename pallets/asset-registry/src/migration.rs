@@ -25,9 +25,8 @@ pub mod v1 {
 	use super::*;
 	use codec::{Decode, Encode};
 	use scale_info::TypeInfo;
-	use sp_core::RuntimeDebug;
 
-	#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, RuntimeDebug, TypeInfo)]
+	#[derive(Encode, Decode, Eq, PartialEq, Copy, Clone, Debug, TypeInfo)]
 	pub struct OldAssetDetails<AssetId, Balance, BoundedString> {
 		/// The name of this asset. Limited in length by `StringLimit`.
 		pub(super) name: BoundedString,
