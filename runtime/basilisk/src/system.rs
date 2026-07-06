@@ -33,7 +33,7 @@ use frame_support::{
 	dispatch::DispatchClass,
 	pallet_prelude::Get,
 	parameter_types,
-	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill, RuntimeDebug},
+	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill},
 	traits::{
 		fungible::HoldConsideration, ConstBool, Contains, Defensive, EitherOf, EqualPrivilegeOnly, InstanceFilter,
 		LinearStoragePrice, SortedMembers,
@@ -267,7 +267,7 @@ impl WeightToFeePolynomial for WeightToFee {
 			degree: 1,
 			negative: false,
 			coeff_frac: Perbill::from_rational(p % q, q),
-			coeff_integer: p / q,
+			coeff_integer: p / q
 		}]
 	}
 }
@@ -358,18 +358,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 
 /// The type used to represent the kinds of proxying allowed.
 #[derive(
-	Copy,
-	Clone,
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	RuntimeDebug,
-	MaxEncodedLen,
-	TypeInfo,
+	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, DecodeWithMemTracking, Debug, MaxEncodedLen, TypeInfo,
 )]
 pub enum ProxyType {
 	Any,
@@ -496,8 +485,8 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type ConsensusHook = ConsensusHook;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::BasiliskWeight<Runtime>;
-	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
 	type RelayParentOffset = RelayParentOffset;
+	type SchedulingSignatureVerifier = ();
 }
 
 pub type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
@@ -580,6 +569,7 @@ impl pallet_collator_selection::Config for Runtime {
 parameter_types! {
 	pub const Period: u32 = 4 * HOURS;
 	pub const Offset: u32 = 0;
+	pub const KeyDeposit: Balance = 0;
 }
 
 impl pallet_session::Config for Runtime {
@@ -595,6 +585,8 @@ impl pallet_session::Config for Runtime {
 	type Keys = opaque::SessionKeys;
 	type WeightInfo = ();
 	type DisablingStrategy = ();
+	type Currency = Balances;
+	type KeyDeposit = KeyDeposit;
 }
 
 impl staging_parachain_info::Config for Runtime {}

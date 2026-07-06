@@ -47,7 +47,7 @@ use frame_support::assert_ok;
 use frame_support::traits::OnInitialize;
 use pallet_transaction_multi_payment::Price;
 pub use pallet_xyk::types::AssetPair;
-use polkadot_primitives::v8::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
+use polkadot_primitives::v9::{BlockNumber, MAX_CODE_SIZE, MAX_POV_SIZE};
 use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;
 use primitives::{AssetId, Balance};

@@ -5,7 +5,7 @@ pub mod router;
 
 use codec::{Decode, Encode};
 use frame_support::dispatch::{self};
-use frame_support::sp_runtime::{traits::Zero, DispatchError, RuntimeDebug};
+use frame_support::sp_runtime::{traits::Zero, DispatchError};
 use frame_support::weights::Weight;
 use serde::{Deserialize, Serialize};
 use sp_std::vec::Vec;
@@ -16,7 +16,7 @@ pub type Source = [u8; 8];
 /// Hold information to perform amm transfer
 /// Contains also exact amount which will be sold/bought
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Encode, Decode, Copy, Clone, PartialEq, Eq, Default)]
 pub struct AMMTransfer<AccountId, AssetId, AssetPair, Balance> {
 	pub origin: AccountId,
 	pub assets: AssetPair,
