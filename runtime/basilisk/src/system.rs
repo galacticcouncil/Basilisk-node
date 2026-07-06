@@ -267,7 +267,7 @@ impl WeightToFeePolynomial for WeightToFee {
 			degree: 1,
 			negative: false,
 			coeff_frac: Perbill::from_rational(p % q, q),
-			coeff_integer: p / q,
+			coeff_integer: p / q
 		}]
 	}
 }
@@ -275,7 +275,7 @@ impl WeightToFeePolynomial for WeightToFee {
 /// Parameterized slow adjusting fee updated based on
 /// https://w3f-research.readthedocs.io/en/latest/polkadot/overview/2-token-economics.html?highlight=token%20economics#-2.-slow-adjusting-mechanism
 pub type SlowAdjustingFeeUpdate<R> =
-	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier, MaximumMultiplier>;
+TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier, MaximumMultiplier>;
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
@@ -358,18 +358,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 
 /// The type used to represent the kinds of proxying allowed.
 #[derive(
-	Copy,
-	Clone,
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	Debug,
-	MaxEncodedLen,
-	TypeInfo,
+	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, DecodeWithMemTracking, Debug, MaxEncodedLen, TypeInfo,
 )]
 pub enum ProxyType {
 	Any,
@@ -496,7 +485,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type ConsensusHook = ConsensusHook;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::BasiliskWeight<Runtime>;
-	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
 	type RelayParentOffset = RelayParentOffset;
 }
 
@@ -580,6 +568,7 @@ impl pallet_collator_selection::Config for Runtime {
 parameter_types! {
 	pub const Period: u32 = 4 * HOURS;
 	pub const Offset: u32 = 0;
+	pub const KeyDeposit: Balance = 0;
 }
 
 impl pallet_session::Config for Runtime {
@@ -595,6 +584,8 @@ impl pallet_session::Config for Runtime {
 	type Keys = opaque::SessionKeys;
 	type WeightInfo = ();
 	type DisablingStrategy = ();
+	type Currency = Balances;
+	type KeyDeposit = KeyDeposit;
 }
 
 impl staging_parachain_info::Config for Runtime {}
