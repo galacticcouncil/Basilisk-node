@@ -33,10 +33,9 @@ use basilisk_runtime::{
 use cumulus_client_collator::service::CollatorService;
 use cumulus_client_consensus_aura::collators::slot_based::{SlotBasedBlockImport, SlotBasedBlockImportHandle};
 use cumulus_client_consensus_common::ParachainBlockImport as TParachainBlockImport;
-use cumulus_client_consensus_proposer::Proposer;
 use cumulus_client_service::{
 	build_network, build_relay_chain_interface, prepare_node_config, start_relay_chain_tasks, BuildNetworkParams,
-	CollatorSybilResistance, DARecoveryProfile, StartRelayChainTasksParams,
+	CollatorSybilResistance, DARecoveryProfile, ParachainTracingExecuteBlock, StartRelayChainTasksParams,
 };
 use cumulus_primitives_core::{
 	relay_chain::{CollatorPair, ValidationCode},
@@ -48,7 +47,7 @@ use cumulus_relay_chain_interface::RelayChainInterface;
 use sc_client_api::Backend;
 use sc_consensus::ImportQueue;
 use sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
-use sc_network::NetworkBlock;
+use sc_network::{NetworkBlock, PeerId};
 use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
@@ -123,6 +122,7 @@ pub fn new_partial(
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
 			true,
+			Default::default(),
 			None,
 		)?;
 	let client = Arc::new(client);
@@ -216,6 +216,7 @@ async fn start_node_impl(
 		transaction_pool: transaction_pool.clone(),
 		para_id,
 		spawn_handle: task_manager.spawn_handle(),
+		spawn_essential_handle: task_manager.spawn_essential_handle(),
 		relay_chain_interface: relay_chain_interface.clone(),
 		import_queue: params.import_queue,
 		net_config,
@@ -275,6 +276,9 @@ async fn start_node_impl(
 		system_rpc_tx,
 		tx_handler_controller,
 		telemetry: telemetry.as_mut(),
+		tracing_execute_block: Some(Arc::new(ParachainTracingExecuteBlock::new(
+			client.clone(),
+		))),
 	})?;
 
 	if let Some(hwbench) = hwbench {
@@ -348,6 +352,7 @@ async fn start_node_impl(
 			para_id,
 			collator_key.expect("Command line arguments do not allow this. qed"),
 			announce_block,
+			network.local_peer_id(),
 		)?;
 	}
 
@@ -398,18 +403,17 @@ fn start_consensus(
 	para_id: ParaId,
 	collator_key: CollatorPair,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
+	collator_peer_id: PeerId,
 ) -> Result<(), sc_service::Error> {
 	use cumulus_client_consensus_aura::collators::slot_based::{self as slot_based, Params as SlotBasedParams};
 
-	let proposer_factory = sc_basic_authorship::ProposerFactory::with_proof_recording(
+	let proposer = sc_basic_authorship::ProposerFactory::new(
 		task_manager.spawn_handle(),
 		client.clone(),
 		transaction_pool,
 		prometheus_registry,
 		telemetry.clone(),
 	);
-
-	let proposer = Proposer::new(proposer_factory);
 
 	let collator_service = CollatorService::new(
 		client.clone(),
@@ -433,10 +437,10 @@ fn start_consensus(
 		},
 		keystore,
 		collator_key,
+		collator_peer_id,
 		para_id,
 		proposer,
 		collator_service,
-		authoring_duration: Duration::from_millis(2000),
 		reinitialize: false,
 		slot_offset: Duration::from_secs(1),
 		block_import_handle,

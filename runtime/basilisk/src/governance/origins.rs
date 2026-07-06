@@ -33,7 +33,7 @@ pub mod pallet_custom_origins {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
-	#[derive(PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, DecodeWithMemTracking, TypeInfo, RuntimeDebug)]
+	#[derive(PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, DecodeWithMemTracking, TypeInfo, Debug)]
 	#[pallet::origin]
 	pub enum Origin {
 		/// Origin able to dispatch a whitelisted call.
@@ -64,8 +64,7 @@ pub mod pallet_custom_origins {
 				fn try_origin(o: O) -> Result<Self::Success, O> {
 					o.into().and_then(|o| match o {
 						Origin::$name => Ok($success),
-						r => Err(O::from(r)),
-					})
+						r => Err(O::from(r))})
 				}
 				#[cfg(feature = "runtime-benchmarks")]
 				fn try_successful_origin() -> Result<O, ()> {
@@ -108,8 +107,7 @@ pub mod pallet_custom_origins {
 						$(
 							Origin::$item => Ok($success),
 						)*
-						r => Err(O::from(r)),
-					})
+						r => Err(O::from(r))})
 				}
 				#[cfg(feature = "runtime-benchmarks")]
 				fn try_successful_origin() -> Result<O, ()> {

@@ -1,9 +1,11 @@
 use frame_support::traits::ExistenceRequirement;
 use orml_traits::MultiCurrency;
+use orml_xcm_support::AmountCredit;
 use pallet_broadcast::types::ExecutionType;
 use polkadot_xcm::v5::prelude::*;
 use sp_core::Get;
 use sp_runtime::traits::{Convert, Zero};
+use sp_std::boxed::Box;
 use sp_std::marker::PhantomData;
 use sp_std::vec;
 use xcm_executor::traits::AssetExchange;
@@ -94,11 +96,12 @@ where
 					"Sell should return more than mininum buy amount."
 				);
 				Currency::withdraw(asset_out, &account, amount_received, ExistenceRequirement::AllowDeath)?; // burn the received tokens
-				let holding: Asset = (wanted.id.clone(), amount_received.into()).into();
-
-				Ok(holding.into())
+				Ok(AssetsInHolding::new_from_fungible_credit(
+					wanted.id.clone(),
+					Box::new(AmountCredit(amount_received.into())),
+				))
 			})
-			.map_err(|_| give.clone())
+			.map_err(|_| give)
 		} else {
 			// buy
 			let Fungible(amount) = wanted.fun else { return Err(give) };
@@ -116,12 +119,14 @@ where
 					max_sell_amount.into(),
 					use_onchain_route,
 				)?;
-				let mut assets = sp_std::vec::Vec::with_capacity(2);
+				let mut holding = AssetsInHolding::new();
 				let left_over = Currency::free_balance(asset_in, &account);
 				if left_over > Runtime::Balance::zero() {
 					Currency::withdraw(asset_in, &account, left_over, ExistenceRequirement::AllowDeath)?; // burn left over tokens
-					let holding: Asset = (given.id.clone(), left_over.into()).into();
-					assets.push(holding);
+					holding.subsume_assets(AssetsInHolding::new_from_fungible_credit(
+						given.id.clone(),
+						Box::new(AmountCredit(left_over.into())),
+					));
 				}
 				let amount_received = Currency::free_balance(asset_out, &account);
 				debug_assert!(
@@ -129,11 +134,13 @@ where
 					"Buy should return exactly the amount we specified."
 				);
 				Currency::withdraw(asset_out, &account, amount_received, ExistenceRequirement::AllowDeath)?; // burn the received tokens
-				let holding: Asset = (wanted.id.clone(), amount_received.into()).into();
-				assets.push(holding);
-				Ok(assets.into())
+				holding.subsume_assets(AssetsInHolding::new_from_fungible_credit(
+					wanted.id.clone(),
+					Box::new(AmountCredit(amount_received.into())),
+				));
+				Ok(holding)
 			})
-			.map_err(|_| give.clone())
+			.map_err(|_| give)
 		};
 
 		let _ = pallet_broadcast::Pallet::<Runtime>::remove_from_context();

@@ -532,4 +532,10 @@ impl<T: frame_system::Config> pallet_identity::WeightInfo for BasiliskWeight<T> 
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
+	fn remove_registrar(r: u32) -> Weight {
+		Weight::from_parts(10_111_597, 2626)
+			.saturating_add(Weight::from_parts(107_022, 0).saturating_mul(r.into()))
+			.saturating_add(T::DbWeight::get().reads(1_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
 }
