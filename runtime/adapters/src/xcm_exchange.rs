@@ -24,7 +24,7 @@ pub struct XcmAssetExchanger<Runtime, TempAccount, CurrencyIdConvert, Currency>(
 );
 
 impl<Runtime, TempAccount, CurrencyIdConvert, Currency> AssetExchange
-for XcmAssetExchanger<Runtime, TempAccount, CurrencyIdConvert, Currency>
+	for XcmAssetExchanger<Runtime, TempAccount, CurrencyIdConvert, Currency>
 where
 	Runtime: pallet_route_executor::Config,
 	TempAccount: Get<Runtime::AccountId>,
@@ -101,7 +101,7 @@ where
 					Box::new(AmountCredit(amount_received.into())),
 				))
 			})
-				.map_err(|_| give)
+			.map_err(|_| give)
 		} else {
 			// buy
 			let Fungible(amount) = wanted.fun else { return Err(give) };
@@ -140,7 +140,7 @@ where
 				));
 				Ok(holding)
 			})
-				.map_err(|_| give)
+			.map_err(|_| give)
 		};
 
 		let _ = pallet_broadcast::Pallet::<Runtime>::remove_from_context();

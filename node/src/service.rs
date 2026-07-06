@@ -66,7 +66,7 @@ type ParachainClient = TFullClient<
 type ParachainBackend = TFullBackend<Block>;
 
 type ParachainBlockImport =
-TParachainBlockImport<Block, SlotBasedBlockImport<Block, Arc<ParachainClient>, ParachainClient>, ParachainBackend>;
+	TParachainBlockImport<Block, SlotBasedBlockImport<Block, Arc<ParachainClient>, ParachainClient>, ParachainBackend>;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
@@ -140,9 +140,9 @@ pub fn new_partial(
 			client.clone(),
 			config.role.is_authority().into(),
 		)
-			.with_options(config.transaction_pool.clone())
-			.with_prometheus(config.prometheus_registry())
-			.build(),
+		.with_options(config.transaction_pool.clone())
+		.with_prometheus(config.prometheus_registry())
+		.build(),
 	);
 
 	let (slot_based_block_import, block_import_handle) = SlotBasedBlockImport::new(client.clone(), client.clone());
@@ -202,8 +202,8 @@ async fn start_node_impl(
 		collator_options.clone(),
 		hwbench.clone(),
 	)
-		.await
-		.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
+	.await
+	.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
 
 	let validator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
@@ -223,7 +223,7 @@ async fn start_node_impl(
 		sybil_resistance_level: CollatorSybilResistance::Resistant, // because of Aura
 		metrics: sc_network::service::NotificationMetrics::new(prometheus_registry.as_ref()),
 	})
-		.await?;
+	.await?;
 
 	if parachain_config.offchain_worker.enabled {
 		use futures::FutureExt;
@@ -241,9 +241,9 @@ async fn start_node_impl(
 				enable_http_requests: false,
 				custom_extensions: move |_| vec![],
 			})
-				.expect("Failed to create offchain workers")
-				.run(client.clone(), task_manager.spawn_handle())
-				.boxed(),
+			.expect("Failed to create offchain workers")
+			.run(client.clone(), task_manager.spawn_handle())
+			.boxed(),
 		);
 	}
 
@@ -276,9 +276,7 @@ async fn start_node_impl(
 		system_rpc_tx,
 		tx_handler_controller,
 		telemetry: telemetry.as_mut(),
-		tracing_execute_block: Some(Arc::new(ParachainTracingExecuteBlock::new(
-			client.clone(),
-		))),
+		tracing_execute_block: Some(Arc::new(ParachainTracingExecuteBlock::new(client.clone()))),
 	})?;
 
 	if let Some(hwbench) = hwbench {

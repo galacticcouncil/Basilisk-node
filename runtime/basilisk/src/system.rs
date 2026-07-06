@@ -275,7 +275,7 @@ impl WeightToFeePolynomial for WeightToFee {
 /// Parameterized slow adjusting fee updated based on
 /// https://w3f-research.readthedocs.io/en/latest/polkadot/overview/2-token-economics.html?highlight=token%20economics#-2.-slow-adjusting-mechanism
 pub type SlowAdjustingFeeUpdate<R> =
-TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier, MaximumMultiplier>;
+	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier, MaximumMultiplier>;
 
 parameter_types! {
 	pub const TransactionByteFee: Balance = 10 * MILLICENTS;

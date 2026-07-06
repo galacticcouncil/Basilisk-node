@@ -67,14 +67,14 @@ pub struct MultiCurrencyTrader<
 }
 
 impl<
-	AssetId,
-	Balance: FixedPointOperand + TryInto<u128>,
-	Price: FixedPointNumber,
-	ConvertWeightToFee: WeightToFee<Balance = Balance>,
-	AcceptedCurrencyPrices: NativePriceOracle<AssetId, Price>,
-	ConvertCurrency: Convert<Asset, Option<AssetId>>,
-	Revenue: TakeRevenue,
-> MultiCurrencyTrader<AssetId, Balance, Price, ConvertWeightToFee, AcceptedCurrencyPrices, ConvertCurrency, Revenue>
+		AssetId,
+		Balance: FixedPointOperand + TryInto<u128>,
+		Price: FixedPointNumber,
+		ConvertWeightToFee: WeightToFee<Balance = Balance>,
+		AcceptedCurrencyPrices: NativePriceOracle<AssetId, Price>,
+		ConvertCurrency: Convert<Asset, Option<AssetId>>,
+		Revenue: TakeRevenue,
+	> MultiCurrencyTrader<AssetId, Balance, Price, ConvertWeightToFee, AcceptedCurrencyPrices, ConvertCurrency, Revenue>
 {
 	/// Get the asset id of the first asset in `payment` and try to determine its price via the
 	/// price oracle.
@@ -90,15 +90,15 @@ impl<
 }
 
 impl<
-	AssetId,
-	Balance: FixedPointOperand + TryInto<u128>,
-	Price: FixedPointNumber,
-	ConvertWeightToFee: WeightToFee<Balance = Balance>,
-	AcceptedCurrencyPrices: NativePriceOracle<AssetId, Price>,
-	ConvertCurrency: Convert<Asset, Option<AssetId>>,
-	Revenue: TakeRevenue,
-> WeightTrader
-for MultiCurrencyTrader<AssetId, Balance, Price, ConvertWeightToFee, AcceptedCurrencyPrices, ConvertCurrency, Revenue>
+		AssetId,
+		Balance: FixedPointOperand + TryInto<u128>,
+		Price: FixedPointNumber,
+		ConvertWeightToFee: WeightToFee<Balance = Balance>,
+		AcceptedCurrencyPrices: NativePriceOracle<AssetId, Price>,
+		ConvertCurrency: Convert<Asset, Option<AssetId>>,
+		Revenue: TakeRevenue,
+	> WeightTrader
+	for MultiCurrencyTrader<AssetId, Balance, Price, ConvertWeightToFee, AcceptedCurrencyPrices, ConvertCurrency, Revenue>
 {
 	fn new() -> Self {
 		Self {
@@ -193,15 +193,15 @@ for MultiCurrencyTrader<AssetId, Balance, Price, ConvertWeightToFee, AcceptedCur
 /// We implement `Drop` so that when the weight trader is dropped at the end of XCM execution, the
 /// generated revenue is stored on-chain. This is configurable via the `Revenue` generic.
 impl<
-	AssetId,
-	Balance: FixedPointOperand + TryInto<u128>,
-	Price: FixedPointNumber,
-	ConvertWeightToFee: WeightToFee<Balance = Balance>,
-	AcceptedCurrencyPrices: NativePriceOracle<AssetId, Price>,
-	ConvertCurrency: Convert<Asset, Option<AssetId>>,
-	Revenue: TakeRevenue,
-> Drop
-for MultiCurrencyTrader<AssetId, Balance, Price, ConvertWeightToFee, AcceptedCurrencyPrices, ConvertCurrency, Revenue>
+		AssetId,
+		Balance: FixedPointOperand + TryInto<u128>,
+		Price: FixedPointNumber,
+		ConvertWeightToFee: WeightToFee<Balance = Balance>,
+		AcceptedCurrencyPrices: NativePriceOracle<AssetId, Price>,
+		ConvertCurrency: Convert<Asset, Option<AssetId>>,
+		Revenue: TakeRevenue,
+	> Drop
+	for MultiCurrencyTrader<AssetId, Balance, Price, ConvertWeightToFee, AcceptedCurrencyPrices, ConvertCurrency, Revenue>
 {
 	fn drop(&mut self) {
 		if !self.holding.is_empty() {
@@ -220,14 +220,14 @@ pub struct ToFeeReceiver<AccountId, AssetId, Balance, Price, C, D, F>(
 	PhantomData<(AccountId, AssetId, Balance, Price, C, D, F)>,
 );
 impl<
-	AccountId,
-	AssetId,
-	Balance: AtLeast32BitUnsigned,
-	Price,
-	C: Convert<Asset, Option<AssetId>>,
-	D: DepositFee<AccountId, AssetId, Balance>,
-	F: Get<AccountId>,
-> TakeRevenue for ToFeeReceiver<AccountId, AssetId, Balance, Price, C, D, F>
+		AccountId,
+		AssetId,
+		Balance: AtLeast32BitUnsigned,
+		Price,
+		C: Convert<Asset, Option<AssetId>>,
+		D: DepositFee<AccountId, AssetId, Balance>,
+		F: Get<AccountId>,
+	> TakeRevenue for ToFeeReceiver<AccountId, AssetId, Balance, Price, C, D, F>
 {
 	fn take_revenue(revenue: AssetsInHolding) {
 		for asset in revenue.into_assets_iter() {
