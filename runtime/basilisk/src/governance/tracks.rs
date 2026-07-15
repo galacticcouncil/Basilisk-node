@@ -271,10 +271,13 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 	type Id = u16;
 	type RuntimeOrigin = <RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin;
 	fn tracks() -> impl Iterator<Item = Cow<'static, Track<Self::Id, Balance, BlockNumber>>> {
-		if Parameters::is_testnet() {
-			TESTNET_TRACKS_DATA.iter().map(Cow::Borrowed)
-		} else {
+		// Referenda benchmarks execute at block one and require the referendum to
+		// remain in its preparing state. The one-block testnet preparation period
+		// would move it into deciding before that branch can be benchmarked.
+		if cfg!(feature = "runtime-benchmarks") || !Parameters::is_testnet() {
 			TRACKS_DATA.iter().map(Cow::Borrowed)
+		} else {
+			TESTNET_TRACKS_DATA.iter().map(Cow::Borrowed)
 		}
 	}
 

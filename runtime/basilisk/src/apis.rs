@@ -456,12 +456,6 @@ impl_runtime_apis! {
 
 			impl pallet_xyk_liquidity_mining_benchmarking::Config for Runtime {}
 
-			// The testnet governance tracks use a one-block preparation period. Since
-			// benchmarks execute at block one, this makes the referenda "preparing"
-			// benchmark enter the deciding state before it can measure that branch.
-			// Benchmark against the production track timings instead.
-			pallet_parameters::IsTestnet::<Runtime>::put(false);
-
 			let whitelist: Vec<TrackedStorageKey> = vec![
 				// Block Number
 				hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef702a5c1b19ab7a04f536c519aca4983ac").to_vec().into(),
