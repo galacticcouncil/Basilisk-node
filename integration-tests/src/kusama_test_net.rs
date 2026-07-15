@@ -53,7 +53,11 @@ use polkadot_runtime_parachains::configuration::HostConfiguration;
 use pretty_assertions::assert_eq;
 use primitives::{AssetId, Balance};
 use sp_core::{storage::Storage, Encode};
-use sp_runtime::{traits::AccountIdConversion, BuildStorage};
+use sp_runtime::{
+	generic::{Digest, DigestItem},
+	traits::AccountIdConversion,
+	BuildStorage,
+};
 
 use primitives::constants::chain::CORE_ASSET_ID;
 pub use xcm_emulator::Network;
@@ -573,6 +577,9 @@ pub fn go_to_block(number: BlockNumber) {
 	use frame_support::traits::OnFinalize;
 
 	let current_block = basilisk_runtime::System::block_number();
+	let next_slot = u64::from(pallet_aura::CurrentSlot::<basilisk_runtime::Runtime>::get())
+		.saturating_add(1)
+		.max(number as u64);
 
 	let aura_key = frame_support::storage::storage_prefix(b"AuraExt", b"RelaySlotInfo");
 
@@ -582,7 +589,7 @@ pub fn go_to_block(number: BlockNumber) {
 		use sp_consensus_slots::Slot;
 		use sp_core::Decode;
 		if let Ok((stored_slot, _)) = <(Slot, u32)>::decode(&mut &data[..]) {
-			if u64::from(stored_slot) >= number as u64 {
+			if u64::from(stored_slot) >= next_slot {
 				unhashed::kill(&aura_key);
 			}
 		}
@@ -605,7 +612,30 @@ pub fn go_to_block(number: BlockNumber) {
 		basilisk_runtime::EmaOracle::on_finalize(current_block);
 	}
 
+	let aura_slot = sp_consensus_slots::Slot::from(next_slot);
+	let digest = Digest {
+		logs: vec![DigestItem::PreRuntime(
+			sp_consensus_aura::AURA_ENGINE_ID,
+			aura_slot.encode(),
+		)],
+	};
+	let parent_hash = basilisk_runtime::System::parent_hash();
+	basilisk_runtime::System::set_block_number(number.saturating_sub(1));
+	basilisk_runtime::System::initialize(&number, &parent_hash, &digest);
+	basilisk_runtime::System::on_initialize(number);
+	basilisk_runtime::Session::on_initialize(number);
+	basilisk_runtime::Aura::on_initialize(number);
+	basilisk_runtime::AuraExt::on_initialize(number);
+	basilisk_runtime::RelayChainInfo::on_initialize(number);
+	basilisk_runtime::Scheduler::on_initialize(number);
 	ParachainSystem::on_initialize(number);
+	basilisk_runtime::ParachainInfo::on_initialize(number);
+	basilisk_runtime::PolkadotXcm::on_initialize(number);
+	basilisk_runtime::CumulusXcm::on_initialize(number);
+	basilisk_runtime::XcmpQueue::on_initialize(number);
+	basilisk_runtime::MessageQueue::on_initialize(number);
+	basilisk_runtime::MultiTransactionPayment::on_initialize(number);
+	basilisk_runtime::EmaOracle::on_initialize(number);
 
 	let mut sproof_builder = RelayStateSproofBuilder::default();
 
@@ -623,7 +653,7 @@ pub fn go_to_block(number: BlockNumber) {
 
 	sproof_builder.para_id = basilisk_runtime::ParachainInfo::parachain_id();
 	sproof_builder.included_para_head = Some(parent_head_data.clone());
-	sproof_builder.current_slot = (number as u64).into();
+	sproof_builder.current_slot = next_slot.into();
 
 	let (relay_storage_root, proof) = sproof_builder.into_state_root_and_proof();
 
@@ -650,21 +680,6 @@ pub fn go_to_block(number: BlockNumber) {
 		b"ParachainSystem",
 		b"UnincludedSegment",
 	));
-
-	basilisk_runtime::System::set_block_number(number);
-	basilisk_runtime::System::on_initialize(number);
-	basilisk_runtime::Session::on_initialize(number);
-	basilisk_runtime::Aura::on_initialize(number);
-	basilisk_runtime::AuraExt::on_initialize(number);
-	basilisk_runtime::RelayChainInfo::on_initialize(number);
-	basilisk_runtime::Scheduler::on_initialize(number);
-	basilisk_runtime::ParachainInfo::on_initialize(number);
-	basilisk_runtime::PolkadotXcm::on_initialize(number);
-	basilisk_runtime::CumulusXcm::on_initialize(number);
-	basilisk_runtime::XcmpQueue::on_initialize(number);
-	basilisk_runtime::MessageQueue::on_initialize(number);
-	basilisk_runtime::MultiTransactionPayment::on_initialize(number);
-	basilisk_runtime::EmaOracle::on_initialize(number);
 }
 
 pub fn go_to_next_block(_initialize: bool, _finalize: bool) {
