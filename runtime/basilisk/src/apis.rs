@@ -374,10 +374,9 @@ impl_runtime_apis! {
 						cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())
 						])
 				));
-				pub ExistentialDepositAsset: Option<Asset> = Some((
-					AssetLocation::get(),
-					ExistentialDeposit::get()
-				).into());
+				// Parent delivery is not priced, and the ORML asset transactor does not
+				// support the `mint_asset` hook used by the delivery helper.
+				pub ExistentialDepositAsset: Option<Asset> = None;
 			}
 
 			use cumulus_primitives_core::ParaId;
