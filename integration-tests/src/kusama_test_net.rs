@@ -41,9 +41,7 @@ pub fn parachain_reserve_account() -> AccountId {
 }
 
 pub use basilisk_runtime::{AccountId, VestingPalletId};
-use cumulus_pallet_parachain_system::parachain_inherent::{
-	BasicParachainInherentData, InboundMessagesData,
-};
+use cumulus_pallet_parachain_system::parachain_inherent::{BasicParachainInherentData, InboundMessagesData};
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use frame_support::assert_ok;
