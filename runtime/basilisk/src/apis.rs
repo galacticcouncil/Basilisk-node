@@ -36,6 +36,19 @@ use xcm_runtime_apis::{
 	fees::Error as XcmPaymentApiError,
 };
 
+#[cfg(feature = "runtime-benchmarks")]
+impl cumulus_pallet_session_benchmarking::Config for Runtime {
+	fn generate_session_keys_and_proof(owner: Self::AccountId) -> (Self::Keys, Vec<u8>) {
+		use codec::Encode;
+
+		let keys = opaque::SessionKeys::generate(&owner.encode(), None);
+		(keys.keys, keys.proof.encode())
+	}
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_transaction_payment::BenchmarkConfig for Runtime {}
+
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
 		fn version() -> RuntimeVersion {

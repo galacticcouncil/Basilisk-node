@@ -253,6 +253,7 @@ cumulus-client-network = { git = "https://github.com/galacticcouncil/polkadot-sd
 cumulus-client-service = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2603-4-patch", default-features = false }
 cumulus-client-collator = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2603-4-patch", default-features = false }
 cumulus-pallet-aura-ext = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2603-4-patch", default-features = false }
+cumulus-pallet-session-benchmarking = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2603-4-patch", default-features = false }
 cumulus-pallet-dmp-queue = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2603-4-patch", default-features = false }
 cumulus-pallet-parachain-system = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2603-4-patch", default-features = false }
 cumulus-pallet-xcm = { git = "https://github.com/galacticcouncil/polkadot-sdk", branch ="polkadot-stable2603-4-patch", default-features = false }
