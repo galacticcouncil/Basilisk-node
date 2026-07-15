@@ -115,8 +115,12 @@ impl Contains<RuntimeCall> for BaseFilter {
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
 	/// Maximum length of block. Up to 5MB.
-	pub BlockLength: frame_system::limits::BlockLength =
-		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength::builder()
+		.max_length(5 * 1024 * 1024)
+		.modify_max_length_for_class(DispatchClass::Normal, |max| {
+			*max = NORMAL_DISPATCH_RATIO * *max;
+		})
+		.build();
 	pub const SS58Prefix: u16 = 10041;
 	/// Basilisk base weight of an extrinsic
 	/// This includes weight for payment in non-native currency.
