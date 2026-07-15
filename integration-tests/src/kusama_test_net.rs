@@ -41,6 +41,9 @@ pub fn parachain_reserve_account() -> AccountId {
 }
 
 pub use basilisk_runtime::{AccountId, VestingPalletId};
+use cumulus_pallet_parachain_system::parachain_inherent::{
+	BasicParachainInherentData, InboundMessagesData,
+};
 use cumulus_primitives_core::ParaId;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use frame_support::assert_ok;
@@ -54,7 +57,6 @@ use primitives::{AssetId, Balance};
 use sp_core::{storage::Storage, Encode};
 use sp_runtime::{traits::AccountIdConversion, BuildStorage};
 
-use polkadot_primitives::runtime_api::runtime_decl_for_parachain_host::ParachainHostV13;
 use primitives::constants::chain::CORE_ASSET_ID;
 pub use xcm_emulator::Network;
 use xcm_emulator::{decl_test_networks, decl_test_parachains, decl_test_relay_chains, Parachain};
@@ -74,7 +76,7 @@ decl_test_networks! {
 }
 
 decl_test_relay_chains! {
-	#[api_version(11)]
+	#[api_version(16)]
 	pub struct RococoRelayChain {
 		genesis = rococo::genesis(),
 		on_init = {
@@ -629,7 +631,7 @@ pub fn go_to_block(number: BlockNumber) {
 
 	assert_ok!(ParachainSystem::set_validation_data(
 		basilisk_runtime::RuntimeOrigin::none(),
-		cumulus_primitives_parachain_inherent::ParachainInherentData {
+		BasicParachainInherentData {
 			validation_data: cumulus_primitives_core::PersistedValidationData {
 				parent_head: Default::default(),
 				relay_parent_number: number,
@@ -637,11 +639,13 @@ pub fn go_to_block(number: BlockNumber) {
 				max_pov_size: Default::default(),
 			},
 			relay_chain_state: proof,
-			downward_messages: Default::default(),
-			horizontal_messages: Default::default(),
 			collator_peer_id: None,
 			relay_parent_descendants: Default::default(),
-		}
+		},
+		InboundMessagesData {
+			downward_messages: Default::default(),
+			horizontal_messages: Default::default(),
+		},
 	));
 
 	sp_io::storage::clear(&frame_support::storage::storage_prefix(
