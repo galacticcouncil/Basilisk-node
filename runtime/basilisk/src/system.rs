@@ -33,7 +33,7 @@ use frame_support::{
 	dispatch::DispatchClass,
 	pallet_prelude::Get,
 	parameter_types,
-	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill, RuntimeDebug},
+	sp_runtime::{traits::IdentityLookup, FixedPointNumber, Perbill, Perquintill},
 	traits::{
 		fungible::HoldConsideration, ConstBool, Contains, Defensive, EitherOf, EqualPrivilegeOnly, InstanceFilter,
 		LinearStoragePrice, SortedMembers,
@@ -61,7 +61,7 @@ pub const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 pub const DEFAULT_RELAY_PARENT_OFFSET: u32 = 1;
 /// How many parachain blocks are processed by the relay chain per parent. Limits the number of
 /// blocks authored per slot.
-pub const BLOCK_PROCESSING_VELOCITY: u32 = 1;
+pub const BLOCK_PROCESSING_VELOCITY: u32 = 3;
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included into the
 /// relay chain.
 pub const UNINCLUDED_SEGMENT_CAPACITY: u32 = (3 + DEFAULT_RELAY_PARENT_OFFSET) * BLOCK_PROCESSING_VELOCITY;
@@ -115,8 +115,12 @@ impl Contains<RuntimeCall> for BaseFilter {
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 250;
 	/// Maximum length of block. Up to 5MB.
-	pub BlockLength: frame_system::limits::BlockLength =
-		frame_system::limits::BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength::builder()
+		.max_length(5 * 1024 * 1024)
+		.modify_max_length_for_class(DispatchClass::Normal, |max| {
+			*max = NORMAL_DISPATCH_RATIO * *max;
+		})
+		.build();
 	pub const SS58Prefix: u16 = 10041;
 	/// Basilisk base weight of an extrinsic
 	/// This includes weight for payment in non-native currency.
@@ -242,7 +246,7 @@ impl pallet_timestamp::Config for Runtime {
 	/// A timestamp: milliseconds since the unix epoch.
 	type Moment = u64;
 	type OnTimestampSet = ();
-	type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>;
+	type MinimumPeriod = ConstU64<0>;
 	type WeightInfo = weights::pallet_timestamp::BasiliskWeight<Runtime>;
 }
 
@@ -267,7 +271,7 @@ impl WeightToFeePolynomial for WeightToFee {
 			degree: 1,
 			negative: false,
 			coeff_frac: Perbill::from_rational(p % q, q),
-			coeff_integer: p / q,
+			coeff_integer: p / q
 		}]
 	}
 }
@@ -358,18 +362,7 @@ impl pallet_transaction_multi_payment::Config for Runtime {
 
 /// The type used to represent the kinds of proxying allowed.
 #[derive(
-	Copy,
-	Clone,
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Encode,
-	Decode,
-	DecodeWithMemTracking,
-	RuntimeDebug,
-	MaxEncodedLen,
-	TypeInfo,
+	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, DecodeWithMemTracking, Debug, MaxEncodedLen, TypeInfo,
 )]
 pub enum ProxyType {
 	Any,
@@ -496,7 +489,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
 	type ConsensusHook = ConsensusHook;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::BasiliskWeight<Runtime>;
-	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
 	type RelayParentOffset = RelayParentOffset;
 }
 
@@ -515,7 +507,7 @@ impl pallet_aura::Config for Runtime {
 	type AuthorityId = AuraId;
 	type MaxAuthorities = MaxAuthorities;
 	type DisabledValidators = ();
-	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type AllowMultipleBlocksPerSlot = ConstBool<true>;
 	type SlotDuration = ConstU64<SLOT_DURATION>;
 }
 
@@ -580,6 +572,7 @@ impl pallet_collator_selection::Config for Runtime {
 parameter_types! {
 	pub const Period: u32 = 4 * HOURS;
 	pub const Offset: u32 = 0;
+	pub const KeyDeposit: Balance = 0;
 }
 
 impl pallet_session::Config for Runtime {
@@ -595,6 +588,8 @@ impl pallet_session::Config for Runtime {
 	type Keys = opaque::SessionKeys;
 	type WeightInfo = ();
 	type DisablingStrategy = ();
+	type Currency = Balances;
+	type KeyDeposit = KeyDeposit;
 }
 
 impl staging_parachain_info::Config for Runtime {}

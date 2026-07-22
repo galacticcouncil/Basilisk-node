@@ -36,13 +36,26 @@ use xcm_runtime_apis::{
 	fees::Error as XcmPaymentApiError,
 };
 
+#[cfg(feature = "runtime-benchmarks")]
+impl cumulus_pallet_session_benchmarking::Config for Runtime {
+	fn generate_session_keys_and_proof(owner: Self::AccountId) -> (Self::Keys, Vec<u8>) {
+		use codec::Encode;
+
+		let keys = opaque::SessionKeys::generate(&owner.encode(), None);
+		(keys.keys, keys.proof.encode())
+	}
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+impl pallet_transaction_payment::BenchmarkConfig for Runtime {}
+
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
 		fn version() -> RuntimeVersion {
 			VERSION
 		}
 
-		fn execute_block(block: Block) {
+		fn execute_block(block: <Block as BlockT>::LazyBlock) {
 			Executive::execute_block(block)
 		}
 
@@ -79,7 +92,7 @@ impl_runtime_apis! {
 		}
 
 		fn check_inherents(
-			block: Block,
+			block: <Block as BlockT>::LazyBlock,
 			data: sp_inherents::InherentData,
 		) -> sp_inherents::CheckInherentsResult {
 			data.check_extrinsics(&block)
@@ -109,8 +122,8 @@ impl_runtime_apis! {
 			opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
 		}
 
-		fn generate_session_keys(seed: Option<Vec<u8>>) -> Vec<u8> {
-			opaque::SessionKeys::generate(seed)
+		fn generate_session_keys(owner: Vec<u8>, seed: Option<Vec<u8>>) -> sp_session::OpaqueGeneratedSessionKeys {
+			opaque::SessionKeys::generate(&owner, seed).into()
 		}
 	}
 
@@ -139,7 +152,7 @@ impl_runtime_apis! {
 		}
 
 		fn execute_block(
-			block: Block,
+			block: <Block as BlockT>::LazyBlock,
 			state_root_check: bool,
 			signature_check: bool,
 			select: frame_try_runtime::TryStateSelect,
@@ -246,8 +259,9 @@ impl_runtime_apis! {
 			PolkadotXcm::query_xcm_weight(message)
 		}
 
-		fn query_delivery_fees(destination: VersionedLocation, message: VersionedXcm<()>) -> Result<VersionedAssets, XcmPaymentApiError> {
-			PolkadotXcm::query_delivery_fees(destination, message)
+		fn query_delivery_fees(destination: VersionedLocation, message: VersionedXcm<()>, asset_id: VersionedAssetId) -> Result<VersionedAssets, XcmPaymentApiError> {
+			type AssetExchanger = <xcm::XcmConfig as xcm_executor::Config>::AssetExchanger;
+			PolkadotXcm::query_delivery_fees::<AssetExchanger>(destination, message, asset_id)
 		}
 	}
 
@@ -265,7 +279,7 @@ impl_runtime_apis! {
 					}
 
 		fn dry_run_xcm(origin_location: VersionedLocation, xcm: VersionedXcm<RuntimeCall>) -> Result<XcmDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
-			PolkadotXcm::dry_run_xcm::<Runtime, xcm::XcmRouter, RuntimeCall, xcm::XcmConfig>(origin_location, xcm)
+			PolkadotXcm::dry_run_xcm::<xcm::XcmRouter>(origin_location, xcm)
 		}
 	}
 
@@ -296,12 +310,15 @@ impl_runtime_apis! {
 		}
 	}
 
-	impl cumulus_primitives_core::GetCoreSelectorApi<Block> for Runtime {
-		fn core_selector() -> (
-			cumulus_primitives_core::CoreSelector,
-			cumulus_primitives_core::ClaimQueueOffset,
-		) {
-			ParachainSystem::core_selector()
+	impl cumulus_primitives_core::TargetBlockRate<Block> for Runtime {
+		fn target_block_rate() -> u32 {
+			BLOCK_PROCESSING_VELOCITY
+		}
+	}
+
+	impl cumulus_primitives_core::KeyToIncludeInRelayProof<Block> for Runtime {
+		fn keys_to_prove() -> cumulus_primitives_core::RelayProofRequest {
+			cumulus_primitives_core::RelayProofRequest::default()
 		}
 	}
 
@@ -357,10 +374,9 @@ impl_runtime_apis! {
 						cumulus_primitives_core::Junction::GeneralIndex(CORE_ASSET_ID.into())
 						])
 				));
-				pub ExistentialDepositAsset: Option<Asset> = Some((
-					AssetLocation::get(),
-					ExistentialDeposit::get()
-				).into());
+				// Parent delivery is not priced, and the ORML asset transactor does not
+				// support the `mint_asset` hook used by the delivery helper.
+				pub ExistentialDepositAsset: Option<Asset> = None;
 			}
 
 			use cumulus_primitives_core::ParaId;
@@ -431,7 +447,7 @@ impl_runtime_apis! {
 
 				fn get_asset() -> Asset {
 					Asset {
-						id: AssetId(Location::here()),
+						id: AssetId(AssetLocation::get()),
 						fun: Fungible(ExistentialDeposit::get()),
 					}
 				}

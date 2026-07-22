@@ -51,6 +51,8 @@ use xcm_builder::{
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
 	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
+#[cfg(feature = "runtime-benchmarks")]
+use xcm_executor::{traits::TransactAsset, AssetsInHolding};
 use xcm_executor::{Config, XcmExecutor};
 
 #[derive(Debug, Default, Encode, Decode, DecodeWithMemTracking, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
@@ -194,7 +196,6 @@ impl Config for XcmConfig {
 	type AssetTrap = PolkadotXcm;
 	type AssetLocker = ();
 	type AssetExchanger = XcmAssetExchanger<Runtime, TempAccount, CurrencyIdConvert, Currencies>;
-	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
 	type PalletInstancesInfo = AllPalletsWithSystem;
 	type MaxAssetsIntoHolding = ConstU32<64>;
@@ -472,7 +473,7 @@ parameter_types! {
 	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account_truncating();
 }
 
-pub type LocalAssetTransactor = MultiCurrencyAdapter<
+pub type OrmlAssetTransactor = MultiCurrencyAdapter<
 	Currencies,
 	UnknownTokens,
 	IsNativeConcrete<AssetId, CurrencyIdConvert>,
@@ -482,6 +483,28 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 	CurrencyIdConvert,
 	DepositToAlternative<Alternative, Currencies, AssetId, AccountId, Balance>,
 >;
+
+#[cfg(feature = "runtime-benchmarks")]
+pub struct BenchmarkMintAssetTransactor;
+
+#[cfg(feature = "runtime-benchmarks")]
+impl TransactAsset for BenchmarkMintAssetTransactor {
+	fn mint_asset(what: &Asset, _context: &XcmContext) -> Result<AssetsInHolding, XcmError> {
+		match what.fun {
+			Fungible(amount) => Ok(AssetsInHolding::new_from_fungible_credit(
+				what.id.clone(),
+				Box::new(orml_xcm_support::AmountCredit(amount)),
+			)),
+			_ => Err(XcmError::AssetNotFound),
+		}
+	}
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub type LocalAssetTransactor = (BenchmarkMintAssetTransactor, OrmlAssetTransactor);
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type LocalAssetTransactor = OrmlAssetTransactor;
 
 /// A call filter for the XCM Transact instruction. This is a temporary measure until we properly
 /// account for proof size weights.

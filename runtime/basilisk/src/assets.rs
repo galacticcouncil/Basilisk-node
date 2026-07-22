@@ -759,8 +759,10 @@ impl AmmTradeWeights<Trade<AssetId>> for RouterWeightInfo {
 
 		//For the stored route we expect a worst case with max number of trades in the most expensive pool which is LBP
 		//We have have two sell calculation for that, normal and inverse
-		weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_sell(2, 0)
-			.checked_mul(pallet_route_executor::MAX_NUMBER_OF_TRADES.into());
+		weight.saturating_accrue(
+			weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_sell(2, 0)
+				.saturating_mul(pallet_route_executor::MAX_NUMBER_OF_TRADES.into()),
+		);
 
 		let lbp_weight = weights::pallet_lbp::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);
 		let xyk_weight = weights::pallet_xyk::BasiliskWeight::<Runtime>::router_execution_sell(1, 0);

@@ -57,7 +57,7 @@ use hydradx_traits::evm::InspectEvmAccounts;
 use hydradx_traits::fee::InspectTransactionFeeCurrency;
 use hydradx_traits::fee::SwappablePaymentAssetTrader;
 use orml_traits::{GetByKey, Happened, MultiCurrency};
-use pallet_transaction_payment::OnChargeTransaction;
+use pallet_transaction_payment::{OnChargeTransaction, TxCreditHold};
 use sp_runtime::traits::TryConvert;
 use sp_std::{marker::PhantomData, prelude::*};
 
@@ -612,6 +612,13 @@ impl<T: Config> DepositFee<T::AccountId, AssetIdOf<T>, BalanceOf<T>> for Deposit
 
 /// Implements the transaction payment for native as well as non-native currencies
 pub struct TransferFees<T, MC, DF, FR>(PhantomData<(T, MC, DF, FR)>);
+
+impl<T, MC, DF, FR> TxCreditHold<T> for TransferFees<T, MC, DF, FR>
+where
+	T: Config,
+{
+	type Credit = ();
+}
 
 impl<T, MC, DF, FR> OnChargeTransaction<T> for TransferFees<T, MC, DF, FR>
 where

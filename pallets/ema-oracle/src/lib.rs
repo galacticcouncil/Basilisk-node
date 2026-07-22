@@ -591,7 +591,7 @@ pub fn ordered_pair(asset_a: AssetId, asset_b: AssetId) -> (AssetId, AssetId) {
 }
 
 /// Possible errors when requesting an oracle value.
-#[derive(RuntimeDebug, Encode, Decode, Copy, Clone, PartialEq, Eq, TypeInfo)]
+#[derive(Debug, Encode, Decode, Copy, Clone, PartialEq, Eq, TypeInfo)]
 pub enum OracleError {
 	/// The oracle could not be found
 	NotPresent,

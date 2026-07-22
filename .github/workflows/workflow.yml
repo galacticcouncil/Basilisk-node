@@ -24,6 +24,12 @@ jobs:
       - run: git describe --tags --abbrev=0 --always
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v1.12
+      - name: Install LLVM and libclang
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm-dev libclang-dev
+          echo "LLVM_CONFIG_PATH=$(command -v llvm-config)" >> "$GITHUB_ENV"
+          echo "LIBCLANG_PATH=$(llvm-config --libdir)" >> "$GITHUB_ENV"
       - name: Install Rust
         uses: codota/toolchain@00a8bf2bdcfe93aefd70422d3dec07337959d3a4
         with:
@@ -90,4 +96,3 @@ jobs:
       - name: Evaluate result
         if: contains(env.VERSION_UPDATE, 'have not been updated') || contains(env.VERSION_UPDATE, 'versions don''t match') || contains(env.VERSION_UPDATE, 'downgraded')
         run: exit 1
-
