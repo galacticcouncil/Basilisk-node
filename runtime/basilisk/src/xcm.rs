@@ -51,9 +51,9 @@ use xcm_builder::{
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
 	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
-use xcm_executor::{Config, XcmExecutor};
 #[cfg(feature = "runtime-benchmarks")]
 use xcm_executor::{traits::TransactAsset, AssetsInHolding};
+use xcm_executor::{Config, XcmExecutor};
 
 #[derive(Debug, Default, Encode, Decode, DecodeWithMemTracking, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct AssetLocation(pub Location);
