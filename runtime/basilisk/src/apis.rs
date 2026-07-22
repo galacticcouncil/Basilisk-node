@@ -447,7 +447,7 @@ impl_runtime_apis! {
 
 				fn get_asset() -> Asset {
 					Asset {
-						id: AssetId(Location::here()),
+						id: AssetId(AssetLocation::get()),
 						fun: Fungible(ExistentialDeposit::get()),
 					}
 				}

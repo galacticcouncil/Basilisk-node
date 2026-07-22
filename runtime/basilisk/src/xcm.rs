@@ -52,6 +52,8 @@ use xcm_builder::{
 	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, WithComputedOrigin,
 };
 use xcm_executor::{Config, XcmExecutor};
+#[cfg(feature = "runtime-benchmarks")]
+use xcm_executor::{traits::TransactAsset, AssetsInHolding};
 
 #[derive(Debug, Default, Encode, Decode, DecodeWithMemTracking, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct AssetLocation(pub Location);
@@ -471,7 +473,7 @@ parameter_types! {
 	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account_truncating();
 }
 
-pub type LocalAssetTransactor = MultiCurrencyAdapter<
+pub type OrmlAssetTransactor = MultiCurrencyAdapter<
 	Currencies,
 	UnknownTokens,
 	IsNativeConcrete<AssetId, CurrencyIdConvert>,
@@ -481,6 +483,28 @@ pub type LocalAssetTransactor = MultiCurrencyAdapter<
 	CurrencyIdConvert,
 	DepositToAlternative<Alternative, Currencies, AssetId, AccountId, Balance>,
 >;
+
+#[cfg(feature = "runtime-benchmarks")]
+pub struct BenchmarkMintAssetTransactor;
+
+#[cfg(feature = "runtime-benchmarks")]
+impl TransactAsset for BenchmarkMintAssetTransactor {
+	fn mint_asset(what: &Asset, _context: &XcmContext) -> Result<AssetsInHolding, XcmError> {
+		match what.fun {
+			Fungible(amount) => Ok(AssetsInHolding::new_from_fungible_credit(
+				what.id.clone(),
+				Box::new(orml_xcm_support::AmountCredit(amount)),
+			)),
+			_ => Err(XcmError::AssetNotFound),
+		}
+	}
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub type LocalAssetTransactor = (BenchmarkMintAssetTransactor, OrmlAssetTransactor);
+
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type LocalAssetTransactor = OrmlAssetTransactor;
 
 /// A call filter for the XCM Transact instruction. This is a temporary measure until we properly
 /// account for proof size weights.
